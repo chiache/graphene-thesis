@@ -14,7 +14,7 @@ confidential data and avoid leaking that data,
 %can be partitioned and secured by \systemname{} to prevent leaking the secret.
 %We demonstrate this use case
 %using 
-we partitioned a \java{}-based SSH client and server~\cite{apache-sshd}.
+we partitioned a \java{}-based SSH client and server~\citep{apache-sshd}.
 In this case, the protected secret is the session key.
 %For an SSH connection, one primary secret that needs to be secured
 %is the session key used for encrypting and decrypting the data
@@ -22,7 +22,7 @@ In this case, the protected secret is the session key.
 For both the SSH client and server, we create
 a control class in the enclave that includes 
 the key generator, encryption engine objects, secret key
-and the {\em BouncyCastle}~\cite{bouncycastle} cryptography library.
+and the {\em BouncyCastle}~\citep{bouncycastle} cryptography library.
 The rest of the application is outside of the enclave.
 %from the rest of the application.
 %\fixmedp{surprising the private key isn't also in the enclave}
@@ -58,7 +58,7 @@ to any competitors.
 %, such 
 %as trade secret, that developers intend to protect from insecure system stack.
 
-To demonstrate this use case, we modify a Hadoop sort algorithm~\cite{hadoop-sort},
+To demonstrate this use case, we modify a Hadoop sort algorithm~\citep{hadoop-sort},
 so that the implementation of its Partitioner, Mapper, Combiner, Sorter and Reducer
 are isolated from the rest of the Hadoop infrastructure. 
 The algorithm sorts values from a key-value store, in which
@@ -104,9 +104,9 @@ computation on secret data to the client machine from the trusted server.
 For instance, in a large medical hospital with a centralized repository of patient data,
 the doctors may want to access any patient data from any terminal using a web browser.
 A web developer can design an applet such as Secure Data 
-Manager(SDM)~\cite{sdm-applet} to store the secret patient data on a client machine, 
+Manager(SDM)~\citep{sdm-applet} to store the secret patient data on a client machine, 
 and display this information securely using Intel Protected Audio and Video Path 
-(PAVP) technology~\cite{intel-pavp}.
+(PAVP) technology~\citep{intel-pavp}.
 However, to protect the sensitive patient information from untrusted system stack, the 
 developer can use \systemname{} to isolate the classes that represent the secure data 
 in an enclave. The developer just has to identify such classes representing the secret 

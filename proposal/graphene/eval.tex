@@ -113,7 +113,7 @@ using the {\tt \gcc{}} compiler (v4.4.5),
 %small executable;
 the \light{} web server (v1.4.30) with 4 threads,
 the Apache web server (v2.4.3) with 4 processes,
-and the \busy{} shell (v4.1) executing the shell script test ({\tt multi.sh}) from the Unixbench suite (v5.1.3)~\cite{unixbench}.
+and the \busy{} shell (v4.1) executing the shell script test ({\tt multi.sh}) from the Unixbench suite (v5.1.3)~\citep{unixbench}.
 We measure memory utilization based on the maximum kernel-reported resident set size
 of each process or VM. For most applications, memory usage was fairly constant across inputs,
 so we only display representative examples.
@@ -146,7 +146,7 @@ For all tests, we used a minimal KVM disk image,
 %formatted as a 30GB\fixmewkj{this can be changed to be smaller, but I don't know if disk size would impact memory} raw disk image with ext4. The root image was 
 generated using debootstrap 1.0.39ubuntu0.3 and supplemented only by packages required to obtain, compile, and run the experiments.
 In order to make memory footprint measurements as fair as possible to KVM, 
-we used both the virtio balloon driver and kernel same page merging (KSM)~\cite{ksm}.
+we used both the virtio balloon driver and kernel same page merging (KSM)~\citep{ksm}.
 We also reduced the RAM allocated to the VM to the smallest size without harming performance---128MB.  We note that memory measured includes memory used by QEMU for VM device emulation, 
 adding a few dozen MB.
 %hence the total is 
@@ -244,7 +244,7 @@ to download a 100 byte file 50,000 times.
 %%% Apache uses {\tt Prefork MPM} module, with 4 processes created when server starts. \light{} has no multi-process support but we run it with 4 worker threads. 
 %%% >>>>>>> a694f6552d0348c4edc4e6334346550f5b72b239
 We exercised \busy{} with 
-300 iterations of the Unixbench benchmark~\cite{unixbench}, as well as 
+300 iterations of the Unixbench benchmark~\citep{unixbench}, as well as 
 300 iterations of a simple shell script benchmark that runs 6 common shell script commands
 ({\tt cp}, {\tt rm}, {\tt ls}, {\tt cat}, {\tt date}, and {\tt echo}).
 
@@ -284,13 +284,13 @@ In order to understand the overheads of individual system calls,
 Table~\ref{table:lmbench} lists 
 a representative sample of 
 tests from the
-\lmbench{} suite, version 2.5~\cite{McVoy:lmbench}.
+\lmbench{} suite, version 2.5~\citep{McVoy:lmbench}.
 Each row reports a mean and 95\% confidence interval;
 we use the default number of iterations for each test case.
 %We have added code to \lmbench{} to also calculate 95\% confidence intervals 
 %within a run~\footnote{The lmbench authors deliberately exclude variation statistics
 %because most methods assume a known distribution, generally a normal distribution---an 
-%assumption which is often not the case for a computer microbenchmark~\cite{staelin05lmbench}.
+%assumption which is often not the case for a computer microbenchmark~\citep{staelin05lmbench}.
 %Though confidence intervals should be taken with a grain of salt, 
 %we include them because they clearly indicate that these experiments have very low variance. In 
 %a few cases of minor performance improvement, one can assess the impact of noise.}.
@@ -389,9 +389,9 @@ involve path traversals, such as {\tt open} and {\tt exec}, result in substantia
 %%, adding an additional 100--200\% overhead. This is 
 %because the AppArmor extensions must verify that
 %the requested paths are in the permitted file system view.
-%Alternative implementations, such as a {\tt chroot-ed} environment using the aufs unioning file system version 3.0~\cite{aufs},
+%Alternative implementations, such as a {\tt chroot-ed} environment using the aufs unioning file system version 3.0~\citep{aufs},
 %resulted in opens that were {\em twice} as slow as our LSM extensions.
-An efficient implementation of an environment similar to FreeBSD  jails~\cite{jails}
+An efficient implementation of an environment similar to FreeBSD  jails~\citep{jails}
 would make all reference monitoring overheads negligible.
 
 \begin{table}[t!b!]
@@ -441,7 +441,7 @@ survive processes in kernel memory.
 In-process queue creation and lookup are faster than Linux.
 In-process send and receive overheads are higher
 because of locking on the internal data structures; the current implementation acquires and releases four
-fine-grained locks, two of which could be elided by using RCU to eliminate locking for the readers~\cite{mckenney04rcu}.
+fine-grained locks, two of which could be elided by using RCU to eliminate locking for the readers~\citep{mckenney04rcu}.
 Most of the costs of persisting message queue contents are also attributable to locking.
 
 Although inter-process send and receive still induce substantial overhead, the optimizations
@@ -549,7 +549,7 @@ and that signals and other IPC cannot cross sandbox boundaries.
 %of the system.  
 %Admittedly, Linux itself adds millions of lines to the TCB,
 %but independent results indicate the Graphene ABI
-%could be implemented on a substantially smaller kernel~\cite{porter11drawbridge, baumann13bascule}.
+%could be implemented on a substantially smaller kernel~\citep{porter11drawbridge, baumann13bascule}.
 
 
 
@@ -573,7 +573,7 @@ We conducted an evaluation of the security of the isolation mechanisms in Graphe
 (iii) access files not prescribed in its Manifest, and 
 (iv) discover secrets from picoprocesses in other sandboxes or from non-Graphene process through side-channels via the {\tt /proc} file system. 
 The first three attacks use inline assembly to directly issue a system call, and are blocked by the reference monitor; the fourth creates
-an attack similar to Memento~\cite{memento} and is frustrated by the fact that {\tt /proc} is implemented within {\tt libLinux} and
+an attack similar to Memento~\citep{memento} and is frustrated by the fact that {\tt /proc} is implemented within {\tt libLinux} and
 the system {\tt /proc} is inaccessible from Graphene.
 
 \begin{comment}
@@ -585,7 +585,7 @@ In our second experiment picoprocess 1 attempts to kill picoprocess 3 in a separ
 
 In a third experiment picoprocess 1 tries to access files that do not belong in its Manifest. Picoprocess 1 attempts to circumvent the Manifest rules through the function {\tt open}, {\tt fopen}, and also by calling the open system call directly. When the open system call is called, it’s filename parameter is checked against a list of acceptable directories and rejected if it does not match anything in this list. This blocks the picoprocess 1 from accessing illegal files.
 
-In our last experiment, picoprocess 1 attempts to obtain secrets from picoprocess 3, in an attack similar to Memento \cite{memento}. Graphene processes are restricted from using the proc file system in order gain information about system processes.  In our experiment, picoprocess 1's manifest file was setup to deny access to this directory and, as a result, it was unable access system or other processes' information outside its sandbox.
+In our last experiment, picoprocess 1 attempts to obtain secrets from picoprocess 3, in an attack similar to Memento \citep{memento}. Graphene processes are restricted from using the proc file system in order gain information about system processes.  In our experiment, picoprocess 1's manifest file was setup to deny access to this directory and, as a result, it was unable access system or other processes' information outside its sandbox.
 \end{comment}
 
 %This attack involves correlating a web browser’s data resident size (inspected via the {\tt proc} file system) to the web sites visited by a user. 
@@ -595,7 +595,7 @@ In our last experiment, picoprocess 1 attempts to obtain secrets from picoproces
 To evaluate the impact on system security,
 we \emph{manually} analyzed
 all reported Linux vulnerabilities from 2011--2013 (a total
-of 291 vulnerabilities)~\cite{linuxvuln}.
+of 291 vulnerabilities)~\citep{linuxvuln}.
 We categorized these exploits by kernel component, listed in Table~\ref{table:vulnerabilities}.
 Roughly half of these vulnerabilities required a system
 call  which Graphene blocks in order to exploit the system.

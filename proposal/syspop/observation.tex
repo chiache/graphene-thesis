@@ -326,7 +326,7 @@ steadily until an inflection point at 125 system calls, or supporting extended a
 where \compatmetric{} jumps to 25\%.
 To support roughly half of \osdist{} applications, one must have 145 system calls, and
 the curve plateaus around 202 system calls.  
-On the most extreme end, qemu's MIPS emulator (on an \osarch{} host) requires 270 system calls~\cite{Bellard05}.
+On the most extreme end, qemu's MIPS emulator (on an \osarch{} host) requires 270 system calls~\citep{Bellard05}.
 A \compatmetric{} of 100\% implies that
 %all Linux system calls
 all Linux applications ever used
@@ -469,7 +469,7 @@ operations, about half of the {\tt fcntl} opcodes, and only 9--20 {\tt prcntl} o
 %% However, knowing the most important operations for vectored system calls,
 %% developers of new system prototypes can choose to
 %% implement only part of these vectored system calls to obtain significant improvement on \compatmetric{}.
-%% %For instance, Graphene library OS~\cite{tsai14graphene} only implements {\tt FIONREAD} of {\tt ioctl} to satisfy the most common usage in applications. 
+%% %For instance, Graphene library OS~\citep{tsai14graphene} only implements {\tt FIONREAD} of {\tt ioctl} to satisfy the most common usage in applications. 
 
 \callout{In building a prototype system, a relatively small set of operations
 in vectored system calls are essential.}
@@ -598,7 +598,7 @@ However, it is plausible to provide the same functionality in
 simpler ways.
 For instance, {\tt /proc/cpuinfo} provides a formatted wrapper for
 the {\tt cpuinfo} instruction, which one could export
-directly to userspace using virtualization hardware, similar to Dune~\cite{belay12dune}.
+directly to userspace using virtualization hardware, similar to Dune~\citep{belay12dune}.
 Similarly, {\tt /dev/zero} or {\tt /dev/null} are convenient for use on the command
 line, but it is surprising that a significant number of applications
 issue {\tt read} or {\tt write} system calls, rather than simply zeroing a buffer
@@ -634,9 +634,9 @@ Because so many files in {\tt /proc} are accessed from the command line
 or by only a single application, it is hard to conclude that any should be deprecated.
 Nonetheless, these files represent large and complex APIs that create an important attack surface to defend.
 As noted in other studies, the permission on {\tt /proc} tend to be
-set liberally enough to leak a  significant amount of information~\cite{memento}.
+set liberally enough to leak a  significant amount of information~\citep{memento}.
 %\fixmedp{Can we comment on how many of these are really accessible from regular applications/ how used in SELinux/AppArmor}
-For files used by a single application, an abstraction like a fine-grained capability~\cite{shapiro99eros}
+For files used by a single application, an abstraction like a fine-grained capability~\citep{shapiro99eros}
 might better capture this need.  
 %\fixmedp{I think kvm actually does use some sort of capability already. Please check.}
 For files used primarily by the administrator,
@@ -682,7 +682,7 @@ from stricter enforcement of the principle of least privilege.}
 %Our static analysis does not detect these cases.
 %Nonetheless, in building a Linux-compatibility system, whether these pseudo-files are accurately 
 %emulated can have a first-order impact on performance.
-%In our experience building the Graphene library OS~\cite{tsai14graphene}, {\tt gcc}
+%In our experience building the Graphene library OS~\citep{tsai14graphene}, {\tt gcc}
 %performance \fixmedp{data nugget here}.
 
 %developers interested in emulating Linux or similar systems should carefully evaluate their emulation of {\tt /proc}.
@@ -725,8 +725,8 @@ Most programmers don't directly use the APIs exported by the kernel,
 but instead program to more user-friendly APIs in \libc{} and other libraries.
 %The \libc{} implementation contains lots of wrappers,
 %or more user-friendly API variants of system calls and others.
-For instance, \glibc{}~\cite{glibc} exports APIs for using locks and condition variables, which internally 
-use the subtle {\tt futex} system call~\cite{franke02futex}.
+For instance, \glibc{}~\citep{glibc} exports APIs for using locks and condition variables, which internally 
+use the subtle {\tt futex} system call~\citep{franke02futex}.
 
 Figure~\ref{fig:libc-popularity} shows the \usagemetric{} of 
 the global function symbols exported by 
@@ -748,7 +748,7 @@ and common linking patterns, systems could realize a non-trivial space savings.
 \fixmedp{Can we assert that important and unimportant APIs are interleaved
   on the same pages, so lazy loading doesn't help?}
 There are several reasons to avoid loading extra code into an application.
-First, there are code reuse attacks, such as return-oriented programming (ROP)~\cite{return-oriented},
+First, there are code reuse attacks, such as return-oriented programming (ROP)~\citep{return-oriented},
 that rely on the ability to find particular code snippets, called gadgets.
 Littering a process with extra gadgets offers needless assistance to an attacker.
 Similarly, when important and unimportant APIs are on the same page,

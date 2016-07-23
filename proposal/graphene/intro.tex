@@ -2,7 +2,7 @@
 \label{sec:intro}
 Existing library OSes provide single-process applications
 with the qualitative benefits of virtualization
-at a lower cost~\cite{porter11drawbridge,unikernels,baumann13bascule}.
+at a lower cost~\citep{porter11drawbridge,unikernels,baumann13bascule}.
 These benefits include security isolation of mutually untrusting applications,
 migration, and host platform compatibility.
 %Library OSes move portions of
@@ -18,14 +18,14 @@ Recent library OSes improve efficiency over full guest OSes by eliminating dupli
 between the guest and host kernel,
 such as the CPU scheduler, or
 %eliminating guest-level multiplexing code, as the library OS supports only one application;
-even compiling out unnecessary guest kernel APIs~\cite{unikernels}.
+even compiling out unnecessary guest kernel APIs~\citep{unikernels}.
 In total, this can reduce the memory requirements of running a single, isolated application
 by orders of magnitude, and similarly
 increase the number of applications which can run
-on a single system~\cite{porter11drawbridge,unikernels}.
+on a single system~\citep{porter11drawbridge,unikernels}.
 Library OSes ahve also proved
 useful for porting legacy applications
-onto new hardware platforms, such as Intel's SGX~\cite{baumann14haven}.
+onto new hardware platforms, such as Intel's SGX~\citep{baumann14haven}.
 %% dp: This sentence seems a little premature
 %In recent works, library OSes provide rich OS features for isolated contexts while the host OSes are untrusted
 
@@ -40,7 +40,7 @@ onto new hardware platforms, such as Intel's SGX~\cite{baumann14haven}.
 %% of sandboxing untrusted code and running applications
 %% designed for another OS.
 
-%Because library OSes execute within a VM \daniela{this phrase does not read good to me because (i) it might imply the picoprocesses need hypervisor support, as misunderstood by reviewer 1 and (ii) you already emphasized the drawbacks of leveraging a VM} or lightweight process ({\em picoprocess}~\cite{xax}),
+%Because library OSes execute within a VM \daniela{this phrase does not read good to me because (i) it might imply the picoprocesses need hypervisor support, as misunderstood by reviewer 1 and (ii) you already emphasized the drawbacks of leveraging a VM} or lightweight process ({\em picoprocess}~\citep{xax}),
 %library OSes execute with
 
 %% dp: Daniela, great suggestion!  We need to make this situation seem more
@@ -61,7 +61,7 @@ library OSes must  provide commonly-used multi-process abstractions,
 such as fork,  signals, System V IPC, and exit notification.
 To support multi-process abstractions, library OSes often have to rely on sharing OS states,
 backed by the hosts' memory sharing features.
-For example, Drawbridge~\cite{porter11drawbridge} cannot simulate process forking because copy-on-write memory sharing is not a platform-independent features.
+For example, Drawbridge~\citep{porter11drawbridge} cannot simulate process forking because copy-on-write memory sharing is not a platform-independent features.
 
 
 \begin{figure}[t!]

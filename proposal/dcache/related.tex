@@ -5,7 +5,7 @@ Most related work on improving directory cache effectiveness targets
 two orthogonal problems: reducing the miss latency and prefetching entries.
 Most similar to our optimization to memoize 
 prefix check results, SQL Server  caches the result of recent access control checks 
-for objects~\cite{sql-memoize}.
+for objects~\citep{sql-memoize}.
 
 
 %% SOSP SPACE
@@ -22,76 +22,76 @@ at once to the low-level file system, essentially creating a prefetching hint.
 %When storage is accessed over a network, lookup latency is a function of the number of round trips.
 Several network file systems have observed that component-at-a-time lookup 
 generates one round-trip message per component, and that a more efficient strategy
-would pass all components under a mount point in one message to the server for lookup~\cite{duchamp94nfs,welch94comparison}.
+would pass all components under a mount point in one message to the server for lookup~\citep{duchamp94nfs,welch94comparison}.
 A similar argument applies to local file systems, where a metadata index may be more efficiently fetched from disk
-by knowing the complete lookup target~\cite{windowsinternals, lensing13dlfs}.
-As a result, this division of labor is adopted by Windows NT and Solaris~\cite{windowsinternals,solarisinternals}.
+by knowing the complete lookup target~\citep{windowsinternals, lensing13dlfs}.
+As a result, this division of labor is adopted by Windows NT and Solaris~\citep{windowsinternals,solarisinternals}.
 One caveat is that, when not taken as a prefetching ``hint'', 
 this can push substantial VFS functionality into each low-level file system, such as handling redirection at mount points, symbolic links,
 and permission checking.
 Chen et al.\ note that 
 pushing permission checks from the VFS layer down to individual file systems 
 %individual file systems missing permission checks that aren't done in the VFS
-is a substantial source of difficult-to-prevent kernel bugs in Linux~\cite{chen11kbugs}.
+is a substantial source of difficult-to-prevent kernel bugs in Linux~\citep{chen11kbugs}.
 In contrast, this project caches the result of previous prefix checks over paths already in memory to reduce hit latency,
 rather than using the full path as a prefetching hint.
 
 
 Another ubiquitous latency-reduction strategy is persistently storing metadata in a hash table.
-In order to reduce network traffic, several distributed file systems~\cite{zhu08hba,brandt03,icis12zhang},
-clustered environments~\cite{sc09xing,sc12lafon},
-and cloud-based applications~\cite{iccsn11wang} have used metadata hashing to deterministically
+In order to reduce network traffic, several distributed file systems~\citep{zhu08hba,brandt03,icis12zhang},
+clustered environments~\citep{sc09xing,sc12lafon},
+and cloud-based applications~\citep{iccsn11wang} have used metadata hashing to deterministically
 map metadata to a node, eliminating the need for a directory service.
-The Direct Lookup File System (DLFS)~\cite{lensing13dlfs} essentially organizes the entire disk into a hash table,
+The Direct Lookup File System (DLFS)~\citep{lensing13dlfs} essentially organizes the entire disk into a hash table,
 keyed by path within the file system, in order to look up a file with only one I/O.
 Organizing a disk as a hash table introduces some challenges, such as converting a directory rename
 into a deep recursive copy of data and metadata.  
 DLFS solves the prefix check problem by representing parent permissions as a closed form expression;
-this approach essentially hard-codes traditional Unix discretionary access control, and cannot easily extend to Linux Security Modules~\cite{wright+lsm}.
+this approach essentially hard-codes traditional Unix discretionary access control, and cannot easily extend to Linux Security Modules~\citep{wright+lsm}.
 An important insight of our work is that
 full path hashing in memory, but not on disk,
 can realize similar performance gains,
-but without these usability problems, such as deep directory copies~\cite{lensing13dlfs} on a rename
-or error-prone heuristics to update child directory permissions~\cite{swift01winnt}.
+but without these usability problems, such as deep directory copies~\citep{lensing13dlfs} on a rename
+or error-prone heuristics to update child directory permissions~\citep{swift01winnt}.
 
 %% SOSP SPACE
-%% Every widely-used Unix variant accelerates lookup within a directory using hash tables already~\cite{bovet05,solarisinternals,osx-book,freebsd-book},
+%% Every widely-used Unix variant accelerates lookup within a directory using hash tables already~\citep{bovet05,solarisinternals,osx-book,freebsd-book},
 %% yet traverses the cache via the directory tree structure.
 %% This work demonstrates that hashing by full path can yield a substantial speedup even in memory,
 %% where pointer-based data structure traversal is much less expensive than disk seeks or network round trips.
 %% Moreover, there are advantages to keying a hash by full path but keeping a traditional on-disk structure,
-%% such as avoiding the need for recursive, on-disk data copies with a directory is renamed~\cite{lensing13dlfs}, or
-%% error-prone heuristics to update parent directory permissions that are propagated to children on disk~\cite{swift01winnt}.
+%% such as avoiding the need for recursive, on-disk data copies with a directory is renamed~\citep{lensing13dlfs}, or
+%% error-prone heuristics to update parent directory permissions that are propagated to children on disk~\citep{swift01winnt}.
 
 %% SOSP SPACE
 %% dp: Maybe cut more
 %% A number of less related strategies have also been employed to reduce metadata lookup latency.
 %% A number of file systems use B-tree variants to handle large directories efficiently or obtain
-%% asymptotically optimal search time~\cite{btrfs, ext4, windowsinternals}.
+%% asymptotically optimal search time~\citep{btrfs, ext4, windowsinternals}.
 %% In the case of NTFS, most of the metadata tree is packed in a region of disk (the master file table) 
-%% that is generally kept in memory~\cite{windowsinternals}.
+%% that is generally kept in memory~\citep{windowsinternals}.
 %% The Veritas cluster file system uses a specialized metadata identifier, called a cookie, to reduce the number of messages 
-%% required to ensure that writes execute consistently across different nodes~\cite{harmer2006cookie}.
-%% Speculator~\cite{nightingale05sosp} hides the latency of NFS consistency checks through 
+%% required to ensure that writes execute consistently across different nodes~\citep{harmer2006cookie}.
+%% Speculator~\citep{nightingale05sosp} hides the latency of NFS consistency checks through 
 %% speculative execution at the client.  The Andrew File System demonstrated 
 %% that latency for consistency checks (the rough equivalent of a coherence miss in a distributed file system),
-%% can be reduced with a stateful protocol~\cite{howard88}.
+%% can be reduced with a stateful protocol~\citep{howard88}.
 
 
 %% \subsection{Improving Metadata Lookup}
 
 %% Many works have addressed the challenge of efficiently looking up or managing metadata upon slower storage.
 %% Most of the related works are are done in the area of
-%% distributed file systems~\cite{zhu08hba,brandt03,icis12zhang},
-%% clustered environment~\cite{sc09xing,sc12lafon},
-%% or cloud-based applications~\cite{iccsn11wang}.
+%% distributed file systems~\citep{zhu08hba,brandt03,icis12zhang},
+%% clustered environment~\citep{sc09xing,sc12lafon},
+%% or cloud-based applications~\citep{iccsn11wang}.
 %% Within these related works,
 %% hash-based metadata placement is a commonly used strategy,
 %% in distributed file systems or cluster environment,
 %% to reduce messaging needed for looking up a file in the distributed server.
 
 
-%% Duchamp (1994)~\cite{duchamp94nfs} optimizes metadata lookup in networked file system (NFS),
+%% Duchamp (1994)~\citep{duchamp94nfs} optimizes metadata lookup in networked file system (NFS),
 %% with a direct lookup method that requires no exhaustive messaging for each path resolution.
 %% The work is targeted on improving DNLC of SunOS,
 %% with a new VFS operation {\tt PATH\_LOOKUP} to retrieve name cache by
@@ -102,14 +102,14 @@ or error-prone heuristics to update child directory permissions~\cite{swift01win
 %% by using a path-to-vnode cache for paths checked by the {\tt PATH\_LOOKUP} operation,
 %% which is relevant with our goal at a high level.
 
-%% DLFS (Direct-Lookup File System)~\cite{lensing13dlfs} has several
+%% DLFS (Direct-Lookup File System)~\citep{lensing13dlfs} has several
 %% similarities with our works in its implementation details.
 %% However, its goal is fundamentally different from ours: DLFS is mainly reducing cost of cache misses which require retrieving metadata from local storage.
 %% DLFS uses a hashing function of canonical pats to bucket metadata (inode) blocks of files
 %% followed by small data blocks, in order to speed up looking up metadata on disk,
 %% as well as reading smaller files.
 %% To identify files in the same bucket,
-%% DLFS uses a secondary hashing function (Lookup3 algorithm by Bob Jelkins~\cite{jelkins-hash})
+%% DLFS uses a secondary hashing function (Lookup3 algorithm by Bob Jelkins~\citep{jelkins-hash})
 %% in replacement of path comparison,
 %% and provides a back-of-the-envelope calculation of the probability for
 %% identification hash to collide within any buckets.
@@ -121,7 +121,7 @@ or error-prone heuristics to update child directory permissions~\cite{swift01win
 %% \subsection{Path Resolution and Access Control}
 
 %% Challenge of merging inheritable access permission in hierarchical file systems
-%% is addressed in Swift, et al (2001)~\cite{swift01winnt}.
+%% is addressed in Swift, et al (2001)~\citep{swift01winnt}.
 %% They use ACLs in Windows NT file systems as an example:
 %% to propagate the ACL changes to a whole tree of objects,
 %% there will be ambiguity of access right on objects in the tree if some of the objects also have ACLs.  
@@ -147,13 +147,13 @@ or error-prone heuristics to update child directory permissions~\cite{swift01win
 \paragraph{VFS Cache Prefetching.}
 Several file systems optimize the case where a 
 {\tt readdir} is followed by {\tt stat} to access metadata of subdirectories,
-such as with the {\tt ls -l} command~\cite{lensing13dlfs,grid07thain,bisson12}.
+such as with the {\tt ls -l} command~\citep{lensing13dlfs,grid07thain,bisson12}.
 When a directory read is requested, these low-level file systems speculatively 
 read the file inodes, which are often in relatively close disk sectors,
 into a private memory cache, from which subsequent lookups or stat requests are serviced.
 Similarly, the NFS version 2 protocol includes a {\tt READDIRPLUS} operation,
 which requests both the directory contents and attributes of all children
-in one message round trip~\cite{rfc1813}.
+in one message round trip~\citep{rfc1813}.
 These file systems must implement their own heuristics to manage this cache.
 Prefetching is orthogonal to our work,
 which more effectively caches what has already been requested from the low-level file system.
@@ -163,7 +163,7 @@ which more effectively caches what has already been requested from the low-level
 %\paragraph{Lexical Path Processing.}
 %% Although Plan 9 does not include a directory cache and does component-at-a-time
 %% lookup, Plan 9 introduced the idea of 
-%% optimization through lexical path semantics~\cite{pike00lexical}.  Specifically, in Unix and Linux,
+%% optimization through lexical path semantics~\citep{pike00lexical}.  Specifically, in Unix and Linux,
 %% the path {\tt /home/alice/../bob} could map to a path other than {\tt /home/bob}
 %% if {\tt /home/alice} is a symbolic link.  In Plan 9, this path can be pre-processed
 %% to {\tt /home/bob} before lookup, with the assistance of a per-process, lexical substitution table.
@@ -176,8 +176,8 @@ which more effectively caches what has already been requested from the low-level
 %%  is also a fast way to obtain a directory list
 %% with file attributes and handles, all in one message from the server.
 
-%% DLFS, Chirp~\cite{grid07thain} and
-%% the Fast File System Crawler~\cite{bisson12}
+%% DLFS, Chirp~\citep{grid07thain} and
+%% the Fast File System Crawler~\citep{bisson12}
 %% use a similar strategy to optimize directory listing in file systems.
 %% Theses works are focused on speeding up the case where
 
@@ -187,11 +187,11 @@ which more effectively caches what has already been requested from the low-level
 %% so the file system drivers can list directories in details for the {\tt readdir} operations.
 %% These file systems will use a cache or buffer with limited size or age, to preserve the directory listing results
 %% for the consequential {\tt stat} operations.
-%% {\tt READDIRPLUS} in NFSv2 extension~\cite{rfc1813} is also a fast way to obtain a directory list
+%% {\tt READDIRPLUS} in NFSv2 extension~\citep{rfc1813} is also a fast way to obtain a directory list
 %% with file attributes and handles, all in one message from the server.
 
 
-%% Read-Copy-Update (RCU)~\cite{dcachercu04} is a significant optimization on the Linux directory cache,
+%% Read-Copy-Update (RCU)~\citep{dcachercu04} is a significant optimization on the Linux directory cache,
 %% by assuming optimistic synchronization.
 %% RCU can improve concurrency and reduce synchronization costs for read-only operations on the hash table of the directory cache,
 %% by deferring any updates (insertion or deletion) in the hash table.
@@ -200,7 +200,7 @@ which more effectively caches what has already been requested from the low-level
 %% and reduce the cost of reference counting.
 
 %% Another work that improves synchronization cost of directory cache
-%% is the Veritas cluster file system with cookie-based lookup~\cite{harmer2006cookie}.
+%% is the Veritas cluster file system with cookie-based lookup~\citep{harmer2006cookie}.
 %% When a metadata name cache entry is allocated, the Veritas file system attach a copy of cookie associated with the metadata.
 %% Upon update of any name cache entry (reusing, renaming or deletion),
 %% a node in the cluster will modify its cookie.
@@ -214,7 +214,7 @@ which more effectively caches what has already been requested from the low-level
 % dp: Meh
 %\fixmetsai{see in comment: related work about metadata update?}  
 \begin{comment}
-HFS~\cite{zhang07hfs}, Ganger and Patt (1994)~\cite{ganger94}, Soft Updates~\cite{ganger00}.
+HFS~\citep{zhang07hfs}, Ganger and Patt (1994)~\citep{ganger94}, Soft Updates~\citep{ganger00}.
 \end{comment}
 
 %% dp: K42 - I can't find any evidence of similar optimizations in K42.  They mostly partition stuff to avoid lock and cache coherence contention, plus use RCU.

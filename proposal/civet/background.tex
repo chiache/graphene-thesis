@@ -15,7 +15,7 @@ Using \sgx{}, an
 application can designate part of its virtual memory as an {\em enclave}.
 The CPU guarantees that the contents of the enclave never leave the CPU package unencrypted.
 The CPU also measures the integrity of a binary loaded into the enclave, and offers remote attestation,
-similar to a TPM~\cite{TPM}.
+similar to a TPM~\citep{TPM}.
 
 %%% create a protected memory region, called an {\em enclave}, inside it's virtual memory,
 %%% where it can load its security sensitive data with hardware-enforced isolation from the untrusted OS. 
@@ -25,11 +25,11 @@ similar to a TPM~\cite{TPM}.
 
 \sgx{} is an appealing tool for protecting small amounts of highly-sensitive data or code, because it can defend 
 against a malicious or compromised OS, hypervisor, or even hardware peripheral.
-For instance, Hoekstra et al.~\cite{sgx-workshop1} show how SGX can be used
+For instance, Hoekstra et al.~\citep{sgx-workshop1} show how SGX can be used
 to build a trusted path from a video chat application to a GPU and network card, which maintains confidentiality and integrity of the
 video stream, even if the OS is compromised.
-Similarly, because DRAM contents are encrypted, SGX can resist attacks such as cold-boot attacks~\cite{halderman09coldboot} or 
-malicious peripheral devices~\cite{hudson15thunderstrike}.
+Similarly, because DRAM contents are encrypted, SGX can resist attacks such as cold-boot attacks~\citep{halderman09coldboot} or 
+malicious peripheral devices~\citep{hudson15thunderstrike}.
 
 \sgx{} provides useful building blocks for secure applications, but does not
 absolve the programmer of all responsibility for reasoning about end-to-end security.
@@ -39,7 +39,7 @@ and porting code into SGX can be subtle.
 Fundamentally, this argues for writing enclave code in higher-level languages
 (e.g., \java{}) that provide important 
 safety properties, such as memory and type safety, that reduce or eliminate common vulnerabilities.
-Ideally, one would formally verify security properties of enclave code~\cite{moat}; this verification is significantly aided by using 
+Ideally, one would formally verify security properties of enclave code~\citep{moat}; this verification is significantly aided by using 
 higher-level languages amenable to formal reasoning.  Verification is significantly harder
 with C/C++ or assembly languages.
 
@@ -76,8 +76,8 @@ with C/C++ or assembly languages.
 %% such as memory corruption bugs,
 %% control flow or information flows, semantic bugs, and so forth. 
 %% %Moreover, although \sgx{} code integrity guarantees make enclaves resistant to code injection,
-%% %an attacker may still manipulate control flow using code-reuse attacks~\cite{code-reuse-attacks}.
-%% Moreover, recent research~\cite{hudata} shows that even with control flow integrity,
+%% %an attacker may still manipulate control flow using code-reuse attacks~\citep{code-reuse-attacks}.
+%% Moreover, recent research~\citep{hudata} shows that even with control flow integrity,
 %% attackers can still manipulate the execution to leak the secrets through information flow.
 
 
@@ -120,9 +120,9 @@ with C/C++ or assembly languages.
 %%% or directly steal confidential information from the DRAM.
 %%% For \sgx{}, the only hardware included in the TCB is the CPU package,
 %%% and in practice CPUs are believed to be hard to attack.
-%%% Using techniques like cold-boot attacks~\cite{halderman09coldboot}
+%%% Using techniques like cold-boot attacks~\citep{halderman09coldboot}
 %%% to peek into DRAM content,
-%%% or intruding the boot process using corrupted peripheral devices like Thuderstrike~\cite{hudson15thunderstrike}
+%%% or intruding the boot process using corrupted peripheral devices like Thuderstrike~\citep{hudson15thunderstrike}
 %%% will affect any software-based isolation, but not \sgx{} enclaves.
 
 
@@ -190,12 +190,12 @@ with C/C++ or assembly languages.
 \subsection{Two SGX Usage Models}
 \paragraph{Non-partitioned applications.}
 One model for using SGX is to run an entire application in the enclave.
-This is exemplified by Haven~\cite{baumann14haven}, which runs a Windows application and all supporting libraries
+This is exemplified by Haven~\citep{baumann14haven}, which runs a Windows application and all supporting libraries
 on top of a library OS inside of the enclave.  This approach is illustrated on the left side of Figure~\ref{fig:libosvssdk}.
 The non-partitioned model does not require any application changes, but, in the case of Haven, bloats the TCB by 5.5 billion lines of code.
 By pulling millions of lines of extraneous code into an enclave, there is a significantly increased risk 
 of vulnerabilities that disclose
-sensitive data, such as Heartbleed~\cite{heartbleed}.
+sensitive data, such as Heartbleed~\citep{heartbleed}.
 The non-partitioned model does offer simple deployment and can provide practical benefits, 
 such as protecting an application from an untrusted cloud hypervisor.
 
@@ -221,7 +221,7 @@ Only sensitive data and computation are placed inside the enclaves.
 This model requires the developers to
 identify what in the application should be protected; harden an interface between trusted and untrusted components; 
 %modify the application source;
-and reason about potential information flows at the enclave boundary~\cite{kilpatrick2003privman}.
+and reason about potential information flows at the enclave boundary~\citep{kilpatrick2003privman}.
 This effort can be non-trivial and subtle, but for application developers motivated by interests such as 
 regulatory compliance or competitive advantage in business, the additional effort can yield a much smaller trusted computing
 base (TCB), and thus a reduced attack surface.
@@ -284,7 +284,7 @@ To our knowledge, no previous work has successfully executed a JVM inside an enc
 %% prevalent in applications that are not implemented in type-safe languages.
 
 %% The best known technique to prevent vulnerabilities is to model the applications and verify them using {\em formal verification}.
-%% While Sinha et.al.,~\cite{moat} use formal verification to prove confidentiality of enclave programs, it is impractical to accurately model complex sophisticated applications.
+%% While Sinha et.al.,~\citep{moat} use formal verification to prove confidentiality of enclave programs, it is impractical to accurately model complex sophisticated applications.
 %% As a result, in addition to formal verification, maintaining smallest TCB
 %% in the isolated components is the most practical approach 
 %% to ensure enclave security,
@@ -615,7 +615,7 @@ More importantly, the isolated components can only be developed in C or C++
 language, so the applications lose the language protection of \java{} inside the enclaves.
 A more plausible approach is to provide enclave-backed APIs
 from the \java{} VM,
-to support common use cases ({\em JVM-based})), such as a secure key-value store~\cite{vc3}.
+to support common use cases ({\em JVM-based})), such as a secure key-value store~\citep{vc3}.
 Although the JVM-based approach can save the application developers' effort
 of implementing isolated components,
 the use cases is limited to the pre-defined operations provided by the \java{} VM or the companion frameworks.

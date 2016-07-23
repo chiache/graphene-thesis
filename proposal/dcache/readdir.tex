@@ -97,7 +97,7 @@ in a directory.
 %However, 
 Some applications coordinate state through directory contents,
 requiring frequent and repeated directory listings.
-For example, {\tt maildir} is a popular email back-end storage format~\cite{maildir},
+For example, {\tt maildir} is a popular email back-end storage format~\citep{maildir},
 yielding better performance scalability than the older {\tt mbox} format.
 % way for IMAP and POP3 email server to store email message.
 Maildir stores each inbox or subfolder as a directory,
@@ -163,7 +163,7 @@ These \dentries{} must be separated from negative \dentries{} when they are look
 %To be able to cache and reuse {\tt readdir} results without inducing additional
 %disk reads for each file inode,
 %we leverage the \lookupflag{} flag to differentiate between a negative and incomplete \dentry{}.
-%The \lookupflag{} flag was only used by btrfs~\cite{btrfs} until Linux
+%The \lookupflag{} flag was only used by btrfs~\citep{btrfs} until Linux
 %kernel version 3.3.
 %For \dentries{} that already have an inode in memory, there is no need to use this flag;
 %similarly, once one of these \dentries{} is looked up, the flag is dropped and a proper \inode{} is linked
@@ -197,7 +197,7 @@ use from every disk I/O without inducing I/O that was not required.
 %% if a \dentry{} is added or deleted to a directory listed before,
 %% the cached directory list still remains intact, without any need to reconstruct or invalidate the list.
 
-We note that Solaris includes a similar complete directory caching mode~\cite{solarisinternals},
+We note that Solaris includes a similar complete directory caching mode~\citep{solarisinternals},
 but it is not integrated with readdir or calls other than lookup,
 is a separate cache (so the same dentries can be stored twice, and both hash tables must be checked before missing),
 and the comments indicate that it only has performance value for large directories.
@@ -206,7 +206,7 @@ tracking complete directories has more value than previously thought.
 
 %% SOSP Space
 %% Several file systems have used B+ trees or other optimizations
-%% to reduce the {\em miss} time for a directory lookup or listing~\cite{ext4, lensing13dlfs}.
+%% to reduce the {\em miss} time for a directory lookup or listing~\citep{ext4, lensing13dlfs}.
 %% We demonstrate that simple changes can substantially increase the hit rate.
 %% Both optimizations are important, and complementary.
 
@@ -218,7 +218,7 @@ Directory completeness caching can also avoid compulsory misses on new file crea
 Although negative dentry caching works well for repeated queries for specific files that do not exist,
 negative dentries are less effective when an application requests 
 {\em different} files that do not exist.
-A common example of unpredictable lookups comes from secure temporary file creation utilities~\cite{tmpfiles}.
+A common example of unpredictable lookups comes from secure temporary file creation utilities~\citep{tmpfiles}.
 In our prototype, a miss under a directory with the {\tt DIR\_COMPLETED}
 flag is treated as if a negative \dentry{} were found, eliding this compulsory miss.
 % SOSP Maybe-cut

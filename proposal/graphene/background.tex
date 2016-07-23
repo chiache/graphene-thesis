@@ -1,13 +1,13 @@
 \section{Background and Overview}
 \label{sec:background}
 
-Recent library OSes~\cite{porter11drawbridge,unikernels,baumann13bascule,osv}
+Recent library OSes~\citep{porter11drawbridge,unikernels,baumann13bascule,osv}
 are designed for security and efficiency, but are limited to single-process applications.
 %The security isolation of libOSes derives from 
 %limited, explicit data sharing and 
 %a narrow
 %host interface.  
-A libOS typically executes in either a paravirtual VM~\cite{unikernels,osv}
+A libOS typically executes in either a paravirtual VM~\citep{unikernels,osv}
 % \daniela{I would have the use of a VM as a discussion topic in the end of the paper.}, 
 or an OS process, called a {\em picoprocess},
 with an interface restricted to a narrowed set of host kernel ABIs.
@@ -27,7 +27,7 @@ implemented on any host OS, including virtual memory, threads, synchronization, 
 a file system, and networking.
 Although the Graphene prototype  host kernel is Linux, 
 we adapt a host ABI from Drawbridge/Bascule,
-which has been previously implemented on Windows, Hyper-V, and Barrelfish~\cite{porter11drawbridge,baumann13bascule,baumann09barrelfish}.
+which has been previously implemented on Windows, Hyper-V, and Barrelfish~\citep{porter11drawbridge,baumann13bascule,baumann09barrelfish}.
 %The Graphene host ABI is
 % summarized in Table~\ref{tab:abi} and discussed in more detail in \S\ref{sec:linux:pal}\fixmedp{if not cut...}.  
 %which exposes only tens of simple host calls. \daniela{briefly define picoprocess: A picoprocess is unmodified application code running with a libOS.}
@@ -151,7 +151,7 @@ Sandboxes & 1 & Move into a new sandbox, with a new manifest applied. Pipes and 
 \hline
 \end{tabular}
 \caption{Classes of 
-host ABI functions adopted from Drawbridge~\cite{porter11drawbridge}, 
+host ABI functions adopted from Drawbridge~\citep{porter11drawbridge}, 
 followed by ABIs added by Graphene.}
 \label{tab:abi}
 \end{table}
@@ -204,7 +204,7 @@ to physical resources, and facilitate inter-process security policy enforcement.
 
 Implementing processes
 inside the library OS is also feasible using 
-hardware MMU virtualization, similar to Dune~\cite{belay12dune},
+hardware MMU virtualization, similar to Dune~\citep{belay12dune},
 but this reintroduces a duplicate scheduler and memory management.
 Moreover, Intel and AMD have similar, but mutually incompatible MMU virtualization support,
 which would complicate live migration across platforms.
@@ -312,10 +312,10 @@ Our design deliberately provides options where these new PAL calls are missing, 
 \vspace{5pt}
 \noindent{\bf Comparison with microkernels.~}
 The building blocks of Graphene are very similar to the system abstractions of a 
-microkernel~\cite{liedtke95sosp,klein09sel4,elphinstone13microkernels,liedtke93sosp,chen93memory,Baron:1985:MOE,Accetta:1986:MNK}.
+microkernel~\citep{liedtke95sosp,klein09sel4,elphinstone13microkernels,liedtke93sosp,chen93memory,Baron:1985:MOE,Accetta:1986:MNK}.
 %such as the port and
-%message abstractions of Mach~\cite{
-Unlike a multi-server microkernel system, such as GNU Hurd~\cite{hurd} or Mach-US~\cite{stevenson95mach-us},
+%message abstractions of Mach~\citep{
+Unlike a multi-server microkernel system, such as GNU Hurd~\citep{hurd} or Mach-US~\citep{stevenson95mach-us},
 which implements Unix abstractions across a set of daemons that are shared by all processes in the system,
 Graphene implements system abstractions as a library in the application's address space,
 and can coordinate library state among picoprocesses to implement shared abstractions.
@@ -333,7 +333,7 @@ The Graphene host ABI could be described as a hybrid microkernel,
 which also exposes the file system and network of the host kernel.
 Similarly, we assume that picoprocesses are provided by a legacy OS kernel, like Linux or Windows,
 or by a Type 2 hypervisor.  We expect that a bare metal hypervisor could export a PAL,
-but would probably require services from a trusted VM, such as Xen's dom0~\cite{barham03xen}.
+but would probably require services from a trusted VM, such as Xen's dom0~\citep{barham03xen}.
 %or the PAL would implement more thread scheduling, networking, and file system code;
 %or the PAL ABI would change to push this code into the libOS.
 Arguably, recent libOS designs might be improved by rethinking the division of labor in
@@ -343,7 +343,7 @@ the network and file system stacks, but this is beyond the scope of this paper.
 \noindent{\bf Alternatives.~}
 Another approach to support multi-process applications in a libOS 
 would be to use hardware MMU virtualization such as nested paging
-used by a system like Dune~\cite{belay12dune}
+used by a system like Dune~\citep{belay12dune}
 in order to implement a second process abstraction, memory manager, and scheduler in the libOS.
 This approach threatens the efficiency benefits of deduplicating these features.
 A final option is exposing additional kernel interfaces, such as signals, 
@@ -384,9 +384,9 @@ fundamental.
 Traditional OS kernels typically provide  rich multi-process coordination 
 APIs, but this richness also makes for a very porous attack surface
 area.  For instance, on Windows, a program may inject libraries and
-create threads in another program~\cite{windows-dll-inject}; 
+create threads in another program~\citep{windows-dll-inject}; 
 similarly, unchecked file descriptor inheritance in Linux can lead to
-security problems~\cite{close-on-exec}.  
+security problems~\citep{close-on-exec}.  
 Although legacy OSes do enforce some access control rules on these abstractions,
 kernel developers must audit and add hooks to so much code
 that

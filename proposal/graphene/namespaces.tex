@@ -18,7 +18,7 @@ Within a sandbox, Graphene picoprocesses
 coordinate shared state used to implement multi-process
 abstractions, such as process identifiers, thread groups, and 
 System V IPC including message queues and semaphores, shared file system and file descriptor states (Table~\ref{tab:multiproc}.
-Similar to previous designs~\cite{porter11drawbridge,baumann13bascule}, 
+Similar to previous designs~\citep{porter11drawbridge,baumann13bascule}, 
 Graphene uses the host file system; 
 the libOS implements file handles and translates between POSIX and the host ABI.
 Identifying the best division of labor for a libOS file system is 
@@ -192,7 +192,7 @@ The IPC helper
 services RPCs from other picoprocesses and is
 hidden from the application. 
 GNU Hurd has a similar helper thread to implement signaling among a process's parent and
-immediate children~\cite{hurd};
+immediate children~\citep{hurd};
 Graphene generalizes this idea to share a broader range of abstractions among any picoprocesses
 within a sandbox.
 %The IPC helpers are necessary 
@@ -312,7 +312,7 @@ an {\tt exitnotify} RPC to picoprocess 4.
 
 %%% Using a helper thread alongside each process to asynchro-
 %%% nously handle signaling
-%%% is common in many microkernel-based OSes such as GNU Hurd~\cite{hurd}.
+%%% is common in many microkernel-based OSes such as GNU Hurd~\citep{hurd}.
 %%% GNU Hurd also maintains local mappings of PIDs and RPC ports for inter-process messaging.
 %%% However, PID namespace in GNU Hurd is only tracked between the parents/children, so signaling cannot be transferred between arbitrary processes.
 %%% Graphene handles PID namespace with global consistency inside a sandbox,
@@ -351,7 +351,7 @@ Graphene internally indexes point-to-point handles using PIDs.
 In order to facilitate reallocation of PIDs without global coordination, 
 Graphene-internal PIDs also include a {\em generation number},
 allowing picoprocesses to lazily detect reuse similar to generation numbers 
-for inodes in NFS~\cite{sandberg85nfs}.
+for inodes in NFS~\citep{sandberg85nfs}.
 \end{comment}
 
 \vspace{5pt}
@@ -527,10 +527,10 @@ This subsection summarizes the design principles that have emerged from this pro
 \noindent {\bf Service requests from local state whenever possible.}
 Sending RPC messages over Linux pipes is expensive;
 this is unsurprising, given the long history of 
-work on reducing IPC overhead in microkernels~\cite{liedtke93sosp,chen93memory}.  
+work on reducing IPC overhead in microkernels~\citep{liedtke93sosp,chen93memory}.  
 We expect that Graphene performance could be improved on a 
 microkernel with
-a more optimized IPC substrate, such as L4~\cite{liedtke95sosp,klein09sel4,elphinstone13microkernels};
+a more optimized IPC substrate, such as L4~\citep{liedtke95sosp,klein09sel4,elphinstone13microkernels};
 we take a complementary approach of avoiding IPC if possible.
 %but this is beyond the scope of our work, and we want Graphene to perform well on any 
 %host OS.

@@ -67,7 +67,7 @@ RCU already makes this trade-off (\S\ref{sec:background:dcache}).
 %% translation lookaside buffer (TLB). 
 %% For instance, each level of an x86 page table encodes access permissions 
 %% (e.g., read, write, execute, and user/kernel).  As the hierarchy grows deeper with larger address spaces
-%% and hardware virtualization support~\cite{intel10, nestedpagetables}, 
+%% and hardware virtualization support~\citep{intel10, nestedpagetables}, 
 %% needless loads can be elided.
 
 %Linux's use of RCU already makes this trade-off (\S\ref{sec:background:dcache}).
@@ -111,7 +111,7 @@ that the permission check has not executed recently.
 %% dp: Meh
 \begin{comment}
 For simplicity, we implemented a set associative cache, resembling the design of a L1 cache in CPU, but a more sophisticated data structure such as
-{\em Cuckoo hashing}~\cite{cuckoo04} can be even more efficient. 
+{\em Cuckoo hashing}~\citep{cuckoo04} can be even more efficient. 
 \end{comment}
 %lookup and insertion time asymptotically constant.
 %The PCC is initially 64 entries, and in our current prototype doubles in size, up to a configurable
@@ -263,7 +263,7 @@ the PCC only stores the unique pointer bits (8--39 in x86\_64 Linux) to save spa
 %% \fixmedp{Move down...}
 %% Permission caching is a simpler approach to determine file permission
 %% than merging access rights of all parent directories.
-%% The merging approach is used by related works like DLFS~\cite{lensing13dlfs},
+%% The merging approach is used by related works like DLFS~\citep{lensing13dlfs},
 %% which can only resolve permission based on
 %% credentials of users and groups.
 %% It cannot support more sophisticated access,
@@ -584,7 +584,7 @@ followed by the required collision resistance properties,
 and, finally, how we selected the signature size to make this
 risk vanishingly small.
 
-%We use the multilinear~\cite{lemire2013strongly} 2-universal hash function to generate 192-bit signatures,
+%We use the multilinear~\citep{lemire2013strongly} 2-universal hash function to generate 192-bit signatures,
 %a size selected to make the risk of a signature collision vanishingly small (analysis below).
 
 %% Our fast lookup method uses a hashing function to map canonical paths of files
@@ -622,7 +622,7 @@ risk vanishingly small.
 %% Unlike the path comparison solution, the signature-based solution can still cause
 %% collision, but at a lower probability.
 %% Although the signature-based (or hash-based) solution can be seen in several related work
-%% such as DLFS~\cite{lensing13dlfs},
+%% such as DLFS~\citep{lensing13dlfs},
 %% many of these works tend to underestimating the probability of collision.
 %% Based on our verification, the system described in DLFS
 %% actually have higher probability of collision than what the authors claim,
@@ -760,7 +760,7 @@ we thus use a 16 bit hash table index and a 240-bit signature.
 In contrast, when the signature is generated with a PRF,
 concerns about learning the signature from side channels are obviated.
 
-Our design uses the 2-universal multilinear hash function~\cite{lemire2013strongly}.
+Our design uses the 2-universal multilinear hash function~\citep{lemire2013strongly}.
 %and we carefully audit any code that calculates or compares signatures for potential side channels.
 We did several experiments using PRFs based on the AES-NI hardware, and could not
 find a function that was fast enough to improve over baseline Linux.
@@ -790,7 +790,7 @@ Thus, the main reason to select a 2-universal function over a
 PRF is performance.  
 Our design can use a hash function from either family.
 Figure~\ref{fig:hash} compares the performance of hashing different message lengths
-using the 2-universal multilinear hash function~\cite{lemire2013strongly}  (mhash)
+using the 2-universal multilinear hash function~\citep{lemire2013strongly}  (mhash)
 and, as a PRF,
 the CBC-MAC algorithm with hardware-accelerated AES
 as the block cipher.
@@ -826,7 +826,7 @@ which is comparable to signature sizes used in data
 deduplication systems, ranging from 128--256 bits.  Deduplication designs commonly 
 select a signature size that introduces a
 risk of collisions substantially less than the risk of undetected ECC RAM 
-errors~\cite{Debnath:2010:CSU:1855840.1855856, Srinivasan:2012:ILI:2208461.2208485, Quinlan:2002:VNA:645371.651321, Zhu:2008:ADB:1364813.1364831}.
+errors~\citep{Debnath:2010:CSU:1855840.1855856, Srinivasan:2012:ILI:2208461.2208485, Quinlan:2002:VNA:645371.651321, Zhu:2008:ADB:1364813.1364831}.
 
 We assume an adversary that is searching for collisions by brute force.
 This adversary must lookup paths on the system,
@@ -994,7 +994,7 @@ In a system with 10-year uptime, assuming the directory cache is never shrinked,
 
 %The probability of either type of collision is lower than $2^{-128}$,
 %which is algorithmically negligible.
-%Because mean-time-to-failure (MTTF) of most hard drives ranges from $10^6$ to $1.5\times10^6$ hours~\cite{schroeder07mttf},
+%Because mean-time-to-failure (MTTF) of most hard drives ranges from $10^6$ to $1.5\times10^6$ hours~\citep{schroeder07mttf},
 %any directory collisions will be indistinguishable from a disk sector 
 %failure that corrupts directory metadata.
 %\fixmedp{Let's consider dropping the first case for space here.}
@@ -1153,7 +1153,7 @@ Thus far, we have explained our fast path optimization using the relatively stra
 case of canonical path names.  
 This section explains how these optimizations integrate with Linux's
 advanced security modules,
-%, such as SELinux~\cite{selinux} and AppArmor~\cite{apparmor},
+%, such as SELinux~\citep{selinux} and AppArmor~\citep{apparmor},
 as well as how we 
 address a number of edge cases in Unix path semantics,
 %which must be implemented correctly, 
@@ -1168,7 +1168,7 @@ such as mount options, mount aliases, and symbolic links.
 %Two key requirements of our dcache optimizations are that they must be general
 %and that space overheads for extra metadata must be minimized.
 Linux includes an extensible security
-module framework (LSMs~\cite{wright+lsm}), upon which SELinux~\cite{selinux}, AppArmor~\cite{apparmor}, and others are built.
+module framework (LSMs~\citep{wright+lsm}), upon which SELinux~\citep{selinux}, AppArmor~\citep{apparmor}, and others are built.
 An LSM can override the implementation of search permission checks,
 checking customized attributes of the directory hierarchy or
 process.
@@ -1327,7 +1327,7 @@ Our {\tt cred} approach memoizes complex and potentially arbitrary
 permission evaluation functions
 of different LSMs. %, with minimal memory overhead.
 %% SOSP Space
-%% In contrast, the recent DLFS file system~\cite{lensing13dlfs} minimized disk seeks
+%% In contrast, the recent DLFS file system~\citep{lensing13dlfs} minimized disk seeks
 %% to lookup a file that is not in the dcache (i.e., optimizing the miss path for prefix checking).
 %% DLFS stored the parent permissions as a closed-form expression on disk.  Not only does this require
 %% substantially more space, but it doesn't easily generalize to LSMs.
@@ -1353,7 +1353,7 @@ Maintaining Unix semantics introduces overhead for non-canonical paths.
 We see significantly higher performance by using
 %We suggest that users should also be given the opportunity to reduce these overheads by using 
 Plan 9's {\em lexical}
-path semantics~\cite{pike00lexical}.  %, on an opt-in basis.
+path semantics~\citep{pike00lexical}.  %, on an opt-in basis.
 Plan 9 minimized network file system lookups by pre-processing
 paths such as {\tt /\fnone{}/\lnone{}/../\fntwo{}} to {\tt /\fnone{}/\fntwo{}}.
 We note that Plan 9 does component-at-a-time lookup, but does not have a directory cache.
@@ -1362,7 +1362,7 @@ We note that Plan 9 does component-at-a-time lookup, but does not have a directo
 
 %We expect such a behavior would be similar to the {\tt noatime} mount option, 
 %which disables a particularly expensive and rarely used 
-%Unix behavior\cite{atime-sux}, except when needed by a legacy application.
+%Unix behavior\citep{atime-sux}, except when needed by a legacy application.
 
 \paragraph{Symbolic Links.}  We resolve symbolic links on our lookup fastpath
 by creating \dentry{} aliases for symbolic links.
@@ -1432,7 +1432,7 @@ or the referenced \dentries{} are removed to reclaim space.
 \begin{comment}
 
 Plan 9 introduced the idea of 
-optimization through lexical path semantics~\cite{pike00lexical}.  Specifically, in Unix and Linux,
+optimization through lexical path semantics~\citep{pike00lexical}.  Specifically, in Unix and Linux,
 the path {\tt /home/alice/../bob} could map to a path other than {\tt /home/bob}
 if {\tt /home/alice} is a symbolic link.  In Plan 9, this path can be pre-processed
 to {\tt /home/bob} before lookup, with the assistance of a per-process, lexical substitution table.
@@ -1620,12 +1620,12 @@ DLHT it is currently stored in.
 %each of these tricky cases, and maintains good performance in the common case.
 
 \paragraph{Network File Systems.} Our prototype does not support 
-direct lookup on network file systems, such as NFS versions 2 and 3~\cite{sandberg85nfs}.
+direct lookup on network file systems, such as NFS versions 2 and 3~\citep{sandberg85nfs}.
 In order to implement close-to-open consistency on a stateless protocol, 
 the client must revalidate all path components at the server---effectively forcing 
 a cache miss and nullifying any benefit to the hit path.
 We expect these optimizations could benefit
-a stateful protocol with callbacks on directory modification, such as AFS~\cite{howard88} or NFS 4.1~\cite{rfc5661}.
+a stateful protocol with callbacks on directory modification, such as AFS~\citep{howard88} or NFS 4.1~\citep{rfc5661}.
 
 
 %%  (and {\tt cred}/prefix check cache).
@@ -1640,7 +1640,7 @@ a stateful protocol with callbacks on directory modification, such as AFS~\cite{
 %We do not currently support mount namespaces on the lookup fastpath,
 %and non-default namespaces must take the lookup slowpath.
 %We expect that the fastpath can be extended to mount namespaces 
-%with process-local, lexical substitution tables, similar to Plan 9~\cite{pike00lexical}.
+%with process-local, lexical substitution tables, similar to Plan 9~\citep{pike00lexical}.
 
 
 %%% Unlike other mount points, while mounting a file system in a mount namespace,

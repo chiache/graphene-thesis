@@ -40,9 +40,9 @@ new CPUs are offering features to protect application-level code and data
 from a  compromised or malicious system software stack,
 including the OS or hypervisor, or simply isolating portions of the 
 application address space from the rest of the application.
-Examples include \intel{} \sgx{}~\cite{sgx-manual}, 
+Examples include \intel{} \sgx{}~\citep{sgx-manual}, 
 %\fixmedp{Can we mention/cite others? IBM and ARM?}
-IBM SecureBlue++~\cite{secureblue++}, and ARM TrustZone~\cite{trustzone}.
+IBM SecureBlue++~\citep{secureblue++}, and ARM TrustZone~\citep{trustzone}.
 %are offering models of mutual distrust, which facilitate protecting
 %an application from a
 \sgx{} offers %One feature of \sgx{} is restricted
@@ -66,16 +66,16 @@ to a few programmer-defined entry points, the programmer must still
 reason about what those entry points should be, protect against 
 malicious inputs, and verify that code paths within the enclave that cannot
 inadvertently leak sensitive data.
-Iago attacks~\cite{iago}, where an OS offers malicious system call return values,
+Iago attacks~\citep{iago}, where an OS offers malicious system call return values,
  are notoriously difficult to defend against;
 although limited countermeasures exist for the OS API (typically with the cooperation of a 
-trusted hypervisor)~\cite{kwon2016sego},%\fixmedp{cite the asplos 16 inktag paper},
+trusted hypervisor)~\citep{kwon2016sego},%\fixmedp{cite the asplos 16 inktag paper},
 there are no off-the-shelf defenses against Iago-style attacks from libraries
 or compromised application code.
 Further, SGX is designed to run a small, native code library inside of a larger
 application; support for running managed languages in an enclave is currently limited.  
 Writing a security-sensitive application in an unsafe
-language like C dramatically increases the risk of exploitable pointer or control flow errors~\cite{nergal2001libc,bletsch2011jump,checkoway2010return}, which ultimately disclose sensitive data or undermine the integrity of the enclave.
+language like C dramatically increases the risk of exploitable pointer or control flow errors~\citep{nergal2001libc,bletsch2011jump,checkoway2010return}, which ultimately disclose sensitive data or undermine the integrity of the enclave.
 
 %Modern security hardware
 %such as  provides hardware protection to applications
@@ -114,7 +114,7 @@ language like C dramatically increases the risk of exploitable pointer or contro
 %the OS or hypervisor are simply stopped from peeking any application data, unless the isolated applications release any information. 
 
 Language-level techniques can offer more sophisticated insights into how
-to partition the application, as well as stronger protections ~\cite{bittau2008wedge,brumley2004privtrans,khatiwala2006data}.
+to partition the application, as well as stronger protections ~\citep{bittau2008wedge,brumley2004privtrans,khatiwala2006data}.
 %\fixmedp{Can we bless some language-level app partitioning tools here?}
 Similarly, managed languages such as \java{}, with type-checking,
 can prevent memory corruption attacks,
@@ -150,11 +150,11 @@ a specific use case.
 % approaches of combining
 %language and hardware protection often rely on ad-hoc solutions that
 %are specific to certain use cases or technologies.
-For example, VC3 uses \sgx{} to protect mappers and reducers in Hadoop framework~\cite{vc3}.
+For example, VC3 uses \sgx{} to protect mappers and reducers in Hadoop framework~\citep{vc3}.
 Although Hadoop is written in Java, the protected code in VC3 cannot be written in Java.
 
 %% dp: this sentence seems off track, unless you want to say something about ``this has to be in C''
-%Similarly, S-NFV uses \sgx{} to isolate states of Network Function Virtualization Applications~\cite{shih2016s}.
+%Similarly, S-NFV uses \sgx{} to isolate states of Network Function Virtualization Applications~\citep{shih2016s}.
 
 %\fixmedp{Please check the previous 2 sentences for accuracy; if I'm wrong, try to say something more crisp.
 %Also, any other important related work here?}
@@ -336,14 +336,14 @@ leading to better reasoning about the isolation properties of the partition.
 %one from each of hardware protection and language-level protection.
 To extend hardware protection, \systemname{} contributes techniques for dynamically loading \java{} classes in enclaves
 with the same code integrity verification as native, static binaries.
-\systemname{} uses the Graphene library OS~\cite{tsai14graphene} to facilitate 
+\systemname{} uses the Graphene library OS~\citep{tsai14graphene} to facilitate 
 running a restricted \jvm{} runtime in an enclave.
 %to facilitate and restrict the interface size of a 
 %and prove the measurement of loaded classes as part of the hardware-generated attestation.
 %Then \systemname{} verifies and attests loaded \java{} classes on the basis of measurement checking and attestation generation from the hardware.
 %On the other hand, \systemname{} has to adopt language-level protection to enforce information flow policies against leakage over the border of enclave.
 \systemname{} enforces information flow policies at the border of the enclave by incorporating
-Phosphor~\cite{bell2014phosphor} instrumentation on all classes in the enclave,
+Phosphor~\citep{bell2014phosphor} instrumentation on all classes in the enclave,
 tracing both explicit and implicit flows from any confidential data,
 and preventing tainted information from leaving the enclave by any interface, 
 except via explicit declassification by the developer.

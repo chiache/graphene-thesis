@@ -25,15 +25,15 @@ combining tools from both \sgx{} and \java{}.
 %\end{figure}
 
 There are multiple approaches to access SGX hardware from \java{} applications as illustrated in Figure~\ref{fig:alternatives}. Firstly, the whole \java{} application can run with the \java{} VM inside the enclaves,
-using a library OS like Haven~\cite{baumann14haven}({\em libOS-based}).
+using a library OS like Haven~\citep{baumann14haven}({\em libOS-based}).
 Secondly, the untrusted components of \java{} application
 can run with the \java{} VM outside the enclaves, and a JNI wrapper can communicate
-with the trusted component written in native language running inside the enclave like ~\cite{vc3}({\em JNI-based}). 
+with the trusted component written in native language running inside the enclave like ~\citep{vc3}({\em JNI-based}). 
 However,the JNI-based approach requires developers to have the knowledge of
 enclave implementation, and loses the language protection of \java{} inside the enclaves.
 A more plausible approach is to provide enclave-backed APIs
 from the \java{} VM,
-to support common use cases ({\em JVM-based})), such as a secure key-value store~\cite{vc3}.
+to support common use cases ({\em JVM-based})), such as a secure key-value store~\citep{vc3}.
 Although the JVM-based approach can save the application developers' effort
 of implementing isolated components,
 the use cases is limited to the pre-defined operations provided by the \java{} VM or the companion frameworks.
@@ -309,7 +309,7 @@ prevent implicit or explicit leaks of sensitive secure provisioned data from the
 %\fixmedp{I assume the developer annotates sensitive data that should not leave, except via a declassifier?}
 For classes in the enclave, any confidential data,
 such as a private encryption key, is securely provisioned and protected by the \systemname{}.
-The \systemname{} runtime framework builds on Phosphor~\cite{bell2014phosphor}
+The \systemname{} runtime framework builds on Phosphor~\citep{bell2014phosphor}
 to instrument classes in the enclave to track information flow through the enclave.
 At the boundary of the enclave, any variable tainted with a
 confidential input cannot leave the enclave unless it is either passed through
@@ -431,7 +431,7 @@ We also assume \intel{} CPUs are resistant to direct, physical attack to the CPU
 
 We also assume that the JVM and JNI code are free from memory corruption and control flow attacks.
 Proving a JVM implementation correct is beyond the scope, although similar 
-efforts have been made previously to prove a language runtime correct~\cite{yang10safe}.
+efforts have been made previously to prove a language runtime correct~\citep{yang10safe}.
 We discourage developers from using JNI code in enclaves if possible.
 We do not support running \java{} application with JIT optimization
 inside the enclave.
@@ -479,7 +479,7 @@ we avoid adding the huge JIT compiler to the TCB of the enclaves.
 %\systemname{} assumes that the \sgx{} instructions are implemented correctly in the processor, and the SDK do not contain exploitable bugs to leak information. In addition, \systemname{} trusts the Graphene LibOS and the JVM running in the enclave with the trusted part of the application to not leak information. Thus, the security of the provisioned data is limited by the correctness of the processor, \sgx{}, Graphene LibOS, and JVM. \systemname{} also trusts the trusted part of the application to not leak information explicitly. \systemname{} prevents the trusted part of an application from implicitly leaking information.
 
 %Threats that we do not cover
-%\systemname{} inherits the threat model of \sgx{}~\cite{sgx}.
+%\systemname{} inherits the threat model of \sgx{}~\citep{sgx}.
 %The adversary controls the cloud provider's complete stack, OS, hypervisor, BIOS, system management mode, platform firmware, and device firmware. The adversary can also probe the memory and manipulate the I/O, but cannot read secret present in the processor.
-%\systemname{} do not defend against attack vectors such as side-channel, covert-channel and control-channel~\cite{control-channel}. Denial of Service (DOS) attack is not part of \systemname's threat model. Even if the OS never schedules the enclave program or the untrusted part of the application is manipulated to never enter the enclave, no provisioned secret is leaked outside the enclave.
+%\systemname{} do not defend against attack vectors such as side-channel, covert-channel and control-channel~\citep{control-channel}. Denial of Service (DOS) attack is not part of \systemname's threat model. Even if the OS never schedules the enclave program or the untrusted part of the application is manipulated to never enter the enclave, no provisioned secret is leaked outside the enclave.
 

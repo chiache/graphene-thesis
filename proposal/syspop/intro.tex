@@ -7,7 +7,7 @@
 Systems engineers and researchers routinely make design choices based on 
 what they believe to be the common and uncommon behaviors of a system.
 For instance, one recent project optimized the {\tt stat} and {\tt open} system calls
-at the expense of {\tt rename} and {\tt chmod}~\cite{tsai15dcache}.
+at the expense of {\tt rename} and {\tt chmod}~\citep{tsai15dcache}.
 In the case of a general-purpose OS, determining
 exactly what the common case is can be challenging.
 Thus, a developer's view of what APIs are important
@@ -21,7 +21,7 @@ primarily because of a lack of metrics.
 Deprecating an API is often a lengthy process, wherein
 users are repeatedly warned 
 and eventually some applications may still be broken.
-For example, a range of security problems arise from the ill-specified behavior of the {\tt signal} system call~\cite{zalewski01signals,cert-signals}.
+For example, a range of security problems arise from the ill-specified behavior of the {\tt signal} system call~\citep{zalewski01signals,cert-signals}.
 Despite 15 years of warnings to move to the more secure {\tt sigaction} call,
 {\tt signal} has not been removed from 32-bit x86 Linux,
 % (it was simply not added to x86\_64),
@@ -31,12 +31,12 @@ can be good for security, efficiency, and maintainability of OSes,
 but in practice this is difficult for OS developers to do without tools to analyze API usage.
 
 Many experimental operating systems add a rough Unix or Linux compatibility 
-layer to increase the number of supported applications~\cite{zeldovich+histar, aviram10determinator, xax, appavoo2003providing}.
+layer to increase the number of supported applications~\citep{zeldovich+histar, aviram10determinator, xax, appavoo2003providing}.
 Such systems generally support a fraction of Linux system calls,
 often just enough 
 to run a few target workloads.
 One metric for compatibility or completeness of a new feature
-is the count of supported system APIs~\cite{tsai14graphene, TxOS, baumann13bascule, bergan10dos}.
+is the count of supported system APIs~\citep{tsai14graphene, TxOS, baumann13bascule, bergan10dos}.
 %Unless all system APIs are used equally,
 System call counts do not accurately
 estimate the fraction of applications or users that could plausibly use the system.
@@ -95,7 +95,7 @@ to identify the system API ``footprint'' of each binary.
 %Our analysis only requires application binaries.
 %all the system calls each application can issue (the system call ``footprint'').
 This paper combines the footprint data with data about how frequently 
-each package is installed, which is measured from the Ubuntu and Debian ``popularity contest'' survey data~\cite{ubuntu-popularity, debian-popularity}.
+each package is installed, which is measured from the Ubuntu and Debian ``popularity contest'' survey data~\citep{ubuntu-popularity, debian-popularity}.
 By combining these data sources, the paper contributes metrics
 which weigh the usage of each system API by estimated usage in real-world installations.
 
@@ -125,7 +125,7 @@ OS maintainers evaluate the impact of an API change on applications, and can hel
 evaluate whether a prototype system is suitable for their needs.
 
 %We expect similar benefits for developers, such as automatically generating 
-%system call level sandboxes~\cite{seccomp}, finding and reaching out to developers of applications using a deprecated API,
+%system call level sandboxes~\citep{seccomp}, finding and reaching out to developers of applications using a deprecated API,
 %and optimizing the in-memory layout of standard libraries, such as \libc{}.
 %For instance,  out of \syscallnum{} system calls on \osarch{} Linux,
 %20 system calls are used by no packages in Ubuntu,

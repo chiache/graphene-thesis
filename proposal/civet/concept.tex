@@ -191,7 +191,7 @@ The trusted classes from the same image share an enclave.
 \systemname{} runs a separate, lighter-weight \java{} VM in the enclave.
 Running a \java{} VM in the enclave is a subtle challenge because a \java{} VM
 often yields a large system API footprint, and, by default, uses a large heap. % requires access to abundant resources such as the heap.
-To provide the required OS APIs inside the enclave, we use the Graphene library OS~\cite{tsai14graphene}~\footnote{Downloaded from \url{github.com/oscarlab/graphene}}.
+To provide the required OS APIs inside the enclave, we use the Graphene library OS~\citep{tsai14graphene}~\footnote{Downloaded from \url{github.com/oscarlab/graphene}}.
 In order to remove unneeded features and balance resource utilization with performance in current SGX enclaves, such as
 a 128 MB limit on the size of the enclave page cache,
 we adjust the build-time configuration of the JVM to change multithreaded garbage collector to single threaded, remove multiple JIT engines and stop non-essential threads in the JVM. 
@@ -200,7 +200,7 @@ we adjust the build-time configuration of the JVM to change multithreaded garbag
 %millions of lines of code \fixme{get the actual number},
 %which will cost tremendous effort to port into \sgx{} enclaves.
 
-%To avoid the cost of porting the \java{} VM, \systemname{} uses {\em Graphene-SGX library OS}~\cite{graphene-sgx} 
+%To avoid the cost of porting the \java{} VM, \systemname{} uses {\em Graphene-SGX library OS}~\citep{graphene-sgx} 
 %to facilitate the OS features needed by the \java{} VM.
 %Therefore, we do not modify any code of \jvm{}, except tuning the compilation options to reduce its resource usage.
 
@@ -291,7 +291,7 @@ as well as marshalling arguments and return values for in-enclave functions.
 %% All public methods of the {\em public} trusted classes can be entry points of the enclave.
 
 In order to reference objects inside the enclave from outside the enclave,
-\systemname{} framework uses a byte code generation library --- {\em CGLib}~\cite{cglib} to create untrusted proxies for the in-enclave instances.
+\systemname{} framework uses a byte code generation library --- {\em CGLib}~\citep{cglib} to create untrusted proxies for the in-enclave instances.
 CGLib instruments the class that is being proxied,
 and redirects the control to a handler 
 assigned by \systemname{} upon any method invocation on the proxy.
@@ -545,7 +545,7 @@ in combination with language-level features that make the code in the enclave mo
 
 %We do assume that the JVM and JNI code are free from memory corruption and control flow attacks.
 %Proving a JVM implementation correct is beyond the scope, although similar 
-%efforts have been made previously to prove a language runtime correct~\cite{yang10safe}.
+%efforts have been made previously to prove a language runtime correct~\citep{yang10safe}.
 %In the case of JNI, we would discourage developers from using JNI code in enclaves if at all possible.
 
 %% Note that although memory corruption bugs and control flows attacks are forbidden in \java{} classes,
@@ -625,12 +625,12 @@ do require the programmer to specify secret data classes and declassify objects 
 	\label{fig:declassify}
 \end{figure}
 
-%Because the code running in enclave has access to complete address space, including the trusted as well as untrusted memory regions, it is easy for the trusted code to inadvertently undermine \sgx{} protection by writing secret information in the untrusted region. Further, leaking any information derived from or related to the secret may be used by the untrusted code to guess the value of secret information. For example, even in the presence of memory protection, sandboxing and virtualization, it is possible to recover the secret key used by crypto algorithms~\cite{kocher1996timing,osvik2006cache,weiss2012cache, zhang2012cross}. So, to ascertain the secrecy of the sensitive data, no information derived from the secret should exit enclave in plaintext.
+%Because the code running in enclave has access to complete address space, including the trusted as well as untrusted memory regions, it is easy for the trusted code to inadvertently undermine \sgx{} protection by writing secret information in the untrusted region. Further, leaking any information derived from or related to the secret may be used by the untrusted code to guess the value of secret information. For example, even in the presence of memory protection, sandboxing and virtualization, it is possible to recover the secret key used by crypto algorithms~\citep{kocher1996timing,osvik2006cache,weiss2012cache, zhang2012cross}. So, to ascertain the secrecy of the sensitive data, no information derived from the secret should exit enclave in plaintext.
 
 %We use JAVA tool phosphor source and sink to taint provisioned data and control leakage
 %\systemname{} leverages extensive research on information flow tracking and control in \java{} to harden the \sgx{} security. 
 
-In the enclave, we implement source-to-sink taint tracking, using the open-source Phosphor library~\cite{phosphor}.
+In the enclave, we implement source-to-sink taint tracking, using the open-source Phosphor library~\citep{phosphor}.
 %\fixmedp{check this}
 The programmer manually selects the classes containing secret data that take secret input from a remotely-provisioned source.
 This taint is propagated to any new variables that result from explicit or implicit flows from a secret object.

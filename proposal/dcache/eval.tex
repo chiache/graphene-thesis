@@ -78,7 +78,7 @@ Lower is better.}
 \end{figure}
 
 \paragraph{Micro-benchmarks.}
-We use an extended LMBench 2.5 UNIX microbenchmark suite~\cite{McVoy:lmbench}
+We use an extended LMBench 2.5 UNIX microbenchmark suite~\citep{McVoy:lmbench}
 to evaluate latency of path lookup at the system call level.
 %The {\tt lat\_syscall} test in {\tt LMBench} simply uses {\tt stat} or {\tt open} system calls repeatedly to access specific paths.
 %We exercise the test with three different paths: root of a user home directory ({\tt /home/foo}), a important system header file with long path ({\tt /usr/lib/gcc/x86\_64-linux-gnu/4.6/stddef.h}) and a {\tt proc} file ({\tt /proc/sys/kernel/printk}).
@@ -233,7 +233,7 @@ whereas baseline Linux and ext4 make these constant-time operations.
 Even with 10,000 children all in cache, the worst-case latency is around 330 $\mu$s.
 As a point of reference, the Linux 3.19 source tree includes 51,562 files and directories.
 Initial feedback from several Linux file system maintainers indicate that this trade would be acceptable
-to improve lookup performance~\cite{linux-forum}.
+to improve lookup performance~\citep{linux-forum}.
 
 \begin{comment}
 \begin{table}[t]
@@ -898,7 +898,7 @@ Other VFS headers  & 2,431 & 218 &  9.0 \% \\
 Security Modules (SELinux, etc)   & 20,479 & 76 & 0.0 \% \\
 \hline
 \end{tabular}
-\caption{{\em Lines-of-code} (LoC) in Linux changed, as measured by {\tt sloccount}~\cite{sloccount}.}
+\caption{{\em Lines-of-code} (LoC) in Linux changed, as measured by {\tt sloccount}~\citep{sloccount}.}
 \label{table:portability}
 %\vspace{-10pt}
 \end{table}
@@ -916,7 +916,7 @@ Security Modules (SELinux, etc)   & 20,479 & 76 & 0.0 \% \\
 
 Demonstrating bug-for-bug compatibility with any large body of software is 
 always a challenge, and indicators are noisy.
-As a step in this direction, we ran the file system regression test script from the Linux Test Project~\cite{linux-test}
+As a step in this direction, we ran the file system regression test script from the Linux Test Project~\citep{linux-test}
 and verified that they pass on our system.
 We wrote additional tests that checked that permission handling behaved the same way on AppArmor and SELinux.
 This gives us confidence that our prototype's path handling behavior will be transparent to applications.
@@ -939,7 +939,7 @@ Arguably, these are points where a particular implementation choice
 has ``leaked'' into the interface specification,
 and these idiosyncracies constrain the choice of supporting data structure.
 We recommend an interface that is as simple and stateless as possible; 
-this recommendation is in line with other recommendations for scalability~\cite{clements13scalable}.
+this recommendation is in line with other recommendations for scalability~\citep{clements13scalable}.
 
 \begin{comment}
 \fixmedp{Maybe vague this up?}
@@ -988,5 +988,5 @@ On our test systems, 58\% of buckets were empty, 34\% had one item,
 indicating an opportunity to improve lookup time and space usage.
 %\fixmedp{As an aside, what is the average and variance?  This seems like Linux's hash function is crappy and not getting an even distribution.}
 A number of high-performance hash tables have been developed in recent years that
-impose a constant bound on the search time as well as on wasted space~\cite{cuckoo04,li14cuckoo,triplett11hash,herlihy08hopscotch}.
+impose a constant bound on the search time as well as on wasted space~\citep{cuckoo04,li14cuckoo,triplett11hash,herlihy08hopscotch}.
 %Based on our data,  we expect that a better hash table algorithm could also improve lookup time, in baseline Linux or our design.

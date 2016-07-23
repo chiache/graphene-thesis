@@ -4,21 +4,21 @@
 \paragraph{Applications of SGX.}
 Several recent efforts have been made to leverage SGX technology
 in cloud platforms to secure applications against a potentially untrusted host OS or hypervisor.
-For instance, VC3~\cite{vc3} runs MapReduce jobs in SGX enclaves.
+For instance, VC3~\citep{vc3} runs MapReduce jobs in SGX enclaves.
 An essential caveat for VC3 is that these mappers and reducers must be written
 in C or C++, breaking compatibility with the vast majority of Hadoop mappers and reducers,
 which are written in Java and can run on \systemname{}.
-Similarly, Brenner et al.~\cite{zookeeper}, developed a transparent encryption 
+Similarly, Brenner et al.~\citep{zookeeper}, developed a transparent encryption 
 layer to the Apache ZooKeeper cluster,
 running cluster services in an enclave and transparently encrypting data in transit between enclaves.
-SGX has also been applied to securing network functionality~\cite{shih2016s},
-as well as inter-domain routing in Tor~\cite{kim2015first}.
+SGX has also been applied to securing network functionality~\citep{shih2016s},
+as well as inter-domain routing in Tor~\citep{kim2015first}.
 
 \paragraph{Code Partitioning.}
 A number of projects have developed tools for partitioning applications, both with SGX enclaves in mind, and more generally.
-Atamli et al.~\cite{atamli2015securing} explore different schemes for partitioning applications,
+Atamli et al.~\citep{atamli2015securing} explore different schemes for partitioning applications,
 and identify different trade-offs in performance and security with different strategies.\fixmedp{This is a little cursory; can you say anything more crisp about an insight contributed here?}\fixme{That paper is from Springer and it needs me to pay \$30 to read it. Not available even through stonybrook proxy.}
-Moat~\cite{moat} uses formal verification to determine whether an enclave
+Moat~\citep{moat} uses formal verification to determine whether an enclave
 image maintains confidentiality of sensitive data,
 and identifies potential information leaks.  \systemname{}, on the other hand, applies
 a combination of static and dynamic analysis for information flow tracking of the dynamically-loaded Java code in enclaves, and prevent leakage of confidential information at the enclave boundary .%\fixmedp{right?}
@@ -29,17 +29,17 @@ partition Java applications into pieces that run in multiple JVMs.
 %partitioning of JAVA applications.
 %A Bytecode Translator for Distributed 
 %Execution of “Legacy” Java Software
-Addistant~\cite{addistant} and J-Orchestra~\cite{jorchestra}
+Addistant~\citep{addistant} and J-Orchestra~\citep{jorchestra}
 automatically divide Java applications to run across multiple hosts or JVMs.
-Zdancewic et al.~\cite{jif-split} use programmer annotations
+Zdancewic et al.~\citep{jif-split} use programmer annotations
 to partition a code to statically check and dynamically enforce 
 %\fixmedp{eliminate?  please check}
 information flow policies.
-Swift~\cite{swift} partitions web applications such that
+Swift~\citep{swift} partitions web applications such that
 security-critical data remains on the trusted server,
 and, secondarily, to minimize client-server communication.
 Finally, a number of tools have been developed for automatically injecting remote method invocations (RMI)
-for distributing Java applications~\cite{philippsen1997javaparty, czajkowski2002code, spiegel1999pangaea, tilevich2008nrmi, aridor1999cjvm, diaconescu2005compiler}.
+for distributing Java applications~\citep{philippsen1997javaparty, czajkowski2002code, spiegel1999pangaea, tilevich2008nrmi, aridor1999cjvm, diaconescu2005compiler}.
 \systemname{} extends these approaches with techniques appropriate
 for partitioning code into SGX enclaves.
 
@@ -56,9 +56,9 @@ for partitioning code into SGX enclaves.
 %% Addistant and J-Orchestra to partition the code into 
 %% separate parts.
 %% %Secure Program Partitioning
-%% Similarly, Zdancewic et al. ~\cite{jif-split}, allows 
+%% Similarly, Zdancewic et al. ~\citep{jif-split}, allows 
 %% developer to annotate the code with principal and 
-%% policy definitions as per the JFlow~\cite{myers1999jflow} 
+%% policy definitions as per the JFlow~\citep{myers1999jflow} 
 %% format, and partitions the code based on those 
 %% annotations for each principal and the list of hosts 
 %% that each principal trusts. \systemname{} on the 
@@ -67,7 +67,7 @@ for partitioning code into SGX enclaves.
 %% class. 
 %% %Secure Web Applications via Automatic Partitioning
 %% Similar partitioning policy is adopted by 
-%% Chong et al. in Swift~\cite{swift} to place security 
+%% Chong et al. in Swift~\citep{swift} to place security 
 %% critical data and code of web applications on the 
 %% server, and to minimize the client-server 
 %% communication. While Swift performs fine-grained 
@@ -76,10 +76,10 @@ for partitioning code into SGX enclaves.
 %% places whole methods of secure classes in the enclave.
 
 A number of projects have used  developer annotations or runtime tools
-to implement privilege separation~\cite{brumley2004privtrans} or enforce least privilege~\cite{bittau2008wedge}
+to implement privilege separation~\citep{brumley2004privtrans} or enforce least privilege~\citep{bittau2008wedge}
 on memory objects.
 Several systems have also separated programs into trusted and untrusted components, and used different OS instances
-for servicing each piece of the application~\cite{singaravelu2006reducing, ta2006splitting, khatiwala2006data}.
+for servicing each piece of the application~\citep{singaravelu2006reducing, ta2006splitting, khatiwala2006data}.
 \systemname{} adopts a similar approach, using developer input to identify classes containing sensitive data
 to drive the partitioning effort, and contributes a synthesis with hardware-level protections against an untrusted system stack.
 
@@ -88,18 +88,18 @@ to drive the partitioning effort, and contributes a synthesis with hardware-leve
 %Historically, applications have been partitioned to reduce the TCB.
 %% Brumley et al., allow developers to use annotations to automatically partition the program based on privilege separation.
 %% Bittau et al., provide developers with runtime tools to determine which code needs which privileges for which memory objects to help partition the application using the principle of least privilege.
-%% Singaravelu et al.~\cite{singaravelu2006reducing}, reduce the TCB of security sensitive programs by partitioning into trusted and untrusted parts, and run the trusted parts of the application on the CPU core and the untrusted parts of the application on a virtualized untrusted legacy OS.
-%% Ta-Min et al.~\cite{ta2006splitting}, partition applications based on interfaces to redirect calls from trusted part of the application to a private trusted OS and untrusted calls to an untrusted legacy OS. However, \systemname{} partitions applications at the higher bytecode level and do not rely on a trusted OS.
+%% Singaravelu et al.~\citep{singaravelu2006reducing}, reduce the TCB of security sensitive programs by partitioning into trusted and untrusted parts, and run the trusted parts of the application on the CPU core and the untrusted parts of the application on a virtualized untrusted legacy OS.
+%% Ta-Min et al.~\citep{ta2006splitting}, partition applications based on interfaces to redirect calls from trusted part of the application to a private trusted OS and untrusted calls to an untrusted legacy OS. However, \systemname{} partitions applications at the higher bytecode level and do not rely on a trusted OS.
 %% %Data Sandboxing - partition + information flow 
-%% Khatiwala et  al.~\cite{khatiwala2006data}, partition applications based on their security sensitiveness, and intercept the system calls made by the two parts of applications to enforce information flow policies to sandbox the secret data. 
+%% Khatiwala et  al.~\citep{khatiwala2006data}, partition applications based on their security sensitiveness, and intercept the system calls made by the two parts of applications to enforce information flow policies to sandbox the secret data. 
 
 %% An Application written in \java{} can be deployed on distributed servers by partitioning the applications into separate parts and replacing the missing parts by Remote Method Invocation(RMI).
-%% Philippsen et al. ~\cite{philippsen1997javaparty} transparently convert multi-threaded \java{} applications into distributed applications by adding remote objects by declaration, and use techniques such as shared memory to optimize performance.
-%% Czajkowski et  al.~\cite{czajkowski2002code} compare four different techniques for code sharing across \java{} virtual machines based on performance considerations, dynamic class loading, and dependencies between shared code.
-%% Spiegel ~\cite{spiegel1999pangaea} use static analysis to optimize distribution policies for running distributed programs across loosely coupled machines.
-%% Tilevich et al.~\cite{tilevich2008nrmi}, implement an equivalent of call-by-reference in \java{} as call-by-copy-restore to provide a natural distributed programming environment compared to Remote Method Invocation.
-%% Aridor et al.~\cite{aridor1999cjvm}, virtualize a cluster to provide a single system image of the JVM without any code modifications to the application.
-%% Diaconescu et al.~\cite{diaconescu2005compiler}, use dependence
+%% Philippsen et al. ~\citep{philippsen1997javaparty} transparently convert multi-threaded \java{} applications into distributed applications by adding remote objects by declaration, and use techniques such as shared memory to optimize performance.
+%% Czajkowski et  al.~\citep{czajkowski2002code} compare four different techniques for code sharing across \java{} virtual machines based on performance considerations, dynamic class loading, and dependencies between shared code.
+%% Spiegel ~\citep{spiegel1999pangaea} use static analysis to optimize distribution policies for running distributed programs across loosely coupled machines.
+%% Tilevich et al.~\citep{tilevich2008nrmi}, implement an equivalent of call-by-reference in \java{} as call-by-copy-restore to provide a natural distributed programming environment compared to Remote Method Invocation.
+%% Aridor et al.~\citep{aridor1999cjvm}, virtualize a cluster to provide a single system image of the JVM without any code modifications to the application.
+%% Diaconescu et al.~\citep{diaconescu2005compiler}, use dependence
 %% analysis, weighted graph partitioning, code and communication generation, and profiling
 %% to build a compiler and runtime infrastructure
 %% that enables experimentation with various program partitioning
@@ -109,16 +109,16 @@ to drive the partitioning effort, and contributes a synthesis with hardware-leve
 
 %study the effect of different schemes for partitioning applications on performance and security benefits.
 
-%OpenSGX~\cite{jain2016opensgx} is an SGX simulator, which has ben
+%OpenSGX~\citep{jain2016opensgx} is an SGX simulator, which has ben
 
 %built an OpenSGX simulator platform along with the necessary user library and program loader tools similar to ~\systemname{}.
-%This OpenSGX platform has been used to secure Network Function Virtualization states~\cite{shih2016s} as well as inter-domain routing and Tor directory
+%This OpenSGX platform has been used to secure Network Function Virtualization states~\citep{shih2016s} as well as inter-domain routing and Tor directory
 
 
 
 %VC3: Trustworthy Data Analytics in the Cloud using SGX
 %% Schuster et al., built an infrastructure named 
-%% VC3~\cite{vc3} using the \intel{} SDK to run secure 
+%% VC3~\citep{vc3} using the \intel{} SDK to run secure 
 %% trusted C/C++ MapReduce jobs on HDInsight, a Windows 
 %% hadoop distribution. However, as many MapReduce jobs 
 %% are written in Java, these jobs will need to be 
@@ -126,7 +126,7 @@ to drive the partitioning effort, and contributes a synthesis with hardware-leve
 %% supports running confidential JAVA MapReduce jobs on 
 %% Hadoop without rewriting the applications.
 %% %Running ZooKeeper Coordination Services in Untrusted Clouds
-%% Brenner et al.~\cite{zookeeper}, developed a transparent encryption 
+%% Brenner et al.~\citep{zookeeper}, developed a transparent encryption 
 %% layer to the Apache ZooKeeper cluster,
 %% that encrypts all sensitive data inside ZooKeeper 
 %% on-the-fly, and executes in an enclave. Similarly, 
@@ -137,7 +137,7 @@ to drive the partitioning effort, and contributes a synthesis with hardware-leve
 
 %Moat: Verifying Confidentiality of Enclave Programs
 %% Sinha et al., developed a static verifier named 
-%% Moat~\cite{moat} that statically analyzes the 
+%% Moat~\citep{moat} that statically analyzes the 
 %% behavior of enclave binary at the instruction level 
 %% to verify whether the enclave program 
 %% maintains confidentiality of data, else shows an 
@@ -165,16 +165,16 @@ to drive the partitioning effort, and contributes a synthesis with hardware-leve
 
 \paragraph{Protection Against an Untrusted OS, without SGX.}
 A number of systems that protect against an untrusted OS predate SGX, or are designed for hardware platforms with different memory protection techniques, such as ARM TrustZone.
-Virtual Ghost~\cite{criswell2014virtual} uses compile-time and runtime monitoring to protect an application
+Virtual Ghost~\citep{criswell2014virtual} uses compile-time and runtime monitoring to protect an application
 from a potentially-compromised OS; Virtual Ghost requires recompilation of the guest OS.
-Flicker~\cite{flicker}, MUSHI~\cite{zhang2012mushi} and InkTag~\cite{inktag} protect applications from untrusted OS using SMM mode or virtualization
+Flicker~\citep{flicker}, MUSHI~\citep{zhang2012mushi} and InkTag~\citep{inktag} protect applications from untrusted OS using SMM mode or virtualization
 to enforce memory isolation between the OS and a trusted application.
-Koberl et al.~\cite{koeberl2014trustlite}, isolate software on low-cost embedded devices using a Memory Protection Unit.
-Li et al.~\cite{li2014minibox} built a 2-way sandbox for x86 by separating the Native Client(NaCl)~\cite{yee2009native} sandbox into modules for sandboxing and service runtime to support application execution and use Trustvisor~\cite{trustvisor} to protect the piece of application logic from the untrusted OS.
-Jang et al.~\cite{jang2015secret} build a secure channel to authenticate the application in the Untrusted area from the ARM TrustZone.
-Song et al.~\cite{songhdfi} extend each memory unit with an additional tag
+Koberl et al.~\citep{koeberl2014trustlite}, isolate software on low-cost embedded devices using a Memory Protection Unit.
+Li et al.~\citep{li2014minibox} built a 2-way sandbox for x86 by separating the Native Client(NaCl)~\citep{yee2009native} sandbox into modules for sandboxing and service runtime to support application execution and use Trustvisor~\citep{trustvisor} to protect the piece of application logic from the untrusted OS.
+Jang et al.~\citep{jang2015secret} build a secure channel to authenticate the application in the Untrusted area from the ARM TrustZone.
+Song et al.~\citep{songhdfi} extend each memory unit with an additional tag
 to enforce fine-grained isolation at machine word granularity in the HDFI system.
-While these solutions focus on protecting applications from untrusted OS, Chen et  al.~\cite{chenshreds}, protects pieces of application from the rest of it by restricting access to only parts of memory from specific segments of threads.
+While these solutions focus on protecting applications from untrusted OS, Chen et  al.~\citep{chenshreds}, protects pieces of application from the rest of it by restricting access to only parts of memory from specific segments of threads.
 
 %supports secure application with services like isolated memory, encryption and key management by instrumenting the kernel to use a hardware abstraction layer in a system called Virtual Ghost.
 
@@ -185,47 +185,47 @@ While these solutions focus on protecting applications from untrusted OS, Chen e
 %- Information flow control
 \paragraph{Information Flow Control.}
 Much of the foundational work in language-level information flow was done with a combination of static analysis
-and runtime checking on a high-level language, such as Java~\cite{myers1999jflow, banerjee2002secure, hammer2006information, franz2008eliminating, chandra2007fine, smith2007improving, yip2009improving}.
-A number of systems have also developed efficient, dynamic taint-tracking systems for languages such as Java~\cite{haldar2005dynamic, nair2008virtual}.
+and runtime checking on a high-level language, such as Java~\citep{myers1999jflow, banerjee2002secure, hammer2006information, franz2008eliminating, chandra2007fine, smith2007improving, yip2009improving}.
+A number of systems have also developed efficient, dynamic taint-tracking systems for languages such as Java~\citep{haldar2005dynamic, nair2008virtual}.
 These are essential building blocks for the information flow tracking used in \systemname{}.
 For the most part, these systems assume the integrity of the application and its runtime environment;
-a few studies have also studied issues in integrating language and OS-level information flow tracking~\cite{roy2009laminar, sabelfeld2003language}.
+a few studies have also studied issues in integrating language and OS-level information flow tracking~\citep{roy2009laminar, sabelfeld2003language}.
 \systemname{} exposes the capabilities of  SGX hardware to the developer and language runtime, providing
 stronger integrity assurances for the application, reducing the need for instrumentation in untrusted code, and 
 streamlining remote provisioning of sensitive code or data.
 
 \begin{comment}
 %JFlow: Practical Mostly-Static Information Flow Control
-Andrew Myers ~\cite{myers1999jflow} extend the \java{} language with annotations that are statically checked, and adds a new primitive type {\em label} which can be dynamically checked for cases when the label-type cannot be inferred statically.
+Andrew Myers ~\citep{myers1999jflow} extend the \java{} language with annotations that are statically checked, and adds a new primitive type {\em label} which can be dynamically checked for cases when the label-type cannot be inferred statically.
 %Secure Information Flow and Pointer Confinement in a Java-like Language 
-Banerjee et  al.~\cite{banerjee2002secure}, enforce non-interference policy for a \java{} like language by confining pointers to a high security region.
+Banerjee et  al.~\citep{banerjee2002secure}, enforce non-interference policy for a \java{} like language by confining pointers to a high security region.
 %Information Flow Control for Java Based on Path Conditions in Dependence Graphs
-Hammer et al., ~\cite{hammer2006information} detect information leakage in \java{} using dependence graphs and constraint solving on the path conditions instead of type-based enforcement.
+Hammer et al., ~\citep{hammer2006information} detect information leakage in \java{} using dependence graphs and constraint solving on the path conditions instead of type-based enforcement.
 %Dynamic taint propagation for Java 
-Haldar et  al., ~\cite{haldar2005dynamic} enforce source to sink dynamic taint tracking from untrusted inputs to sensitive methods that should not use tainted data.
+Haldar et  al., ~\citep{haldar2005dynamic} enforce source to sink dynamic taint tracking from untrusted inputs to sensitive methods that should not use tainted data.
 %A Virtual Machine Based Information Flow Control System for Policy Enforcement 
-Niar et al.~\cite{nair2008virtual}, extend the information flow tracking to implicit flows by tracking the control flow taint dynamically at runtime. 
+Niar et al.~\citep{nair2008virtual}, extend the information flow tracking to implicit flows by tracking the control flow taint dynamically at runtime. 
 %Eliminating Trust From Application Programs By Way Of Software Architecture
-Franz et al.~\cite{franz2008eliminating}, too prevent implicit information flow by tracking the program counter to build a multi-level security aware \java{} VM by adding a security label to every data item and preventing assignments that would leak secrets.
+Franz et al.~\citep{franz2008eliminating}, too prevent implicit information flow by tracking the program counter to build a multi-level security aware \java{} VM by adding a security label to every data item and preventing assignments that would leak secrets.
 %Fine-grained information flow analysis and enforcement in a java virtual machine 
-Chandra et al.,~\cite{chandra2007fine} decouple the information flow policy specification and enforcement by statically annotating the \java{} class files with labels, and then tracking the labels to enforce the specified policy at runtime.
+Chandra et al.,~\citep{chandra2007fine} decouple the information flow policy specification and enforcement by statically annotating the \java{} class files with labels, and then tracking the labels to enforce the specified policy at runtime.
 %Improving Usability of Information Flow Security in Java
-Smith et al., ~\cite{smith2007improving} posit that statically checking only a small subset of the core JAVA classes is necessary to enforce information flow control across the I/O boundary without the need to track every data structure. 
+Smith et al., ~\citep{smith2007improving} posit that statically checking only a small subset of the core JAVA classes is necessary to enforce information flow control across the I/O boundary without the need to track every data structure. 
 %Improving application security with data flow assertions 
-Yip et  al.~\cite{yip2009improving}, extend the concepts of information flow to PHP to check information flow assertions before writing data to a file or network.
+Yip et  al.~\citep{yip2009improving}, extend the concepts of information flow to PHP to check information flow assertions before writing data to a file or network.
 
 
 %Language-based information-flow security 
-Sabelfeld et al.~\cite{sabelfeld2003language}, survey the language-based information flow security solutions and discuss challenges to support system-wide end-to-end information flow security.
+Sabelfeld et al.~\citep{sabelfeld2003language}, survey the language-based information flow security solutions and discuss challenges to support system-wide end-to-end information flow security.
 %Labels and event processes in the Asbestos operating system 
-Vandebogart et al.~\cite{vandebogart+asbestos}, enforce
+Vandebogart et al.~\citep{vandebogart+asbestos}, enforce
 application-defined security policies from the context of the OS to provide a combination of discretionary as well as mandatory access control.
 %Information flow control for standard OS abstractions 
-Krohn et  al.~\cite{krohn+flume}, enforce system-wide decentralized information flow control by interposing a reference monitor to track information flow across OS abstractions such as pipes and file descriptors.
+Krohn et  al.~\citep{krohn+flume}, enforce system-wide decentralized information flow control by interposing a reference monitor to track information flow across OS abstractions such as pipes and file descriptors.
 %Making information flow explicit in HiStar 
-Zeldovich et al.~\cite{zeldovich+histar}, move the information flow of OS abstractions into a user-level library OS to remove the legacy OS from the TCB.
+Zeldovich et al.~\citep{zeldovich+histar}, move the information flow of OS abstractions into a user-level library OS to remove the legacy OS from the TCB.
 %Laminar: Practical Fine-Grained Decentralized Information Flow Control
-Roy et al., ~\cite{roy2009laminar} combine OS and PL techniques to enforce information flow control at the data structure granularity via JVM and a reference monitor enforces the same 
+Roy et al., ~\citep{roy2009laminar} combine OS and PL techniques to enforce information flow control at the data structure granularity via JVM and a reference monitor enforces the same 
 information flow policy on OS resources such as files and sockets.
 \end{comment}
 

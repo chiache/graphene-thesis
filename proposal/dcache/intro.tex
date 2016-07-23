@@ -23,7 +23,7 @@ The directory cache is not exclusively a performance optimization; it also simpl
 the implementation of {\tt mount}-ing multiple file systems, 
 consistent file handle behavior,
 and advanced security 
-models, such as SELinux~\cite{selinux}.
+models, such as SELinux~\citep{selinux}.
 
 
 
@@ -32,7 +32,7 @@ models, such as SELinux~\cite{selinux}.
 
 %% Many observation shows that, in most systems, operations to storage are often
 %% dominated by hierarchical structure traversal,
-%% and fetching metadata of objects.\fixmetsai{references here}~\cite{duchamp94nfs}
+%% and fetching metadata of objects.\fixmetsai{references here}~\citep{duchamp94nfs}
 %% In many file systems, traversal and metadata fetching
 %% create random access patterns,
 %% which are slower than sequential access patterns
@@ -47,7 +47,7 @@ models, such as SELinux~\cite{selinux}.
 %% \dcache{}, as well as \vnode{} and \dnlc{},
 %% can be explained as a file system layer that
 %% responds to requests on a cache hit,
-%% but passes requests down to lower-leveled file systems on a cache miss~\cite{zadok06, skinner93}.
+%% but passes requests down to lower-leveled file systems on a cache miss~\citep{zadok06, skinner93}.
 
 %\fixmedp{F1: Maybe thread together an argument about why no one would have tried a one-hop lookup before?}
 
@@ -77,7 +77,7 @@ Directory caches are essential for good application performance.
 %In other words, 
 Many common system calls must operate on file paths,
 which require a directory cache lookup.
-For instance, between 10--20\% of all system calls in the iBench system call traces do a path lookup~\cite{filenotafile}. 
+For instance, between 10--20\% of all system calls in the iBench system call traces do a path lookup~\citep{filenotafile}. 
 Figure~\ref{fig:lookup-frac} lists the fraction of total execution time
 %, as well as system time, 
 several common command-line applications spend executing path-based system calls
@@ -122,7 +122,7 @@ Unfortunately, even directory cache hits are costly---0.3--1.1 $\mu$s for a {\tt
 %\fixmetsai{Don, check this, I think read will be a better example, getppid is too trivial.}
 This issue is taken particularly seriously in the Linux kernel community, which has 
 made substantial revisions and increasingly elaborate optimizations to reduce the hit cost
-of its directory cache, such as removing locks from the read path or replacing lock ordering with deadlock avoidance in a retry loop~\cite{corbet09jls,dcache-rcu}.
+of its directory cache, such as removing locks from the read path or replacing lock ordering with deadlock avoidance in a retry loop~\citep{corbet09jls,dcache-rcu}.
 Figure~\ref{fig:by-version} plots directory cache hit latency against  lines of directory cache code changed 
 over several versions of Linux, using a path-to-inode lookup microbenchmark on the test system described
 in Section~\ref{sec:eval}.
@@ -150,7 +150,7 @@ Unfortunately, when the critical path is dominated by
 walking a pointer-based data structure, 
 including memory barriers on some architectures for multi-core consistency, 
 modern CPUs end up stalling on hard-to-prefetch loads.
-Moreover, because so many Linux features are built around this behavior, such as Linux Security Modules (LSMs)~\cite{wright+lsm},
+Moreover, because so many Linux features are built around this behavior, such as Linux Security Modules (LSMs)~\citep{wright+lsm},
 namespaces, and mount aliases, it is not clear that any data-structural enhancements
 are possible without breaking backward-compatibility with other Linux kernel features.
 A priori, it is not obvious that a faster lookup algorithm, such as a single hash table lookup, 
@@ -186,14 +186,14 @@ which  we believe are acceptable and a net improvement for applications.
 First, these optimizations slow down infrequent modifications to the directory hierarchy, such as {\tt rename}, {\tt chmod},
  and {\tt chown} of a directory. 
 However, these slower operations
-account for less than .01\% of the system calls in the iBench traces~\cite{filenotafile}.
+account for less than .01\% of the system calls in the iBench traces~\citep{filenotafile}.
 Second,  the memory overheads of the dcache are increased.
 %(45\% per \dentry{}, as well as some  in our prototype).
 %(\fixmedp{XX MB} in our tests).  
 Third, lookup has a 
 probability of error from signature collisions that can be adjusted to be negligible
 %($2^{-141}$ in our configuration), 
-and within acceptable thresholds widely used by data deduplication systems~\cite{Debnath:2010:CSU:1855840.1855856, Srinivasan:2012:ILI:2208461.2208485, Quinlan:2002:VNA:645371.651321, Zhu:2008:ADB:1364813.1364831}.
+and within acceptable thresholds widely used by data deduplication systems~\citep{Debnath:2010:CSU:1855840.1855856, Srinivasan:2012:ILI:2208461.2208485, Quinlan:2002:VNA:645371.651321, Zhu:2008:ADB:1364813.1364831}.
 %, as well as how to remove
 %all memory barriers from the lookup path (\S\ref{sec:update}).
 In the micro-benchmark of Figure~\ref{fig:by-version}, our directory cache 
@@ -296,7 +296,7 @@ to improve cache hit latency.
 \item A directory cache design that improves path lookup latency with a combination of techniques, including:
   \begin{compactitem}
   \item Indexing the directory cache by full path, reducing average-case lookup from linear to constant in the number of path components.
-  \item A Prefix Check Cache (PCC) that separates permission checking from path caching.  The PCC memoizes permission checks, and is compatible with LSMs~\cite{wright+lsm}.
+  \item A Prefix Check Cache (PCC) that separates permission checking from path caching.  The PCC memoizes permission checks, and is compatible with LSMs~\citep{wright+lsm}.
   \item Reducing the cost of checking for hash bucket collisions with path signatures.
   \end{compactitem}
 \item Identifying opportunities to leverage metadata the kernel already has to reduce miss rates, such as tracking whether a directory is completely in cache.

@@ -3,7 +3,7 @@
 
 %\fixmedp{I am not sure about this paragraph.  I probably need to discuss in person} \fixmebj{any better?}
 
-Concurrent with our work, Atlidakis et al.~\cite{atlidakis16posix} conducted a similar 
+Concurrent with our work, Atlidakis et al.~\citep{atlidakis16posix} conducted a similar 
 study of POSIX.
 A particular focus of the POSIX study is measuring fragmentation across different POSIX-compliant OSes
 (Android, OS X, and Ubuntu), as well as identifying points where higher-level frameworks
@@ -29,21 +29,21 @@ APIs, such as pseudo-files under {\tt /proc}.
 
 A number of previous studies have investigated how other portions of the Operating System
 interact, often at large scale.
-Kadav and Swift~\cite{understand-drivers} studied the effective API the Linux kernel exports 
+Kadav and Swift~\citep{understand-drivers} studied the effective API the Linux kernel exports 
 to device drivers, as well as device driver interaction with Linux---complementary to our study
 of how applications interact with the kernel or core libraries.
 Palix et al.\ study faults in all subsystems of the Linux kernel and identify the 
-most fault-prone subsystems~\cite{linux-faults}.
+most fault-prone subsystems~\citep{linux-faults}.
 They find architecture-specific subsystems have highest fault rate, followed by file systems.
-Harter et al.~\cite{file-not-file} studied
+Harter et al.~\citep{file-not-file} studied
  the interaction of a set of Mac OS X applications with the file system APIs---identifying a number
 of surprising I/O patterns.
 %Other systems have studied specialized set of software that 
 %interact with specific components of Linux kernel.
 %%For instance, Harter et.al. study only I/O behavior of iBench applications on Mac to conclude that each of these applications form a mini-filesystem amongst themselves and their interactions with the
-%filesystem kernel component are different than other standard applications~\cite{file-not-file}.
-%Another study of device drivers classifies drivers into 5 different classes after analyzing the interacion of the drivers with the kernel, devices, and buses~\cite{understand-drivers}.
-%SymDrive identifies busgs in device drivers in the kernel by studying I/O changes after the driver patches~\cite{symdrive}. \fixmedp{Is this really related?  I was thinking of a different swift paper}
+%filesystem kernel component are different than other standard applications~\citep{file-not-file}.
+%Another study of device drivers classifies drivers into 5 different classes after analyzing the interacion of the drivers with the kernel, devices, and buses~\citep{understand-drivers}.
+%SymDrive identifies busgs in device drivers in the kernel by studying I/O changes after the driver patches~\citep{symdrive}. \fixmedp{Is this really related?  I was thinking of a different swift paper}
 Our approach is complementary to these studies, with a focus on overall API 
 usage across an entire Linux distribution.
 
@@ -59,15 +59,15 @@ usage across an entire Linux distribution.
 A number of previous studies have drawn inferences about user and developer behavior
 using Debian and Ubuntu package metadata and popularity contest statistics.
 Debian packages have been analyzed to study the evolution 
-of the software itself~\cite{macro-study, life-death, mining-over-time}, 
+of the software itself~\citep{macro-study, life-death, mining-over-time}, 
 to measure the popularity of application programming 
-languages~\cite{upgrade-libre}, to analyze dependencies between the packages~\cite{package-dependency}, 
-to identify trends in package sizes~\cite{pigs-to-stripes}, 
-the number of developers involved in developing and maintaining a package~\cite{toy-story},
+languages~\citep{upgrade-libre}, to analyze dependencies between the packages~\citep{package-dependency}, 
+to identify trends in package sizes~\citep{pigs-to-stripes}, 
+the number of developers involved in developing and maintaining a package~\citep{toy-story},
 %\fixmedp{right?}\fixmebj{yeah}, 
-and estimating the cost of development~\cite{measuring-woody}.
+and estimating the cost of development~\citep{measuring-woody}.
 Jain et al.\ used popularity contest survey data to 
-prioritize the implementation effort for new system security policies~\cite{jain14setuid}. % \fixmebj{nice one :)}.
+prioritize the implementation effort for new system security policies~\citep{jain14setuid}. % \fixmebj{nice one :)}.
 This study is unique in using this information to infer the relative importance of 
 of system APIs to end users, based on frequency of application installation.
 
@@ -82,34 +82,34 @@ of system APIs to end users, based on frequency of application installation.
 %\fixmedp{How do these studies quantify compatibility?}
 A number of previous projects develop techniques or tools to identify software incompatibilities, with 
 the goal of avoiding subtle errors during integration of software components.
-The Linux Standard Base (LSB)~\cite{linux-standard-base} 
+The Linux Standard Base (LSB)~\citep{linux-standard-base} 
 predicts whether an application can run on a given distribution based on the 
 symbols imported by the application from system libraries.
 %exported symbols and libraries provided by that distribution.
 %examines
 %applications to get the binary symbols and libraries used by those applications.
 %LSB goal is
-%Several previous studies have examined compatibility of different software library implementations~\cite{linux-standard-base}
+%Several previous studies have examined compatibility of different software library implementations~\citep{linux-standard-base}
 Other researchers have studied application compatibility 
 across different versions of same library,
 creating rules for library developers
-to maintain the compatibility across versions~\cite{shared-library}.
+to maintain the compatibility across versions~\citep{shared-library}.
 Previous projects have also developed tools to verify backward compatibility of libraries, based on checking for any changes in library variable 
-type definitions and function signatures~\cite{backward-compatibility}.
+type definitions and function signatures~\citep{backward-compatibility}.
 %that can cause backward binary compatibility problems
 Another variation of compatibility looks at integrating independently-developed components of a larger software project; 
-solutions examine various attributes of the components' source code, such as recursive functions and strong coupling of different classes~\cite{component-compatibility}.
+solutions examine various attributes of the components' source code, such as recursive functions and strong coupling of different classes~\citep{component-compatibility}.
 In these studies, compatibility is a binary property, reflecting a focus on correctness. Moreover, these studies are focused on the interface between the application and the libraries or distribution ecosystem.
 In contrast, this paper proposes a metric for relative completeness of a prototype system. % with a focus on the compatibility between the applications or libraries and the kernel ABIs.
 
 
-%%% Research has been done on the compatibility of components during software development~\cite{component-compatibility}.
+%%% Research has been done on the compatibility of components during software development~\citep{component-compatibility}.
 %%% There are verifiers for compatibility
 %%% between software components such as binaries and libraries based on
-%%% broad spectrum of compatibility problems~\cite{backward-compatibility}.
+%%% broad spectrum of compatibility problems~\citep{backward-compatibility}.
 %%% Other studies focus on compatibility of application binaries with the different 
-%%% versions of libraries~\cite{shared-library} and with libraries provided in different 
-%%% distribution environments~\cite{linux-standard-base}.
+%%% versions of libraries~\citep{shared-library} and with libraries provided in different 
+%%% distribution environments~\citep{linux-standard-base}.
 %%% However, we study the kernel-userspace ABI compatibility between the application binaries
 %%% and systems that support linux ABI.
 
@@ -123,15 +123,15 @@ The system call footprint of an application can be extracted by static or dynami
 The trade-off is that dynamic analysis is easier to implement quickly, but the results are input-dependent.
 Binary static analysis, as this paper uses, 
 can be thwarted by obfuscated binaries,
-which can confuse the disassembler~\cite{zhang13cfi}.
+which can confuse the disassembler~\citep{zhang13cfi}.
 %is also subject to the limitations of the disassembler to deal with
 Static binary analysis has been used to automatically generate application-specific sandboxing 
-policies~\cite{policy-extraction}.
+policies~\citep{policy-extraction}.
 Dynamic analysis has been used to compare system call sequences of two applications
-as an indicator of potential intellectual property theft~\cite{software-theft},
-to identify opportunities to batch system calls~\cite{multi-call},
-to model power consumption on mobile devices~\cite{power-modelling},
-and to repackage applications to run on different systems~\cite{cde}.
+as an indicator of potential intellectual property theft~\citep{software-theft},
+to identify opportunities to batch system calls~\citep{multi-call},
+to model power consumption on mobile devices~\citep{power-modelling},
+and to repackage applications to run on different systems~\citep{cde}.
 These projects answer very different questions than ours, but could, in principle, benefit
 from the resulting data set.
 
@@ -140,13 +140,13 @@ from the resulting data set.
 %are exercised. On the other hand while static analysis can cover the complete binary, we share the same assumption as other static analysis solutions that the application is not obfuscated.
 %Researches have used static analysis to identify system call footprints of applications to automatically generate application-specific sandboxing policies
 %% Others have also used dynamic analysis to determine and compare system call sequences within applications to detect software threat assuming that common system call sequences may imply
-%% common or stolen code~\cite{software-theft}.
+%% common or stolen code~\citep{software-theft}.
 %% \fixmedp{I don't get this one---a little more detail please?}\fixmebj{how about now?}
-%% Another work reduces the number of kernel boundary crossings by replacing group of system calls, that are identified by dynamically profiling applications, with a single system call~\cite{multi-call}.
-%% %and optimize the performance by clustering multiple related system calls~\cite{multi-call}\fixmedp{or this one?}.
+%% Another work reduces the number of kernel boundary crossings by replacing group of system calls, that are identified by dynamically profiling applications, with a single system call~\citep{multi-call}.
+%% %and optimize the performance by clustering multiple related system calls~\citep{multi-call}\fixmedp{or this one?}.
 %% Runtime system call tracing of applications has also been used to model 
-%% fine-grained power consumption for Smartphones~\cite{power-modelling}.
-%% CDE~\cite{cde} use system call information of x86 Linux 
+%% fine-grained power consumption for Smartphones~\citep{power-modelling}.
+%% CDE~\citep{cde} use system call information of x86 Linux 
 %% programs to package them differently to run on other x86 Linux machines.
 %% All these research works can benefit from our study and can be applied to large number of applications in the Ubuntu repository.
 %% Moreover, our study answers a different question of what fraction of these packages

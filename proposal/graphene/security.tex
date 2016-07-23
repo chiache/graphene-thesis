@@ -35,14 +35,14 @@ Thus, the reference monitor need only mediate file access, socket and RPC stream
 
 
 %an unprivileged daemon
-%as well as extensions to the App\-Armor LSM~\cite{apparmor},
+%as well as extensions to the App\-Armor LSM~\citep{apparmor},
 %which checks file and socket policies in the kernel.
 %, reducing context switching overhead
-%and the risk of race conditions~\cite{garfinkel03traps}.
+%and the risk of race conditions~\citep{garfinkel03traps}.
 In order for the reference monitor to restrict file access, socket and RPC stream creation,
-each application includes a {\em manifest} file~\cite{hunt07rethink},
+each application includes a {\em manifest} file~\citep{hunt07rethink},
 which describes a {\tt chroot}-like, restricted view of the local 
-file system (similar to Plan 9's unioned file system views~\cite{pike90plan9}),
+file system (similar to Plan 9's unioned file system views~\citep{pike90plan9}),
 %including read-only shared files,
 as well as iptables-style network restrictions.
 %%% To facilitate sharing read-only libraries,
@@ -53,7 +53,7 @@ as well as iptables-style network restrictions.
 
 The Graphene reference monitor on a Linux host
 is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
-A picoprocess is restricted by seccomp filter~\cite{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
+A picoprocess is restricted by seccomp filter~\citep{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
 It must use the Graphene special device to open or create streams,
 so the file paths or network addresses can be checked against the sandbox rules.
 The kernel module as the driver of the Graphene special device can coexist with any LSM such as AppArmor or SELinux.
@@ -132,8 +132,8 @@ the reference monitor.
 %% dp: Meh
 %%% Any picoprocess implementation 
 %%% must restrict access to the host system call table,
-%%% generally by blocking system calls in the host kernel~\cite{porter11drawbridge}
-%%% or using {\tt ptrace}~\cite{xax}.
+%%% generally by blocking system calls in the host kernel~\citep{porter11drawbridge}
+%%% or using {\tt ptrace}~\citep{xax}.
 
 
 %The PAL is a host-provided library which implements \palcalls{} generic kernel ABIs,
@@ -173,7 +173,7 @@ The third line invokes {\tt brk} with an {\tt int} instruction, which is redirec
 
 
 Graphene restricts the host system call table 
-using seccomp~\cite{seccomp}, introduced in Linux 2.6.12.
+using seccomp~\citep{seccomp}, introduced in Linux 2.6.12.
 % a recent Linux system call filtering mechanism, called 
 Seccomp allows a process to create an immutable Berkeley Packet Filter (BPF) program
 that specifies allowed system calls, as well as creates {\tt ptrace} 
@@ -202,7 +202,7 @@ as a seccomp rule, because it involves reading user memory of unknown sizes.
 In order to avoid the overhead of trapping to the reference monitor on 
 every use of {\tt open}, {\tt stat}, {\tt bind} or {\tt connect} system calls, we instead 
 force picoprocess to only use {\tt ioctl} system call to Graphene special device ({\tt /dev/graphene}) as alternative interface these system calls. Direct access to these system calls are banned by seccomp filter.
-%extend AppArmor~\cite{apparmor} 
+%extend AppArmor~\citep{apparmor} 
 %to enforce file system isolation in the kernel.
 
 In order to reduce the impact of bugs in the reference monitor,
@@ -242,8 +242,8 @@ transferring control to the kernel, then back to
 the PAL, and then to {\tt libLinux}.
 We leave exploration of more efficient alternatives for future work,
 such as redirecting the hardware system call table to {\tt libLinux}
-on a host system like Dune~\cite{belay12dune},
-or dynamically rewriting parts of the static binary~\cite{hunt99detours}.
+on a host system like Dune~\citep{belay12dune},
+or dynamically rewriting parts of the static binary~\citep{hunt99detours}.
 \end{comment}
 
 \vspace{5pt}
@@ -336,7 +336,7 @@ and cannot be disabled.
 \noindent{\bf Creating New Sandboxes.~} We add a PAL call which
 permits a picoprocess to request that it be moved into a new sandbox.
 This call, as well as file system path checks, are implemented
-as extensions to the  AppArmor LSM~\cite{apparmor}.
+as extensions to the  AppArmor LSM~\citep{apparmor}.
 %We modify \sandboxmodlines{} lines in the
 %to implement this call,
 The new sandbox call closes any open stream handles that cross sandbox boundaries;
@@ -410,7 +410,7 @@ PAL, and third it attempts to directly invoke a system call not
 present in the PAL, which is not allowed by Graphene.
 
 We enforce system call restriction by leveraging seccomp Linux system
-call filtering mechanism~\cite{seccomp}, which reduces the kernel
+call filtering mechanism~\citep{seccomp}, which reduces the kernel
 system call API surface to user-level processes. This mechanism allows
 a process to specify a whitelist filter for system calls, which is
 implemented as a Berkeley Packet Filter (BPF) program. The invocation

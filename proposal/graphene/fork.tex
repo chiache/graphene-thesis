@@ -109,7 +109,7 @@ stream handles out-of-band over {\em previously
 established byte streams} within a sandbox.  Handle passing facilitates inheritance
 and general-purpose RPC.
 This mechanism is similar to Unix Domain Sockets,
-which are commonly used by sandboxing systems. % such as plash~\cite{plash}.
+which are commonly used by sandboxing systems. % such as plash~\citep{plash}.
 This strategy allows a guest to seamlessly and explicitly 
 share an open handle with another guest in the same sandbox, but prevents
 a guest from sharing a handle with a guest outside of the sandbox.
@@ -123,10 +123,10 @@ Although this mechanism is less efficient than an in-kernel {\tt fork},
 we wanted to maintain the generality benefits of recent libOSes, 
 and only added the minimal building blocks to the host ABI.
 %we felt this design would bake Unix personality into the host kernel ABI,
-%and  reintroduce security problems caused by accidental inheritance~\cite{close-on-exec}.
+%and  reintroduce security problems caused by accidental inheritance~\citep{close-on-exec}.
 The transfer of data is explicit to the host, can be mediated by a reference monitor,
 the sender, or the receiver.
-For instance, recent Unix systems introduced a close-on-exec flag for file handles~\cite{close-on-exec}, 
+For instance, recent Unix systems introduced a close-on-exec flag for file handles~\citep{close-on-exec}, 
 which prevents inheritance of handles to sensitive files.  This can be implemented
 either in a parent, by excluding the file handle from a checkpoint, 
 or in the child, by closing this handle on an {\tt exec} call.

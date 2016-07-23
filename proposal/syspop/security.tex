@@ -68,8 +68,8 @@ One family of APIs prone to security problems are the %with security issues   th
 %The fundamental problem is that
 Many of the {\tt set*id} APIs
 have subtle semantic differences across different Unix variants.
-%~\cite{chen02setuid}.
-Chen et al.~\cite{chen02setuid} conclude that 
+%~\citep{chen02setuid}.
+Chen et al.~\citep{chen02setuid} conclude that 
 {\tt setresuid} has the clearest semantics 
 across all Unix flavors. 
 %BSD, System V and Linux have different interpretation of 
@@ -91,29 +91,29 @@ are only used by roughly 36\% of packages.
 %Package maintainers or distribution security teams
 %may want to rectify this case.
 
-Directory operations have a long history of exploitable race conditions~\cite{tocttou-truck, wei05fast, races-usenix05}, or time-of-check-to-time-of-use (TOCTTOU) vulnerabilities.
+Directory operations have a long history of exploitable race conditions~\citep{tocttou-truck, wei05fast, races-usenix05}, or time-of-check-to-time-of-use (TOCTTOU) vulnerabilities.
 %Another security concern that exists in file system calls that operate on dire
 %is {\em atomicity}.
 In a privileged application, one system call (e.g., {\tt access}) checks 
 the user's permission, and a second call operates on the file.
 %This system call is primarily used
 %by privileged applications, such as setuid-to-root binaries.
-%The {\tt access} call is used to avoid potential ``confused deputy'' problems~\cite{Hardy:1988:CD:54289.871709},
+%The {\tt access} call is used to avoid potential ``confused deputy'' problems~\citep{Hardy:1988:CD:54289.871709},
 %by determining the invoking user's authority
 %by checking the access rights of the calling process's real UID and GID
 %instead of the effective ID.
 %The problem is that {\tt access}
 %are vulnerable to 
-%time-of-check-to-time-of-use (TOCTTOU) attacks~\cite{tocttou-truck}.
+%time-of-check-to-time-of-use (TOCTTOU) attacks~\citep{tocttou-truck}.
 %The attacker can change the resource's state 
 %between the check and the use in such a way that it invalidates the results of the check.
 There are countermeasures that effectively walk the directory
-hierarchy in user space~\cite{tsafrir08tr}.
+hierarchy in user space~\citep{tsafrir08tr}.
 This approach replaces calls like {\tt access} with {\tt faccessat},
 and similar variants.
 %The atomic version of these system calls, such as
 %{\tt faccessat}, avoids this attack by interpreting the path relative to
-%an already open file descriptor~\cite{tsafrir08tr}.
+%an already open file descriptor~\citep{tsafrir08tr}.
 Table~\ref{tab:security_api} shows the current \unwusagemetric{} of
 {\tt *at} system call variants and their older counterparts.
 We observed that the \unwusagemetric{} of
@@ -186,7 +186,7 @@ In addition to security-related hints, \unwusagemetric{}
 indicates whether obsolete APIs have been replaced by newer variants.
 %\fixmedp{Skimming the waitit manual, it is not obvious that wait4 is actually obsolete;
 %in fact, I think it is system-specific and more precise (similar to dup3 below).}
-For instance, {\tt wait4} system call is considered obsolete~\cite{wait4man},
+For instance, {\tt wait4} system call is considered obsolete~\citep{wait4man},
 and the alternative {\tt waitid} is preferred, as it more precisely specifies which child state changes to wait for. %\fixmetsai{kernel version? cite?}\fixmedp{why?}
 However, \unwusagemetric{} of {\tt wait4} and {\tt waitid} is 60.56\% and 0.24\%, respectively.
 This indicates that 60\% of the packages are still using the older {\tt wait4} system call.
