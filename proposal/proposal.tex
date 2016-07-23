@@ -1,0 +1,229 @@
+\documentclass[12pt]{report}
+
+% comment out the following line when submitting
+\def \oscardebug{}
+
+\usepackage{lingmacros}
+\usepackage{tree-dvips}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{titlesec}
+\usepackage{paralist}
+\usepackage{rotating}
+\usepackage{fancybox}
+\usepackage{listings}
+\lstset{language=C}
+\usepackage{comment}
+\usepackage{alltt}
+\usepackage{color}
+\usepackage{lastpage}
+\usepackage{siunitx}
+\usepackage{times}
+\usepackage{multirow}
+\usepackage[hyphens]{url}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{upgreek}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{booktabs}
+
+\ifx \oscardebug \undefined
+\newcommand{\fixme}[1]{{}}
+\newcommand{\fixmedp}[1]{{}}
+\else
+\newcommand{\fixme}[1]{{\bf\textcolor{blue}{ [ FIXME: #1 ]}}}
+\newcommand{\fixmedp}[1]{{\bf\textcolor{red}{ [ FIXME dP: #1 ]}}}
+\fi
+
+\newcommand{\thesistitle}{Balancing Practicality and Security Isolation for Applications with Untrustworthy System Stacks}
+\newcommand{\thesisauthor}{Chia-Che Tsai}
+\newcommand{\thesisyear}{2016}
+\newcommand{\thesismonth}{August}
+
+\makeatletter
+\newcommand*{\declarecommand}{%
+  \@star@or@long\declare@command
+}
+\newcommand*{\declare@command}[1]{%
+  \provide@command{#1}{}%
+  % \let#1\@empty % would be more efficient, but without error checking
+  \renew@command{#1}%
+}
+\makeatother
+
+\begin{document}
+\pagenumbering{gobble}
+
+\title{\bf{Title of Dissertation}}
+
+\vspace*{6\baselineskip}
+{\centering{\large\bf{\thesistitle{}}}\\}
+\vspace*{3\baselineskip}
+\centerline{A Dissertation Proposal presented}
+\vspace*{1\baselineskip}
+\centerline{by} 
+\vspace*{1\baselineskip}
+\centerline{\large\bf{\thesisauthor{}}}
+\vspace*{1\baselineskip}
+\centerline{to} 
+\vspace*{1\baselineskip}
+\centerline{The Graduate School}
+\vspace*{1\baselineskip}
+\centerline{in Partial Fulfillment of the}
+\vspace*{1\baselineskip}
+\centerline{Requirements}
+\vspace*{1\baselineskip}
+\centerline{for the Degree of}
+\vspace*{1\baselineskip}
+\centerline{\bf{Doctor of Philosophy}}
+\vspace*{1\baselineskip}
+\centerline{in}
+\vspace*{1\baselineskip}
+\centerline{\bf{Computer Scientce}}
+\vspace*{1\baselineskip}
+\centerline{}
+%\centerline{\bf{(Concentration - optional)}}
+\vspace*{2\baselineskip}
+\centerline{Stony Brook University}
+\vspace*{2\baselineskip}
+\centerline{\bf{\thesismonth{} \thesisyear{}}}     
+
+%\newpage
+%\pagenumbering{gobble}
+
+%\vspace*{32\baselineskip}
+%\centerline{\it{(include this copyright page only if you are selecting %copyright through ProQuest, which is optional)}}
+%\vspace*{1\baselineskip}
+%\centerline{Copyright by}
+%\centerline{\thesisauthor{}}
+%\centerline{\thesisyear{}}
+
+%\newpage
+%\pagenumbering{roman}
+%\setcounter{page}{2}
+
+%\centerline{\bf{Stony Brook University}}
+%\vspace*{1\baselineskip}
+%\centerline{The Graduate School}
+%\vspace*{2\baselineskip}
+%\centerline{\thesisauthor{}}
+%\vspace*{2\baselineskip}
+%\centerline{We, the dissertation committee for the above candidate for the}
+%\vspace*{1\baselineskip}
+%\centerline{Doctor of Philosophy degree, hereby recommend}
+%\vspace*{1\baselineskip}
+%\centerline{acceptance of this dissertation}
+%\vspace*{2\baselineskip}
+%\centerline{\bf{Name - Dissertation Advisor}}
+%\centerline{\bf{Include title and department}}
+%\vspace*{2\baselineskip}
+%\centerline{\bf{Name - Chairperson of Defense}}
+%\centerline{\bf{Include title and department}}
+%\vspace*{2\baselineskip}
+%\centerline{\bf{Type the remaining committe members using the above format. Type each member's}}
+%\centerline{\bf{name, title and department. Always make sure the signature page is kept to one page in}} 
+%\centerline{\bf{length.}}
+%\vspace*{1\baselineskip}
+%\centerline{\bf{Type the outside member's name last. Include discipline and affiliation.}}
+%\vspace*{2\baselineskip}
+%\centerline{This dissertation is accepted by the Graduate School}
+%\vspace*{3\baselineskip}
+%\centerline{Charles Taber}
+%\centerline{Dean of the Graduate School}
+
+\newpage
+\pagenumbering{gobble}
+
+\centerline{Abstract of the Dissertation Proposal}
+\vspace*{3\baselineskip}
+{\centering{\large\bf{\thesistitle{}}}\\}
+\vspace*{3\baselineskip}
+\centerline{by}
+\vspace*{1\baselineskip}
+\centerline{\large\bf{\thesisauthor{}}}
+\vspace*{2\baselineskip}
+\centerline{\bf{Doctor of Philosophy}}
+\vspace*{1\baselineskip}
+\centerline{in}
+\vspace*{1\baselineskip}
+\centerline{\bf{Computer Science}}
+\vspace*{1\baselineskip}
+\centerline{}
+%\centerline{\bf{(Concentration - optional)}}
+\vspace*{1\baselineskip}
+\centerline{Stony Brook University}
+\vspace*{1\baselineskip}
+\centerline{\bf{\thesisyear{}}}
+\vspace*{2\baselineskip}
+\input{abstract}
+
+\pagenumbering{arabic}
+
+%\newpage
+%\centerline{\bf{Dedication Page}}
+%\vspace*{4\baselineskip}
+%This page is optional.
+
+%\newpage
+%\centerline{\bf{Frontispiece}}
+%\vspace*{4\baselineskip}
+%The frontispiece is generally an illustration, and is an optional page.
+
+%\newpage
+%\centerline{\bf{Table of Contents}}
+\renewcommand{\contentsname}{\centerline{\normalsize\bf{Table of Contents}}}
+\tableofcontents
+
+\newpage
+\centerline{\bf{List of Figures / Tables}}
+%\vspace*{4\baselineskip}
+\begingroup
+\let\clearpage\relax
+\renewcommand{\listfigurename}{\centerline{\normalsize\bf{Figures}}}
+\listoffigures
+\renewcommand{\listtablename}{\centerline{\normalsize\bf{Tables}}}
+\listoftables
+\endgroup
+
+%\newpage
+%\centerline{\bf{List of Abbreviations}}
+%\vspace*{4\baselineskip}
+%Include this list if applicable.
+
+%\newpage
+%\centerline{\bf{Preface}}
+%\vspace*{4\baselineskip}
+%This page is optional.
+
+\newpage
+\centerline{\bf{Acknowledgements}}
+\vspace*{4\baselineskip}
+\input{acknowledge}
+
+%\newpage
+%\centerline{\bf{Vita, Publications and/or Fields of Study}}
+%\vspace*{4\baselineskip}
+%This page is optional for doctoral students only.
+
+\titleformat{\chapter}[display]
+    {\normalfont\centering\bf}{\chaptertitlename{} \thechapter{}}{1pc}{\Large\bf}
+
+\input{../conferences}
+
+\input{intro}
+\input{graphene/graphene}
+\input{graphene-sgx/graphene-sgx}
+\input{civet/civet}
+\input{dcache/paper}
+\input{syspop/syspop}
+\input{future/future}
+\input{conclusion}
+
+\renewcommand{\bibname}{\centerline{\normalsize\bf{References}}}
+\bibliographystyle{abbrv}
+\bibliography{../bibliography}
+
+\end{document}

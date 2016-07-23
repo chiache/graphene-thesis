@@ -1,0 +1,124 @@
+\section{Introduction}
+
+The complexity of modern operating systems has become
+a major source of security vulnerabilities,
+pressuring developers to seek solutions to exclude the host OSes
+from their trust models.
+The untrustworthiness of OSes get severe when applications are run in the cloud,
+because the applications may cohabit with compromised tenants,
+or be hosted by malicious providers.
+
+To address the concern,
+isolated execution hardwares such as \sgx{} are introduced
+for the sake of confidentiality and integrity in
+security-sensitive applications,
+upon untrusted hosts.
+\sgx{} supports new instructions to create a
+critical space called {\it enclave} in the application's memory.
+\sgx{} guarantees that only signed code loaded in the enclave can access the critical data,
+and is able to attest the integrity for remote clients.
+
+%Protecting applications without the requirement of trusting the hosts
+%has become valuable in modern computer systems for many reasons.
+%The complexity of the existing monolithic operating systems has become a major source of
+%vulnerabilities to exploit.
+%Once the host operating systems are compromised,
+%any security mechanisms enforced in the applications can be easily circumvented.
+%If the applications run in the cloud,
+%the hosts have to be controlled by the cloud providers,
+%which is capable of compromising both host operating systems and hardwares.
+%The attacks from the cloud is possible even if
+%the operating systems' vulnerabilities are never exploited.
+
+Unfortunately, leveraging \sgx{} for security
+often requires rewriting the applications to a large extent.
+Because the OSes cannot be trusted,
+enclaves are not allowed to directly access any system interface
+for any OS features
+such as files, networks or scheduling.
+Only a limited subset of system library API can be exported in enclaves;
+for example, the software development kit for \sgx{}
+only supports spin-locking as scheduling tool,
+because other primitives require cooperation from the OS.
+
+To alleviate the pain of migrating applications to \sgx{},
+recent works like \haven{}~\cite{baumann14haven} provides a mechanism
+of loading native applications into enclaves,
+alongside a library OS (\libos{) }to facilitate rich OS features.
+These systems are called ``shielding systems''~\cite{xu15controlledchannel},
+which means these systems can secure execution environments
+without trusting the host.
+
+\haven{} effectively migrates native Windows applications to enclaves,
+providing a shortcut for developers
+to easily boost the security of their products.
+However, there are several limitations in \haven{}, including
+excessive trusted computing base (TCB),
+a restrictive model of adapting applications,
+and missing support for Linux or multi-process applications.
+
+We present \sysname{}, a \libos{}-based shielding system
+targeting Linux multi-process applications,
+as improvement to the \haven{} model of migrating native application to \sgx{}.
+\sysname{} is derived of \graphene{} \libos{}~\cite{tsai14graphene},
+which supports 139 out of 300 Linux system calls.
+\graphene{} runs numbers of popular applications
+such as Apache web server, OpenJDK virtual machine, or shell scripts,
+all of which relies on multi-process abstractions
+such as {\tt fork}, {\tt execve}, signals or System V IPC.
+
+By supporting Linux multi-process applications,
+\sysname{} simply applies to a broader range of cloud-based applications
+than \haven{}.
+Survey shows that Linux yields a market share of up to 75 percent in
+enterprise cloud providers~\cite{linuxcloud2014}.
+This data suggests majority of the existing cloud users can
+more easily adopt \sysname{} than \haven{}.
+
+\sysname{} uses a different model from \haven{}
+to bootstrap the trust of loaded applications.
+\haven{} builds up the trust by packing all binaries
+in an encrypted virtual disk,
+with secret key provisioned consensually from a remote server
+trusted by the clients.
+Contrastingly, \sysname{} relies on a model directly derived from
+the trust model of \sgx{},
+by including applications' checksums
+into the enclave measurement to be attested by hardware.
+\sysname{} can migration applications for enclaves off-line,
+and share binaries (e.g., shared libraries) to save bandwidths for deployment.
+
+Security-wise speaking,
+\sysname{} provides a way to reduce the TCB of enclaves,
+with a smaller code footprint
+and applications natively partitioned as processes.
+\haven{} in general yields a large TCB
+including a \libos{} as large as 209MB,
+and application binaries around 10s \textasciitilde 100s of MB.
+The image of \sysname{} is merely 10MB,
+and Linux applications generally follow the principle of dividing
+code into smaller, more testable binaries.
+\sysname{} isolates multiple binaries (or processes) of an application
+in separate enclaves, and authenticates inter-process coordination
+by binary-based policies.
+Even if an enclave is compromised, other enclaves of the same application
+can still stay secure as long as
+critical information never flows to the victim.
+
+The contributions of this paper are listed as follows:
+\begin{compactitem}
+\item \sysname{}, a Linux-compatible \libos{}-based shielding system,
+which supports execution of native, unmodified Linux applications
+in \sgx{} enclaves.
+\item A secure implementation of multi-process support
+for shielded applications,
+using standalone enclaves to solate processes.
+\item A decentralized trust model for multi-process applications to shield,
+where each binaries individually attested and provisioned.
+\end{compactitem}
+
+\sysname{} provides cloud users
+ease of shielding Linux applications
+and flexibility of implementing any desired security model
+suitable for each binary.
+

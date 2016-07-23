@@ -1,0 +1,20 @@
+\begin{table}[t!b!]
+  \centering
+  \small
+  \begin{tabular}{>{\footnotesize\raggedright\arraybackslash}p{1.45in} >{\raggedleft\arraybackslash}p{0.25in}>{\raggedright\arraybackslash}p{1.15in}}
+\toprule
+{\bf System Calls} & {\bf Imp.} & {\bf Packages}\\
+\midrule
+{\tt clock\_settime}, {\tt iopl}, {\tt ioperm},  {\tt signalfd4}  & 100\% & libc \\
+{\tt mbind}             & 36.0\% & libnuma, libopenblasp \\
+{\tt addkey}            & 27.2\% & libkeyutils \\
+{\tt keyctl}            & 27.2\% & pam\_keyutil, libkeyutils \\
+{\tt requestkey}        & 14.4\% & libkeyutils \\
+{\tt preadv}, {\tt pwritev}   & 11.7\% & libc \\
+    \end{tabular}%
+   \caption{System calls which are only directly used by particular libraries, and their \usagemetric{} (``Imp.''). Only system calls with \usagemetric{} larger than ten percent are shown.
+These system calls are wrapped by library APIs,
+thus they are easy to deprecate by modifying the libraries.  
+}
+  \label{tab:wrapped}%
+\end{table}%

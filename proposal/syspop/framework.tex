@@ -1,0 +1,88 @@
+\section{Implementation Details}
+\label{sec:framework}
+
+This section provides additional implementation details of our analysis framework. % for mining the API footprint for ELF executables and libraries.
+
+%Analyzing the footprint of an applications requires interpretation of its behavior. As discussed in section~\ref{sec:measure:analysis}, we choose to build our framework by using {\bf static analysis} technique instead of dynamic analysis. The reason is that static analysis can trace potential executions of the applications, regardless of the runtime coverage of the code.
+
+Our analysis is based on disassembling binaries inside each application package, using the standard {\tt objdump} tool.
+This approach eliminates the need for source or recompilation, and can handle closed-source binaries.
+We implement a simple call-graph analysis to detect system calls reachable from the binary entry point ({\tt e\_entry} in ELF headers). 
+%\fixmedp{You do actually parse the elf header for e\_entry, right?}
+%In our study, we only count executables during measuring both \usagemetric{} and \compatmetric{}.
+We search all binaries, including libraries, for system call instructions ({\tt int \$0x80}, {\tt syscall} or {\tt sysenter}) or calling the {\tt syscall} API of \libc{}.
+We find that the majority of binaries --- either shared libraries or executables --- do not directly choose system calls, but 
+rather use the GNU C library APIs.
+Among 66,275 studied binaries, only 7,259 executables and 2,752 shared libraries issue system calls.
+
+% system calls. Therefore, analyzing the libraries that an executable depends on is necessary for retrieving a complete set of API footprint.
+
+
+%, to predict its runtime behaviors.
+%The framework requires no scanning of the source code, or recompiling of the applications with additional debug symbols.
+%Consider the size and complexity of Ubuntu repositories,
+%static analysis of ELF binaries is certainly easier to automate, and is able to analyze the applications that are close-sourced.
+
+%To trace the footprint of applications, it require {\em Call-Graph Analysis} to rip off potential control flows that can eventually lead to usage of system API.
+%Challenges of analyzing call-graph is a known issues for researchers in many area such as security, robustness, etc.
+
+Our call-graph analysis allows us to only select system calls that are actually used by the application, not all the system calls that appear in \libc{}.
+Our analysis takes the following steps:
+\begin{compactitem}
+\item For a target executable or a library, generate a call graph of internal function usage.
+\item For each library function that the executable relies on, identify the code in the library that is reachable from each entry point called by the executable.
+%trace coverage of code in the binary, and generate the minimal subset of the library's footprint that the function could actually link to.
+\item For each library function that calls another library call, recursively trace the call graph and aggregate the results. 
+\end{compactitem}
+\vspace{10pt}
+
+Precisely determining all possible call-graphs from static analysis is challenging.
+Unlike other tools built on 
+call-graphs, such as control flow integrity (CFI), our framework can tolerate the error caused by over-approximating the analysis results.
+For instance, 
+programs sometimes make function call based on a function pointer passed as an argument by the caller of the function. 
+Because the calling target is dynamic, it is difficult to determine at the  call site.
+Rather, we track sites where the function pointers are assigned to a register, such as using the {\tt lea} instruction with an address
+relative to the current program counter.
+%Instead of precisely tracking calling target at the {\tt call} instruction, 
+%A function pointer is mostly assigned by {\tt lea} instruction to generate a relative address to the current program counter. 
+This is an over-approximation because, rather than trace the data flow, we assuming that a function pointer assigned to a local variable will be called.
+This analysis could be more precise if it included a data flow component. 
+%\fixmedp{As an aside, this level of data flow analysis shouldn't be that hard, right?  Not  that it matters, except for the thesis/journal version.}
+
+We also hard-code for a few common and problematic patterns.
+For instance, we generally assume that the registers that pass a system call number to a system call,
+or an opcode to a vectored system call, are not the result of arithmetic in the same function.
+We spot checked this assumption, but did not do the data flow analysis to detect this case.
+
+%must trace the register values such as {\tt RAX/EAX} for system call number or {\tt RBX/EBX} for parameter to vectored system calls. 
+
+%Based on {\em Case-by-case study}, we assume no arithmetic but direct assignment of integers is possible when the program is issuing a system call. 
+
+%If our analysis cannot precisely determine whether an API is used, we 
+%err on the side of assuming an API is used.
+
+%In the case of a run
+
+%allow slightly enlarge the traced footprint of application, to gain simplicity for complex call-graph analysis corner cases. 
+%For the specific run-time scenario of the application that can hard to interpret, we do a {\bf Case-by-Case study} to find out strategy of analyze the footprint practicably.
+
+%  that call-graph analysis is complex for generating the accurate control flow of the run time. Fortunately, unlike other studies that relies on 
+
+%In our study, we specifically call it {\bf Over-approximation}. 
+
+
+%The following is a few example of using {\bf Over-approximation} and {\bf Case-by-Case study} to simplify call-graph analysis:
+%\begin{compactenum}
+%\item 
+%\item 
+%\end{compactenum}
+
+Finally, the last mile of the analysis is to recursively aggregate footprint data. We insert all raw data into a {\tt Postgresql} database, and 
+use recursive SQL queries to generate the results. 
+To scan through all \packagenum{} packages in the repository, collect the data, and generate the results takes roughly three days.
+
+   
+
+
+

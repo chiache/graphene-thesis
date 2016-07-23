@@ -1,0 +1,120 @@
+\section{Linux Systems and Emulation Layers}
+
+This section uses \compatmetric{} to evaluate systems or emulation layers with partial Linux compatibility.
+We also evaluate several \libc{} variants for their degree of completeness against the APIs exported by \glibc{} 2.21.
+
+\subsection{\CompatMetric{} of Linux Systems}
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{m{0.5in}>{\centering}m{0.25in}>{\raggedright\arraybackslash\footnotesize}m{1.5in}>{\raggedleft\arraybackslash}m{0.4in}}
+\toprule
+Systems & \# & Suggested APIs to add & W.Comp. \\
+\midrule
+\addlinespace
+UML \kernelversion{} & 284 & {\tt name\_to\_handle\_at}, {\tt iopl}, {\tt ioperm}, {\tt perf\_event\_open} & 93.1\% \\
+\addlinespace
+\hline
+\addlinespace
+L4Linux 4.3 & 286 & {\tt quotactl}, {\tt migrate\_pages}, {\tt kexec\_load} & 99.3\% \\
+\addlinespace
+\hline
+\addlinespace
+FreeBSD-emu 10.2 & 225 & {\tt inotify}*, {\tt splice}, {\tt umount2}, {\tt timerfd}* & 62.3\% \\
+\addlinespace
+\hline
+\addlinespace
+Graphene  & 143 & {\tt sched\_setscheduler}, {\tt sched\_setparam} & 0.42\% \\
+Graphene\textsuperscript{\P} & 145 & {\tt statfs}, {\tt utimes}, {\tt getxattr}, {\tt fallocate}, {\tt eventfd2} & 21.1\% \\
+\end{tabular}
+\caption{\Compatmetric{} of several Linux systems or emulation layers. For each system, we manually identify the number of supported system calls (``\#''), and calculate the \compatmetric{} (``W.Comp.'') . Based on \usagemetric{}, we suggest the most important APIs to add.
+(*: system call family.
+\P: Graphene after adding two more system calls.) }
+\label{tab:linux-compat}
+\end{table}
+
+To evaluate the \compatmetric{} of Linux systems or emulation layers,
+the prerequisite is to identify the supported APIs of the target systems.
+Due to the complexity of Linux APIs and system implementation,
+it is hard to automate the process of identification.
+However, OS developers are mostly able to maintain such a list based on the internal knowledge. 
+
+We evaluate the \compatmetric{} of four Linux-compatible systems or emulation layers:
+User-Mode-Linux~\cite{user-mode-linux}, L4Linux~\cite{hartig97mu}, FreeBSD emulation layer~\cite{freebsd-emu}, and Graphene library OS~\cite{tsai14graphene}.
+For each system, we explore techniques
+to help identifying the supported system calls,
+based on how the system is built.
+For example, User-Mode-Linux and L4Linux
+are built by modifying the Linux source code,
+or adding a new architecture to Linux.
+These systems will define architecture-specific system call tables,
+and reimplement {\tt sys\_*} functions in the Linux source
+that are originally aliases to {\tt sys\_ni\_syscall}
+(a function that returns {\tt -ENOSYS}). 
+Other systems, like FreeBSD and Graphene,
+are built from scratch,
+and often maintain their own system call table structures,
+where unsupported systems calls
+are redirected to dummy callbacks.
+
+%Because the evaluation is simply a proof-of-the-concept,
+%we count only system calls,
+%omitting other APIs such as vectored system calls and pseudo-files. 
+
+Table~\ref{tab:linux-compat} shows \compatmetric{},
+considering only system calls.
+The results also identify the most important system calls
+that the developers should consider adding. 
+User-Mode-Linux and L4Linux both have a \compatmetric{} over 90\%,
+with more than 280 system calls implemented.
+FreeBSD's  \compatmetric{} is  62.3\% because it is missing some less
+important system calls
+such as {\tt inotify\_init} and {\tt timerfd\_create}.
+Graphene's \compatmetric{} is only 0.42\%.
+We observe that the primary culprit is 
+scheduling control; by adding two scheduling system calls,
+Graphene's \compatmetric{} would be 21.1\%.
+
+\subsection{\CompatMetric{} of \Libc{}}
+
+\begin{table}[t]
+\center{
+\setlength{\tabcolsep}{1pt}
+\small
+\begin{tabular}{m{0.7in}>{\centering}m{0.4in}>{\raggedright\arraybackslash\footnotesize}m{1.1in}>{\raggedleft\arraybackslash}m{0.45in}>{\raggedleft\arraybackslash}m{0.55in}}
+\toprule
+\Libc{} variants & \# & Unsupported (samples) & {\footnotesize W.Comp.} & {\footnotesize W.Comp.} {\scriptsize (normalized)} \\
+\midrule
+\addlinespace
+eglibc 2.19 & 2198 & None & 100\% & 100\% \\
+\addlinespace
+\hline
+\addlinespace
+uClibc 0.9.33 & 1867 & {\tt \_\_uflow}, {\tt \_\_overflow}  & 1.1\% & 41.9\% \\
+\addlinespace
+\hline
+\addlinespace
+musl 1.1.14 & 1890 & {\tt secure\_getenv}, {\tt random\_r} & 1.1\% & 43.2\% \\
+\addlinespace
+\hline
+\addlinespace
+dietlibc 0.33 & 962 & {\tt memalign}, {\tt stpcpy}, {\tt \_\_cxa\_finalize}  & 0\% & 0\% \\
+\end{tabular}
+}
+\caption{\Compatmetric{} of \libc{} variants. For each variant, we calculate \compatmetric{} based on symbols directly retrieved from the binaries,
+and the symbols after reversing variant-specific replacement (e.g.,{\tt printf} becomes {\tt \_\_printf\_chk}).}
+\label{tab:libc-compat}
+\end{table}
+
+This study also uses \compatmetric{} to evaluate the compatibility of several \libc{} variants --- eglibc~\cite{eglibc}, uClibc~\cite{uclibc}, musl~\cite{musl} and dietlibc~\cite{dietlibc} --- against \glibc{},
+listed in Table~\ref{tab:libc-compat}.
+We observe that, if simply matching exported API symbols, only eglibc is directly compatible to \glibc{}.
+Both uClibc and musl have a low \compatmetric{}, because \glibc{}'s headers replace a number of APIs with safer variants at compile time, using macros.
+For example, \glibc{} replaces {\tt printf} with {\tt \_\_printf\_chk}, which performs an additional check for stack overflow.
+%Because these new APIs often have the same interface as the old ones,
+%we assume other \libc{} variants can easily
+%reverse the API replacement during symbol resolution.
+After normalizing for this compile-time API replacement, both uClibc and musl are at over 40\% \compatmetric{}.
+In contrast, dietlibc is still not compatible with most binaries linked against \glibc{} --- if no other approach is taken to improve its compatibility.
+The reason of low \compatmetric{} is that dietlibc does not implement many ubiquitously used \glibc{} APIs such as {\tt memalign} (used by 8887 packages) and {\tt \_\_cxa\_finalize} (used by 7443 packages).

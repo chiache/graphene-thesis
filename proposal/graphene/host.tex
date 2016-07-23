@@ -1,0 +1,190 @@
+\subsection{Linux Host PAL}
+\label{sec:linux:pal}
+
+\begin{comment}
+The Platform Adaptation Layer (PAL) exports a generic host kernel interface to the guest, summarized in Table~\ref{tab:abi}.
+Our Linux host PAL consists of a user library and a small Linux kernel module.
+Our PAL library is implemented using  \nativecalls{} native Linux system calls.
+%The specific division of labor between the host kernel and user library
+%could be different in another implementation.
+%We currently implement only a Linux host PAL.  
+If a different host kernel implements the same PAL ABI,
+{\tt libLinux.so} and all binaries
+should execute without modification.
+
+
+%How we connect the shim to the PAL?  Expedient to hack the loader to add it to the link tables.  Describe.  
+%-Dynamically linked, included in loader (ld.so can't mmap the PAL; conceptually should be mapped by the OS)
+%-imported by libc
+%-- Does a new binary type require kernel mods?  If so, make claim about unmod host
+%-- conceptual leakage by tightly coupling pal and loader; pal should be provided by the host OS
+% validated that no other native system calls
+%% were being issued by application directly to the host kernel with {\tt strace} 
+%% and by disassembling application binaries.
+%% In future work, we will replace the native Linux system call table 
+%% with a restricted system call (or hyper call) table to host.
+%potentially migrating much of the PAL implementation into the host kernel.
+
+We selected the Drawbridge ABI~\cite{porter11drawbridge} as a starting point for the Graphene ABI,
+because it strikes a good balance between host platform independence 
+and avoiding duplicate functionality.
+In porting Linux to the Drawbridge ABI, which was designed for a Windows library OS,
+we strove to only add additional interfaces when otherwise unavoidable for
+functionality or performance.
+In some cases, revisiting the Drawbridge design choices 
+could simplify {\tt libLinux},
+but we wanted to understand how well the Drawbridge design generalizes to other guests, 
+without undermining its simplicity.
+\end{comment}
+
+%We note that we reimplemented the Drawbridge ABI according to the published description and 
+%expect that both systems two could be interoperable
+%with a modest amount of reconciliation effort where the published specification is ambiguous;
+%because Drawbridge is not publicly available, we cannot test interoperability of the library OSes.
+
+
+\begin{comment}
+
+\noindent Graphene requires  the following additional PAL calls:
+\begin{compactenum}
+%% dp: I think these are the key ones
+%\item \fixmedp{What is missing here}
+% What is: DkThreadSelf - is this necessary?  
+% DkThreadPrivate
+\item {\tt DkSetSegmentRegister} --- Set the optional segmentation
+  register values ({\tt fs} and {\tt gs} on {\tt x86\_64}).  This functionality 
+  is required
+  for thread-local storage, which is initialized in user-space
+  by the Linux loader.
+  The Windows kernel initializes these registers before process execution begins, 
+  obviating the need to initialize them from user-space.
+  We further note that different OSes use these registers differently
+  (e.g., 32-bit Windows uses {\tt gs} for TLS, whereas Linux and 64-bit Windows use {\tt fs} for TLS),
+  therefore management of these registers should be in the domain of the guest.
+\item {\tt DkSetExceptionHandler} --- Register a callback for a hardware exception, 
+  such as a divide by zero error or segmentation fault.  This is roughly analogous 
+  to a software emulated interrupt descriptor table (IDT).  
+  %In future work,
+  %we will adopt techniques proposed previously to send processor exceptions directly to the guest~\cite{belay12dune}.
+\item {\tt DkExceptionReturn} --- Returns from an exception back to the host kernel.
+   %% In our current design, the host kernel is responsible for returning control flow 
+   %% back to the thread that was running when an exception occurs.
+   %% Alternatively, the Graphene ABI could require exception delivery to include
+   %% a register trapframe sufficient to resume execution directly in user space.
+% Async upcall; return necessary?
+%\fixmetsai{I am not sure how to put this, but the design of Return is to leave PAL independent from its host semantic
+%%%    With the extra call, guests no long need to worry about the stack structure that
+%%%    PAL created at exception handling. For example, PAL might put extra objects on stack, or use an
+%%% alternative stack. These design will make the guest crash while trying to return.
+\item {\tt DkCreatePhysicalMemoryChannel}, {\tt Dk\-Physical\-Memory\-Send}, and {\tt Dk\-Physical\-Memory\-Recv} --- These calls mark a set of pages in the sender's address space as copy-on-write (COW) 
+  and then map the pages as COW in the receiver's address space.
+  Although these calls are not strictly required, as
+  data can be sent over a stream, we found the ability to exchange 
+  large quantities of data efficiently to be an important 
+  performance optimization for {\tt fork}  (\S\ref{sec:fork}).
+
+\item {\tt DkHandleSend}, {\tt DkHandleRecv} --- Send a stream 
+  handle out-of-band to another guest in the same sandbox.
+  This is used to establish connections both for namespace
+  coordination (\S\ref{sec:namespaces}) and 
+  handle inheritance (\S\ref{sec:fork}).
+  
+
+%  This mechanism required extending the Linux kernel with a \gipclines{} line module,
+%  discussed below.
+%  This module does not require any kernel changes or recompilation.
+  
+\end{compactenum}
+\fixmedp{isolate pal call?}
+
+%%% Extra PAL calls we needed.  Describe issues. \fixmedp{Can I get a list?}
+%%% -mutex (don)
+%%% -cv (don)
+%%% -IPC physical memory calls send/recv
+%%% -set\_thread\_private - sets segmentation registers for TLS
+%%% -synchronous event - sets hardware exception handlers + OS callbacks (seg fault, div zero, external kill, async io, interrupts, etc.) roughly analogous to idt
+%%% -system initialize - get control block address for checkpointing/etc. - avoids assumptions about address space layout
+
+\paragraph{Fast bulk data movement.} 
+We extend the Linux host kernel with a
+fast bulk IPC mechanism.  The bulk IPC mechanism does a 
+copy-on-write (COW) data transfer between two guests.
+A sender designates virtual pages to send to 
+the receiver;
+these pages are then placed in a first-in-first-out queue.
+The receiver then requests these pages be mapped into its address space,
+optionally providing a target virtual address (similar to {\tt mmap}).
+The sent pages need not be virtually contiguous, 
+allowing the guest to efficiently gather and send scattered pages.
+%This is useful for implementing guest-managed page caches.
+
+Graphene uses bulk IPC in conjunction with control
+messages on a byte stream; 
+the byte stream communicates the expected meaning and ordering 
+of the corresponding bulk data transfer.
+In the common case, these physical pages are quickly shared between
+two processes, minimizing data copying
+for user-level implementations of system calls like {\tt fork}.
+%The CAS server commonly
+%unmaps sent pages, which will reduce the page reference 
+%count to one and eliminate the need to copy the page on a 
+%on a write fault in the receiver.
+
+Our bulk IPC module is \gipclines{} lines of code, 
+runs on multiple versions of Linux (2.6 and 3 series kernels), and
+does not require
+Linux kernel changes or recompilation.
+\end{comment}
+
+%% dp: So sad, but something has to go
+\begin{comment}
+\paragraph{Efficient creation of clean processes.}
+We implement a process creation ABI in the host 
+that only creates 
+clean child picoprocesses that do not inherit memory mappings
+or open file handles from the parent, similar to booting another VM.
+This design choice strengthens security isolation.
+
+Linux does not provide a process creation mechanism other than {\tt fork()} (or variants, such as {\tt clone()}).
+Thus, the PAL is must implement this abstraction on Linux processes.
+A simple implementation of {\tt Dk\-Pro\-cess\-Create()} would {\tt fork} 
+a new process,
+clean the open file handles, and then {\tt exec} the new binary.
+This simple implementation of process creation
+wastes work implementing an ABI that will always {\tt exec()} a clean process.
+%%% The {\tt fork-exec} approach bring unwanted overhead to {\tt fork} and {\tt execve}
+%%% system call. Compare to the native system calls, reloading the whole Graphene
+%%% system causes duplicated works such as parsing manifests and linking libraries.
+
+The Graphene PAL optimizes process creation by forking 
+a newly launched picoprocess after initializing all of the Graphene state,
+but before starting any application-specific work, such as calling the ELF loader.
+Dune leverages a similar optimization to efficiently create
+isolated threads in the Wedge case study~\cite{belay12dune}.
+The checkpoint process is not visible to the application.
+This checkpoint listens for a message from the PAL to 
+fork itself in order to create a clean child.
+
+Because new processes are created by forking the checkpoint process,
+as a guest creates children, they are actually siblings
+from the perspective of the host kernel.
+The guest implements the abstraction of a Linux process tree inside the library OS.
+
+This checkpointing strategy works well even if the application 
+requests that the child load a different application
+binary, because the checkpoint is taken before {\tt ld.so} links in the application.
+In a simple microbenchmark,
+this checkpointing strategy improved picoprocess creation time
+ a factor of two.
+
+%This approach is \fixmedp{XX\%} faster than simply {\tt exec}-ing 
+%the PAL in the child to clean up parent state.
+
+%%% This strategy of checkpointing the process manager allows Graphene to quickly 
+%%% create clean child processes in user-space on an unmodified Linux kernel.  
+%%% In a simple microbenchmark,
+%%% this pre-forking strategy improved {\tt DkProcessCreate} time
+%%% by a factor of two.
+
+
+\end{comment}

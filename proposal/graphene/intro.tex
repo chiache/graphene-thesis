@@ -1,0 +1,145 @@
+\section{Introduction}
+\label{sec:intro}
+Existing library OSes provide single-process applications
+with the qualitative benefits of virtualization
+at a lower cost~\cite{porter11drawbridge,unikernels,baumann13bascule}.
+These benefits include security isolation of mutually untrusting applications,
+migration, and host platform compatibility.
+%Library OSes move portions of
+%OS kernel functionality into an application library.
+In a library OS, the guest OS is essentially ``collapsed''
+into an application library,
+%% dp: too early for this nomenclature, I think
+% \daniela{(a libraryOS instance)},
+which implements the OS system calls and supporting data structures as library functions---mapping
+high-level APIs onto
+a few paravirtual interfaces to the host kernel.
+Recent library OSes improve efficiency over full guest OSes by eliminating duplicated features
+between the guest and host kernel,
+such as the CPU scheduler, or
+%eliminating guest-level multiplexing code, as the library OS supports only one application;
+even compiling out unnecessary guest kernel APIs~\cite{unikernels}.
+In total, this can reduce the memory requirements of running a single, isolated application
+by orders of magnitude, and similarly
+increase the number of applications which can run
+on a single system~\cite{porter11drawbridge,unikernels}.
+Library OSes ahve also proved
+useful for porting legacy applications
+onto new hardware platforms, such as Intel's SGX~\cite{baumann14haven}.
+%% dp: This sentence seems a little premature
+%In recent works, library OSes provide rich OS features for isolated contexts while the host OSes are untrusted
+
+%% Library OSes reduce the memory requirements of running a self-contained,
+%% isolated application process
+%% %guest \daniela{I would replaced guest by "isolated process or group of processes (a libOS instance)''}
+%% by orders of magnitude
+%% In a cloud computing environment,
+%% increasing the number of applications per server has enormous
+%% economic benefits.
+%% Even on a desktop or portable system, \libos{}es can reduce the overheads
+%% of sandboxing untrusted code and running applications
+%% designed for another OS.
+
+%Because library OSes execute within a VM \daniela{this phrase does not read good to me because (i) it might imply the picoprocesses need hypervisor support, as misunderstood by reviewer 1 and (ii) you already emphasized the drawbacks of leveraging a VM} or lightweight process ({\em picoprocess}~\cite{xax}),
+%library OSes execute with
+
+%% dp: Daniela, great suggestion!  We need to make this situation seem more
+%%     like the sky will fall without our help
+A key drawback of recent library OSes, however,
+is that they are limited to single-process applications.
+Yet many applications, such as network servers and
+shell scripts,
+create multiple processes
+for
+performance scalability, fault isolation, and programmer convenience.
+%These applications would benefit from the efficiency and security benefits
+%of a library OS.
+In order for the efficiency benefits of library OSes to be widely applicable,
+especially for unmodified Unix applications,
+%either applications must be rewritten to implement ad hoc coordination mechanisms, or
+library OSes must  provide commonly-used multi-process abstractions,
+such as fork,  signals, System V IPC, and exit notification.
+To support multi-process abstractions, library OSes often have to rely on sharing OS states,
+backed by the hosts' memory sharing features.
+For example, Drawbridge~\cite{porter11drawbridge} cannot simulate process forking because copy-on-write memory sharing is not a platform-independent features.
+
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.75\linewidth]{graphene/figures/concept.pdf}
+\caption{
+\fix{Multi-process abstraction model of Graphene libOS. For each process of an application, a libOS instance will serve system calls and keep local OS states. States of multi-process abstractions are shared by coordinating over host-provided RPC streams, creating an illusion of running in single OS for the application.}
+%\vspace{-.1in}
+\label{fig:concept}}
+\end{figure}
+
+This paper describes {\bf Graphene},  a Linux-compatible library OS.
+In Graphene, multiple libOS instances collaboratively implement
+POSIX abstractions,
+yet appear to the application
+as a single, shared OS.
+Graphene instances coordinate state using remote procedure calls (RPCs) over
+host-provided byte streams (similar to pipes).
+In a distributed POSIX implementation, placement of shared state and messaging complexity
+are first-order performance concerns.
+%We chose to shift implementation complexity into the library OS
+%in order to uphold simple enforcement of security isolation in the host.
+By coordinating shared states across libOS instances,
+Graphene is able to create an illusion 
+of running in a single OS
+for multiple processes in an application (as figure~\ref{fig:concept}).
+
+%Previous library OS designs ensured security isolation of independent applications,
+%comparable to a VM, by keeping a relatively narrow host ABI.
+%We selected the Graphene
+%design because it strikes a unique balance between
+%and robust, flexible security enforcement.
+
+The Graphene design ensures security isolation of
+mutually distrusting, multi-process
+applications on the same host system.
+Essential to this goal is
+minimally expanding the host ABI to support multi-processing,
+as well as leveraging RPCs as a natural point to mediate inter-libOS communication.
+RPC coordination among Graphene instances can be dynamically disconnected, facilitating novel sandboxing
+techniques.  For instance, we develop an Apache web server extension that, upon logging in a given user,
+places the worker process's libOS in a sandbox with access to only that user's data.
+We expect more nuanced degrees of trust are possible in future work.
+The contributions of this paper are:
+\begin{compactitem}
+\item Graphene, a Linux library OS, which supports
+  real-world, multi-process applications including a shell, web server,
+  and compiler, which can be  efficiently checkpointed and migrated.
+% \fixmetsai{We need to enable mulit-process checkpointing and migration}
+% \daniela{the reviewers will be looking for that in the experiments section: "among hosts''}.
+\item A framework for implementing multi-process APIs across cooperating library OS instances.
+%\daniela{I would change to: "A thorough security analysis of Graphene isolation design'' You mention that you trust the reference momitor, so there is no security to
+%be evaluated unless you guarantee the process is not vulnerable to exploits. We have not evaluated the security of the coordination design, only the isolation. To evaluate the security to the coordination design we have to look at possible race conditions and how they are dealt with.}
+%\item Addressing additional challenges developing a robust Linux library OS, including copy-on-write fork.
+\item A thorough evaluation of the overheads of Graphene.  Memory footprints are an order of magnitude
+smaller than KVM, and several applications perform comparably to a Linux process.
+\item A thorough analysis of Graphene security isolation.
+
+%In the best case, the overhead of a large {\tt gcc} compilation on Graphene is only 3\%.
+
+\end{compactitem}
+Graphene's design gives the user and system administrator a high degree of flexibility
+in isolating arbitrary groups of unmodified application processes,
+while upholding the efficiency and host compatibility benefits of recent library OSes.
+
+
+\begin{comment}
+\noindent The rest of this paper is structured as follows:
+\S\ref{sec:background} introduces the Graphene design in the context of recent library OS research,
+%\S\ref{sec:linux} describes the Graphene  design \fixmedp{cut?},
+\S\ref{sec:security} describes how our Linux host reference monitor enforces security implementation,
+\S\ref{sec:namespaces} describes our framework
+for implementing Linux's multi-processing APIs,
+\S\ref{sec:impl} provides additional implementation details,
+\S\ref{sec:eval} evaluates our system with application case studies,
+\S\ref{sec:related} describes related work,
+and \S\ref{sec:conclusion} concludes.
+\end{comment}
+
+%\fixmedp{After a complete draft is written, coalesce all goals and make sure they are addressed early on.  We are doing some scatter-shot motivation}
+
