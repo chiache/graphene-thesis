@@ -3,8 +3,6 @@
 % comment out the following line when submitting
 \def \oscardebug{}
 
-\usepackage{lingmacros}
-\usepackage{tree-dvips}
 \usepackage{geometry}
 \geometry{margin=1in}
 \usepackage{titlesec}
@@ -21,7 +19,6 @@
 \usepackage{color}
 \usepackage[square]{natbib}
 \usepackage{lastpage}
-\usepackage{siunitx}
 \usepackage{times}
 \usepackage{multirow}
 \usepackage[hyphens]{url}
@@ -178,10 +175,13 @@
 %\vspace*{4\baselineskip}
 %The frontispiece is generally an illustration, and is an optional page.
 
+\newlength{\charwidth}
+\setlength{\charwidth}{\widthof{\S}}
+
 \newpage
 %\centerline{\bf{Table of Contents}}
 \renewcommand{\contentsname}{\centerline{\normalsize\bf{Table of Contents}}}
-\renewcommand{\cftchapfont}{\normalsize\bf\def\\\hspace{0pt}\def\em{}}
+\renewcommand{\cftchapfont}{\normalsize\bf\def\\{\hspace{-\charwidth}}\def\em{}}
 \tableofcontents
 
 \newpage
