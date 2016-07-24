@@ -1,0 +1,21 @@
+Modern system stacks and applications have grown in term of both complexity and requirement.
+The complexity of system stacks --- from operating systems to the hardware --- have made them prone to bugs and vulnerabilities,
+leading to risk of exploitation.
+In a multi-tenant system like cloud, benign and malicious users share the same trusted computing base in the system stack,
+in which the malicious users can actively attack the system.
+Moreover, system stacks can be attacked from the hardware, if the providers of the hosts are malicious.
+Overall, applications are facing risks of being compromised increasingly,
+by trusting the system stacks to maintain their integrity.
+
+System researchers have been designing secure operating systems, such as Exokernel~\citep{engler95exokernel} or HiStar~\citep{zeldovich+histar}, to minimize the risk of exploitation.
+However, these secure operating systems are designed as prototypes that are unable to support sophisticated applications.
+The center of the problem is the compatibility requirement:
+many applications depend on the modern system APIs and features of a monolithic operating system (e.g., Linux), and cannot be easily redesigned.
+For previous library operating systems,
+one of the system features that are especially missing or incomplete for Linux applications is the multi-process support
+--- which are often used in server-type workloads or shell scripts.
+On the other hand, virtualization can isolate native applications from each other in a multi-tenant system,
+but often requires too much resources such as memory, to run each guests.
+
+To enforce security isolation for native Linux applications in multi-tenant systems, we present {\em Graphene Library OS},
+a library OS that supports unmodified Linux multi-process applications.
