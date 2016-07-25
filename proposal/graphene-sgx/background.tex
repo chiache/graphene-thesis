@@ -1,8 +1,8 @@
-\section{Background and Overviews}
-\label{sec:gsgx:background}
+\section{Background and Overview}
+\label{sec:gsgx:overview}
 
-\subsection{Software Guard Extension}
-\label{sec:gsgx:background:sgx}
+\subsection{A Overview of \intel{} \sgx{}}
+\label{sec:gsgx:overview:sgx}
 
 %\begin{figure}[t!]
 %\centering
@@ -19,46 +19,63 @@
 %\label{fig:libosvssdk}
 %\end{figure}
 
-\sgx{} ({\it Software Guard Extension})
+\intel{} \sgx{} ({\it Software Guard Extension})
 is a set of new x86/x64 instructions
 introduced in the latest \intel{} \skylake{} processors,
 to create, interface and attest
 an isolated memory region (enclave) inside applications' virtual memory.
 \sgx{} guarantee any data in an enclave
-stay encrypted in the DRAMs, using secret keys derived from
+stay encrypted in the DRAMs, using a secret key derived from
 the application's cryptographic measurements.
-Security-sensitive information in the enclaves
-can only be accessed within the code signed by developers,
-who can actively verify that no parts of the code
-leak or corrupt the information.
-
-The technology primarily defends applications against two types of attacks:
-
-\begin{compactitem}
-
-\item {\bf From operating system (or hypervisors)}:
-Operating systems or hypervisors
-that are either compromised by rootkits
-or deliberately modified by the host providers.
-An attacking host can access the raw data in DRAMs, or remap the
-physical pages to other contexts.
-
-\item {\bf Directly on hardware}:
-Ones who physically access the hosts can either peep
-the DRAM using techniques like cold-boot attacks~\citep{halderman09coldboot},
-or intrude the boot process using counterfeit peripheral devices
-~\citep{hudson15thunderstrike}.
-
-\end{compactitem}
-
-The use cases of \sgx{} mostly involve the process that an enclave
-retrieves a signed attestation from the processor,
-to exchange provisioning of critical information from remote servers.
-The purpose of such process is equivalent to
-expanding the trusted execution
-from remote servers
+The secret data store in the enclave memory
+can only be accessed within the code inside the enclave,
+and the code must be signed by the developers' private key.
+The use cases of \sgx{} mostly involve an enclave
+retrieving a signed attestation from the \intel{} processor,
+to exchange provisioning of information from trusted remote servers.
+The purpose is equivalent to
+expanding the execution from remote servers
 to untrusted hosts,
-to harness resources such as CPU cycles and DRAMs.
+to securely harness resources such as CPU cycles and DRAMs.
+
+\sgx{} is an appealing tool for protecting small amounts of highly-sensitive data or code, %because it can defend 
+against malicious or compromised OSes, hypervisors, or even hardware peripheral.
+For instance, \cite{hoekstra13sgx} show how SGX can be used
+to build a trusted path from a video chat application to a GPU and network card, which maintains confidentiality and integrity of the
+video stream, even if the OS is compromised.
+Similarly, because DRAM contents are encrypted, SGX can resist attacks such as cold-boot attacks~\citep{halderman09coldboot} or 
+malicious peripheral devices~\citep{hudson15thunderstrike}.
+
+
+%\intel{} \sgx{} ({\it Software Guard Extensions})
+%are a set of new x86/x64 instructions
+%introduced in the \intel{} Skylake processor family.
+%Using \sgx{}, an 
+%application can designate part of its virtual memory as an {\em enclave}.
+%The CPU guarantees that the contents of the enclave never leave the CPU package unencrypted.
+%The CPU also measures the integrity of a binary loaded into the enclave, and offers remote attestation,
+%similar to a TPM~\citep{TPM}.
+
+
+%%% create a protected memory region, called an {\em enclave}, inside it's virtual memory,
+%%% where it can load its security sensitive data with hardware-enforced isolation from the untrusted OS. 
+%%% The processor with \sgx{}
+%%% guarantees that any data loaded in enclave
+%%% stays encrypted in the DRAM, by using a secret key deterministically derived from the application's cryptographic measurement and the CPU secret. 
+
+
+
+% \sgx{} provides useful building blocks for secure applications, but does not
+%absolve the programmer of all responsibility for reasoning about end-to-end security.
+%Bugs in the application or supporting libraries can still disclose sensitive data from an enclave,
+%and porting code into SGX can be subtle.
+%
+%Fundamentally, this argues for writing enclave code in higher-level languages
+%(e.g., \java{}) that provide important 
+%safety properties, such as memory and type safety, that reduce or eliminate common vulnerabilities.
+%Ideally, one would formally verify security properties of enclave code~\citep{moat}; this verification is significantly aided by using 
+%higher-level languages amenable to formal reasoning.  Verification is significantly harder
+%with C/C++ or assembly languages.
 
 %One must note that \sgx{} only promises the integrity of application binaries
 %initially loaded in enclaves.
@@ -72,13 +89,15 @@ to harness resources such as CPU cycles and DRAMs.
 %of the applications. With smaller TCB, clients who launched the enclaves
 %can more easily reason about the thoroughness of securing the execution.
 
-To achieve smaller TCB, the software development kit of \sgx{}
-intends to encourage developers to partition the applications and
-keep only security sensitive components in the enclaves.
-Such an intention is exactly contradicted by the trust model of \haven{},
-which must trust the loaded application as a whole.
-Except for the cases in which the whole applications must be secured,
-\haven{} actually downgrades the trustworthiness of enclaves.
-Figure~\ref{fig:libosvssdk} shows the comparison of the two models.
+%To achieve smaller TCB, the software development kit of \sgx{}
+%intends to encourage developers to partition the applications and
+%keep only security sensitive components in the enclaves.
+%Such an intention is exactly contradicted by the trust model of \haven{},
+%which must trust the loaded application as a whole.
+%Except for the cases in which the whole applications must be secured,
+%\haven{} actually downgrades the trustworthiness of enclaves.
+%Figure~\ref{fig:gsgx:libosvssdk} shows the comparison of the two models.
 
-\subsection{Library OSes in \sgx{} Enclaves}
+\subsection{A Non-Partitioned Model}
+\label{sec:gsgx:overview:libos}
+ 
