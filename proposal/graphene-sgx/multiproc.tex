@@ -28,19 +28,17 @@ with process isolation.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=\linewidth]{graphene-sgx/figures/fork.pdf}
+\includegraphics[width=5in]{graphene-sgx/figures/fork.pdf}
 \footnotesize
-\vspace{-0.3in}
-\caption{
-Process creation in \sysname{}.
+\caption[Process creation in \sysname{}]
+{Process creation in \sysname{}.
 Numbers show the order of operations.
 When a process forks, \sysname{} calls {\tt execve} system call
 on the untrusted host,
 to create a clean enclave with the same \libos{} image.
 Then the two enclaves build up the mutual trust by
 exchanging a session key, verifying attestation of each other,
-and migrating the process snapshot from the parent.
-}
+and migrating the process snapshot from the parent.}
 \label{fig:fork}
 \end{figure}
 

@@ -3,7 +3,7 @@
 \section{\java{} Support for Partitioning into \sgx{}}
 \label{sec:concept}
 
-This section explains the support \systemname{} adds to \java{}
+This section explains the support \sysname{} adds to \java{}
 for partitioning applications into \sgx{} enclaves.
 %support in addresses the challenges
 %in partitioning \java{} applications on 
@@ -12,13 +12,13 @@ for partitioning applications into \sgx{} enclaves.
 \label{sec:concept:partition}
 
 %To address the partition challenge in a managed language like \java{},
-%\systemname{} diminishes the need for developers
+%\sysname{} diminishes the need for developers
 %to scrutinize the whole code base
 %and identify the fine line of isolating trusted and untrusted classes. 
 
-\systemname{} includes Shredder to automatically partition \java{} applications on \sgx{},
+\sysname{} includes Shredder to automatically partition \java{} applications on \sgx{},
 requiring  minimal developer effort.
-Figure~\ref{fig:builder} shows the workflow of a developer using the \systemname{} Shredder tool.
+Figure~\ref{fig:builder} shows the workflow of a developer using the \sysname{} Shredder tool.
 The developer selects the application's main class, either as a JAR or class files
 and the classpath of the library.
 The developer also specifies the list of
@@ -34,13 +34,14 @@ until the transitive closure of these dependencies converges.
 %performs {\bf dependency tracking} starting at the entry classes,
 %until all the depended classes eventually converge.
 %% dp: this feels out of place here; maybe put it at the beginning of the section?
-%Afterward, \systemname{} packages the classes, with additional steps of augmentation, instrumentation, and signing, purpose of which is explain in \S\ref{sec:concept:loading} and \ref{sec:concept:accessing}.
+%Afterward, \sysname{} packages the classes, with additional steps of augmentation, instrumentation, and signing, purpose of which is explain in \S\ref{sec:concept:loading} and \ref{sec:concept:accessing}.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=\linewidth]{civet/figures/building-tool.pdf}
-\caption{\systemname{} design-time tool, for partitioning, packaging, augmentation, instrumentation, and signing.
-\systemname{} partitions the \java{} application based on the entry classes
+\includegraphics[width=4.5in]{civet/figures/building-tool.pdf}
+\caption[An overview of the \sysname{} design-time tool.]
+{The \sysname{} design-time tool, for partitioning, packaging, augmentation, instrumentation, and signing.
+\sysname{} partitions the \java{} application based on the entry classes
 specified by the developers (classes {\tt Trusted}).
 The Shredder tool recursively pulls all required supporting classes into the 
 package to run in the enclave.
@@ -73,7 +74,7 @@ classes in and out of the enclave.
 %% There are basically two goals for our partition tool:
 
 %% \begin{compactenum}
-%% \item To create a static package of supporting classes, so \systemname{} runtime can load every required class from the package.
+%% \item To create a static package of supporting classes, so \sysname{} runtime can load every required class from the package.
 %% \item To avoid the isolated execution from leaving the enclave,
 %% in between the entry triggered by method invocation
 %% from the untrusted components,
@@ -108,12 +109,12 @@ which we leave for future work.
 %the class loader will only search among the trusted classes,
 %so no malicious classes will be loaded.
 
-%% \systemname{} also includes any JNI 
+%% \sysname{} also includes any JNI 
 %% In the case that any supporting classes require JNI,
-%% \systemname{} will include the correspondent JNI libraries in the enclave image.
+%% \sysname{} will include the correspondent JNI libraries in the enclave image.
 %% The JNI libraries are unpacked when the enclave starts,
 %% and added to {\tt LD\_LIBRARY\_PATH} for the trusted \java{} VM.
-%% \systemname{} currently does not partition the JNI libraries, but we see the partition of JNI as a manageable future work. 
+%% \sysname{} currently does not partition the JNI libraries, but we see the partition of JNI as a manageable future work. 
 
 Based on our case studies (\S\ref{sec:case-study}),
 we observe that specifying the entry classes and identifying any dynamically loaded classes,
@@ -121,23 +122,23 @@ requires minimal developer effort.
 In all of our use cases, the applications are partitioned with only one entry class, and very few dynamically loaded classes.
 
 
-%\systemname{} transparently handles all the details of accessing \sgx{} hardware,
+%\sysname{} transparently handles all the details of accessing \sgx{} hardware,
 %in behave of the loaded \java{} applications (as shown in figure~\ref{fig:synthesis}).
-%When \systemname{} is called to run isolated \java{} components,
+%When \sysname{} is called to run isolated \java{} components,
 %it creates two worlds of \java{} execution --- one is in the enclave and the other is outside the enclave.
 %With the ability of running \java{} classes inside the enclave,
-%\systemname{} can support the partitioned model with both isolated and untrusted classes implemented as \java{} classes.
+%\sysname{} can support the partitioned model with both isolated and untrusted classes implemented as \java{} classes.
 
 %\input{features}
 
-%Even though \systemname{} hides the low-level semantics of the \sgx{} hardware from the applications,
+%Even though \sysname{} hides the low-level semantics of the \sgx{} hardware from the applications,
 %the applications still have full access to the security guarantees ({\em what is secured?}) and features ({\em how is it secured?}) provided by the the \sgx{} hardware.
 %We do so by identifying the high-level goals of these guarantees and features,
 %and remodel the goals in the \java{} language.
 %The underlying mechanisms of these goals is the original guarantees and features provided by the \sgx{} hardware.
 
 %We discuss each security guarantee or features of the \sgx{} hardware,
-%and how they are actually modeled in \systemname{} as follows.
+%and how they are actually modeled in \sysname{} as follows.
 
 %\paragraph{Isolated execution of security-sensitive components}
 %The \sgx{} hardware ensures components with higher security sensitivity
@@ -146,10 +147,10 @@ In all of our use cases, the applications are partitioned with only one entry cl
 %The isolated components shall not share any data with the untrusted components unless the isolated components decide
 %to flow the data out of the enclave.  
 
-%\systemname{} models this guarantee by asking the developers to make
+%\sysname{} models this guarantee by asking the developers to make
 %the classes that they believe to be security sensitive.
 %Note that only the top-most classes that interact with the untrusted components have to be identified --- we can these classes as the {\em entry classes}.
-%After developers identifying the multi-level security sensitive with an application, \systemname{} uses a building tool to partition the application
+%After developers identifying the multi-level security sensitive with an application, \sysname{} uses a building tool to partition the application
 %based on the developers' hint.
 %The partition completely separates the \java{} classes for the isolated components from the classes for the untrusted components.
 %The execution of these isolated classes will be fully jailed inside the enclave, and any invocation of the methods exported by the isolated classes
@@ -170,25 +171,25 @@ and creates an enclave image as a JAR file,
 developers can ship the enclave image with the rest of the application.
 The application is then executed on an untrusted host with the 
 %to the untrusted hosts that have the 
-\systemname{} runtime framework installed.
+\sysname{} runtime framework installed.
 %Then, on the untrusted hosts users will run the application,
 Upon the first use, either by creating a trusted object or calling a static method of a trusted class,
 %Whenever an entry class is instantiated, or one of its static method is invoked,
-the \systemname{} runtime framework creates an enclave containing the trusted classes.
+the \sysname{} runtime framework creates an enclave containing the trusted classes.
 
 %\fixmedp{Trusted and isolated are used pretty interchangeably.  Pick one keyword and use it consistently, please}
 
-Figure~\ref{fig:runtime} shows the structure of the \systemname{} runtime framework(a more detailed view of Figure~\ref{fig:synthesis}).
-The \systemname{} runtime framework is split into the front-end (untrusted) and the back-end (trusted).
+Figure~\ref{fig:runtime} shows the structure of the \sysname{} runtime framework(a more detailed view of Figure~\ref{fig:synthesis}).
+The \sysname{} runtime framework is split into the front-end (untrusted) and the back-end (trusted).
 When the front-end calls into a trusted class,
 it finds enclave image that contains the class,
 checks if an enclave is created for the same image in the current \java{} VM,
 and, if not, creates an enclave.
 The trusted classes from the same image share an enclave.
-%and \systemname{} does not support the scenarios that the developers want to 
+%and \sysname{} does not support the scenarios that the developers want to 
 %further partition the trusted classes.
 
-\systemname{} runs a separate, lighter-weight \java{} VM in the enclave.
+\sysname{} runs a separate, lighter-weight \java{} VM in the enclave.
 Running a \java{} VM in the enclave is a subtle challenge because a \java{} VM
 often yields a large system API footprint, and, by default, uses a large heap. % requires access to abundant resources such as the heap.
 To provide the required OS APIs inside the enclave, we use the Graphene library OS~\citep{tsai14graphene}~\footnote{Downloaded from \url{github.com/oscarlab/graphene}}.
@@ -200,19 +201,19 @@ we adjust the build-time configuration of the JVM to change multithreaded garbag
 %millions of lines of code \fixme{get the actual number},
 %which will cost tremendous effort to port into \sgx{} enclaves.
 
-%To avoid the cost of porting the \java{} VM, \systemname{} uses {\em Graphene-SGX library OS}~\citep{graphene-sgx} 
+%To avoid the cost of porting the \java{} VM, \sysname{} uses {\em Graphene-SGX library OS}~\citep{graphene-sgx} 
 %to facilitate the OS features needed by the \java{} VM.
 %Therefore, we do not modify any code of \jvm{}, except tuning the compilation options to reduce its resource usage.
 
 %\fixme{I am gonna avoid saying Graphene from now on.}
-When \systemname{} creates an enclave, the \sgx{} hardware measures integrity of the initially-loaded library OS.
+When \sysname{} creates an enclave, the \sgx{} hardware measures integrity of the initially-loaded library OS.
 The library OS then loads \jvm{} and all of the supporting libraries,
 such as {\tt libc},
 the JLI (\java{} legacy interface) library, and the minimal \java{} classes needed to bootstrap the class loader.
 Finally, \java{} VM loads the enclave image JAR file.
 
 Graphene itself is responsible to maintain the code integrity of the JVM.
-%\systemname{} depends on Graphene-SGX to maintain the code integrity.
+%\sysname{} depends on Graphene-SGX to maintain the code integrity.
 When Graphene loads a binary or class files,
 it verifies the integrity of the files by checking their measurements.
 The measurements of binary or class files are also
@@ -242,20 +243,21 @@ so no malicious classes will be loaded.
 %The purpose of the guarantee is to prevent code injection,
 %unless the isolated applications are tricked into loading the code by the attackers.
 
-%\systemname{} models this guarantee by creating a snapshot of developers'
+%\sysname{} models this guarantee by creating a snapshot of developers'
 %execution environment, including the version of \java{} VM,
 %checksums of any infrastructure binaries,
 %and the minimal supporting classes for the isolated component. 
-%\systemname{} packs all these files into a JAR file and sign it with the developers' private key.
-%When \systemname{} creates an enclave, the hardware measurement of the enclave includes only the infrastructure, as the \java{} VM and the \systemname{} back-end.
-%Once the enclave is created, the \systemname{} back-end must  
+%\sysname{} packs all these files into a JAR file and sign it with the developers' private key.
+%When \sysname{} creates an enclave, the hardware measurement of the enclave includes only the infrastructure, as the \java{} VM and the \sysname{} back-end.
+%Once the enclave is created, the \sysname{} back-end must  
 %check whether the JAR file loaded has the correct signature.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=\linewidth]{civet/figures/civet-structure.pdf}
-\caption{\systemname{} framework overview.
-\systemname{} creates two worlds for an partitioned \java{} application, each with an individual JVM.
+\includegraphics[width=4.5in]{civet/figures/civet-structure.pdf}
+\caption[\sysname{} framework overview.]
+{\sysname{} framework overview.
+\sysname{} creates two worlds for an partitioned \java{} application, each with an individual JVM.
 The JVM in the enclave is ported using Graphene library OS.
 Untrusted classes can invoke methods of trusted classes through proxy objects,
 which can transparently access the enclave interface, through serialization
@@ -268,39 +270,39 @@ and deserialization over an ring buffer accessed by both untrusted JVM and trust
 \label{sec:concept:accessing}
 
 For programmer convenience, 
-untrusted code can seamlessly call in-enclave objects in \systemname{}.
+untrusted code can seamlessly call in-enclave objects in \sysname{}.
 This is particularly useful when application components are closed-source.
 All public methods of trusted, programmer-identified entry classes are entry points for the enclave.
-The \systemname{} runtime framework is responsible for generating glue code for entering and exiting
+The \sysname{} runtime framework is responsible for generating glue code for entering and exiting
 the enclave appropriately, tracking references to objects in the enclave, 
 as well as marshalling arguments and return values for in-enclave functions.
 
-%in \systemname{},
+%in \sysname{},
 %access to in-enclave objects seamless for the untrusted components.
 %The rationale behind this design is based on two reasons.
 %First, the target of method invocation in \java{} is identified dynamically
 %via referencing the object.
-%Second, \systemname{} intends to avoid the developers' effort for injecting explicit entry points into the untrusted components,
+%Second, \sysname{} intends to avoid the developers' effort for injecting explicit entry points into the untrusted components,
 %especially when the imported \java{} class libraries are close-source.
 
-%% As \systemname{} dynamically determines the enclave entry points in the untrusted components,
+%% As \sysname{} dynamically determines the enclave entry points in the untrusted components,
 %% it avoids the requirement for developers
 %% to define the untrusted interface of the enclave.
 %% Instead of inquiring manual definition,
-%% \systemname{} applies a simple principle to automatically determine the entry points:
+%% \sysname{} applies a simple principle to automatically determine the entry points:
 %% All public methods of the {\em public} trusted classes can be entry points of the enclave.
 
 In order to reference objects inside the enclave from outside the enclave,
-\systemname{} framework uses a byte code generation library --- {\em CGLib}~\citep{cglib} to create untrusted proxies for the in-enclave instances.
+\sysname{} framework uses a byte code generation library --- {\em CGLib}~\citep{cglib} to create untrusted proxies for the in-enclave instances.
 CGLib instruments the class that is being proxied,
 and redirects the control to a handler 
-assigned by \systemname{} upon any method invocation on the proxy.
+assigned by \sysname{} upon any method invocation on the proxy.
 The proxy then triggers enclave entry to run the trusted method.
 
 
 
 %% When untrusted code calls a public method of a trusted class,
-%% \systemname{} transparently identifies 
+%% \sysname{} transparently identifies 
 %% determines enclave entry based on whether the objects accessed is in the enclave or part of the untrusted components.
 %% As classes can be replicated inside and outside the enclave,
 %% the same method of the same class must trigger different behavior according to the sensitivity of the instances.
@@ -319,9 +321,9 @@ We note that this design point was taken to minimize programmer effort in portin
 alternatively, we could allow an entry class to be replicated by requiring the programmer to 
 explicitly annotate calls to object functions.
 
-The \systemname{} design-time tool creates untrusted proxy classes for all entry classes,
+The \sysname{} design-time tool creates untrusted proxy classes for all entry classes,
 in which all constructors and static methods are redirected to
-the \systemname{} front-end, which then enters the enclave.
+the \sysname{} front-end, which then enters the enclave.
 We chose this approach because CGLib disallows redirecting 
 constructors and static methods, as this can introduce ambiguity in
 the invocation target when all classes are in the same JVM.
@@ -331,40 +333,40 @@ the invocation target when all classes are in the same JVM.
 %% but the class itself.
 %% To allow seamless invocation of the method,
 %% it causes ambiguity for the affiliation of the class, if the class is replicated in both partitions.
-%% Therefore, \systemname{} restricts the invocation of constructors or static methods
+%% Therefore, \sysname{} restricts the invocation of constructors or static methods
 %% to only the entry classes,
 %% and disallows replicating the entry classes
 %% in the untrusted components.
 %% In addition, if the constructor of an entry class is called upon the constructor of its untrusted subclass,
-%% the instantiation will be rejected by \systemname{}.
+%% the instantiation will be rejected by \sysname{}.
 
 %% \paragraph{Interception of in-enclave objects.}
 %% To seamlessly trigger the enclave entry upon method invocation,
-%% \systemname{} intercepts the instances or classes that belong to the isolated components.
+%% \sysname{} intercepts the instances or classes that belong to the isolated components.
 %% To intercept non-static method of in-enclave instances,
-%% \systemname{} uses {\em CGLib} \fixme{cite} to create proxies of the in-enclave instances.
+%% \sysname{} uses {\em CGLib} \fixme{cite} to create proxies of the in-enclave instances.
 %% CGLib instruments the class that is being proxied,
-%% and redirect the control to a handler assigned by \systemname{} upon any method invocation on the proxy.
+%% and redirect the control to a handler assigned by \sysname{} upon any method invocation on the proxy.
 %% The handler then triggers enclave entry to run the isolated method.
 
-%% \systemname{} uses a different mechanism of interception for constructors and static methods,
+%% \sysname{} uses a different mechanism of interception for constructors and static methods,
 %% because CGLib disallows redirecting constructors and static method
 %% due to the ambiguity of invocation targets.
-%% Instead, \systemname{} uses the design-time tool to create a dummy classes for all the entry classes,
+%% Instead, \sysname{} uses the design-time tool to create a dummy classes for all the entry classes,
 %% in which all constructors and static methods are redirected to
-%% the \systemname{} front-end.
+%% the \sysname{} front-end.
 %% Because we disallow replication of entry classes
 %% in the untrusted components,
 %% loading the dummy classes does not affect functionalities of the application. 
 
 \paragraph{Passing arguments into the enclave.}
 When a method triggers enclave entry, the arguments of the method have to be passed into the enclave for the invocation.
-\systemname{} always copy the arguments into the enclave,
+\sysname{} always copy the arguments into the enclave,
 by serializing the arguments into byte streams,
 copying the byte streams into the enclave memory,
 and then de-serializing into objects.
 By coping arguments into the enclave,
-\systemname{} ensures execution of trusted code does not inadvertently leave the enclave.
+\sysname{} ensures execution of trusted code does not inadvertently leave the enclave.
 If the code invokes a method on one of the arguments,
 the in-enclave copy of the class is used on an in-enclave instantiation of the object.
 Upon de-serialization, the arguments are also automatically type-checked,
@@ -376,19 +378,19 @@ it may return an object or literal back to the untrusted calling function.
 In general, objects are returned similarly to passing input arguments---by serializing the object to a byte stream and returning the bytes.
 %Technically, returning objects is the same as passing arguments, and only take serialization and de-serialization.
 
-In order to ensure confidentiality of sensitive data, \systemname{} takes additional care to check
+In order to ensure confidentiality of sensitive data, \sysname{} takes additional care to check
 whether a returned object creates an unexpected control flow.
-At enclave exit, \systemname{} only allows an object to be returned if it is not tainted with any secret data,
+At enclave exit, \sysname{} only allows an object to be returned if it is not tainted with any secret data,
 in which case the object is serialized and passed back to the caller.
 Section~\ref{sec:security} details our information flow tracking mechanism.
 
 In cases where the object is tainted and an instance of a trusted class,
-\systemname{} instead creates a reference in the enclave (to prevent garbage collection of the object internally),
-and returns an opaque reference type, that causes the untrusted \systemname{} runtime to create a proxy out of the enclave.
+\sysname{} instead creates a reference in the enclave (to prevent garbage collection of the object internally),
+and returns an opaque reference type, that causes the untrusted \sysname{} runtime to create a proxy out of the enclave.
 This policy applies to all constructors.
 If a proxy object is garbage collected, the destructor calls into the enclave to release the reference on the 
 corresponding object in the enclave.
-The \systemname{} untrusted runtime is responsible for translating any proxy objects passed as arguments to the enclave into opaque pointers,
+The \sysname{} untrusted runtime is responsible for translating any proxy objects passed as arguments to the enclave into opaque pointers,
 which the in-enclave runtime then translates to local object references.
 
 In the case of a tainted literal, we encrypt the plaintext return value concatenated with a nonce, using a temporary key, and return the ciphertext.
@@ -396,10 +398,10 @@ This encrypted literal can then be passed to subsequent enclave calls, where the
 
 %% However, unconditionally allowing returning objects may become a threat to the information confidentiality of the enclave,
 %% because the object may contain part of the enclave secrets due to the information flow.
-%% \systemname{} only allows returning objects
+%% \sysname{} only allows returning objects
 %% that are not tainted by the information flow from any secrets. More details about determining the taintedness of the objects are discussed in section~\ref{sec:security}.
 
-%% Based on the taintedness of the objects, \systemname{} has different policies and mechanisms of returning the objects to the caller,
+%% Based on the taintedness of the objects, \sysname{} has different policies and mechanisms of returning the objects to the caller,
 %% to maintain both information confidentiality and progress of the application.
 %% The policies are described as follows:
 
@@ -420,7 +422,7 @@ This encrypted literal can then be passed to subsequent enclave calls, where the
 %it must explicit call the exit instruction ({\tt EEXIT}) to make sure
 %the control flow won't be manipulated to leave the enclave.
 
-%\systemname{} models this guarantees by exporting all the public methods of the isolated classes
+%\sysname{} models this guarantees by exporting all the public methods of the isolated classes
 %(including constructors, static and non-static methods) as the entry points or untrusted interfaces.
 %When the untrusted component calls a constructor or static method of an isolated class,
 %the execution inside the enclave is triggered,
@@ -430,7 +432,7 @@ This encrypted literal can then be passed to subsequent enclave calls, where the
 %As soon as any untrusted components call one of the public methods on the proxy, the execution re-enter the enclave and start the isolated execution.
 
 %Exporting public methods as the entry points or the untrusted interface
-%is assumed to be reasonably secure in \systemname{}.
+%is assumed to be reasonably secure in \sysname{}.
 %First, only for the entry classes (the top-most classes of the enclave),
 %the constructors or static method will be exported.
 %Because developers have expressed that these classes are the ones that interact with the untrusted classes, it is safe to allow the untrusted components to calls these methods and trigger execution in the enclave.
@@ -448,9 +450,9 @@ This encrypted literal can then be passed to subsequent enclave calls, where the
 A feature of \sgx{} hardware is the ability to generate an attestation report for a remote entity,
 demonstrating the integrity of the enclave code at launch time.
 %The \sgx{} hardware provides the feature of generating a attestation report to prove the integrity of the isolated execution to a remote entity.
-\systemname{} provides helper API for developers to access these features,
+\sysname{} provides helper API for developers to access these features,
 with convenience and extended trust.
-For attestation, \systemname{} generates a report that contains a list of classes loaded inside the enclave, with their measurements.
+For attestation, \sysname{} generates a report that contains a list of classes loaded inside the enclave, with their measurements.
 The report is attached with the attestation generated and signed by \sgx{}, but processed by Graphene.
 The \sgx{}-generated attestation contains both
 the enclave measurement (proving integrity of Graphene) and
@@ -464,16 +466,16 @@ the measurement verified by Graphene (proving integrity of other binaries and fi
 %% so the remote entity can verify it by retrieving the same key
 %% (both attesters must be running in \sgx{} enclaves).
 
-Note that \systemname{} also includes
+Note that \sysname{} also includes
 the dynamic loading state in the attestation report.
-%A stronger guarantee provided by \systemname{} than \sgx{}
+%A stronger guarantee provided by \sysname{} than \sgx{}
 %is to present the dynamic loading state in the attestation report.
 The attestation generated by \sgx{} only contains
 the initial state of the enclave, and does not record changes within the executable code
 after the enclave starts. 
 In both cases, the remote entity is trusting the initially loaded binary
 to not dynamically load code that could compromise the enclave;
-however, \systemname{} can offer a more precise accounting of the state of the enclave 
+however, \sysname{} can offer a more precise accounting of the state of the enclave 
 at the time a report is generated.
 
 \fixmedp{For future work, would be cool to have some non-editable record of what is added to the enclave, so a corrupted enclave cannot hide the equivalent of a rootkit}
@@ -481,7 +483,7 @@ at the time a report is generated.
 %% As a result, the entity that
 %% verifies the attestation report has to blindly trust the initial code
 %% in the enclave does not dynamically load any vulnerable code.  
-%% The attestation report generated by \systemname{}
+%% The attestation report generated by \sysname{}
 %% reflects the latest state of class loading,
 %% allowing the trusted entity to audit the execution of enclaves.
 
@@ -492,15 +494,15 @@ at the time a report is generated.
 %the developers are spared from all the cryptographic details during the process of attestation and provisioning.
 
 \paragraph{Secure provisioning.}
-\systemname{} provides an API that transparently validates a connection to a remote host to load
+\sysname{} provides an API that transparently validates a connection to a remote host to load
 sensitive classes or secret data.
 %to be used for secure provisioning.
 To use this API, both sides of the connection
-must be running in enclaves created by \systemname{}.
+must be running in enclaves created by \sysname{}.
 The API performs key exchange algorithm (e.g., Diffie-Hellman) on the connection,
 secure the connection with encryption,
 and authenticate the connection by exchanging the attestation reports.
-\systemname{} provides convenient helper functions for developers to create a trusted path
+\sysname{} provides convenient helper functions for developers to create a trusted path
 for provisioning sensitive data to a remote enclave.
 %Developers can use this API to design any provisioning scheme, without implementing the details of building the trusted path.
 
@@ -508,13 +510,13 @@ for provisioning sensitive data to a remote enclave.
 \section{Hardening \sgx{} at Enclave Boundary using Information Flow Control in \java{} }
 \label{sec:security}
 
-\systemname{} % models the high-level security guarantees and features
+\sysname{} % models the high-level security guarantees and features
 %of the \sgx{} hardware in the \java{} language,
 allows \java{} developers to directly utilize the security features of \sgx{}, such as isolation from an untrusted hypervisor, % execution, code integrity, etc,
 in combination with language-level features that make the code in the enclave more robust.
 % safety and advanced protections in \java{}.
 %By bridging the gap between language and hardware protections,
-%\systemname{} creates opportunities to combine \sgx{} hardware protections
+%\sysname{} creates opportunities to combine \sgx{} hardware protections
 %and security benefits given by \java{} as a managed language.
 %In this section, we discussed the opportunities we explore to harden \sgx{} protection with the usage of \java{} language.
 
@@ -550,7 +552,7 @@ in combination with language-level features that make the code in the enclave mo
 
 %% Note that although memory corruption bugs and control flows attacks are forbidden in \java{} classes,
 %% these vulnerabilities can still exist in the \java{} VM and JNI.
-%% In \systemname{} we assume \java{} VM and JNI must be fully trusted,
+%% In \sysname{} we assume \java{} VM and JNI must be fully trusted,
 %% and we leave it as a future work to secure these components.
 
 %% dp: Meh.  prolix
@@ -588,7 +590,7 @@ many of them still dynamically load classes, such as directly calling the class 
 Having huge TCB as \java{} classes in the enclave still intensify
 the risk of attacks, even though \java{} classes are immune to control flow attacks. 
 
-\systemname{} largely reduce the supporting classes that can be loaded into the enclave,
+\sysname{} largely reduce the supporting classes that can be loaded into the enclave,
 by partitioning out the necessary classes from all the libraries in the developers' class paths, into the enclave image.
 When the enclave is created, the \java{} VM will not load any existing libraries such as {\tt rt.jar} from the host system,
 but instead only search classes in the signed enclave image.
@@ -607,41 +609,42 @@ We leave these potential improvements as future works.
 %\subsection{Information Flow Control at Enclave Boundary}
 %Problem of not just leaking secrets but also tainted info
 As an example of higher-level, language-based analysis, we implemented information flow tracking
-in \systemname{}.
+in \sysname{}.
 A common usage of enclaves is to protect sensitive data, such as an encryption key;
 thus, a common concern is that this sensitive data not be inadvertently returned because of an error or exploit within the enclave code.
 In general, we chose a design point that minimizes programmer effort; to adopt information flow tracking, we
 do require the programmer to specify secret data classes and declassify objects to be released as is from the enclave.
 
 \begin{figure}[t!]
-	\centering
-	\includegraphics[width=0.9\linewidth]{civet/figures/declassify.pdf}
-	\footnotesize
-	\caption{How \systemname{} provides a declassifier API to declassify sensitive  data.
-		When the untrusted class ({\tt Untrusted}) from Figure ~\ref{fig:synthesis} now calls the {\tt encrypt} method of a trusted class ({\tt Trusted}),
-		\systemname{} automatically calls the {\tt encrypt} method inside enclave, and pass the {\tt String} parameter.
-		Before returning the result, the trusted class has to use the {\tt declassify} to remove the taint of {\tt tainted} variable that is tainted by the {\tt encrypt} method of class {\tt Encryptor} because of the tainted secret variable {\tt s}.
-	}
-	\label{fig:declassify}
+\centering
+\includegraphics[width=3.5in]{civet/figures/declassify.pdf}
+\footnotesize
+\caption[How \sysname{} provides declassifier APIs to declassify sensitive data.]
+{How \sysname{} provides declassifier APIs to declassify sensitive data.
+When the untrusted class ({\tt Untrusted}) from Figure ~\ref{fig:synthesis} now calls the {\tt encrypt} method of a trusted class ({\tt Trusted}),
+\sysname{} automatically calls the {\tt encrypt} method inside enclave, and pass the {\tt String} parameter.
+Before returning the result, the trusted class has to use the {\tt declassify} to remove the taint of {\tt tainted} variable that is tainted by the {\tt encrypt} method of class {\tt Encryptor} because of the tainted secret variable {\tt s}.
+}
+\label{fig:declassify}
 \end{figure}
 
 %Because the code running in enclave has access to complete address space, including the trusted as well as untrusted memory regions, it is easy for the trusted code to inadvertently undermine \sgx{} protection by writing secret information in the untrusted region. Further, leaking any information derived from or related to the secret may be used by the untrusted code to guess the value of secret information. For example, even in the presence of memory protection, sandboxing and virtualization, it is possible to recover the secret key used by crypto algorithms~\citep{kocher1996timing,osvik2006cache,weiss2012cache, zhang2012cross}. So, to ascertain the secrecy of the sensitive data, no information derived from the secret should exit enclave in plaintext.
 
 %We use JAVA tool phosphor source and sink to taint provisioned data and control leakage
-%\systemname{} leverages extensive research on information flow tracking and control in \java{} to harden the \sgx{} security. 
+%\sysname{} leverages extensive research on information flow tracking and control in \java{} to harden the \sgx{} security. 
 
 In the enclave, we implement source-to-sink taint tracking, using the open-source Phosphor library~\citep{phosphor}.
 %\fixmedp{check this}
 The programmer manually selects the classes containing secret data that take secret input from a remotely-provisioned source.
 This taint is propagated to any new variables that result from explicit or implicit flows from a secret object.
-The only way to remove taint from an object is to pass the object through a \systemname{} declassifier API,
+The only way to remove taint from an object is to pass the object through a \sysname{} declassifier API,
 which returns an untainted copy of the object.
 
 %\fixmedp{Would be nice to have a simple example class with a label and declassifier in a figure, if space and time allow}
 
-\systemname{} enforces the policy that only untained data may be returned from an enclave.
+\sysname{} enforces the policy that only untained data may be returned from an enclave.
 If tainted data is being returned, the system transparently encrypts the data and removes its taint before letting the data leave the enclave.
-In the cases where a developer wants to return references to sensitive data, \systemname{} instead returns an opaque reference or, in the case of a literal, encrypts the return value.
+In the cases where a developer wants to return references to sensitive data, \sysname{} instead returns an opaque reference or, in the case of a literal, encrypts the return value.
 
 %mFor tainted data, the developer may opt to either throw a runtime error, or, by default, to return an encrypted object instead.
 %The en
@@ -649,22 +652,22 @@ In the cases where a developer wants to return references to sensitive data, \sy
 % to taint the secret data when provisioned and propagate the taint to any new data generated as an explicit or implicit result of the secret data. We specify the enclave exit points as targets and enforce the policy that any tainted data must pass through a declassifier, that encrypts the data before egress. We only consider the provisioned data as security sensitive, as the enclave image is only integrity protected.
 
 %Declassifier API: correct usage and scenarios
-The \systemname{} {\tt Enclave} class provides a {\tt declassify(Object o)} API that creates an untainted
+The \sysname{} {\tt Enclave} class provides a {\tt declassify(Object o)} API that creates an untainted
 copy of the object.  In practice, we expect this function to be used in conjunction with tests
 on the returned data, or cryptographic functions to protect the data in transit across an untrusted channel.
 
-Continuing our example from Figure~\ref{fig:synthesis}, in Figure~\ref{fig:declassify}, if the {\tt Untrusted} class wants to call the {\tt encrypt} method on the trusted object {\tt t}, \systemname{} front-end transparently passes the argument string {\tt o} to the enclave, and the corresponding {\tt encrypt} method is called in the enclave. The secret {\tt s} is tainted because it was provisioned from remote trusted server as shown in Figure ~\ref{fig:synthesis}. As a result, the call to method {\tt encrypt} of class {\tt Encryptor} taints the encrypted output string {\tt tainted}. If the developer had returned this {\tt tainted} variable, the \systemname{} information flow tracking would re-encrypt the ciphertext, and thus make the return value useless for the {\tt Untrusted} class. However, as the developer wants to return the ciphertext as is, she can declassify the {\tt tainted} string by passing it through the declassifier API to get an untainted version of the same object. Such untainted objects can be released from the enclave without further encryption.
+Continuing our example from Figure~\ref{fig:synthesis}, in Figure~\ref{fig:declassify}, if the {\tt Untrusted} class wants to call the {\tt encrypt} method on the trusted object {\tt t}, \sysname{} front-end transparently passes the argument string {\tt o} to the enclave, and the corresponding {\tt encrypt} method is called in the enclave. The secret {\tt s} is tainted because it was provisioned from remote trusted server as shown in Figure ~\ref{fig:synthesis}. As a result, the call to method {\tt encrypt} of class {\tt Encryptor} taints the encrypted output string {\tt tainted}. If the developer had returned this {\tt tainted} variable, the \sysname{} information flow tracking would re-encrypt the ciphertext, and thus make the return value useless for the {\tt Untrusted} class. However, as the developer wants to return the ciphertext as is, she can declassify the {\tt tainted} string by passing it through the declassifier API to get an untainted version of the same object. Such untainted objects can be released from the enclave without further encryption.
 
 %to let the application developer explicitly indicate that the argument object does not contain any secret information, and is safe to leave the enclave as is. For instance, if the enclave code encrypts a blob of data using the tainted secret provisioned key, the information flow will taint the encrypted data. However, because the encrypted data is safe to exit enclave if a perfectly secure encryption algorithm is used, the developer can explicitly mark the encrypted data as declassified. We note that the developers need to be extra careful while declassifying objects to inadvertently leaking secret information.
 
 %Dealing with confidential code
 In order to protect the confidentiality of sensitive code,
-\systemname{} also allows classes themselves to be tainted.
-\systemname{} enforces a policy that any data returned from sensitive code is tainted, and the developer needs to explicitly declassify tainted output data to mitigate
+\sysname{} also allows classes themselves to be tainted.
+\sysname{} enforces a policy that any data returned from sensitive code is tainted, and the developer needs to explicitly declassify tainted output data to mitigate
 concerns around reverse-engineering the code based on brute-force probing of its outputs.
 Of course, the binary code itself is also not allowed to be copied out of the enclave.
 
 % expose it to the untrusted world.
-%The {\em code confidentiality} property of \systemname{} loads and executes encrypted classes from remote hosts to protect secret algorithm. We consider this provisioned code as equally security sensitive as provisioned data. ~
+%The {\em code confidentiality} property of \sysname{} loads and executes encrypted classes from remote hosts to protect secret algorithm. We consider this provisioned code as equally security sensitive as provisioned data. ~
 
 %\input{features}

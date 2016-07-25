@@ -1,5 +1,5 @@
 \section{Introduction}
-\label{sec:intro}
+\label{sec:dcache:intro}
 
 Operating System kernels commonly cache file system data and metadata in 
 a virtual file system (VFS) layer, which abstracts low-level file systems into a common API, 
@@ -52,19 +52,17 @@ models, such as SELinux~\citep{selinux}.
 %\fixmedp{F1: Maybe thread together an argument about why no one would have tried a one-hop lookup before?}
 
 
-%\marginpar{\scriptsize \textcolor{blue}{ Michael, I think the high-order bits are mostly right on Fig~\ref{fig:lookup-frac},
+%\marginpar{\scriptsize \textcolor{blue}{ Michael, I think the high-order bits are mostly right on Fig~\ref{fig:dcache:lookup-frac},
 %but these number may change a bit as we refine the measurement}}
 
 \begin{figure}[t]
 \scriptsize
 \centering
-\includegraphics[width=\linewidth]{dcache/plots/syscall-percentage.pdf} \\
-\vspace{-10pt}
-\caption{Fraction of execution time in several common utilities spent
-executing path-based system calls with a warm cache, as measured with ftrace.
-%Most filesystem-related utilities can spend up to 70\% of execution time in lookup-related system calls. Especially the access/stat family can spend up to 65\% of execution time.
-}
-\label{fig:lookup-frac}
+\includegraphics[width=4.5in]{dcache/plots/syscall-percentage.pdf} \\
+\caption[Fraction of execution time spent executing path-based system calls.]
+{Fraction of execution time in several common utilities spent
+executing path-based system calls with a warm cache, as measured with ftrace.}
+\label{fig:dcache:lookup-frac}
 %\vspace{-10pt}
 \end{figure}
 
@@ -78,10 +76,10 @@ Directory caches are essential for good application performance.
 Many common system calls must operate on file paths,
 which require a directory cache lookup.
 For instance, between 10--20\% of all system calls in the iBench system call traces do a path lookup~\citep{filenotafile}. 
-Figure~\ref{fig:lookup-frac} lists the fraction of total execution time
+Figure~\ref{fig:dcache:lookup-frac} lists the fraction of total execution time
 %, as well as system time, 
 several common command-line applications spend executing path-based system calls
-(more details on these applications and the test machine in \S\ref{sec:eval}).
+(more details on these applications and the test machine in \S\ref{sec:dcache:eval}).
 We note that these system calls include work other than path lookup,
 and that these numbers include some instrumentation overhead;
 % are coarse measurements that include  and work than path lookup;
@@ -104,16 +102,16 @@ opportunities for a kernel to improve these applications' execution time.
 
 
 \begin{figure}[t!]
-\includegraphics[width=1.0\linewidth]{dcache/plots/latency-by-version.pdf}
-\vspace{-17pt}
+\centering
+\includegraphics[width=4.5in]{dcache/plots/latency-by-version.pdf}
 \footnotesize
-\caption{Latency of {\tt stat} system call with a long path {\tt XXX/YYY/ZZZ/AAA/BBB/CCC/DDD/FFF} on Linux over four years (lower is better), as well as the churn within the directory cache code (all insertions in {\tt dcache.c}, {\tt dcache.h}, {\tt namei.c}, {\tt namei.h} and {\tt namespace.c}). 
+\caption[Lantecy of {\tt stat} system call on Linux over four years]
+{Latency of {\tt stat} system call with a long path {\tt XXX/YYY/ZZZ/AAA/BBB/CCC/DDD/FFF} on Linux over four years (lower is better), as well as the churn within the directory cache code (all insertions in {\tt dcache.c}, {\tt dcache.h}, {\tt namei.c}, {\tt namei.h} and {\tt namespace.c}). 
 %Our optimizations significantly improve performance that has otherwise plateaued, despite significant ongoing developer effort.  
 Our optimized \linuxver{} kernel 
-further reduces {\tt stat} system call latency by \statspeedup{}\%.
-}
+further reduces {\tt stat} system call latency by \statspeedup{}\%.}
 %\vspace{-15pt}
-\label{fig:by-version}
+\label{fig:dcache:by-version}
 \end{figure}
 
 
@@ -123,9 +121,9 @@ Unfortunately, even directory cache hits are costly---0.3--1.1 $\mu$s for a {\tt
 This issue is taken particularly seriously in the Linux kernel community, which has 
 made substantial revisions and increasingly elaborate optimizations to reduce the hit cost
 of its directory cache, such as removing locks from the read path or replacing lock ordering with deadlock avoidance in a retry loop~\citep{corbet09jls,dcache-rcu}.
-Figure~\ref{fig:by-version} plots directory cache hit latency against  lines of directory cache code changed 
+Figure~\ref{fig:dcache:by-version} plots directory cache hit latency against  lines of directory cache code changed 
 over several versions of Linux, using a path-to-inode lookup microbenchmark on the test system described
-in Section~\ref{sec:eval}.
+in \S~\ref{sec:dcache:eval}.
 These efforts have improved hit latency by 47\% from 2011 to 2013, but have plateaued
 for the last three years.
 %\fixmedp{if time, filter irrelevant changes from code deltas}
@@ -158,9 +156,9 @@ can meet these API specifications and kernel-internal requirements; to our knowl
 no one has tried previously.
 
 This paper proposes a decomposition of the directory cache, which allows
-most lookup operations to execute with a single hash table lookup (\S\ref{sec:dcache}),
-as well as optimizations to reduce the miss rate based on information that is {\em already in the cache}, but not used effectively (\S\ref{sec:readdir}).
-Our design maintains compatibility (\S\ref{sec:generalize}) through 
+most lookup operations to execute with a single hash table lookup (\S\ref{sec:dcache:dcache}),
+as well as optimizations to reduce the miss rate based on information that is {\em already in the cache}, but not used effectively (\S\ref{sec:dcache:readdir}).
+Our design maintains compatibility (\S\ref{sec:dcache:generalize}) through 
 several essential insights, including 
 how to separate the indexing of paths from checking parent permissions,
 and how to effectively and safely memoize the results of access control checks.
@@ -177,11 +175,11 @@ and how to effectively and safely memoize the results of access control checks.
 %improves performance by separating logical tasks, such as separating path indexing from permission checking; yet the design is sufficient to retain compatibility with POSIX.
 %In the case of path lookup, 
 %this paper demonstrates how 
-%a per-component tree walk can be replaced with a single hash table lookup (\S\ref{sec:dcache}).
+%a per-component tree walk can be replaced with a single hash table lookup (\S\ref{sec:dcache:dcache}).
 % without violating POSIX compliance.
 
 Our optimizations improve the performance of frequent lookup operations, but 
-introduce several costs, described in \S\ref{sec:dcache} and measured in \S\ref{sec:eval},
+introduce several costs, described in \S\ref{sec:dcache:dcache} and measured in \S\ref{sec:dcache:eval},
 which  we believe are acceptable and a net improvement for applications.
 First, these optimizations slow down infrequent modifications to the directory hierarchy, such as {\tt rename}, {\tt chmod},
  and {\tt chown} of a directory. 
@@ -195,8 +193,8 @@ probability of error from signature collisions that can be adjusted to be neglig
 %($2^{-141}$ in our configuration), 
 and within acceptable thresholds widely used by data deduplication systems~\citep{Debnath:2010:CSU:1855840.1855856, Srinivasan:2012:ILI:2208461.2208485, Quinlan:2002:VNA:645371.651321, Zhu:2008:ADB:1364813.1364831}.
 %, as well as how to remove
-%all memory barriers from the lookup path (\S\ref{sec:update}).
-In the micro-benchmark of Figure~\ref{fig:by-version}, our directory cache 
+%all memory barriers from the lookup path (\S\ref{sec:dcache:update}).
+In the micro-benchmark of Figure~\ref{fig:dcache:by-version}, our directory cache 
 optimizations improve lookup latency by 
 %revisions improve latency of accessing a long path
 %by 
@@ -213,13 +211,13 @@ optimizations improve lookup latency by
 \begin{comment}
 This paper rethinks current Linux directory cache design choices in light of the following goals:
 \begin{compactitem}
-\item {\bf Minimize the cost of a cache hit.} (\S\ref{sec:dcache}).
+\item {\bf Minimize the cost of a cache hit.} (\S\ref{sec:dcache:dcache}).
 This means maximizing the benefit of temporal locality for frequent operations,
 while pushing extra work of consistency maintenance onto less frequent, already-expensive operations.
 %such as handling cache miss or updating massive metadata,
 %in order to improve very frequent operations.
-\item {\bf Maintain legacy compatibility.} (\S\ref{sec:generalize}).  Unix path semantics are complex, required by applications, file systems, and security modules, frustrating otherwise straightforward optimizations.  However tempting it may be to redesign path behavior to facilitate caching, path operations must exhibit the same behavior, with lower latency.
-\item {\bf Never miss the same request twice in quick succession.} (\S\ref{sec:readdir}).  A number of less-frequent operations, such as reading a directory or secure temporary file creation, always miss in the cache {\em even if enough information is in cache to satisfy the operation.}  
+\item {\bf Maintain legacy compatibility.} (\S\ref{sec:dcache:generalize}).  Unix path semantics are complex, required by applications, file systems, and security modules, frustrating otherwise straightforward optimizations.  However tempting it may be to redesign path behavior to facilitate caching, path operations must exhibit the same behavior, with lower latency.
+\item {\bf Never miss the same request twice in quick succession.} (\S\ref{sec:dcache:readdir}).  A number of less-frequent operations, such as reading a directory or secure temporary file creation, always miss in the cache {\em even if enough information is in cache to satisfy the operation.}  
 %Of course, infrequent accesses should still be subject to a cache replacement policy, such as LRU.
 \end{compactitem}
 %Although directory caches must implement more complex semantics than a hardware memory cache,
@@ -237,10 +235,10 @@ and the harm is minimal to applications that do not benefit.
 %legacy applications.  
 These changes are encapsulated in the VFS---individual file systems do not have to change their code.
 This paper describes a  prototype of these improvements implemented in Linux \linuxver{}.
-Section~\ref{sec:background} explains that the directory cache structure of Mac OS X, FreeBSD, and Solaris 
+\S~\ref{sec:dcache:background} explains that the directory cache structure of Mac OS X, FreeBSD, and Solaris 
 are sufficiently similar that these principles should generalize.
 %we compare and contrast Linux's directory cache
-%with Mac OS X, FreeBSD, and Solaris in \S\ref{sec:background}, and explain inline how each
+%with Mac OS X, FreeBSD, and Solaris in \S\ref{sec:dcache:background}, and explain inline how each
 %optimization could be generalized to these other OS kernels.
 
 
@@ -307,24 +305,3 @@ updatedb by up to \updatedbspeedup{}\%.
 %git version control system by up to 25\%.
 
 \end{compactitem}
-
-%% \paragraph{Goals and Design Principles.}
-%% Because of the performance gap between memory and storage media,
-%% we suggest to make \dcache{} aggressively caching
-%% any information that can potentially useful in the future.
-%% Although an aggressive strategy may increase requirement of memory space,
-%% it is our opinion that modern computers often have enough space to
-%% keep a high hit rate,
-%% \fixmetsai{it will be better if we can find supporting material}
-%% and it is up to the replacement algorithm
-%% to mitigate the effect of aggressive caching while having memory pressure.
-
-%%The paper is organized as follows. 
-%%Section~\ref{sec:background} gives brief background of metadata caching in commodity OSes.
-%%Section~\ref{sec:dcache} describe implementation of {\em fastpath} to speed up directory cache lookup.
-%%Section~\ref{sec:update} explains the strategy of removing hardware memory barriers for more efficiency in lookup.
-%%Section~\ref{sec:readdir} discusses directory listing result caching.
-%%Section~\ref{sec:eval} presents experiment results. 
-%%Section~\ref{sec:related} discusses related works.
-%%Finally, section~\ref{sec:conclusion} presents conclusion of the work.
-

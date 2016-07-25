@@ -1,5 +1,5 @@
 \section{Introduction}
-\label{sec:intro}
+\label{sec:graphene:intro}
 Existing library OSes provide single-process applications
 with the qualitative benefits of virtualization
 at a lower cost~\citep{porter11drawbridge,unikernels,baumann13bascule}.
@@ -70,7 +70,7 @@ For example, Drawbridge~\citep{porter11drawbridge} cannot simulate process forki
 \caption[Multi-process abstraction model of \sysname{} \libos{}]
 {Multi-process abstraction model of \sysname{} \libos{}. For each process of an application, a libOS instance will serve system calls and keep local OS states. States of multi-process abstractions are shared by coordinating over host-provided RPC streams, creating an illusion of running in single OS for the application.}
 %\vspace{-.1in}
-\label{fig:concept}
+\label{fig:graphene:concept}
 \end{figure}
 
 This paper describes {\bf \sysname{}},  a Linux-compatible library OS.
@@ -105,6 +105,8 @@ RPC coordination among \sysname{} instances can be dynamically disconnected, fac
 techniques.  For instance, we develop an Apache web server extension that, upon logging in a given user,
 places the worker process's libOS in a sandbox with access to only that user's data.
 We expect more nuanced degrees of trust are possible in future work.
+
+\begin{comment}
 The contributions of this paper are:
 \begin{compactitem}
 \item \sysname{}, a Linux library OS, which supports
@@ -123,23 +125,11 @@ smaller than KVM, and several applications perform comparably to a Linux process
 %In the best case, the overhead of a large {\tt gcc} compilation on \sysname{} is only 3\%.
 
 \end{compactitem}
+\end{comment}
+
 \sysname{}'s design gives the user and system administrator a high degree of flexibility
 in isolating arbitrary groups of unmodified application processes,
 while upholding the efficiency and host compatibility benefits of recent library OSes.
-
-
-\begin{comment}
-\noindent The rest of this paper is structured as follows:
-\S\ref{sec:background} introduces the \sysname{} design in the context of recent library OS research,
-%\S\ref{sec:linux} describes the \sysname{}  design \fixmedp{cut?},
-\S\ref{sec:security} describes how our Linux host reference monitor enforces security implementation,
-\S\ref{sec:namespaces} describes our framework
-for implementing Linux's multi-processing APIs,
-\S\ref{sec:impl} provides additional implementation details,
-\S\ref{sec:eval} evaluates our system with application case studies,
-\S\ref{sec:related} describes related work,
-and \S\ref{sec:conclusion} concludes.
-\end{comment}
 
 %\fixmedp{After a complete draft is written, coalesce all goals and make sure they are addressed early on.  We are doing some scatter-shot motivation}
 

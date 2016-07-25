@@ -1,18 +1,7 @@
 %\marginpar{\scriptsize \textcolor{blue}{Michael, take all of these numbers with a grain of salt; we have some regressions and churn in the code, which we hope to wrap up soon and get more stable numbers.}}
 
 \section{Evaluation}
-\label{sec:eval}
-
-%% Similar results to submission in tag 1057cb7
-
-
-%%% \begin{figure}
-%%% \centering
-%%% \includegraphics[width=\linewidth]{plots/readdir.pdf}
-%%% \caption{caption}
-%%% \label{fig:readdir}
-%%% \end{figure}
-
+\label{sec:dcache:eval}
 
 This section evaluates our directory cache optimizations,
 and seeks to answer the following questions:
@@ -53,9 +42,9 @@ with ``+/-'' columns or error bars.
 \begin{figure}
 \scriptsize
 \centering
-\includegraphics[width=1.0\linewidth]{dcache/plots/lm_stat.pdf} \\
+\includegraphics[width=4.5in]{dcache/plots/lm_stat.pdf} \\
 \vspace{-5pt}
-\includegraphics[width=1.0\linewidth]{dcache/plots/lm_open.pdf} \\
+\includegraphics[width=4.5in]{dcache/plots/lm_open.pdf} \\
 {\scriptsize ({\bf * represents Plan 9's lexical parent semantics})}
 \begin{tabular}{lll}
 \multicolumn{3}{l}{\scriptsize {\bf default:} \tt /usr/include/gcc-x86\_64-linux-gnu/sys/types.h} \\
@@ -74,7 +63,7 @@ with ``+/-'' columns or error bars.
 We include a synthetic evaluation of always missing on the fastpath and falling back to the slowpath,
 and a comparison with Plan 9's lexical parent semantics, where appropriate.
 Lower is better.}
-\label{fig:lat_stat_open}
+\label{fig:dcache:lat-stat-open}
 \end{figure}
 
 \paragraph{Micro-benchmarks.}
@@ -164,7 +153,7 @@ deep negative dentries.
 \includegraphics[width=0.9\linewidth]{dcache/plots/lm_rename-creat.pdf}
 \vspace{-5pt}
 \caption{Latency for microbenchmarks that create and delete the same path in a loop. Lower is better.}
-\label{fig:neg-dentry-microbench}
+\label{fig:dcache:neg-dentry-microbench}
 %\vspace{-10pt}
 \end{figure}
 
@@ -211,7 +200,7 @@ in these cases, the benefit of our optimization is proportional to the path leng
 \hline
 \end{tabular}}
 \caption{{\tt chmod} / {\tt rename} latency in directories of various depths and sizes. Lower is better.}
-\label{fig:lat_chmod_rename}
+\label{fig:dcache:lat-chmod-rename}
 %\vspace{-10pt}
 \end{figure}
 
@@ -254,7 +243,7 @@ Types & \multicolumn{2}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized k
 \hline
 \end{tabular}
 \caption{Latency of {\tt mount} / {\tt umount}, for creating and removing mount point based on file system types. Lower is better.}
-\label{table:lat_mount}
+\label{tab:dcache:lat-mount}
 \end{table}
 \end{comment}
 
@@ -342,7 +331,7 @@ Applications & \multicolumn{2}{c|}{Path Stats} & \multicolumn{4}{c|}{Unmodified 
 \caption{Execution time and path statistics of real-world applications bounded by directory cache lookup latency.  Warm cache case.  Hit rate and negative dentry rate are also included.  The average path length in bytes ($l$) and components (\#) are presented in the first two columns.  
 %Optimizations for hits and misses are  presented separately, and then together.  
 Lower is better.}
-\label{table:lookup-apps-warm}
+\label{tab:dcache:lookup-apps-warm}
 \vspace{-10pt}
 
 \end{table*}
@@ -379,9 +368,10 @@ We leave exploration of these trade-offs for future work.
 \begin{figure}[t!]
 \scriptsize
 \centering
-\includegraphics[width=.9\linewidth]{dcache/plots/stat-open-scal.pdf}
+\includegraphics[width=3.6in]{dcache/plots/stat-open-scal.pdf}
 \vspace{-5pt}
-\caption{Latency of stat/open (of the same path), as more threads execute in parallel.  Lower is better.}
+\caption[Latency of {\tt stat}/{\tt open} as more threads execute in parallel.]
+{Latency of {\tt stat}/{\tt open} (of the same path) as more threads execute in parallel.  Lower is better.}
 \label{fig:scalability}
 %\vspace{-10pt}
 \end{figure}
@@ -403,56 +393,13 @@ our optimizations do add overhead to renaming a large directory, which would lik
 
 \subsection{Caching Directory Completeness}
 
-% \begin{table}[t]
-% \scriptsize
-% \centering
-% %\subfloat[Warm cache]{
-% \begin{tabular}{|l|rr|rrr|}
-% \hline
-% Sizes & \multicolumn{2}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized kernel} \\
-% & $\upmu$s & +/- & $\upmu$s & +/- & Gain\\
-% \hline
-% 10 & 4.1 & .01 & -- & -- & -- \% \\
-% \hline
-% $10^2$ & 24.4 & .01 & -- & -- & -- \% \\
-% \hline
-% $10^3$ & 285.0 & .10 & -- & -- & -- \% \\
-% \hline
-% $10^4$ & 2914.3 & .92 & -- & -- & -- \% \\
-% \hline
-% \end{tabular}
-% %}
-% %%% \hfill
-% %%% \subfloat[Cold cache]{
-% %%% \begin{tabular}{|l|rr|rrr|}
-% %%% \hline
-% %%% Sizes & \multicolumn{2}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized kernel} \\
-% %%% & s & +/- & s & +/- & Gain\\
-% %%% \hline
-% %%% 10 & 9,375 & 7,794 & 12,978 & 9,241 & 38.4 \% \\
-% %%% \hline
-% %%% $10^2$ & 14,150 & 10,151 & 24,967 & 21,848 & 76.4 \% \\
-% %%% \hline
-% %%% $10^3$ & 29,185 & 7,010 & 36,752 & 12,197 & 25.9 \% \\
-% %%% %\hline
-% %%% %$10^4$ & 000.00 & .00 & 000.00 & 0.00 & 00.0 \% \\
-% %%% \hline
-% %%% \end{tabular}
-% %%% }
-% \caption{Latency for {\tt readdir} function call on directories with different sizes. Lower is better.}
-% \label{table:readdir-microbench}
-% \vspace{-10pt}
-% \end{table}
-
 \begin{figure}
 \scriptsize
 \centering
-\vspace{-5pt}
-\includegraphics[width=0.49\linewidth]{dcache/plots/lm_readdir.pdf}
-\includegraphics[width=0.49\linewidth]{dcache/plots/lm_mkstemp.pdf}
-
-\vspace{-5pt}
-\caption{Latency in logscale for {\tt readdir} function calls, and latency in microsecond for {\tt mkstemp} function calls, on directories with different sizes. Lower is better. }
+\includegraphics[width=2.5in]{dcache/plots/lm_readdir.pdf}
+\includegraphics[width=2.5in]{dcache/plots/lm_mkstemp.pdf}
+\caption[Latency of {\tt readdir} and {\tt mkstemp} function calls.]
+{Latency in logscale for {\tt readdir} function calls, and latency in microsecond for {\tt mkstemp} function calls, on directories with different sizes. Lower is better. }
 \label{fig:readdir-microbench}
 \end{figure}
 
@@ -489,9 +436,8 @@ it is a common task for many applications, and of low marginal cost.
 \scriptsize
 \raggedleft
 \includegraphics[width=0.9\linewidth]{dcache/plots/lm_mkstemp.pdf}
-\vspace{-5pt}
 \caption{Latency of using {\tt mkstemp} to create unique file names in directories of different sizes. Lower is better.}
-\label{fig:lat_mktemp}
+\label{fig:dcache:lat-mktemp}
 %\vspace{-10pt}
 \end{figure}
 
@@ -504,34 +450,6 @@ Although most applications' execution times are not dominated by secure file cre
 it is a common task for many applications, and of low marginal cost.
 
 \end{comment}
-
-% \begin{table}[t]
-% \scriptsize
-% \centering
-% \begin{tabular}{|l|rr|rrr|}
-% \hline
-% \# of mails & \multicolumn{2}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized kernel} \\
-% %& $\upmu$s & +/- & $\upmu$s & +/- & Gain\\
-% & Ops & +/- & Ops & +/- & Gain\\
-% \hline
-% 500 & 9791 & 56 & -- & -- & -- \% \\
-% \hline
-% 1000 & 6850 & 20 & -- & -- & -- \% \\
-% \hline
-% 1500 & 5302 & 14 & -- & -- & -- \% \\
-% \hline
-% 2000 & 4503 & 135 & -- & -- & -- \% \\
-% \hline
-% 2500 & 3802 & 154 & -- & -- & -- \% \\
-% \hline
-% 3000 & 3267 & 100 & -- & -- & -- \% \\
-% \hline
-% \end{tabular}
-% \caption{Throughput for marking and unmarking mail on {\tt Dovecot} server. Higher is better.}
-% \label{table:dovecot}
-% \vspace{-10pt}
-% \end{table}
-
 
 \subsection{Applications}
 
@@ -637,7 +555,7 @@ App & \multicolumn{4}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized ker
 \end{tabular}
 \caption{Execution time, hit rate, and negative \dentry{} rate for real-world applications bounded by directory cache lookup latency with a cold cache. Lower is better.}
 %\vspace{-10pt}
-\label{table:lookup-apps}
+\label{tab:dcache:lookup-apps}
 \end{table}
 
 
@@ -692,11 +610,12 @@ in a practical deployment, network latency may mask these improvements to the cl
 \scriptsize
 %\raggedright
 \centering
-\includegraphics[width=0.9\linewidth]{dcache/plots/dovecot.pdf}
+\includegraphics[width=3.6in]{dcache/plots/dovecot.pdf}
 \vspace{-5pt}
-\caption{Throughput for marking and unmarking mail on the Dovecot IMAP server. Higher is better. }
+\caption[Throughput of the Dovecot IMAP server]
+{Throughput for marking and unmarking mail on the Dovecot IMAP server. Higher is better. }
 % In the optimized kernel, throughputs of all workloads are improved by 5--11\%. }
-\label{fig:dovecot}
+\label{fig:dcache:dovecot}
 \vspace{-10pt}
 \end{figure}
 
@@ -718,20 +637,9 @@ $10^4$ &         99.03 &  0.11 &    110.14 &  0.10 & 10.09 \% \\
 \hline
 \end{tabular}
 \caption{Throughput of downloading generated directory listing pages from an {\tt Apache} server. Higher is better.}
-\label{table:apache}
+\label{tab:dcache:apache}
 \vspace{-10pt}
 \end{table}
-
-%\begin{figure}
-%\scriptsize
-%\raggedleft
-%\centering
-%\includegraphics[width=0.9\linewidth]{plots/apache.pdf}
-%\vspace{-5pt}
-%\caption{Throughput for downloading generated directory listing pages from an {\tt Apache} server. Higher is better.}
-%\label{fig:apache}
-%\vspace{-10pt}
-%\end{figure}
 
 Figure~\ref{fig:dovecot} shows the throughput for the 
 Dovecot mail server on both kernels; improvements range from 7.8--12.2\%.
@@ -751,80 +659,6 @@ Overall, these results show that the readdir caching strategy can reduce server 
 or improve server throughput for directory-bound workloads.
 %and improve client response time.
 
-% \begin{table}[t]
-% \scriptsize
-% \centering
-% \begin{tabular}{|l|rr|rrr|}
-% \hline
-% Size of dir & \multicolumn{2}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized kernel} \\
-% & $\upmu$s & +/- & $\upmu$s & +/- & Gain\\
-% \hline
-% %0 (empty) & 8.198 & .318 & 8.170 & .036 & 0.3 \% \\
-% 0 (empty) & 11.619 & .015 & 11.679 & .031 & -0.5  \% \\
-% \hline
-% %10 & 8.385 & .037 & 8.302 & .035 & 1.0 \% \\
-% 10 & 11.693 & .022 & 11.913 & .037 & -1.9 \% \\
-% \hline
-% %$10^2$ & 9.905 & .036 & 9.557 & .036 & 3.5 \% \\
-% $10^2$ & 13.588 & .019 & 13.461 & .039 & 0.9 \% \\
-% \hline
-% %$10^3$ & 13.349 & .036 & 12.351 & .038 & 7.5 \% \\
-% $10^3$ & 17.083 & .074 & 16.793 & .099 & 1.7 \% \\
-% \hline
-% %$10^4$ & 14.357 & .049 & 13.385 & .041 & 6.7 \% \\
-% $10^4$ & 18.198 & .063 & 17.451 & .08 & 4.1 \% \\
-% \hline
-% \end{tabular}
-% \caption{Latency of using {\tt mkstemp} to create unique file names in directories of different sizes. Lower is better.}
-% \label{table:lat_mktemp}
-% \vspace{-10pt}
-% \end{table}
-
-
-%In our solution, if a directory is marked as completed, any consequential file creation in the directory can simply skip disk lookup.
-%This optimization generally helps file creation in any directory previously listed, or recently created.
-%The most common use case of file creation is {\tt mkstemp}, a GNU Library C function to create unique file names in a given directory.
-%We extend {\tt LMBench} with a test case {\tt lat\_mktemp} to evaluate the latency of file creation, within directories of different sizes, as results shown in 
-
-%\fixmetsai{Observation here}
-
-%\fixmetsai{Any applications use mktemp a lot???}
-%\fixmetsai{Any applications that populate a empty directory, e.g. git clone, tar -xzf}
-
-%\subsection{Negative Caching}
-
-% \begin{table}[t]
-% \scriptsize
-% \centering
-% \begin{tabular}{|l|rr|rrr|}
-% \hline
-% Target & \multicolumn{2}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized kernel} \\
-% & $\upmu$s & +/- & $\upmu$s & +/- & Gain\\
-% \hline
-% {\tt rename/creat} & 12.839 & .05 & -- & -- & -- \% \\
-% \hline
-% {\tt open/unlink} & 11.322 & .01 & -- & -- & -- \% \\
-% \hline
-% %& ms & +/- & ms & +/- & Gain\\
-% %\hline
-% %${\tt emacsclient} small save & 19.5 & - & 18.5 & - & 5.02 \% \\
-% %\hline
-% \end{tabular}
-% \caption{Latency for microbenchmarks that create and delete the same path in a loop. Lower is better.}
-% \label{table:neg-dentry-microbench}
-% \vspace{-10pt}
-% \end{table}
-
-
-%%% Our solution prevents an unwanted cache miss after any file is renamed or deleted.
-%%% To evaluate the improvement of performance based on these two corner cases,
-%%% we must use a micro-benchmarking program to create a scenario with intensive loop of file renaming/deletion and recreation.
-%%% Despite the overhead of allocation addition negative \dentry{} at renaming/deletion,
-%%% the overall performance should should be still improved by skipping disk lookup at file creation.
-%%% The result is shown in 
-
-%%% \fixmetsai{Observation here}
-
 \begin{comment}
 \begin{table}[t]
 \scriptsize
@@ -840,7 +674,7 @@ Target & \multicolumn{2}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized 
 \hline
 \end{tabular}
 \caption{Latency of applications that constantly {\tt rename/creat} or {\tt unlink/creat} files or directories. Lower is better.}
-\label{table:neg-dentry-apps}
+\label{tab:dcache:neg-dentry-apps}
 \end{table}
 \end{comment}
 
@@ -899,7 +733,7 @@ Security Modules (SELinux, etc)   & 20,479 & 76 & 0.0 \% \\
 \hline
 \end{tabular}
 \caption{{\em Lines-of-code} (LoC) in Linux changed, as measured by {\tt sloccount}~\citep{sloccount}.}
-\label{table:portability}
+\label{table:dcache:portability}
 %\vspace{-10pt}
 \end{table}
 
