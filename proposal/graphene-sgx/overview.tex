@@ -1,15 +1,59 @@
-\section{A Multi-Enclave Library OS}
+\section{Overview of the \sysname{} Framework}
+\label{sec:overview}
 
-\subsection{Shielding Linux Applications}
-\label{sec:gsgx:background:graphene}
+\subsection{The \sysname{} Building Blocks}
+\label{sec:overview:arch}
+
+\sysname{} is a port of \graphene{} \libos{} to \sgx{},
+to secure native Linux application in \sgx{} enclaves.
+The portability of \graphene{} is discribed in \S\ref{sec:graphene:impl}.
+\sysname{} uses the non-partitioned model
+to secure applications,
+thus only minimal effort is required for developers
+to port applications to \sysname{}.
+
+%\graphene{} \libos{} originally runs on Linux hosts, but with the platform
+%adaption layer (PAL) ported to other platform,
+%\graphene{} can run Linux applications on other hosts such as
+%Windows, BSD or OSX.
+%\graphene{} supports up to 139 most commonly used Linux system calls
+%(300 in total),
+%providing reasonable Linux platform compliance.
+
+The building blocks are shown as figure~\ref{fig:gsgx:arch}.
+\sysname{} is partitioned into two parts:
+an untrusted \pal{} to initialize the enclave and provide the untrusted interface;
+and the trusted \libos{} including the host ABI, {\tt libLinux}, and core {\tt libc} libraries.
+Except the host ABI is statically loaded in the enclave since the start up,
+other components of \sysname{} in the enclave are dynamically loaded,
+as needed. 
+%For each binary loaded by \sysname{}, \sysname{} bootstraps the enclave
+%from an untrusted platform adaption layer (PAL) that defines
+%a narrowed untrusted interface.
+%To speed up initialization, the untrusted PAL starts the enclave
+%with an statically linked library image ({\tt graphene.so}).
+%The image includes
+%\graphene{} host ABI,
+%\libos{} ({\tt libLinux}, implementing Linux personality),
+%and basic libraries of GNU library C
+%({\tt libc}, {\tt libpthread} and {\tt ld}, the runtime loader).
+%The \sysname{} library image then loads the unmodified applications
+%and libraries into the enclave.
+After the \libos{} is laoded in the enclave,
+the \libos{} will load the application and its supporting libraries,
+and call their entry functions.
+The \libos{} will handle all the system calls redirected from the applications,
+whereas it may access host resource through the host ABI calls,
+which are redirected to the untrusted interface
+to interact with the untrusted host. 
 
 \begin{figure}[t!]
 \centering
 \includegraphics[width=3.5in]{graphene-sgx/figures/architecture.pdf}
 \vspace{-0.1in}
 \footnotesize
-\caption[\sysname{}: a building block.]
-{A building block of \sysname{}.
+\caption[\sysname{}: building blocks.]
+{The \sysname{} building blocks.
 Green (light) boxes are trusted components trusted,
 and red (dark) boxes are untrusted.
 \sysname{} is statically linked with {\tt libLinux},
@@ -18,35 +62,52 @@ To build up the trust, the \sysname{} image along with
 a manifest and application measurements
 are verified by \sgx{} during bootstrap. Applications and other libraries
 are verified by \sysname{}. The enclave interacts with the host kernel,
-through untrusted PAL, on a narrowed untrusted interfaces with xx functions.
-}
+through untrusted PAL, on a narrowed untrusted interfaces with xx functions.}
 \label{fig:gsgx:arch}
 \end{figure}
 
-\sysname{} is derived from \graphene{} \libos{}, which runs unmodified
-Linux applications ranged from Apache web servers to shell scripts.
-\graphene{} \libos{} originally runs on Linux hosts, but with the platform
-adaption layer (PAL) ported to other platform,
-\graphene{} can run Linux applications on other hosts such as
-Windows, BSD or OSX.
-\graphene{} supports up to 139 most commonly used Linux system calls
-(300 in total),
-providing reasonable Linux platform compliance.
+\paragraph{Definition of the Untrusted Interface.}
+The untrusted interface is defined as Table~\ref{tab:gsgx-untusted-interface}.
+\sysname{} draws the untrusted interface right above the translation layer
+to the host interface (Linux system calls).
+Most code inherited from the \graphene{} PAL stays inside
+the enclave, to keep the integrity of states.
+Because host is not trusted,
+the enclave must expect the untrusted interface be exploited to
+pass malicious arguments, or return incorrect results.
+For example, {\tt open} may be returned with a file descriptor that points
+to a wrong file. Therefore, if the enclave opens a stream for IO,
+it must guarantee either the stream is protected cryptographically,
+or nothing read or written requires integrity.
+Also, the enclave cannot trust the host to faithfully perform any operations.
+For instance, our trusted interface does not include {\tt fsync}.
+Because the enclave does not trust any stream to be consistently flushed,
+designing such a function is meaningless.
+With a robustly designed untrusted interface,
+the worst scenario a malicious host can cause is {\bf denial-of-the-service},
+which we consider out of scope
+as long as confidentially and integrity are not compromised.
 
-The building block of \sysname{} is shown as figure~\ref{fig:arch}.
-For each binary loaded by \sysname{}, \sysname{} bootstraps the enclave
-from an untrusted platform adaption layer (PAL) that defines
-a narrowed untrusted interface.
-To speed up initialization, the untrusted PAL starts the enclave
-with an statically linked library image ({\tt graphene.so}).
-The image includes
-\graphene{} host ABI,
-\libos{} ({\tt libLinux}, implementing Linux personality),
-and basic libraries of GNU library C
-({\tt libc}, {\tt libpthread} and {\tt ld}, the runtime loader).
-The \sysname{} library image then loads the unmodified applications
-and libraries into the enclave.
+%The Untrusted interface of an enclave is the API that communicates the enclave
+%and the untrusted host, with both entries and exits of the enclave.
+%Note that for hardware an enclave only has exactly one entry and exit,
+%to which execution jumps
+%using {\tt EENTER} and {\tt EEXIT} instructions.
+%The untrusted interface is simply a callback table that redirects execution
+%afterward (similar to system calls).
 
+\begin{table}
+\centering
+\input{graphene-sgx/tables/interface}
+\caption[\sysname{}: the untrusted interface.]
+{Untrusted interface of \sysname{}, consisting of xx functions in total.
+Most of the interface is derived from the host system call footprint of
+\graphene{} \libos{}. Enclave must not trust the hosts to
+always return right responses or faithfully perform operations.}
+\label{tab:gsgx:untrusted-interface}
+\end{table}
+
+\paragraph{The Signing Tool.}
 Each enclave launched in \sgx{} requires a signature, signed by developers.
 The signature structure ({\tt SIGSTRUCT}) contains
 enclave attributes, product ID, a public key, enclave measurement
@@ -71,46 +132,11 @@ into the module binary.
 We argue that \sysname{} uses a more straightforward model, with no need to
 maintain the uniqueness of any IDs.
 
-The untrusted interface of \sysname{} is defined as Table~\ref{tab:interface}.
-The Untrusted interface of an enclave is the API that communicates the enclave
-and the untrusted host, with both entries and exits of the enclave.
-Note that for hardware an enclave only has exactly one entry and exit,
-to which execution jumps
-using {\tt EENTER} and {\tt EEXIT} instructions.
-The untrusted interface is simply a callback table that redirects execution
-afterward (similar to system calls).
 
-\sysname{} draws the untrusted interface right above the translation layer
-to the host interface (Linux system calls).
-Most code inherited from the \graphene{} PAL stays inside
-the enclave, to keep the integrity of states.
-Because host is not trusted,
-the enclave must expect the untrusted interface be exploited to
-pass malicious arguments, or return incorrect results.
-For example, {\tt open} may be returned with a file descriptor that points
-to a wrong file. Therefore, if the enclave opens a stream for IO,
-it must guarantee either the stream is protected cryptographically,
-or nothing read or written requires integrity.
-Also, the enclave cannot trust the host to faithfully perform any operations.
-For instance, our trusted interface does not include {\tt fsync}.
-Because the enclave does not trust any stream to be consistently flushed,
-designing such a function is meaningless.
-With a robustly designed untrusted interface,
-the worst scenario a malicious host can cause is {\bf denial-of-the-service},
-which we consider out of scope
-as long as confidentially and integrity are not compromised.
 
-\begin{table}
-\centering
-\input{graphene-sgx/tables/interface}
-\caption{
-Untrusted interface of \sysname{}, consisting of xx functions in total.
-Most of the interface is derived from the host system call footprint of
-\graphene{} \libos{}. Enclave must not trust the hosts to
-always return right responses or faithfully perform operations.
-}
-\label{tab:interface}
-\end{table}
+
+
+
 
 However, carefully engineering the untrusted interface is simply not enough
 to secure the enclave.
@@ -127,9 +153,6 @@ Another type of policies can be used for authenticate other ends of RPC streams
 based on the measurements of target enclaves.
 These policies are used to decentralize the trust in multi-process applications,
 that we will discuss in length in section~\ref{sec:multiproc}.
-
-\subsection{Security Models}
-\label{sec:background:security}
 
 \paragraph{Trust model.}
 When an application is loaded by \sysname{}, it ought to be trusted by

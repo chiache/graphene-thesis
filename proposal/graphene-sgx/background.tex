@@ -1,8 +1,8 @@
 \section{Background and Overview}
-\label{sec:gsgx:overview}
+\label{sec:gsgx:background}
 
-\subsection{A Overview of \intel{} \sgx{}}
-\label{sec:gsgx:overview:sgx}
+\subsection{Overview of \intel{} \sgx{} Technology}
+\label{sec:gsgx:background:sgx}
 
 %\begin{figure}[t!]
 %\centering
@@ -38,7 +38,7 @@ expanding the execution from remote servers
 to untrusted hosts,
 to securely harness resources such as CPU cycles and DRAMs.
 
-\sgx{} is an appealing tool for protecting small amounts of highly-sensitive data or code, %because it can defend 
+\sgx{} is an appealing tool to protect small-scale, highly sensitive execution, 
 against malicious or compromised OSes, hypervisors, or even hardware peripheral.
 For instance, \cite{hoekstra13sgx} show how SGX can be used
 to build a trusted path from a video chat application to a GPU and network card, which maintains confidentiality and integrity of the
@@ -46,6 +46,27 @@ video stream, even if the OS is compromised.
 Similarly, because DRAM contents are encrypted, SGX can resist attacks such as cold-boot attacks~\citep{halderman09coldboot} or 
 malicious peripheral devices~\citep{hudson15thunderstrike}.
 
+\paragraph{A Partitioned Usage Model.}
+To secure an application with \sgx{},
+the common usage model requires the developers to partition the application into two parts:
+the trusted code will run the sensitive execution in the enclave,
+while the untrusted code will load and interact with the trusted code.
+Even if the trusted code only contains the simplest the logic,
+the untrusted code is still needed to pass the input and output of the execution.
+
+The interaction between the trusted and untrusted code is through an {\em untrusted interface}.
+An {\em untrusted interface} is often defined by the developers, and contains a set of logical entry and exit points of the enclave.
+However, an enclave will only have exactly one hardware entry point and one hardware exit point.
+The control transfer from the hardware entry point to the logical entry points
+is based on the operation code passed as an argument at enclave entry.
+
+With the partitioned usage model,
+the developers can minimize the TCB of enclave at their best effort,
+and define the behavior of the enclave that can only be triggered by the untrusted interface.
+The process of partitioning can prevent unpredicted behaviors in the enclave,
+which may compromise the security of the enclave.
+The untrusted and trusted code must explicitly call for enclave entry or exit
+at the fixed sites in the application.
 
 %\intel{} \sgx{} ({\it Software Guard Extensions})
 %are a set of new x86/x64 instructions
@@ -98,6 +119,28 @@ malicious peripheral devices~\citep{hudson15thunderstrike}.
 %\haven{} actually downgrades the trustworthiness of enclaves.
 %Figure~\ref{fig:gsgx:libosvssdk} shows the comparison of the two models.
 
-\subsection{A Non-Partitioned Model}
-\label{sec:gsgx:overview:libos}
+\subsection{A Non-Partitioned Usage Model using Library OSes}
+\label{sec:gsgx:background:libos}
  
+The partitioned usage model restricts the risk of the isolated execution being compromised,
+but requires the developers to be familiar with
+the mechanism of enclave entry and exit,
+and always bear the security of the isolated execution in mind.
+For developers that are not expert to architecture and security issues,
+pursuing the partitioned model may need significant efforts.   
+
+\cite{baumann14haven} is the first to show a non-partitioned usage model,
+to load a native application with its supporting library
+into the enclave (as {\em \haven{}}).
+The non-partitioned model allows application to be run in the enclave as it is, with minimal or no porting effort.
+To support the non-partitioned model, the primary requirement is to support the system APIs called by the native application.
+\haven{} uses \drawbridge{} \libos{}~\citep{porter11drawbridge}
+to handle all the system API calls.
+
+In low level, the non-partitioned model still requires partitioning, but the binary to be partitioned is the \libos{} itself.
+More precisely, \drawbridge{} \pal{} is the component that is partitioned,
+and rest of the \libos{}, alone with the application,
+can be dynamically loaded into the enclave after the enclave starts.
+The partitioned \drawbridge{} \pal{} interacts with a \libos{}-specific untrusted interface,
+which is the only trusted interface needed to be defined,
+and will never be extended no matter which application is loaded.
