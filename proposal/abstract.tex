@@ -19,34 +19,34 @@ one of the system features that are especially missing or incomplete for Linux a
 which are often used in server-type workloads or shell scripts.
 On the other hand, virtualization can provide both compatibility and security isolation for native applications built for monolithic operating systems, but often requires too much resources such as memory, to run each guests in multi-tenant environments.
 
-We present {\em Graphene library OS}, to enforce security isolation for native Linux applications,
+We present {\em \graphene{} library OS}, to enforce security isolation for native Linux applications,
 with reasonable compatibility, performance and resource cost.
-Graphene library OS supports and secures many multi-process abstractions that are native to Linux, such as forking, signaling, and system V IPC (message queues and semaphores), etc.
-For multi-process applications, Graphene run each process in separate pico-processes loaded with a library OS,
+\graphene{} library OS supports and secures many multi-process abstractions that are native to Linux, such as forking, signaling, and system V IPC (message queues and semaphores), etc.
+For multi-process applications, \graphene{} run each process in separate pico-processes loaded with a library OS,
 yet each pico-processes can coordinate to provide a unified view of the operating system.
-Within each pico-process, Graphene implements a large portion of Linux system calls, using a much narrower, platform-independent host ABI.
+Within each pico-process, \graphene{} implements a large portion of Linux system calls, using a much narrower, platform-independent host ABI.
 To enforce security isolation on multi-process abstractions,
-Graphene coordinate all the namespaces and operations
+\graphene{} coordinate all the namespaces and operations
 over a simple pipe-like RPC streams, with can be easily sandboxed from the hosts.
 By restricting coordination over RPC streams,
-Graphene effectively enforce security isolation on various of multi-process abstractions whose mechanisms can be complicated and idiosyncratic.
+\graphene{} effectively enforce security isolation on various of multi-process abstractions whose mechanisms can be complicated and idiosyncratic.
 
-Graphene library OS can also secure native applications from potentially compromised system stacks, if it is combined with isolated execution.
-Isolated execution, either enforced by hardware (e.g., Intel SGX~\citep{intelsgx}) or hypervisors (e.g., Flicker~\citep{flicker}, VirtualGhost~\citep{criswell2014virtualghost}, etc), creates a privileged context for applications,
+\graphene{} \libos{} can also secure native applications from potentially compromised system stacks, if it is combined with isolated execution.
+Isolated execution, either enforced by hardware (e.g., \intel{} \sgx{}~\citep{intelsgx}) or hypervisors (e.g., Flicker~\citep{flicker}, VirtualGhost~\citep{criswell2014virtualghost}, etc), creates a privileged context for applications,
 and prevents the system stacks above the hardware or the hypervisors
 to compromise the confidentiality and integrity of the applications.  
-We focus on combining Graphene with Intel SGX, as {\em Graphene-SGX},
+We focus on combining \graphene{} with \sgx{}, as {\em \graphene{}-SGX},
 to provide stronger isolated execution than hypervisor-based solutions,
 for defending against both OS-level and hardware-level attacks.
-Graphene-SGX improves the usability of Intel SGX, by minimizing the effort of porting native applications to the Intel SGX platform,
+\gsgx{} improves the usability of \sgx{}, by minimizing the effort of porting native applications to the \sgx{} platform,
 but still maintains compatible security guarantees as the applications that built for the platform.
-Compare to other library OSes that are combined with Intel SGX (e.g., Haven~\citep{haven}),
-Graphene-SGX provides more fine-grained protection for applications binaries and processes,
+Compare to other library OSes that are combined with \sgx{} (e.g., \haven{}~\citep{haven}),
+\gsgx{} provides more fine-grained protection for applications binaries and processes,
 breaking down the isolated execution of
 an application that are already partitioned into processes,
 to yield smaller trusted computing base.
 
-Despite the effort of using library OSes and isolated execution
+Despite the effort of using \libos{} and isolated execution
 to reduce the risk of exploitation in the system stacks,
 the application itself can still be vulnerable
 --- due to the its own complexity.
@@ -54,16 +54,15 @@ We observe that with the help of managed languages,
 applications can be partitioned by automation,
 and the trusted components needed to be loaded into the isolated execution
 can be effectively reduced.
-We present {\em Civet}, a framework that combines Intel SGX and Language-based protection in Java,
+We present {\em \civet{}}, a framework that combines \sgx{} and Language protection in \java{},
 to benefit from both types of protection.
 Using Civet,
 developers of Java applications can enforce the partitioning and security guarantees they desired.
-Moreover, the components loaded into Intel SGX can be harden by language-based protection,
+Moreover, the components loaded into \sgx{} can be harden by language-based protection,
 such as filtering the output
 that are tainted by the information flow.
 
-As extended topics,
-from the experience of building more practical and secure operating systems,
+In addition, from the experience of building more practical and secure operating systems,
 we observe that the compatibility requirement on modern operating systems have made significant impact
 on the development of the operating systems,
 even effecting performance and security of the systems.
@@ -78,8 +77,8 @@ using a more practical measurement.
 We propose measurements that correlate both the usage of APIs in applications
 and the popularity of applications among user,
 to replace the traditionally used bug-for-bug compatibility.
-With the formal observation, we optimize the file system directory cache in both Linux and Graphene library OS;
-with the latter, we measure and improve the partial completeness of the Linux application support in Graphene library OS. 
+With the formal observation, we optimize the file system directory cache in both Linux and \graphene{};
+with the latter, we measure and improve the partial completeness of the Linux application support in \graphene{}. 
 
 
 \fixme{Discuss future directions.}

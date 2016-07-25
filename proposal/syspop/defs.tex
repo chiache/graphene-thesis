@@ -1,11 +1,11 @@
-\section{Formal Definitions}
-\label{sec:defs}
+\chapter{Formal Definitions of \UsageMetric{} and \CompatMetric{}}
+\label{chap:defs}
 
 %\fixmedp{The formal definition of importance in section 2.1 is hard to follow, in part because of the naming. The names of variables (Dependentapi, inst) don't make clear the types of the variables (a package, set of packages, set of API, instance, set of instance) etc. It would be helpful to reconsider the terminology to make the variable types more clear.
 %In the equations in 2.2, explaining what E means would be helpful, as it is not obvious from the context. Also, should Weighted Compliance be a function of the instance in addition to the API?
 %}
 
-\subsection{\UsageMetric{} --- A Metric for APIs}
+\section{\UsageMetric{} --- A Metric for APIs}
 \label{sec:defs:usagemetric}
 
 \vspace{0.1in}
@@ -30,7 +30,7 @@ we analyze every executable included in the package
 ($\mathtt{pkg} = \{\mathtt{exe}_1, \mathtt{exe}_2, ..., \mathtt{exe}_j\}$), and
 generate the API footprint of the package as:
 \begin{align*}
-{\mathtt{Footprint}}_{\mathtt{pkg}} = \{\mathtt{api} \in {\mathtt{API}}_{\mathtt{all}} \mid \text{\parbox{1.2in}{$\exists \mathtt{exe} \in \mathtt{pkg}$,\\
+{\mathtt{Footprint}}_{\mathtt{pkg}} = \{\mathtt{api} \in {\mathtt{API}}_{\mathtt{all}} \mid \text{\parbox{2.3in}{$\exists \mathtt{exe} \in \mathtt{pkg}$,
 $\mathtt{exe}$ has usage of $\mathtt{api}$}}\}
 \end{align*}
 
@@ -58,7 +58,7 @@ from $\mathtt{Dependents}_\mathtt{api}$ is installed on a random installation, w
 &= 1 - \prod_{\mathtt{pkg} \in \mathtt{Dependent}_\mathtt{api}} (1 - \frac{\text{\# of installations including $\mathtt{pkg}$}}{\text{total \# of installations}})
 \end{align*}
 
-\subsection{\CompatMetric{} --- A System-Wide Metric}
+\section{\CompatMetric{} --- A System-Wide Metric}
 \label{sec:defs:compatmetric}
 
 %% An accurate metric for API compatibility must take into account at least two factors:
@@ -111,7 +111,7 @@ that is an arbitrary subset of available packages
 the fraction in any installation ($\mathtt{Inst}$)
 that overlaps with the supported packages ($\mathtt{Pkg}_\mathtt{Supported}$):
 \begin{align*}
-\mathtt{Weighted Completeness}(\mathtt{API}_\mathtt{Supported}) =\\
+\mathtt{Weighted Completeness}(\mathtt{API}_\mathtt{Supported}) =
 E(\frac{|\mathtt{Pkg}_\mathtt{Supported} \bigcap \mathtt{Inst}|}{|\mathtt{Inst}|}) 
 \end{align*}
 where $E(\mathtt{X})$ is the expected value of $\mathtt{X}$.
@@ -124,6 +124,6 @@ except in the presence of explicit dependencies,
 we assume package installation events are independent.
 Thus, the approximated value of \compatmetric{} is:
 \begin{align*}
-&\frac{E(|\mathtt{Pkg}_\mathtt{Supported} \bigcap \mathtt{Inst}|)}{E(|\mathtt{Inst}|)} \\[0.5ex]
-&\sim \dfrac{\sum_{\mathtt{pkg} \in \mathtt{Pkg}_\mathtt{Supported}} (\dfrac{\text{\# of installations including $\mathtt{pkg}$}}{\text{total \# of installations}})}{\sum_{\mathtt{pkg} \in \mathtt{Pkg}_\mathtt{all\hspace{0.21in}}} (\dfrac{\text{\# of installations including $\mathtt{pkg}$}}{\text{total \# of installations}})}
+\frac{E(|\mathtt{Pkg}_\mathtt{Supported} \bigcap \mathtt{Inst}|)}{E(|\mathtt{Inst}|)}
+\sim \dfrac{\sum_{\mathtt{pkg} \in \mathtt{Pkg}_\mathtt{Supported}} (\dfrac{\text{\# of installations including $\mathtt{pkg}$}}{\text{total \# of installations}})}{\sum_{\mathtt{pkg} \in \mathtt{Pkg}_\mathtt{all\hspace{0.21in}}} (\dfrac{\text{\# of installations including $\mathtt{pkg}$}}{\text{total \# of installations}})}
 \end{align*}
