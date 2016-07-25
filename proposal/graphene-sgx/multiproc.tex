@@ -1,5 +1,5 @@
 \subsection{From Multi-Process to Multi-Enclave}
-\label{sec:multiproc}
+\label{sec:graphene:multiproc}
 
 Upon existing platforms using \sgx{}, there is no
 multi-process abstractions of any kinds that has been supported so far,
@@ -24,7 +24,7 @@ and implements inter-process communication
 with process isolation.
 
 \subsection{Forking into New Enclaves}
-\label{sec:multiproc:fork}
+\label{sec:graphene:multiproc:fork}
 
 \begin{figure}[t!]
 \centering
@@ -39,7 +39,7 @@ to create a clean enclave with the same \libos{} image.
 Then the two enclaves build up the mutual trust by
 exchanging a session key, verifying attestation of each other,
 and migrating the process snapshot from the parent.}
-\label{fig:fork}
+\label{fig:graphene:fork}
 \end{figure}
 
 To secure process creation across enclaves,
@@ -141,7 +141,7 @@ This list must be signed by a private key provided by the client,
 while the public key must be included in the enclave measurement of the binary.
 
 \subsection{Securing Inter-Process Coordination}
-\label{sec:multiproc:ipc}
+\label{sec:graphene:multiproc:ipc}
 
 After process creation, a multi-process application often cooperate
 through shared abstractions between processes,

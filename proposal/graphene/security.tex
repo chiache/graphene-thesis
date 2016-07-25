@@ -17,7 +17,7 @@ and network addresses with a reference monitor.
 %applications that span multiple processes.
 
 \sysname{} contributes a multi-process security model 
-based on the abstraction of a {\bf sandbox},
+based on the abstraction of a {\em sandbox},
 or a set of mutually trusting picoprocesses.
 The reference monitor permits picoprocesses within the same sandbox
 to communicate and exchange RPC messages, but disallows cross-sandbox communication.
@@ -162,12 +162,12 @@ the reference monitor.
 \centering
 %\includegraphics[width=3.7in]{figures/syscall_restriction.pdf}
 \footnotesize
-\caption[\sysname{}'s system call restriction approach]
+\caption[\sysname{}: system call restriction approach]
 {System call restriction approach. The reference monitor loads policies into the LSM at startup.  A \sysname{} application requests OS services in three different ways. 
 In the normal case (first line of {\tt main}), {\tt malloc} is invoked causing the invocation of {\tt brk} ({\tt libLinux}) and {\tt mmap} in the \pal{}. In the second line, the application jumps to an address in \pal{}, which is permissible.
 Files are accessed through {\tt ioctl} to {\tt /dev/graphene} and checked by reference monitor.
 The third line invokes {\tt brk} with an {\tt int} instruction, which is redirected to the {\tt libLinux} function.}
-\label{fig:graphene:syscall_restriction}
+\label{fig:graphene:syscall-restriction}
 \end{figure}
 
 
@@ -248,7 +248,7 @@ or dynamically rewriting parts of the static binary~\citep{hunt99detours}.
 
 \vspace{5pt}
 \noindent{\bf Example.~}
-Figure~\ref{fig:syscall_restriction} illustrates three possible situations. 
+Figure~\ref{fig:graphene:syscall-restriction} illustrates three possible situations. 
 %% An unmodified Linux application is dynamically linked against the 
 %% \sysname{} {\tt libc}, 
 %% which then dynamically links its system calls from {\tt libLinux},
@@ -342,7 +342,7 @@ as extensions to the  AppArmor LSM~\citep{apparmor}.
 The new sandbox call closes any open stream handles that cross sandbox boundaries;
 mediate path lookups;
 and create a new broadcast stream for multi-process
- coordination (\S\ref{sec:namespaces:blocks}).
+ coordination (\S\ref{sec:graphene:namespaces:blocks}).
 %The reference monitor also interposes on this call so that it can 
 %mediate future stream creation.
 
@@ -375,13 +375,12 @@ allows for portability, security (parameters are limited and checked)
 and easiness of programming. However, while standard libc functions
 directly invoke the kernel system call themselves, our modified
 version of libc wrappers invoke functions from another library which
-represents the OS, libLinux (Figure \ref{fig:syscall_restriction}). A
+represents the OS, libLinux (Figure \ref{fig:graphene:syscall-restriction}). A
 \sysname{} application can access all necessary system functionality
 through libLinux, which invokes corresponding system call functions at
 the platform adaptation layer (\pal{}), also loaded as a library with a
 \sysname{} process. The \pal{} is the layer responsible for directly
-invoking system calls at the kernel. As discussed in section
-\ref{sec:linux} the \pal{} provides \sysname{} applications with a
+invoking system calls at the kernel. As discussed in \S\ref{sec:graphene:impl} the \pal{} provides \sysname{} applications with a
 subset of the kernel system call interface.\sysname{} applications rely
 on an OS loaded as a library to request system services.
 
@@ -398,7 +397,7 @@ would be risking not functioning according to the libOS paradigm for
 bypassing the \pal{}, all potential damage would be confined in the
 misbehaving application itself.  However, we do not allow the direct
 invocation of a system call that does not have a corresponding
-function in the libOS and \pal{}. In Figure \ref{fig:syscall_restriction}
+function in the libOS and \pal{}. In Figure \ref{fig:graphene:syscall-restriction}
 we illustrate these three situations. We have a \sysname{} application
 loaded with three libraries: a \sysname{}-compliant libc, libLinux
 representing the library OS with functions for a selected number of

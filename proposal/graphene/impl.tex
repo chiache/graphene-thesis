@@ -1,7 +1,7 @@
 \section{Implementation Details}
 \label{sec:impl}
 
-\noindent{\bf Linux host \pal{}.~}
+\noindent{\bf Linux \pal{}.~}
 The majority of \pal{} calls are simple wrappers for similar Linux system calls, 
 adding less than 100 LoC on average for translation between \pal{} and Linux abstractions.
 The largest \pal{} calls are for exception handling, synchronization, and picoprocess
@@ -12,9 +12,9 @@ Finally, the other major \pal{} components are an ELF loader (2 kLoC), headers (
 and internal support code (2.3 kLoC).
 
 \vspace{5pt}
-\noindent{\bf Alternative host \pal{} ports.~}
-As a proof-of-concept of the platform independence of \sysname{},
-we implement an host \pal{} port on {\bf FreeBSD}.
+\noindent{\bf Alternative \pal{} Ports.~}
+We prove the platform independence of \sysname{}
+by porting \pal{} to {\em FreeBSD}, {\em OSX} and {\em Windows}.
 With the alternative host \pal{}, unmodified Linux binaries,
 along with {\tt glibc} and {libLinux},
 can be transparently run on the host.
@@ -45,7 +45,7 @@ Linux kernel reference monitor module ({\tt /dev/graphene}) & \sandboxmodlines{}
 Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 \hline
 \end{tabular}
-\caption[Lines of code written or changed to produce \sysname{}]
+\caption[\sysname{}: lines of code written or changed.]
 {Lines of code written or changed to produce \sysname{}.  Applications and other libraries are unchanged.}
 \label{tab:LoC}
 \end{table}
