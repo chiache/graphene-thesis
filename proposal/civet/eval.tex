@@ -1,17 +1,17 @@
 \section{Evaluation}
 \label{sec:eval}
 
-This section evaluates \systemname{}'s memory footprint, startup time, performance, and TCB size.
+This section evaluates \sysname{}'s memory footprint, startup time, performance, and TCB size.
 We drive this evaluation 
 %with the case studies (\S\ref{sec:case-study}),
 %as well as with
 using Java Microbenchmark Harness (JMH) Suite~\citep{jmh}.
 We organize the evaluation around the following questions:
 \begin{compactenum}
-	\item What are the performance overheads of \java VM on \systemname{} relative to a native Linux process or Graphene in SGX?
+	\item What are the performance overheads of \java VM on \sysname{} relative to a native Linux process or Graphene in SGX?
 	\item What additional overheads are added by the phosphor instrumentation?
-	\item How effective is the \systemname{}'s Shredder?
-	\item What is the effect of \systemname{} on TCB?
+	\item How effective is the \sysname{}'s Shredder?
+	\item What is the effect of \sysname{} on TCB?
 %	\item What is the performance overhead of \sgx{} isolation for case studies?
 \end{compactenum}
 
@@ -22,7 +22,7 @@ a Software Guard Extension(SGX) enabled 4-core 3.20 GHz Intel Core i5-6500 CPU,
 Our host system runs Ubuntu 14.04.3 LTS server with host Linux kernel version 4.2.0-25, 
 which includes OpenJDK version 1.7.0\_101. We use Phosphor version 0.0.2 and Graphene version \fixme{1.0}.
 %Adding more detail of KVM environment
-Unless otherwise noted, \systemname{} measurements include the Phosphor instrumentation.
+Unless otherwise noted, \sysname{} measurements include the Phosphor instrumentation.
 
 \subsection{Performance Evaluation}
 \label{sec:eval:perf}
@@ -37,11 +37,11 @@ Unless otherwise noted, \systemname{} measurements include the Phosphor instrume
 			}} &
 			\multicolumn{3}{|c|}{{\bf 
 				}} &
-				\multicolumn{3}{|c|}{{\bf \systemname{}
+				\multicolumn{3}{|c|}{{\bf \sysname{}
 					}} \\
 		{\bf Property } & \multicolumn{2}{|c|}{{\bf Linux}} &  \multicolumn{3}{|c|}{{\bf in SGX
 			}} &
-			\multicolumn{3}{|c|}{{\bf \systemname{}
+			\multicolumn{3}{|c|}{{\bf \sysname{}
 				}} &
 				\multicolumn{3}{|c|}{{\bf + Phosphor
 					}} \\
@@ -82,7 +82,7 @@ Unless otherwise noted, \systemname{} measurements include the Phosphor instrume
 			\end{tabular}
 			\caption{comparison of Java Microbenchmark Harness (JMH), Startup time, and Memory footprint
 %			, and performance of case studies 
-			among \java{} on Native Linux, Graphene in SGX, and \systemname{}, both without and with the Phosphor Information Flow Tracking Instrumentation (+Phosphor).
+			among \java{} on Native Linux, Graphene in SGX, and \sysname{}, both without and with the Phosphor Information Flow Tracking Instrumentation (+Phosphor).
 				%Execution time is in microseconds, and lower is better. 
 				%The file system is measured in thousands operations per second, and higher is better.
 				Overheads are relative to native Linux; 
@@ -99,7 +99,7 @@ Unless otherwise noted, \systemname{} measurements include the Phosphor instrume
 		\hline
 		{\bf Component} & {\bf Time (in \footnotesize $\mu$s)} & {\bf Confidence Interval}\\
 		\hline\\
-		%		\systemname{} design-time-tool & & \\
+		%		\sysname{} design-time-tool & & \\
 		EENTER &  &  \\
 		EEXIT &  &  \\
 		Page fault &  &  \\
@@ -109,22 +109,22 @@ Unless otherwise noted, \systemname{} measurements include the Phosphor instrume
 	\label{tab:sgx}
 \end{table}
 
-Here, we compare the overhead of \systemname{} compared to Native Linux without any 
-isolation assurances. We divide this analysis into two parts: (a)Inherent to running Graphene LibOS in SGX, and (b) Inherent to \systemname{} framework and information flow enforcement.
+Here, we compare the overhead of \sysname{} compared to Native Linux without any 
+isolation assurances. We divide this analysis into two parts: (a)Inherent to running Graphene LibOS in SGX, and (b) Inherent to \sysname{} framework and information flow enforcement.
 
 \paragraph{\sgx{} overhead}
 The first two columns of Table ~\ref{tab:perf} --- Native Linux and Graphene in SGX --- shows the overhead of isolating any application in SGX is about \fixme{XX}\%. Graphene adds an additional \fixme{XX}\% overhead on the memory footprint. The startup time indicates the cost of creating an enclave is \fixme{XX}\%. 
 In addition, we also measure the \sgx{} enclave enter time (EENTER) and enclave exit time (EEXIT) as shown in Table ~\ref{tab:sgx}. This is the cost of context switching to and from the enclave. The page fault measurement shows the time taken to load memory in the enclave.
 
-\paragraph{\systemname{} overhead}
-We also measure the overhead of the \systemname{} runtime framework as well as the 
-overhead due to instrumentation done by the Phosphor information flow tracking library in Table ~\ref{tab:perf}, we observe that the overhead caused by the \systemname{} framework to seamlessly access remote objects and methods inside the enclave is much smaller than that is inherent to \sgx{}. The Phosphor instrumentation further slows the application down by \fixme{XX}\% --- this is the cost of information flow tracking and preventing information leakage. 
+\paragraph{\sysname{} overhead}
+We also measure the overhead of the \sysname{} runtime framework as well as the 
+overhead due to instrumentation done by the Phosphor information flow tracking library in Table ~\ref{tab:perf}, we observe that the overhead caused by the \sysname{} framework to seamlessly access remote objects and methods inside the enclave is much smaller than that is inherent to \sgx{}. The Phosphor instrumentation further slows the application down by \fixme{XX}\% --- this is the cost of information flow tracking and preventing information leakage. 
 %The performance of the case studies is degraded but is maintained at an acceptable level.
-\subsection{Effect of \systemname{} on TCB}
+\subsection{Effect of \sysname{} on TCB}
 
 The common runtime TCB for all the partitioned applications include the Graphene LibOS, 
-the \java{} VM, \systemname{} runtime framework and the Phosphor library as shown in the 
-Table~\ref{tab:common-tcb}. The \systemname{} Shredder tool is also trusted and 
+the \java{} VM, \sysname{} runtime framework and the Phosphor library as shown in the 
+Table~\ref{tab:common-tcb}. The \sysname{} Shredder tool is also trusted and 
 adds 1,604 lines of code to the TCB. The total lines of code added to the TCB at runtime is 581,598 of size \fixme{XX}MB which is order of magnitude smaller than running a complete \java{} application in the Haven system.
 In addition to the common runtime TCB, each case study adds more code to the TCB.
 
@@ -135,22 +135,22 @@ In addition to the common runtime TCB, each case study adds more code to the TCB
 		\hline
 		{\bf Component} & {\bf Lines} & {\bf Size (in MB)}\\
 		\hline\\
-		%		\systemname{} Shredder tool & & \\
+		%		\sysname{} Shredder tool & & \\
 		Graphene LibOS & 63,041 &  \\
 		\java{} VM & 469,615 &  \\
-		\systemname{} Runtime & 2,650 &  \\
+		\sysname{} Runtime & 2,650 &  \\
 		Phosphor library & 46,256 &  \\
 		\hline
 		Total & 581,598 &  \\
 		\hline
 	\end{tabular}
-	\caption{Lines of code added to runtime TCB by \systemname{} components.}
+	\caption{Lines of code added to runtime TCB by \sysname{} components.}
 	\label{tab:common-tcb}
 \end{table}
 
-The goal of the \systemname{} Shredder is to cleanly partition the trusted classes and objects while keeping the TCB small. 
+The goal of the \sysname{} Shredder is to cleanly partition the trusted classes and objects while keeping the TCB small. 
 In Table ~\ref{tab:case-tcb}, we measure effectiveness of Shredder (column S) by the size of TCB in terms of the number of entry Classes, total Classes, entry Methods, total Methods, and lines of code loaded in the enclave. 
-We also determine the upper-bound for the TCB to run in a Haven-like environment (column U) and the lower-bound to only add classes and methods that are security sensitive to the TCB (column L). We observe that while \systemname{} can further reduce the TCB with finer-grained partitioning, the TCB is orders of magnitude smaller than Haven-like environment.
+We also determine the upper-bound for the TCB to run in a Haven-like environment (column U) and the lower-bound to only add classes and methods that are security sensitive to the TCB (column L). We observe that while \sysname{} can further reduce the TCB with finer-grained partitioning, the TCB is orders of magnitude smaller than Haven-like environment.
 
 \begin{table}[t!b!]
 	\footnotesize
@@ -164,7 +164,7 @@ We also determine the upper-bound for the TCB to run in a Haven-like environment
 		& {S} & {U} & {L} 
 		& {S} & {U} & {L}\\
 		\hline\\
-		%		\systemname{} design-time-tool & & \\
+		%		\sysname{} design-time-tool & & \\
 		Entry Classes &  &  &  &  &  &  &  &  &  \\
 		Total Classes &  &  &  &  &  &  &  &  &  \\
 		Entry Methods &  &  &  &  &  &  &  &  &  \\
@@ -173,6 +173,6 @@ We also determine the upper-bound for the TCB to run in a Haven-like environment
 		Lines of Code &  &  &  &  &  &  &  &  &  \\
 		\hline
 	\end{tabular}
-	\caption{Effectiveness of \systemname{} design-time-tool on reducing TCB for the case studies. For each property and case study, S represents Shredder, U represents upper-bound, and L represents lower-bound. Lower is better.}
+	\caption{Effectiveness of \sysname{} design-time-tool on reducing TCB for the case studies. For each property and case study, S represents Shredder, U represents upper-bound, and L represents lower-bound. Lower is better.}
 	\label{tab:case-tcb}
 \end{table}

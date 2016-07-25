@@ -7,7 +7,7 @@ in cloud platforms to secure applications against a potentially untrusted host O
 For instance, VC3~\citep{vc3} runs MapReduce jobs in SGX enclaves.
 An essential caveat for VC3 is that these mappers and reducers must be written
 in C or C++, breaking compatibility with the vast majority of Hadoop mappers and reducers,
-which are written in Java and can run on \systemname{}.
+which are written in Java and can run on \sysname{}.
 Similarly, Brenner et al.~\citep{zookeeper}, developed a transparent encryption 
 layer to the Apache ZooKeeper cluster,
 running cluster services in an enclave and transparently encrypting data in transit between enclaves.
@@ -20,7 +20,7 @@ Atamli et al.~\citep{atamli2015securing} explore different schemes for partition
 and identify different trade-offs in performance and security with different strategies.\fixmedp{This is a little cursory; can you say anything more crisp about an insight contributed here?}\fixme{That paper is from Springer and it needs me to pay \$30 to read it. Not available even through stonybrook proxy.}
 Moat~\citep{moat} uses formal verification to determine whether an enclave
 image maintains confidentiality of sensitive data,
-and identifies potential information leaks.  \systemname{}, on the other hand, applies
+and identifies potential information leaks.  \sysname{}, on the other hand, applies
 a combination of static and dynamic analysis for information flow tracking of the dynamically-loaded Java code in enclaves, and prevent leakage of confidential information at the enclave boundary .%\fixmedp{right?}
 
 Orthogonal to SGX, a number of systems have been developed to 
@@ -40,7 +40,7 @@ security-critical data remains on the trusted server,
 and, secondarily, to minimize client-server communication.
 Finally, a number of tools have been developed for automatically injecting remote method invocations (RMI)
 for distributing Java applications~\citep{philippsen1997javaparty, czajkowski2002code, spiegel1999pangaea, tilevich2008nrmi, aridor1999cjvm, diaconescu2005compiler}.
-\systemname{} extends these approaches with techniques appropriate
+\sysname{} extends these approaches with techniques appropriate
 for partitioning code into SGX enclaves.
 
 %% partitions legacy JAVA applications into parts which 
@@ -52,7 +52,7 @@ for partitioning code into SGX enclaves.
 %% Tilevich et al improved this technique in 
 %% J-Orchestra~ to handle native code 
 %% by placing the native code together with the code 
-%% referring it. \systemname{} uses same techniques as 
+%% referring it. \sysname{} uses same techniques as 
 %% Addistant and J-Orchestra to partition the code into 
 %% separate parts.
 %% %Secure Program Partitioning
@@ -61,7 +61,7 @@ for partitioning code into SGX enclaves.
 %% policy definitions as per the JFlow~\citep{myers1999jflow} 
 %% format, and partitions the code based on those 
 %% annotations for each principal and the list of hosts 
-%% that each principal trusts. \systemname{} on the 
+%% that each principal trusts. \sysname{} on the 
 %% other hand, partitions code based on whether the 
 %% class is a secure class or a dependency of a secure 
 %% class. 
@@ -72,7 +72,7 @@ for partitioning code into SGX enclaves.
 %% server, and to minimize the client-server 
 %% communication. While Swift performs fine-grained 
 %% partitioning to run different statements in the same 
-%% method separately on client and server, \systemname{} 
+%% method separately on client and server, \sysname{} 
 %% places whole methods of secure classes in the enclave.
 
 A number of projects have used  developer annotations or runtime tools
@@ -80,7 +80,7 @@ to implement privilege separation~\citep{brumley2004privtrans} or enforce least 
 on memory objects.
 Several systems have also separated programs into trusted and untrusted components, and used different OS instances
 for servicing each piece of the application~\citep{singaravelu2006reducing, ta2006splitting, khatiwala2006data}.
-\systemname{} adopts a similar approach, using developer input to identify classes containing sensitive data
+\sysname{} adopts a similar approach, using developer input to identify classes containing sensitive data
 to drive the partitioning effort, and contributes a synthesis with hardware-level protections against an untrusted system stack.
 
 % an partitioned applications to implement privilege 
@@ -89,7 +89,7 @@ to drive the partitioning effort, and contributes a synthesis with hardware-leve
 %% Brumley et al., allow developers to use annotations to automatically partition the program based on privilege separation.
 %% Bittau et al., provide developers with runtime tools to determine which code needs which privileges for which memory objects to help partition the application using the principle of least privilege.
 %% Singaravelu et al.~\citep{singaravelu2006reducing}, reduce the TCB of security sensitive programs by partitioning into trusted and untrusted parts, and run the trusted parts of the application on the CPU core and the untrusted parts of the application on a virtualized untrusted legacy OS.
-%% Ta-Min et al.~\citep{ta2006splitting}, partition applications based on interfaces to redirect calls from trusted part of the application to a private trusted OS and untrusted calls to an untrusted legacy OS. However, \systemname{} partitions applications at the higher bytecode level and do not rely on a trusted OS.
+%% Ta-Min et al.~\citep{ta2006splitting}, partition applications based on interfaces to redirect calls from trusted part of the application to a private trusted OS and untrusted calls to an untrusted legacy OS. However, \sysname{} partitions applications at the higher bytecode level and do not rely on a trusted OS.
 %% %Data Sandboxing - partition + information flow 
 %% Khatiwala et  al.~\citep{khatiwala2006data}, partition applications based on their security sensitiveness, and intercept the system calls made by the two parts of applications to enforce information flow policies to sandbox the secret data. 
 
@@ -111,7 +111,7 @@ to drive the partitioning effort, and contributes a synthesis with hardware-leve
 
 %OpenSGX~\citep{jain2016opensgx} is an SGX simulator, which has ben
 
-%built an OpenSGX simulator platform along with the necessary user library and program loader tools similar to ~\systemname{}.
+%built an OpenSGX simulator platform along with the necessary user library and program loader tools similar to ~\sysname{}.
 %This OpenSGX platform has been used to secure Network Function Virtualization states~\citep{shih2016s} as well as inter-domain routing and Tor directory
 
 
@@ -122,7 +122,7 @@ to drive the partitioning effort, and contributes a synthesis with hardware-leve
 %% trusted C/C++ MapReduce jobs on HDInsight, a Windows 
 %% hadoop distribution. However, as many MapReduce jobs 
 %% are written in Java, these jobs will need to be 
-%% re-written in C/C++ to use VC3. \systemname{} 
+%% re-written in C/C++ to use VC3. \sysname{} 
 %% supports running confidential JAVA MapReduce jobs on 
 %% Hadoop without rewriting the applications.
 %% %Running ZooKeeper Coordination Services in Untrusted Clouds
@@ -130,7 +130,7 @@ to drive the partitioning effort, and contributes a synthesis with hardware-leve
 %% layer to the Apache ZooKeeper cluster,
 %% that encrypts all sensitive data inside ZooKeeper 
 %% on-the-fly, and executes in an enclave. Similarly, 
-%% \systemname{} encrypts all secret data before it 
+%% \sysname{} encrypts all secret data before it 
 %% leaves the enclave.
 
 
@@ -145,20 +145,20 @@ to drive the partitioning effort, and contributes a synthesis with hardware-leve
 %% code. If the enclave binary doesn't pass the 
 %% verification, the developer has to fix the 
 %% information leak to be able to pass through Moat 
-%% verifier. \systemname{} however dynamically enforces 
+%% verifier. \sysname{} however dynamically enforces 
 %% that there is no information leakage. Thus, even if 
 %% some enclave binary doesnt pass through Moat 
 %% verifier, the developer need not worry about fixing 
-%% the information leak; \systemname{} will 
+%% the information leak; \sysname{} will 
 %% automatically prevent the information leak.
 %% One of the assumptions of Moat is that the enclave 
-%% binary is statically linked. However, \systemname{} 
+%% binary is statically linked. However, \sysname{} 
 %% can support dynamic loading as information flow 
 %% control is enforced at runtime.
 %% %They do not include the compiler in their TCB as they analyze the behavior of enclave binary at the instruction level. 
-%% %However, \systemname{} includes JVM and enclave image utility in TCB as it not only prevents information 
+%% %However, \sysname{} includes JVM and enclave image utility in TCB as it not only prevents information 
 %% %In addition to preventing information leaks, 
-%% Moreover, \systemname{} also automatically partitions 
+%% Moreover, \sysname{} also automatically partitions 
 %% a JAVA application, and provides the interface for 
 %% the trusted and untrusted parts to communicate with 
 %% each other.
@@ -187,10 +187,10 @@ While these solutions focus on protecting applications from untrusted OS, Chen e
 Much of the foundational work in language-level information flow was done with a combination of static analysis
 and runtime checking on a high-level language, such as Java~\citep{myers1999jflow, banerjee2002secure, hammer2006information, franz2008eliminating, chandra2007fine, smith2007improving, yip2009improving}.
 A number of systems have also developed efficient, dynamic taint-tracking systems for languages such as Java~\citep{haldar2005dynamic, nair2008virtual}.
-These are essential building blocks for the information flow tracking used in \systemname{}.
+These are essential building blocks for the information flow tracking used in \sysname{}.
 For the most part, these systems assume the integrity of the application and its runtime environment;
 a few studies have also studied issues in integrating language and OS-level information flow tracking~\citep{roy2009laminar, sabelfeld2003language}.
-\systemname{} exposes the capabilities of  SGX hardware to the developer and language runtime, providing
+\sysname{} exposes the capabilities of  SGX hardware to the developer and language runtime, providing
 stronger integrity assurances for the application, reducing the need for instrumentation in untrusted code, and 
 streamlining remote provisioning of sensitive code or data.
 

@@ -1,29 +1,29 @@
 \section{Implementation Details}
 \label{sec:impl}
 
-\noindent{\bf Linux host PAL.~}
-The majority of PAL calls are simple wrappers for similar Linux system calls, 
-adding less than 100 LoC on average for translation between PAL and Linux abstractions.
-The largest PAL calls are for exception handling, synchronization, and picoprocess
+\noindent{\bf Linux host \pal{}.~}
+The majority of \pal{} calls are simple wrappers for similar Linux system calls, 
+adding less than 100 LoC on average for translation between \pal{} and Linux abstractions.
+The largest \pal{} calls are for exception handling, synchronization, and picoprocess
 creation, which require multiple system calls and range from 500--800 LoC each.
 Creating a new picoprocesses internally requires a {\tt vfork} and {\tt exec} of a clean 
 application instance, and would be more efficiently implemented in the kernel.
-Finally, the other major PAL components are an ELF loader (2 kLoC), headers (800 LoC),
+Finally, the other major \pal{} components are an ELF loader (2 kLoC), headers (800 LoC),
 and internal support code (2.3 kLoC).
 
 \vspace{5pt}
-\noindent{\bf Alternative host PAL ports.~}
-As a proof-of-concept of the platform independence of Graphene,
-we implement an host PAL port on {\bf FreeBSD}.
-With the alternative host PAL, unmodified Linux binaries,
+\noindent{\bf Alternative host \pal{} ports.~}
+As a proof-of-concept of the platform independence of \sysname{},
+we implement an host \pal{} port on {\bf FreeBSD}.
+With the alternative host \pal{}, unmodified Linux binaries,
 along with {\tt glibc} and {libLinux},
 can be transparently run on the host.
 For FreeBSD,
-only 1.2 kLoC of the host PAL code need to be rewritten,
+only 1.2 kLoC of the host \pal{} code need to be rewritten,
 which are significantly less than FreeBSD Linux compatibility module (10.8 kLoC).
-PAL components including ELF loader and internal support code can be shared by any PAL ports.
+\pal{} components including ELF loader and internal support code can be shared by any \pal{} ports.
 
-%\fix{We leave host PAL ports to non-unix OSes like Windows as future work,
+%\fix{We leave host \pal{} ports to non-unix OSes like Windows as future work,
 %but previous works~\citep{porter11drawbridge,baumann13bascule} have already shown it feasible.}
 
 \begin{table}[t!b!]
@@ -36,7 +36,7 @@ PAL components including ELF loader and internal support code can be shared by a
 GNU Library C ({\tt libc}, {\tt ld}, {\tt libdl}, {\tt libpthread}) & \libclines{} & $0.07\%$ \\
 \hline
 Linux Library OS ({\tt libLinux}) & 31,112 & \\
-PAL & 11,644 & \\
+\pal{} & 11,644 & \\
 % updated by Chia-Che on Oct. 10, 2013
 \hline
 %Storage Server & \fixmedp{XX} & \\
@@ -45,7 +45,8 @@ Linux kernel reference monitor module ({\tt /dev/graphene}) & \sandboxmodlines{}
 Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 \hline
 \end{tabular}
-\caption{Lines of code written or changed to produce Graphene.  Applications and other libraries are unchanged.}
+\caption[Lines of code written or changed to produce \sysname{}]
+{Lines of code written or changed to produce \sysname{}.  Applications and other libraries are unchanged.}
 \label{tab:LoC}
 \end{table}
 
@@ -60,26 +61,26 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 \vspace{5pt}
 \noindent{\bf Implementing Linux Personality.~} 
 %\fixmedp{Revisit the logical flow of these paragraphs}
-The Graphene {\tt libLinux.so} implements a subset 
+The \sysname{} {\tt libLinux.so} implements a subset 
 of the Linux system call API (currently \syscalls{} calls)
-using only the PAL ABI to interact with the host.
+using only the \pal{} ABI to interact with the host.
 We note that Linux exports a very long tail of infrequently used calls.
 %applications.
 A rough analysis of this tail indicates roughly 100 additional calls that can be implemented
-with the existing PAL ABI and coordination framework, less than 10 administrative calls that will not make sense to expose to 
+with the existing \pal{} ABI and coordination framework, less than 10 administrative calls that will not make sense to expose to 
 an application, such as loading a kernel module or rebooting the system, and roughly 54 that will require 
-PAL extensions to meaningfully implement, such as controlling scheduling,
+\pal{} extensions to meaningfully implement, such as controlling scheduling,
 NUMA placement, I/O privilege, and shared memory.
 In the last category of system calls, the degree to which actual host details should be exported versus emulated is debatable.
 
 %We believe represent the most commonly used system calls.
 %When an application requests a call or argument that {\tt libLinux.so} does not implement,
 %the picoprocess exits with a distinct error message. 
-Each time we have tested Graphene with a new application, the number of extra system calls
+Each time we have tested \sysname{} with a new application, the number of extra system calls
 required has dropped---most recently we only added 4 calls
 (namely, epoll\_create, epoll\_wait, semget and semop)
 to support the Apache web server.
-Thus, we believe Graphene implements a representative sample of Linux calls.
+Thus, we believe \sysname{} implements a representative sample of Linux calls.
 
 %such as {\tt sched\_setparam}, which manipulates scheduler-specific
 %parameters or 
@@ -87,7 +88,7 @@ Thus, we believe Graphene implements a representative sample of Linux calls.
 %in {\tt glibc} version 2 in favor of a user-space dynamic linker.
 %We do not plan to implement administrative interfaces, such as {\tt reboot}.
 %The growth in the set of supported system calls has been driven by 
-%the requirements of new applications we use to exercise Graphene, and has been 
+%the requirements of new applications we use to exercise \sysname{}, and has been 
 %slowing considerably over time.
 
 %directly to guests, and thus will not implement them in {\tt libLinux.so}.
@@ -97,7 +98,7 @@ Thus, we believe Graphene implements a representative sample of Linux calls.
 Most {\tt libLinux.so} code reimplements
 Linux kernel functionality.  We found it expedient to 
 read the Linux source in order to understand its behavior and then reimplement 
-that behavior on the PAL ABI in most cases.
+that behavior on the \pal{} ABI in most cases.
 In some cases, such as the file caching code,
 %directory entry (dentry) cache, 
 we refactored code directly from the Linux kernel.
@@ -121,7 +122,7 @@ and to cooperatively manage thread-local storage with {\tt libLinux.so} (Table~\
 \begin{comment}
 \vspace{5pt}
 \noindent{\bf ABI Extensions.~}
-Graphene extends the Drawbridge ABI with 9 additional PAL calls.
+\sysname{} extends the Drawbridge ABI with 9 additional \pal{} calls.
 As discussed above, one creates a new sandbox, and 
 5 additional calls were added for IPC.
 We also add 3 calls to manage x86 segmentation registers

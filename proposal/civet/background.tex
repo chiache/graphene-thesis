@@ -51,7 +51,7 @@ with C/C++ or assembly languages.
 %\paragraph{Side Channels and Denial-of-Service.}
 %In the current \sgx{} design, side channels are a significant concern, and are out of the scope of this paper.
 %A controlled channel attack~\fixmedp{cite} can single step enclave execution by inducing page faults
-%in the enclave.  \systemname{} does not specifically defend against side channel attacks,
+%in the enclave.  \sysname{} does not specifically defend against side channel attacks,
 %and we expect that any solution to this problem involves redesigning the %division of labor in virtual
 %memory management for enclaves.
 
@@ -176,8 +176,8 @@ with C/C++ or assembly languages.
 %%% the library OS (e.g., the Haven binary yields around a few hundred MBs) to TCB.
 %%% On the other hand, if the developers are willing to spend effort on carefully identifying the untrusted interface and re-designing their application around this interface, the partitioned model can improve security guarantees by minimizing the attack vectors.
 
-%%% The goal of \systemname{} is to provide the benefits of both models.
-%%% \systemname{} support a partitioned model
+%%% The goal of \sysname{} is to provide the benefits of both models.
+%%% \sysname{} support a partitioned model
 %%% for developers to isolate security-sensitive part of a \java{} application in enclave,
 %%% and provide a language-based tool to automatically partition
 %%% the minimal supporting classes to generate the enclave image.
@@ -200,18 +200,17 @@ The non-partitioned model does offer simple deployment and can provide practical
 such as protecting an application from an untrusted cloud hypervisor.
 
 \begin{figure}[t!]
-	\centering
-	\includegraphics[width=\linewidth]{civet/figures/libosvssdk.pdf}
-	\footnotesize
-	\vspace{-0.2in}
-	\caption{
-		Comparison between the Non-partitioned model (e.g., Haven)
-		and partitioned model for protecting applications in enclaves.
-		Green (light) boxes are trusted components and red (dark) boxes are untrusted.
-		The non-partitioned model yields a larger TCB in the enclave,
-		while the partitioned model requires developers to determine the untrusted interface at the enclave boundary.
-	}
-	\label{fig:libosvssdk}
+\centering
+\includegraphics[width=\linewidth]{civet/figures/libosvssdk.pdf}
+\footnotesize
+\vspace{-0.2in}
+\caption[Comparison between the Non-partitioned model and the partitioned model.]
+{Comparison between the Non-partitioned model (e.g., Haven)
+and partitioned model for protecting applications in enclaves.
+Green (light) boxes are trusted components and red (dark) boxes are untrusted.
+The non-partitioned model yields a larger TCB in the enclave,
+while the partitioned model requires developers to determine the untrusted interface at the enclave boundary.}
+\label{fig:libosvssdk}
 \end{figure}
 
 \paragraph{Partitioned applications.}
@@ -225,7 +224,7 @@ and reason about potential information flows at the enclave boundary~\citep{kilp
 This effort can be non-trivial and subtle, but for application developers motivated by interests such as 
 regulatory compliance or competitive advantage in business, the additional effort can yield a much smaller trusted computing
 base (TCB), and thus a reduced attack surface.
-A key goal of \systemname{} is to minimize the developer's effort to partition an application---both in lines of 
+A key goal of \sysname{} is to minimize the developer's effort to partition an application---both in lines of 
 code changed, and in leveraging language analysis to reason about narrow points in the application's data and control flow.
 
 \subsection{Challenges in Partitioning \java{} Applications on \sgx{}}
@@ -387,7 +386,7 @@ for if and when updates to objects are propagated across the enclave boundary.
 %% and minimizing the TCB in the security sensitive parts.
 
 %\fixmedp{Maybe move the commented paragraph below down into the design section?  I'd like to downplay the plugs for our work here, and instead fulfill these promises later}
-%% \systemname{} automates partitioning of applications,
+%% \sysname{} automates partitioning of applications,
 %% based on the boundary at the classes which the developers marked
 %% as the interfaces of the enclave.
 %% Only the classes that are depended by the marked classes
@@ -397,7 +396,7 @@ for if and when updates to objects are propagated across the enclave boundary.
 %% are necessarily security sensitive,
 %% the enclaves are protected from the potential vulnerabilities in those classes,
 %% by the security guarantees of \java{} language,
-%% and the information flow tracking in \systemname{}.
+%% and the information flow tracking in \sysname{}.
 
 %Another threat to \sgx{} is the vulnerability of the 
 %security sensitive code running in the Enclave. The 
@@ -464,7 +463,7 @@ dynamically loaded code, including encrypted class files.
 
 %Any application partitioning solution that protects sensitive algorithms and data
 %must have a robust dynamic loader that can measure encrypted libraries or classes.
-%\systemname{} includes a loader that can measure encrypted class files,
+%\sysname{} includes a loader that can measure encrypted class files,
 %provisioned from a trusted host.
 
 %% \sgx{} enclaves require code integrity in the isolated applications.
@@ -485,7 +484,7 @@ dynamically loaded code, including encrypted class files.
 %% To enable the feature of code confidentiality in enclaves, the protected code must be dynamically loaded into the enclave,
 %% because the \sgx{} hardware only accept
 %% the initial loaded code to be in plaintext.
-%% \systemname{} provides both code integrity and confidentiality by verifying
+%% \sysname{} provides both code integrity and confidentiality by verifying
 %% every classes dynamically loaded into the enclaves,
 %% and allows loading classes provisioned from trusted hosts.
 
@@ -495,7 +494,7 @@ dynamically loaded code, including encrypted class files.
 %% Such a leakage gives the untrusted OS to amplify the side channels,
 %% by forcing page faults on every instruction or memory access.
 %% This so-called {\em Controlled Channel Attack} is common to all applications who use \sgx{} protection, regardless of the programming models.
-%% \systemname{} does not specifically defend against side channel attacks.
+%% \sysname{} does not specifically defend against side channel attacks.
 
 %% \paragraph{Denial-Of-Service Attacks}
 %% \sgx{} is not designed to be safe against denial-of-service attacks.
@@ -503,7 +502,7 @@ dynamically loaded code, including encrypted class files.
 %% there are countless ways to prevent an enclave from making progress.
 %% For example, the OS can simply starve the enclaves by
 %% never scheduling CPU, memory or other resources to the enclaves.
-%% \systemname{} does not specifically defend against denial-of-service attacks.
+%% \sysname{} does not specifically defend against denial-of-service attacks.
 
 \paragraph{\bf Challenge 3: Seamless access of in-enclave objects (\S\ref{sec:concept:accessing}).}
 Java code outside of the enclave must be able to call enclave entry points and 
@@ -537,7 +536,7 @@ objects should be placed in the enclave and which should be outside of the encla
 %that the execution can jump to). However, for an application written in a language like JAVA with a virtual machine or interpreter, there are no clear entry points separating 
 %the trusted and untrusted components. Moreover, due to the approach of executing intermediate code, it is also difficult to determine the entry points at runtime.
 
-%Just separating an application into parts based on security sensitiveness is not enough to securely isolate the two parts using \sgx{}. In addition to application partition, there is a need to automatically determine the entry points without offloading the effort to the developers. \systemname{}  automatically identifies and exports all untrusted interfaces to the isolated classes at build time.
+%Just separating an application into parts based on security sensitiveness is not enough to securely isolate the two parts using \sgx{}. In addition to application partition, there is a need to automatically determine the entry points without offloading the effort to the developers. \sysname{}  automatically identifies and exports all untrusted interfaces to the isolated classes at build time.
 
 %\paragraph{Discussion.}
 %This section has outlined several pitfalls for developers of partitioned applications.
@@ -587,7 +586,7 @@ or to utilize its features.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=\linewidth]{figures/alternatives.pdf}
+\includegraphics[width=\linewidth]{civet/figures/alternatives.pdf}
 \footnotesize
 \caption{Alternative approaches to access \sgx{} hardware protection from \java{} applications.
 The {\em libOS-based} approach runs the whole \java{} applications in the enclaves. 
@@ -633,7 +632,7 @@ Partitioning an application requires some input from the developer in order to i
 sensitive data and code.  Each of the challenges above highlight cases where
 Java either hides important information from the developer, or otherwise useful runtime
 techniques can thwart the isolation benefits of using a hardware mechanism like SGX.
-A higher-level goal of \systemname{} is to provide constructs for the developer to specify
+A higher-level goal of \sysname{} is to provide constructs for the developer to specify
 her goals, such as which objects should be isolated in an enclave,
 and to have the language runtime use these developer-provided hints to 
 make judicious choices on issues such as data placement.

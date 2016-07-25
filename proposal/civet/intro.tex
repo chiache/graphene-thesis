@@ -288,11 +288,11 @@ is safe to be released from the enclave.
 %that can shield the developer from the complexity of determining whether security sensitive information 
 %is leaked outside the enclave.
 
-This paper presents {\em \systemname{}},
+This paper presents {\em \sysname{}},
 a system that combines the benefits of
  \sgx{} enclave isolation with \java{} language security features to protect security-sensitive applications.
-\systemname{} avoids the downsides of taking either approach in isolation.
-\systemname{} includes three primary parts:
+\sysname{} avoids the downsides of taking either approach in isolation.
+\sysname{} includes three primary parts:
 a tool that guides the programmer in partitioning an application, ultimately generating an enclave image that includes
 a minimal Java code base;
 a runtime framework that loads and verifies classes, and enforces
@@ -321,10 +321,10 @@ as attestation and secure provisioning.
 %% developer when some information is flowing out of enclave in clear. 
 %This ease of use and explicitness helps
 %developer reason about the security of the code more clearly.
-%\systemname{} achieves three properties: {\em security}, {\em practicality} and {\em usability}.
-\systemname{} is designed to protect the confidentiality and integrity of 
+%\sysname{} achieves three properties: {\em security}, {\em practicality} and {\em usability}.
+\sysname{} is designed to protect the confidentiality and integrity of 
 real-world application code. 
-\systemname{} not only requires very little developer effort to adopt, but also provides the developer
+\sysname{} not only requires very little developer effort to adopt, but also provides the developer
 with essential insights into how data can flow through the application,
 leading to better reasoning about the isolation properties of the partition.
 %low developer effort,
@@ -332,17 +332,17 @@ leading to better reasoning about the isolation properties of the partition.
 %and provides ease of reasoning about the security strength.
 
 %\fixmedp{I would refocus a bit on the contributions.  Make sure I don't overstate}
-\systemname{} addresses design challenges at both the hardware and language level.
+\sysname{} addresses design challenges at both the hardware and language level.
 %one from each of hardware protection and language-level protection.
-To extend hardware protection, \systemname{} contributes techniques for dynamically loading \java{} classes in enclaves
+To extend hardware protection, \sysname{} contributes techniques for dynamically loading \java{} classes in enclaves
 with the same code integrity verification as native, static binaries.
-\systemname{} uses the Graphene library OS~\citep{tsai14graphene} to facilitate 
+\sysname{} uses the Graphene library OS~\citep{tsai14graphene} to facilitate 
 running a restricted \jvm{} runtime in an enclave.
 %to facilitate and restrict the interface size of a 
 %and prove the measurement of loaded classes as part of the hardware-generated attestation.
-%Then \systemname{} verifies and attests loaded \java{} classes on the basis of measurement checking and attestation generation from the hardware.
-%On the other hand, \systemname{} has to adopt language-level protection to enforce information flow policies against leakage over the border of enclave.
-\systemname{} enforces information flow policies at the border of the enclave by incorporating
+%Then \sysname{} verifies and attests loaded \java{} classes on the basis of measurement checking and attestation generation from the hardware.
+%On the other hand, \sysname{} has to adopt language-level protection to enforce information flow policies against leakage over the border of enclave.
+\sysname{} enforces information flow policies at the border of the enclave by incorporating
 Phosphor~\citep{bell2014phosphor} instrumentation on all classes in the enclave,
 tracing both explicit and implicit flows from any confidential data,
 and preventing tainted information from leaving the enclave by any interface, 
@@ -359,7 +359,7 @@ except via explicit declassification by the developer.
 %Finally, we use the enclave to protect security critical data of a Java Web Start (JavaWS) application.
 
 %As a proof-of-the-concept, 
-This paper presents three use cases for \systemname{}.
+This paper presents three use cases for \sysname{}.
 First we partition and isolate the 
 cryptography library and keys from the rest of an SSH client and  server.
 %in which the  used for encrypting the connection
@@ -376,22 +376,22 @@ we protect the secret client data in an enclave on the client's machine.
 %\fixmedp{can we explain a bit more about the security property of interest?}
 %which can serve as a web application for a website.
 For each of the use cases, we show that developers or users
-can utilize \systemname{} to partition the applications
+can utilize \sysname{} to partition the applications
 with minimal effort
 and only an understanding of the isolation properties of SGX,
 not the cumbersome, hardware-level details.  %n{high-level understanding  knowledge of %almost no familiarity with how 
 %the SGX hardware.
 
-%\systemname{} prevents any bugs either in the untrusted application or the isolated crypto library to cause leakage of the encryption key.
+%\sysname{} prevents any bugs either in the untrusted application or the isolated crypto library to cause leakage of the encryption key.
 %Another use case is a Hadoop job that is provisioned with a secret algorithm, and automatically encrypts computation results
 %to eliminate risks of leaking the secret sauce.  
 
 The contributions of this work are:
 \begin{compactitem}
-\item An abstraction of hardware isolation, such as \sgx{}, for Java application developers, limiting the trusted computing base to \systemname{} and the hardware.  
+\item An abstraction of hardware isolation, such as \sgx{}, for Java application developers, limiting the trusted computing base to \sysname{} and the hardware.  
 %, with minimal developer  %  to defend against attacks from system stack and hardware (only the CPU chip itself has to be trusted), with minimal porting effort.
 % hardware protection support into \java{} applications, to allow developers to fully utilize \sgx{} hardware for defending against 
-\item Techniques to guide developers in partitioning applications, using information flow analyses to help developers find the ``narrow waist'' in the application.  \systemname{} also uses information flow control to dynamically protect against information leakage %, to sanitize inputs to the enclave, 
+\item Techniques to guide developers in partitioning applications, using information flow analyses to help developers find the ``narrow waist'' in the application.  \sysname{} also uses information flow control to dynamically protect against information leakage %, to sanitize inputs to the enclave, 
 and
 to create a minimal enclave image to reduce the trusted computing base of the protected code.
 %partitioning Java application into enclave images with minimal supporting classes --- to minimize the attack vector in the partitioned applications ---
@@ -399,7 +399,7 @@ to create a minimal enclave image to reduce the trusted computing base of the pr
 %and leverage information flow as hints to decide
 %whether data is allowed to be passed outside the enclave.
 %\item We provide a partition tool to generate an enclave image with minimal supporting classes for protecting the security-sensitive execution in an application.
-\item We show several practical use cases for \systemname{} that beneficially combine both hardware and language security,
+\item We show several practical use cases for \sysname{} that beneficially combine both hardware and language security,
 such that the sum of the protections is greater than the parts.
 % that \sgx{} enclave security can be hardened using language protection,
 %while \java{} language protection can be further shielded from

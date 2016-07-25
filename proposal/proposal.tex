@@ -3,11 +3,12 @@
 % comment out the following line when submitting
 \def \oscardebug{}
 
-\usepackage{lingmacros}
-\usepackage{tree-dvips}
 \usepackage{geometry}
 \geometry{margin=1in}
 \usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{tocloft}
+\usepackage{setspace}
 \usepackage{paralist}
 \usepackage{rotating}
 \usepackage{fancybox}
@@ -18,7 +19,6 @@
 \usepackage{color}
 \usepackage[square]{natbib}
 \usepackage{lastpage}
-\usepackage{siunitx}
 \usepackage{times}
 \usepackage{multirow}
 \usepackage[hyphens]{url}
@@ -30,6 +30,7 @@
 \usepackage{amsmath}
 \usepackage{float}
 \usepackage{booktabs}
+\usepackage[hidelinks]{hyperref}
 
 \ifx \oscardebug \undefined
 \newcommand{\fixme}[1]{{}}
@@ -39,7 +40,7 @@
 \newcommand{\fixmedp}[1]{{\bf\textcolor{red}{ [ FIXME dP: #1 ]}}}
 \fi
 
-\newcommand{\thesistitle}{Balancing Practicality and Security Isolation for Applications with Untrustworthy System Stacks}
+\newcommand{\thesistitle}{Balancing Practicality and Security Isolation for Applications\\ with Untrustworthy System Stacks}
 \newcommand{\thesisauthor}{Chia-Che Tsai}
 \newcommand{\thesisyear}{2016}
 \newcommand{\thesismonth}{August}
@@ -61,7 +62,7 @@
 \title{\bf{Title of Dissertation}}
 
 \vspace*{6\baselineskip}
-{\centering{\Large\bf{\thesistitle{}}}\\}
+{\setstretch{1.5}\centering{\Large\bf{\thesistitle{}}}\\}
 \vspace*{3\baselineskip}
 \centerline{A Dissertation Proposal presented}
 \vspace*{1\baselineskip}
@@ -83,7 +84,7 @@
 \vspace*{1\baselineskip}
 \centerline{in}
 \vspace*{1\baselineskip}
-\centerline{\bf{Computer Scientce}}
+\centerline{\bf{Computer Science}}
 \vspace*{1\baselineskip}
 \centerline{}
 %\centerline{\bf{(Concentration - optional)}}
@@ -141,11 +142,11 @@
 \addcontentsline{toc}{chapter}{Abstract}
 \centerline{Abstract of the Dissertation Proposal}
 \vspace*{3\baselineskip}
-{\centering{\Large\bf{\thesistitle{}}}\\}
-\vspace*{3\baselineskip}
+{\centering{\bf{\thesistitle{}}}\\}
+\vspace*{1\baselineskip}
 \centerline{by}
 \vspace*{1\baselineskip}
-\centerline{\large\bf{\thesisauthor{}}}
+\centerline{\bf{\thesisauthor{}}}
 \vspace*{2\baselineskip}
 \centerline{\bf{Doctor of Philosophy}}
 \vspace*{1\baselineskip}
@@ -174,13 +175,19 @@
 %\vspace*{4\baselineskip}
 %The frontispiece is generally an illustration, and is an optional page.
 
-%\newpage
+\newlength{\charwidth}
+\setlength{\charwidth}{\widthof{\S}}
+
+\newpage
 %\centerline{\bf{Table of Contents}}
 \renewcommand{\contentsname}{\centerline{\normalsize\bf{Table of Contents}}}
+\renewcommand{\cftchapfont}{\normalsize\bf\def\\{}\def\em{}}
+\pdfbookmark[0]{Table of Contents}{Contents}
 \tableofcontents
 
 \newpage
 \centerline{\bf{List of Figures / Tables}}
+\pdfbookmark{Table of Figures / Tables}{Figures / Tables}
 %\vspace*{4\baselineskip}
 \begingroup
 \let\clearpage\relax
@@ -201,7 +208,7 @@
 %This page is optional.
 
 \newpage
-\centerline{\bf{Acknowledgements}}
+\centerline{\bf{Acknowledgments}}
 \vspace*{4\baselineskip}
 \input{acknowledge}
 
@@ -211,7 +218,7 @@
 %This page is optional for doctoral students only.
 
 \titleformat{\chapter}[display]
-    {\normalfont\centering\bf}{\chaptertitlename{} \thechapter{}}{1pc}{\Large\bf}
+{\normalfont\centering\bf}{\chaptertitlename{} \thechapter{}}{1pc}{\Large\bf}
 
 \input{../conferences}
 

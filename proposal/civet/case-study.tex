@@ -1,17 +1,17 @@
 \section{Case Studies}
 \label{sec:case-study}
 
-In order to evaluate the utility of \systemname{}, we partitioned
+In order to evaluate the utility of \sysname{}, we partitioned
 several example \java{} applications, which we use in our evaluation.
 
 
 \paragraph{Session Encryption in SSH Client/Server.}
 %Code that handles security sensitive data
-In order to show the ability of \systemname{} to protect a 
+In order to show the ability of \sysname{} to protect a 
 confidential data and avoid leaking that data,
 %A \java{} program with a secret that is either generated during runtime
 %or provisioned from trusted remote enclaves,
-%can be partitioned and secured by \systemname{} to prevent leaking the secret.
+%can be partitioned and secured by \sysname{} to prevent leaking the secret.
 %We demonstrate this use case
 %using 
 we partitioned a \java{}-based SSH client and server~\citep{apache-sshd}.
@@ -36,7 +36,7 @@ Attempts to copy the session key directly into an output buffer at any other poi
 will result in encryption of the buffer before leaving the enclave.
 
 {\tt org.apache.sshd.common.FactoryManager} is identified as the entry class for Shredder, because this class returns all the objects required for the SSH Protocol.
-Shredder generates the enclave image that includes the secret key classes, random generator, key generator, engine for diffie-hellman key-exchange, and encryption-decryption engine. Both the client as well as the server are partitioned to be run using \systemname{}. The client and server first mutually attests each other, exchange the key, and then setup the secure session. We use these SSH client and server for transferring files using SFTP. For simplicity, we run both client and the server on the same host, but in different enclaves. 
+Shredder generates the enclave image that includes the secret key classes, random generator, key generator, engine for diffie-hellman key-exchange, and encryption-decryption engine. Both the client as well as the server are partitioned to be run using \sysname{}. The client and server first mutually attests each other, exchange the key, and then setup the secure session. We use these SSH client and server for transferring files using SFTP. For simplicity, we run both client and the server on the same host, but in different enclaves. 
 %We measure the bandwidth of file transfer as discussed in \S\ref{sec:eval:perf}
 
 %\fixmedp{I took some liberty here: We have to be able to receive data too, right?  Also, I would be more careful with the use of ``guarantee'' in general}
@@ -51,7 +51,7 @@ Shredder generates the enclave image that includes the secret key classes, rando
 
 \paragraph{Secret Hadoop Algorithm.}
 %Code that contains a secret algorithm
-\systemname{} not only protects confidential data, but also protects confidential code.
+\sysname{} not only protects confidential data, but also protects confidential code.
 For instance, if a company has developed an analysis tool that gives them a essential competitive advantage,
 they must either run their own data center or trust a cloud provider not to leak their tool 
 to any competitors.
@@ -69,7 +69,7 @@ The output of the sorting algorithm is a sorted, encrypted key value store.
 
 The Hadoop framework schedules proxy Partitioners, Mappers, Combiners, Sorters, and Reducers,
 and then creates enclaves for these classes.
-Once a baseline \systemname{} enclave is created, encrypted class files
+Once a baseline \sysname{} enclave is created, encrypted class files
 are downloaded from a trusted server using our remote attestation tools,
 and then decrypted, loaded, and measured for integrity. 
 %We evaluate the Job completion time for our sort algorithm in \S\ref{sec:eval:perf}.
@@ -88,18 +88,18 @@ brute-force mapping of its outputs or reverse-engineering the code.
 %% any output of the isolated classes ---
 %% even if it is just an intermediate state ---
 %% is encrypted before leaving the enclave.
-%% \systemname{} not only protects the implementation of the algorithm,
+%% \sysname{} not only protects the implementation of the algorithm,
 %% but any output of the algorithm that may potentially help attackers
-%% reverse-engineer the implementation. The {\em confidential code} property of ~\systemname{} is not limited to Hadoop, but can also be leveraged by standard \java{} applications.
+%% reverse-engineer the implementation. The {\em confidential code} property of ~\sysname{} is not limited to Hadoop, but can also be leveraged by standard \java{} applications.
 
 \paragraph{Secure Data Manager Web-app.}
 %JAVA Web-start Application
-\systemname{} can also secure {\em Java Network Launch Protocol} (JNLP) applets and web-start apps, effectively 
+\sysname{} can also secure {\em Java Network Launch Protocol} (JNLP) applets and web-start apps, effectively 
 extending trust from a remote trusted server to a client enclave using any web-app 
 plugged into a supported browser. This allows the developers to offload some of the 
 computation on secret data to the client machine from the trusted server.
 %\java{} applications in the form of
-%can also be secured by \systemname{}. 
+%can also be secured by \sysname{}. 
 
 For instance, in a large medical hospital with a centralized repository of patient data,
 the doctors may want to access any patient data from any terminal using a web browser.
@@ -108,9 +108,9 @@ Manager(SDM)~\citep{sdm-applet} to store the secret patient data on a client mac
 and display this information securely using Intel Protected Audio and Video Path 
 (PAVP) technology~\citep{intel-pavp}.
 However, to protect the sensitive patient information from untrusted system stack, the 
-developer can use \systemname{} to isolate the classes that represent the secure data 
+developer can use \sysname{} to isolate the classes that represent the secure data 
 in an enclave. The developer just has to identify such classes representing the secret 
-data and display methods, and the \systemname{} seamlessly creates enclave for 
+data and display methods, and the \sysname{} seamlessly creates enclave for 
 managing secret data.
 % or perform computations on secret data isolated in an enclave.
 %We demonstrate this use case using a 
@@ -119,7 +119,7 @@ The trusted data manager class authenticates the doctor and loads the provisione
 from the remote trusted server. The Intel PAVP enabled displays can then take the input from the display methods of the trusted data manager class.
 
 For simplicity, we only partition and run the SDM applet from a browser without the support for Intel PAVP display devices. We identify four classes --- {\tt SafetyBox}, 
-{\tt AuthenticationInfo}, {\tt LoginEntry}, and {\tt Type} --- as entry class to the Shredder and generate a web-start app image containing the enclave image. The web-app loads normally, and when it tries to access any of the above four classes, \systemname{} seamlessly creates an enclave for those objects. 
+{\tt AuthenticationInfo}, {\tt LoginEntry}, and {\tt Type} --- as entry class to the Shredder and generate a web-start app image containing the enclave image. The web-app loads normally, and when it tries to access any of the above four classes, \sysname{} seamlessly creates an enclave for those objects. 
 %We measure the latency of I/O from the SDM in \S\ref{sec:eval:perf}.
 
 

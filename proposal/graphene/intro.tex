@@ -1,5 +1,5 @@
 \section{Introduction}
-\label{sec:intro}
+\label{sec:graphene:intro}
 Existing library OSes provide single-process applications
 with the qualitative benefits of virtualization
 at a lower cost~\citep{porter11drawbridge,unikernels,baumann13bascule}.
@@ -67,78 +67,69 @@ For example, Drawbridge~\citep{porter11drawbridge} cannot simulate process forki
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.75\linewidth]{graphene/figures/concept.pdf}
-\caption[Multi-process abstraction model of \sysname{} \libos{}]{Multi-process abstraction model of \sysname{} \libos{}. For each process of an application, a libOS instance will serve system calls and keep local OS states. States of multi-process abstractions are shared by coordinating over host-provided RPC streams, creating an illusion of running in single OS for the application.}
+\caption[Multi-process abstraction model of \sysname{} \libos{}]
+{Multi-process abstraction model of \sysname{} \libos{}. For each process of an application, a libOS instance will serve system calls and keep local OS states. States of multi-process abstractions are shared by coordinating over host-provided RPC streams, creating an illusion of running in single OS for the application.}
 %\vspace{-.1in}
-\label{fig:concept}
+\label{fig:graphene:concept}
 \end{figure}
 
-This paper describes {\bf Graphene},  a Linux-compatible library OS.
-In Graphene, multiple libOS instances collaboratively implement
+This paper describes {\bf \sysname{}},  a Linux-compatible library OS.
+In \sysname{}, multiple libOS instances collaboratively implement
 POSIX abstractions,
 yet appear to the application
 as a single, shared OS.
-Graphene instances coordinate state using remote procedure calls (RPCs) over
+\sysname{} instances coordinate state using remote procedure calls (RPCs) over
 host-provided byte streams (similar to pipes).
 In a distributed POSIX implementation, placement of shared state and messaging complexity
 are first-order performance concerns.
 %We chose to shift implementation complexity into the library OS
 %in order to uphold simple enforcement of security isolation in the host.
 By coordinating shared states across libOS instances,
-Graphene is able to create an illusion 
+\sysname{} is able to create an illusion 
 of running in a single OS
 for multiple processes in an application (as figure~\ref{fig:concept}).
 
 %Previous library OS designs ensured security isolation of independent applications,
 %comparable to a VM, by keeping a relatively narrow host ABI.
-%We selected the Graphene
+%We selected the \sysname{}
 %design because it strikes a unique balance between
 %and robust, flexible security enforcement.
 
-The Graphene design ensures security isolation of
+The \sysname{} design ensures security isolation of
 mutually distrusting, multi-process
 applications on the same host system.
 Essential to this goal is
 minimally expanding the host ABI to support multi-processing,
 as well as leveraging RPCs as a natural point to mediate inter-libOS communication.
-RPC coordination among Graphene instances can be dynamically disconnected, facilitating novel sandboxing
+RPC coordination among \sysname{} instances can be dynamically disconnected, facilitating novel sandboxing
 techniques.  For instance, we develop an Apache web server extension that, upon logging in a given user,
 places the worker process's libOS in a sandbox with access to only that user's data.
 We expect more nuanced degrees of trust are possible in future work.
+
+\begin{comment}
 The contributions of this paper are:
 \begin{compactitem}
-\item Graphene, a Linux library OS, which supports
+\item \sysname{}, a Linux library OS, which supports
   real-world, multi-process applications including a shell, web server,
   and compiler, which can be  efficiently checkpointed and migrated.
 % \fixmetsai{We need to enable mulit-process checkpointing and migration}
 % \daniela{the reviewers will be looking for that in the experiments section: "among hosts''}.
 \item A framework for implementing multi-process APIs across cooperating library OS instances.
-%\daniela{I would change to: "A thorough security analysis of Graphene isolation design'' You mention that you trust the reference momitor, so there is no security to
+%\daniela{I would change to: "A thorough security analysis of \sysname{} isolation design'' You mention that you trust the reference momitor, so there is no security to
 %be evaluated unless you guarantee the process is not vulnerable to exploits. We have not evaluated the security of the coordination design, only the isolation. To evaluate the security to the coordination design we have to look at possible race conditions and how they are dealt with.}
 %\item Addressing additional challenges developing a robust Linux library OS, including copy-on-write fork.
-\item A thorough evaluation of the overheads of Graphene.  Memory footprints are an order of magnitude
+\item A thorough evaluation of the overheads of \sysname{}.  Memory footprints are an order of magnitude
 smaller than KVM, and several applications perform comparably to a Linux process.
-\item A thorough analysis of Graphene security isolation.
+\item A thorough analysis of \sysname{} security isolation.
 
-%In the best case, the overhead of a large {\tt gcc} compilation on Graphene is only 3\%.
+%In the best case, the overhead of a large {\tt gcc} compilation on \sysname{} is only 3\%.
 
 \end{compactitem}
-Graphene's design gives the user and system administrator a high degree of flexibility
+\end{comment}
+
+\sysname{}'s design gives the user and system administrator a high degree of flexibility
 in isolating arbitrary groups of unmodified application processes,
 while upholding the efficiency and host compatibility benefits of recent library OSes.
-
-
-\begin{comment}
-\noindent The rest of this paper is structured as follows:
-\S\ref{sec:background} introduces the Graphene design in the context of recent library OS research,
-%\S\ref{sec:linux} describes the Graphene  design \fixmedp{cut?},
-\S\ref{sec:security} describes how our Linux host reference monitor enforces security implementation,
-\S\ref{sec:namespaces} describes our framework
-for implementing Linux's multi-processing APIs,
-\S\ref{sec:impl} provides additional implementation details,
-\S\ref{sec:eval} evaluates our system with application case studies,
-\S\ref{sec:related} describes related work,
-and \S\ref{sec:conclusion} concludes.
-\end{comment}
 
 %\fixmedp{After a complete draft is written, coalesce all goals and make sure they are addressed early on.  We are doing some scatter-shot motivation}
 

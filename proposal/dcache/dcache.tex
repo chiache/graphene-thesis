@@ -23,10 +23,11 @@ and how we use path signatures to further accelerate lookup.
 \label{sec:dcache:prefixcheck}
 
 \begin{figure}[t!]
-\includegraphics[width=1.0\linewidth]{dcache/figures/dcache-structure.pdf}
+\centering
+\includegraphics[width=4.5in]{dcache/figures/dcache-structure.pdf}
 \footnotesize
-\caption{
-Optimized Linux Directory Cache Structure. \dentries{} are chained in hash buckets. To index the hash bucket for a target \dentry{}, the original lookup routine {\tt d\_lookup} uses a hashing function with key as a combination of the pointer to parent directory and file name ({\em slowpath}).
+\caption[Optimized Linux Directory Cache Structure.]
+{Optimized Linux Directory Cache Structure. \dentries{} are chained in hash buckets. To index the hash bucket for a target \dentry{}, the original lookup routine {\tt d\_lookup} uses a hashing function with key as a combination of the pointer to parent directory and file name ({\em slowpath}).
 Our {\em fastpath} hashes the full canonical path of target file to look up the \dentry{}
 in the Direct Lookup Hash Table,
 and checks the per-credential Prefix Check Cache.}
@@ -221,9 +222,11 @@ our design currently handles wrap-around by invalidating all active PCCs.
 %our design uses a garbage collector to scan all existing PCCs to gradually eliminate stale entries. \fixmetsai{need to implement}
 
 \begin{figure}[t!]
-\includegraphics[width=1.0\linewidth]{dcache/figures/dcache-data_structure.pdf}
+\centering
+\includegraphics[width=4.5in]{dcache/figures/dcache-data_structure.pdf}
 \footnotesize
-\caption{Data structures added for fast directory cache lookup. To support {\em fastpath} lookup, we add a 88-byte fast dentry structure to the original \dentry{} and a variable-sized PCC structure into {\tt cred}. 
+\caption[Data structures added for fast directory cache lookup.]
+{Data structures added for fast directory cache lookup. To support {\em fastpath} lookup, we add a 88-byte fast dentry structure to the original \dentry{} and a variable-sized PCC structure into {\tt cred}. 
 %% dp: meh
 %Both structures are aligned to 64-byte cacheline to make lookup cache-friendly.
 }
@@ -360,7 +363,7 @@ and a sequence counter ensures that only slowpath traversals that observe the ne
 %% Michael finds this hard to follow
 \begin{comment}
 \begin{figure}[t!]
-\includegraphics[width=1.0\linewidth]{figures/invalidation.pdf}
+\includegraphics[width=1.0\linewidth]{dcache/figures/invalidation.pdf}
 \vspace{-15pt}
 \footnotesize
 \caption{Procedure of updating directory trees for {\tt rename}/{\tt chmod} system calls.
@@ -776,7 +779,7 @@ if a fast, 256-bit PRF becomes available in future generations of hardware.
 \begin{comment}
 \begin{figure}[t!]
 \centering
-\includegraphics[width=.7\linewidth]{plots/hash.pdf}
+\includegraphics[width=.7\linewidth]{dcache/plots/hash.pdf}
 \vspace{-10pt}
 \footnotesize
 \caption{
