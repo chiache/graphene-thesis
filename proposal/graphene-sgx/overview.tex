@@ -49,8 +49,7 @@ to interact with the untrusted host.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=3.5in]{graphene-sgx/figures/architecture.pdf}
-\vspace{-0.1in}
+\includegraphics[width=3.8in]{graphene-sgx/figures/architecture.pdf}
 \footnotesize
 \caption[\sysname{}: building blocks.]
 {The \sysname{} building blocks.
@@ -65,6 +64,30 @@ are verified by \sysname{}. The enclave interacts with the host kernel,
 through untrusted PAL, on a narrowed untrusted interfaces with xx functions.}
 \label{fig:gsgx:arch}
 \end{figure}
+
+\paragraph{Integrity Guarantee for Applications.}
+A key requirement of the non-partitioned usage model is to guarantee the integrity of the secured applications.
+Because the applications are dynamically loaded by the \libos{}
+{\em after} the enclave starts up,
+the CPUs cannot verify the integrity of loaded application binaries.
+An alternative is to place all application binaries in an encrypted virtual disk,
+which can be decrypted using a securely provisioned key~\citep{baumann14haven}.
+
+\sysname{} guarantees the integrity of applications
+by signing each supporting binaries or generating checksums for the binaries.
+For each secured application, the \sysname{} signing tool will generate
+a manifest and a correspondent signature.
+A manifest will contain the attributes of the enclave and \libos{},
+and the checksums of the supporting binaries.
+The manifest will be loaded in the enclave before the enclave starts,
+and verified by the hardware as part of the enclave measurement.
+The signatures of checksums of the supporting binaries
+are verified by \sysname{} before loading from the untrusted host.
+
+By verify the integrity of applications individually,
+we decouple the deployment and verification of the application binaries;
+users may simply deploy the manifest and the signature to the untrusted host,
+and all the binaries, including the \libos{}, can be loaded from the local file system.
 
 \paragraph{Untrusted Interface.}
 The untrusted interface is defined as Table~\ref{tab:gsgx:interface}.
@@ -107,31 +130,6 @@ Most of the interface is derived from the host system call footprint of
 always return right responses or faithfully perform operations.}
 \label{tab:gsgx:interface}
 \end{table}
-
-\paragraph{Integrity Guarantee for Applications.}
-A key requirement of the non-partitioned usage model is to guarantee the integrity of the secured applications.
-Because the applications are dynamically loaded by the \libos{}
-{\em after} the enclave starts up,
-the CPUs cannot verify the integrity of loaded application binaries.
-An alternative is to place all application binaries in an encrypted virtual disk,
-which can be decrypted using a securely provisioned key~\citep{baumann14haven}.
-
-\sysname{} guarantees the integrity of applications
-by signing each supporting binaries or generating checksums for the binaries.
-For each secured application, the \sysname{} signing tool will generate
-a manifest and a correspondent signature.
-A manifest will contain the attributes of the enclave and \libos{},
-and the checksums of the supporting binaries.
-The manifest will be loaded in the enclave before the enclave starts,
-and verified by the hardware as part of the enclave measurement.
-The signatures of checksums of the supporting binaries
-are verified by \sysname{} before loading from the untrusted host.
-
-By verify the integrity of applications individually,
-we decouple the deployment and verification of the application binaries;
-users may simply deploy the manifest and the signature to the untrusted host,
-and all the binaries, including the \libos{}, can be loaded from the local file system.
-
 
 %\paragraph{The Signing Tool.}
 %Each enclave launched in \sgx{} requires a signature, signed by the developers' private key.
@@ -229,8 +227,7 @@ In \haven{} model, the same shielding module cannot have different applications
 securely provisioned, because their enclave measurements will simply
 appear no difference.
 Because \sysname{} includes the applications into enclave measurements,
-\sgx{} can generate attestation that differentiates the loaded applications,
-without any other guarantees from the shielding system.
+\sgx{} can generate attestation that differentiates the loaded applications.
 
 \paragraph{Side-channel attacks}
 Since enclaves are launched on untrusted hosts, it is hard to prevent
