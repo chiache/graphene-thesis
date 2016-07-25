@@ -67,7 +67,7 @@ through untrusted PAL, on a narrowed untrusted interfaces with xx functions.}
 \end{figure}
 
 \paragraph{Untrusted Interface.}
-The untrusted interface is defined as Table~\ref{tab:gsgx:untusted-interface}.
+The untrusted interface is defined as Table~\ref{tab:gsgx:interface}.
 \sysname{} draws the untrusted interface right above the calling
 of the host APIs (Linux system calls) in \pal{}.
 Most code inherited from the \graphene{} Linux \pal{} stays in
@@ -76,7 +76,7 @@ Because the host is not trusted,
 \sysname{} is built upon the assumption that the untrusted interface
 can be exploited to
 pass malicious arguments, or return incorrect results.
-For example, {\tt open} may return a file descriptor that points
+For example, {\tt file\_open} may return a file descriptor that points
 to a wrong file, or {\tt map\_untrusted} may return an address in the enclave. 
 Beside checking for malicious returned results,
 \sysname{} must actively check the behavior of the host.
@@ -84,7 +84,7 @@ Beside checking for malicious returned results,
 For instance, if the secured application opens a stream for IO,
 \sysname{} must guarantee either the stream is protected cryptographically,
 or assume that nothing is safely read or written.
-In addition, \sysname{} does not include {\tt fsync} in the untrusted interface,
+In addition, \sysname{} does not include {\tt file\_sync} in the untrusted interface,
 because it does not trust the host to faithfully flush any stream.
 With a robustly designed untrusted interface,
 the worst scenario a malicious host can cause is {\em denial-of-the-service}.
@@ -97,15 +97,15 @@ the worst scenario a malicious host can cause is {\em denial-of-the-service}.
 %The untrusted interface is simply a callback table that redirects execution
 %afterward (similar to system calls).
 
-\begin{table}
+\begin{table}[t!]
 \centering
 \input{graphene-sgx/tables/interface}
 \caption[\sysname{}: the untrusted interface.]
-{Untrusted interface of \sysname{}, consisting of xx functions in total.
+{Untrusted interface of \sysname{}, consisting of \interfacenum{} functions in total.
 Most of the interface is derived from the host system call footprint of
 \graphene{} \libos{}. Enclave must not trust the hosts to
 always return right responses or faithfully perform operations.}
-\label{tab:gsgx:untrusted-interface}
+\label{tab:gsgx:interface}
 \end{table}
 
 \paragraph{Integrity Guarantee for Applications.}
@@ -180,7 +180,7 @@ and all the binaries, including the \libos{}, can be loaded from the local file 
 %These policies are used to decentralize the trust in multi-process applications,
 %that we will discuss in length in section~\ref{sec:multiproc}.
 
-\paragraph{Trust model.}
+\paragraph{Threat model.}
 When an application is loaded by \sysname{}, it ought to be trusted by
 certain remote entities
 for provisioning confidential information or
@@ -241,7 +241,7 @@ against these attacks.
 
 Recent works~\citep{xu15controlledchannel} suggest a stronger
 side-channel attacks to applications in enclaves,
-called {\bf controlled channel attacks}.
+called {\em controlled channel attacks}.
 Controlled channel attacks rely on the fact that an enclave must cooperate
 with the host OS for page management,
 the OS can manipulate paging to reinforce the side channels

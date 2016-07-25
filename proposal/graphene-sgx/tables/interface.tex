@@ -1,10 +1,16 @@
 \footnotesize
-\begin{tabular}{lcl}
+\begin{tabular}{lcp{4.5in}}
 Classes & \# & Untrusted Interface Functions \\
 \hline
-Entries & 2 & {\tt
+Entries / Exits & 3 & {\tt
 start\_enclave
+exit\_enclave
 start\_thread
+} \\
+\hline
+Memory & 2 & {\tt
+map\_untrusted
+unmap\_untrusted
 } \\
 \hline
 Scheduling & 4 & {\tt
@@ -19,7 +25,7 @@ clone\_thread
 clone\_process
 } \\
 \hline
-Files & 8 & \parbox[t][][t]{2.15in}{\tt
+Files & 8 & {\tt
 file\_open
 file\_mkdir
 file\_rename
@@ -28,10 +34,9 @@ file\_truncate
 file\_write
 file\_read
 file\_readdir
-\vspace{-0.1in}
 } \\
 \hline
-Sockets & 8 & \parbox[t][][t]{2.15in}{\tt
+Sockets & 8 & {\tt
 sock\_listen
 sock\_accept
 sock\_connect
@@ -48,9 +53,10 @@ fd\_size
 fds\_poll
 } \\
 \hline
-Debug & 2 & {\tt
+Misc & 3 & {\tt
 print\_debug
 load\_gdb
+cpuid
 } \\
 \hline
 \end{tabular}
