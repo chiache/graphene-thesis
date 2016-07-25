@@ -67,26 +67,27 @@ through untrusted PAL, on a narrowed untrusted interfaces with xx functions.}
 \end{figure}
 
 \paragraph{Definition of the Untrusted Interface.}
-The untrusted interface is defined as Table~\ref{tab:gsgx-untusted-interface}.
-\sysname{} draws the untrusted interface right above the translation layer
-to the host interface (Linux system calls).
-Most code inherited from the \graphene{} PAL stays inside
-the enclave, to keep the integrity of states.
-Because host is not trusted,
-the enclave must expect the untrusted interface be exploited to
+The untrusted interface is defined as Table~\ref{tab:gsgx:untusted-interface}.
+\sysname{} draws the untrusted interface right above the calling
+of the host APIs (Linux system calls) in \pal{}.
+Most code inherited from the \graphene{} Linux \pal{} stays in
+the enclave, to keep the states secure.
+Because the host is not trusted,
+\sysname{} is built upon the assumption that the untrusted interface
+can be exploited to
 pass malicious arguments, or return incorrect results.
-For example, {\tt open} may be returned with a file descriptor that points
-to a wrong file. Therefore, if the enclave opens a stream for IO,
-it must guarantee either the stream is protected cryptographically,
-or nothing read or written requires integrity.
-Also, the enclave cannot trust the host to faithfully perform any operations.
-For instance, our trusted interface does not include {\tt fsync}.
-Because the enclave does not trust any stream to be consistently flushed,
-designing such a function is meaningless.
+For example, {\tt open} may return a file descriptor that points
+to a wrong file, or {\tt map\_untrusted} may return an address in the enclave. 
+Beside checking for malicious returned results,
+\sysname{} must actively check the behavior of the host.
+
+For instance, if the secured application opens a stream for IO,
+\sysname{} must guarantee either the stream is protected cryptographically,
+or assume that nothing is safely read or written.
+In addition, \sysname{} does not include {\tt fsync} in the untrusted interface,
+because it does not trust the host to faithfully flush any stream.
 With a robustly designed untrusted interface,
-the worst scenario a malicious host can cause is {\bf denial-of-the-service},
-which we consider out of scope
-as long as confidentially and integrity are not compromised.
+the worst scenario a malicious host can cause is {\em denial-of-the-service}.
 
 %The Untrusted interface of an enclave is the API that communicates the enclave
 %and the untrusted host, with both entries and exits of the enclave.
@@ -107,10 +108,21 @@ always return right responses or faithfully perform operations.}
 \label{tab:gsgx:untrusted-interface}
 \end{table}
 
+\paragraph{The Integrity of Applications.}
+A key requirement of the non-partitioned usage model is to guarantee the integrity of the secured applications.
+Because the applications are dynamically loaded by the \libos{}
+{\em after} the enclave starts up,
+the CPUs cannot verify the integrity of loaded application binaries.
+An alternative is to place all application binaries in an encrypted virtual disk,
+which can be decrypted using a securely provisioned key~\citep{baumann14haven}.
+
+\sysname{} guarantees the integrity of applications through a different way.
+
+
 \paragraph{The Signing Tool.}
-Each enclave launched in \sgx{} requires a signature, signed by developers.
+Each enclave launched in \sgx{} requires a signature, signed by the developers' private key.
 The signature structure ({\tt SIGSTRUCT}) contains
-enclave attributes, product ID, a public key, enclave measurement
+the enclave attributes, product ID, the enclave measurement,
 and RSA-based signature of the structure.
 \sysname{} maintains enclave signatures on a per-binary basis.
 Unlike \haven{}, we extend the enclave's measurement to
