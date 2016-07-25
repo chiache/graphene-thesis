@@ -42,28 +42,33 @@ with ``+/-'' columns or error bars.
 \begin{figure}
 \scriptsize
 \centering
-\includegraphics[width=4.5in]{dcache/plots/lm_stat.pdf} \\
-\vspace{-5pt}
-\includegraphics[width=4.5in]{dcache/plots/lm_open.pdf} \\
-{\scriptsize ({\bf * represents Plan 9's lexical parent semantics})}
-\begin{tabular}{lll}
-\multicolumn{3}{l}{\scriptsize {\bf default:} \tt /usr/include/gcc-x86\_64-linux-gnu/sys/types.h} \\
-{\scriptsize {\bf 1-comp:} \tt FFF} &
-{\scriptsize {\bf 2-comp:} \tt XXX/FFF} &
-{\scriptsize {\bf 4-comp:} \tt XXX/YYY/ZZZ/FFF} \\
-\multicolumn{3}{l}{\scriptsize {\bf 8-comp:} \tt XXX/YYY/ZZZ/AAA/BBB/CCC/DDD/FFF} \\
-\multicolumn{3}{l}{\scriptsize {\bf link-f:} \tt XXX/YYY/ZZZ/LLL -> FFF} \\
-\multicolumn{3}{l}{\scriptsize {\bf link-d:} \tt LLL/YYY/ZZZ/FFF -> XXX/YYY/ZZZ/FFF} \\
-\multicolumn{3}{l}{\scriptsize {\bf neg-f:} \tt XXX/YYY/ZZZ/NNN (NNN not found)} \\
-\multicolumn{3}{l}{\scriptsize {\bf neg-d:} \tt NNN/XXX/YYY/FFF (NNN not found)} \\
-{\scriptsize {\bf 1-dotdot:} \tt XXX/../FFF} &
-\multicolumn{2}{l}{\scriptsize {\bf 4-dotdot:} \tt XXX/YYY/../../AAA/BBB/../../FFF} \\
+\begin{minipage}{3.8in}
+\centering
+\includegraphics[width=3.6in]{dcache/plots/lm_stat.pdf} \\
+\includegraphics[width=3.6in]{dcache/plots/lm_open.pdf} \\
+\end{minipage}
+\begin{minipage}{2.6in}
+\begin{tabular}{ll}
+\multicolumn{2}{l}{({\bf * represents Plan 9's lexical parent semantics})} \\
+\multicolumn{2}{l}{{\bf default:} \tt /usr/include/ ... /sys/types.h} \\
+{{\bf 1-comp:} \tt FFF} &
+{{\bf 2-comp:} \tt XXX/FFF} \\
+\multicolumn{2}{l}{{\bf 4-comp:} \tt XXX/YYY/ZZZ/FFF} \\
+\multicolumn{2}{l}{{\bf 8-comp:} \tt XXX/YYY/ZZZ/AAA/BBB/CCC/DDD/FFF} \\
+\multicolumn{2}{l}{{\bf link-f:} \tt XXX/YYY/ZZZ/LLL -> FFF} \\
+\multicolumn{2}{l}{{\bf link-d:} \tt LLL/YYY/ZZZ/FFF -> XXX/YYY/ZZZ/FFF} \\
+\multicolumn{2}{l}{{\bf neg-f:} \tt XXX/YYY/ZZZ/NNN (NNN not found)} \\
+\multicolumn{2}{l}{{\bf neg-d:} \tt NNN/XXX/YYY/FFF (NNN not found)} \\
+\multicolumn{2}{l}{{\bf 1-dotdot:} \tt XXX/../FFF} \\
+\multicolumn{2}{l}{{\bf 4-dotdot:} \tt XXX/YYY/../../AAA/BBB/../../FFF} \\
 \end{tabular}
-\caption{System call {\tt stat} and {\tt open} latency for micro-benchmark ({\tt lat\_syscall} in {\tt LMBench}), based on different path patterns. 
+\end{minipage}
+\caption[Directory cache optimization: {\tt stat} and {\tt open} latency.]
+{System call {\tt stat} and {\tt open} latency for micro-benchmark ({\tt lat\_syscall} in {\tt LMBench}), based on different path patterns. 
 We include a synthetic evaluation of always missing on the fastpath and falling back to the slowpath,
 and a comparison with Plan 9's lexical parent semantics, where appropriate.
 Lower is better.}
-\label{fig:dcache:lat-stat-open}
+\label{fig:dcache:stat-open}
 \end{figure}
 
 \paragraph{Micro-benchmarks.}
@@ -72,7 +77,7 @@ to evaluate latency of path lookup at the system call level.
 %The {\tt lat\_syscall} test in {\tt LMBench} simply uses {\tt stat} or {\tt open} system calls repeatedly to access specific paths.
 %We exercise the test with three different paths: root of a user home directory ({\tt /home/foo}), a important system header file with long path ({\tt /usr/lib/gcc/x86\_64-linux-gnu/4.6/stddef.h}) and a {\tt proc} file ({\tt /proc/sys/kernel/printk}).
 %Generally {\tt lat\_syscall} demonstrates the best-case performance of directory cache lookup.
-Figure~\ref{fig:lat_stat_open} shows the latency to 
+Figure~\ref{fig:dcache:stat-open} shows the latency to 
 {\tt stat} and {\tt open} sample paths with various characteristics, 
 including varying lengths, symbolic links, parent (dot dot) directories, 
 and files that are not found.
@@ -152,8 +157,8 @@ deep negative dentries.
 \raggedleft
 \includegraphics[width=0.9\linewidth]{dcache/plots/lm_rename-creat.pdf}
 \vspace{-5pt}
-\caption{Latency for microbenchmarks that create and delete the same path in a loop. Lower is better.}
-\label{fig:dcache:neg-dentry-microbench}
+\caption{Latency for micro-benchmarks that create and delete the same path in a loop. Lower is better.}
+\label{fig:dcache:neg-dentry}
 %\vspace{-10pt}
 \end{figure}
 
@@ -163,8 +168,8 @@ deep negative dentries.
 More aggressive use of 
 negative dentries also benefits the case where a file is repeatedly created and deleted,
 a pattern observed in applications such as text editors.
-We measured this pattern with a microbenchmark that renames and creates the same file, and a second
-that opens and unlinks the same file.  These cases improved by roughly 6\% (Figure~\ref{fig:neg-dentry-microbench}).
+We measured this pattern with a micro-benchmark that renames and creates the same file, and a second
+that opens and unlinks the same file.  These cases improved by roughly 6\% (Figure~\ref{fig:dcache:neg-dentry}).
 %We also used the {\tt emacsclient} command line utility to save a few bytes to an empty file.
 %Commensurate with the microbenchmark results, the improvement for this case was also 5\%.
 Although editors tend to be I/O bound on the user, accelerating this pattern can reduce system load. 
@@ -187,10 +192,12 @@ in these cases, the benefit of our optimization is proportional to the path leng
 
 \begin{figure}[t!]
 \scriptsize
+\centering
+\begin{minipage}{4in}
 \raggedleft
-\includegraphics[width=3.4in]{dcache/plots/lm_chmod_rename.pdf}
+\includegraphics[width=4in]{dcache/plots/lm_chmod_rename.pdf}
 {\setlength{\tabcolsep}{3pt}
-\begin{tabular}{|l|R{0.24in}R{0.13in}|R{0.24in}R{0.13in}|R{0.24in}R{0.13in}|R{0.24in}R{0.13in}|R{0.24in}R{0.13in}|}
+\begin{tabular}{|l|R{.3in}R{.16in}|R{.3in}R{.16in}|R{.3in}R{.16in}|R{.3in}R{.16in}|R{.3in}R{.16in}|}
 \hline
  & $\upmu$s & +/- & $\upmu$s & +/- & $\upmu$s & +/- & $\upmu$s & +/- & $\upmu$s & +/- \\
 \hline
@@ -199,9 +206,10 @@ in these cases, the benefit of our optimization is proportional to the path leng
 {\tt rename} & 3.73 & .00 & 4.68 & .00 & 7.51 & .00 & 40.14 & .01 & 330 & .05 \\
 \hline
 \end{tabular}}
-\caption{{\tt chmod} / {\tt rename} latency in directories of various depths and sizes. Lower is better.}
-\label{fig:dcache:lat-chmod-rename}
-%\vspace{-10pt}
+\end{minipage}
+\caption[Directory cache optimization: {\tt chmod} and {\tt rename} latency.]
+{{\tt chmod} and {\tt rename} latency in directories of various depths and sizes. Lower is better.}
+\label{fig:dcache:chmod-rename}
 \end{figure}
 
 To evaluate the overhead of updating directory permissions and changing the directory structure,
@@ -215,7 +223,7 @@ we measure {\tt chmod} and {\tt rename} latency.
 In our solution, the main factor influencing these overheads are the number of children
 in the cache (directory children out-of-cache do not affect performance).
 % are the depths and sizes (number of files) of the directory,
-Figure~\ref{fig:lat_chmod_rename} presents
+Figure~\ref{fig:dcache:chmod-rename} presents
 performance of {\tt chmod} and {\tt rename}  on directories with different depths and directory sizes.
 In general, the cost of a rename or chmod increases dramatically with the number of children,
 whereas baseline Linux and ext4 make these constant-time operations.
@@ -243,7 +251,7 @@ Types & \multicolumn{2}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized k
 \hline
 \end{tabular}
 \caption{Latency of {\tt mount} / {\tt umount}, for creating and removing mount point based on file system types. Lower is better.}
-\label{tab:dcache:lat-mount}
+\label{tab:dcache:mount}
 \end{table}
 \end{comment}
 
@@ -328,7 +336,8 @@ Applications & \multicolumn{2}{c|}{Path Stats} & \multicolumn{4}{c|}{Unmodified 
 &   .060 &  .000 &  9.89 \% \\
 \hline
 \end{tabular}
-\caption{Execution time and path statistics of real-world applications bounded by directory cache lookup latency.  Warm cache case.  Hit rate and negative dentry rate are also included.  The average path length in bytes ($l$) and components (\#) are presented in the first two columns.  
+\caption[Directory cache optimization: application execution time (warm cache).]
+{Execution time and path statistics of real-world applications bounded by directory cache lookup latency.  Warm cache case.  Hit rate and negative dentry rate are also included.  The average path length in bytes ($l$) and components (\#) are presented in the first two columns.  
 %Optimizations for hits and misses are  presented separately, and then together.  
 Lower is better.}
 \label{tab:dcache:lookup-apps-warm}
@@ -368,18 +377,18 @@ We leave exploration of these trade-offs for future work.
 \begin{figure}[t!]
 \scriptsize
 \centering
-\includegraphics[width=3.6in]{dcache/plots/stat-open-scal.pdf}
+\includegraphics[width=3.2in]{dcache/plots/stat-open-scal.pdf}
 \vspace{-5pt}
-\caption[Latency of {\tt stat}/{\tt open} as more threads execute in parallel.]
-{Latency of {\tt stat}/{\tt open} (of the same path) as more threads execute in parallel.  Lower is better.}
-\label{fig:scalability}
+\caption[Directory cache optimization: {\tt stat} and {\tt open} latency in parallel.]
+{Latency of {\tt stat} and {\tt open} (of the same path) as more threads execute in parallel.  Lower is better.}
+\label{fig:dcache:scalability}
 %\vspace{-10pt}
 \end{figure}
 
 
 
 \paragraph{Scalability.}
-Figure~\ref{fig:scalability} shows the latency of a {\tt stat/open} on the same path as more threads execute on the system.  
+Figure~\ref{fig:dcache:scalability} shows the latency of a {\tt stat/open} on the same path as more threads execute on the system.  
 The read side of a lookup is already linearly scalable on Linux, and our optimizations do not disrupt this trend---only improve the latency.
 The {\tt rename} system call introduces significant contention, and is less scalable in baseline Linux.
 For instance, a single-file, single-core rename takes 13$\upmu$s 
@@ -387,7 +396,7 @@ on our test system running unmodified Linux;
 at 12 cores and different paths, the average latency jumps to 131$\upmu$s
 for our optimized kernel, these numbers are 18 and 118$\upmu$s, respectively, indicating that 
 our optimizations do not make this situation worse for renaming a file.
-As measured in Figure~\ref{fig:lat_chmod_rename},
+As measured in Figure~\ref{fig:dcache:chmod-rename},
 our optimizations do add overhead to renaming a large directory, which would likely exacerbate this situation.
 %\marginpar{\scriptsize \textcolor{blue}{Missing consistent data for opt kernel; have some data on a different machine}}
 
@@ -396,16 +405,17 @@ our optimizations do add overhead to renaming a large directory, which would lik
 \begin{figure}
 \scriptsize
 \centering
-\includegraphics[width=2.5in]{dcache/plots/lm_readdir.pdf}
-\includegraphics[width=2.5in]{dcache/plots/lm_mkstemp.pdf}
-\caption[Latency of {\tt readdir} and {\tt mkstemp} function calls.]
+\includegraphics[width=2.1in]{dcache/plots/lm_readdir.pdf}
+\hspace{1in}
+\includegraphics[width=2.1in]{dcache/plots/lm_mkstemp.pdf}
+\caption[Directory cache optimization: {\tt readdir} and {\tt mkstemp} latency.]
 {Latency in logscale for {\tt readdir} function calls, and latency in microsecond for {\tt mkstemp} function calls, on directories with different sizes. Lower is better. }
-\label{fig:readdir-microbench}
+\label{fig:dcache:readdir}
 \end{figure}
 
 %\paragraph{Micro-benchmarks.}
-Figure~\ref{fig:readdir-microbench} shows the latency 
-of a {\tt readdir} microbenchmark with varying directory sizes.
+Figure~\ref{fig:dcache:readdir} shows the latency 
+of a {\tt readdir} micro-benchmark with varying directory sizes.
 %%% results of improving cache misses for listed directories.
 %%% In both original and optimized kernel, the latency of directory listing, using {\tt getdents} or {\tt getdents64} system call,
 %%% is relevant to the size (number of files) of the directories.
@@ -419,7 +429,7 @@ in UFS for directories with at least 1,024 entries~\footnote{see line 119 of {\t
 %there is a conventional wisdom that this is only useful for at least 1,024 entries and larger;
 Our result indicates that there is benefit even for directories with as few as 10 children.
 
-Figure~\ref{fig:readdir-microbench} also shows 
+Figure~\ref{fig:dcache:readdir} also shows 
 the latency of creating a secure, randomly-named file in directories of varying size.
 We measure from 1--8\% improvement for the {\tt mkstemp} library.
 Although most applications' execution times are not dominated by secure file creation,
@@ -437,7 +447,7 @@ it is a common task for many applications, and of low marginal cost.
 \raggedleft
 \includegraphics[width=0.9\linewidth]{dcache/plots/lm_mkstemp.pdf}
 \caption{Latency of using {\tt mkstemp} to create unique file names in directories of different sizes. Lower is better.}
-\label{fig:dcache:lat-mktemp}
+\label{fig:dcache:mktemp}
 %\vspace{-10pt}
 \end{figure}
 
@@ -445,7 +455,7 @@ it is a common task for many applications, and of low marginal cost.
 
 \paragraph{File Creation in Completed Directories.}
 We measure the latency of creating a secure, randomly-named file in directories of varying size.
-We measure from 0--7.6\% improvement for the {\tt mkstemp} library, listed in Figure~\ref{fig:lat_mktemp}. 
+We measure from 0--7.6\% improvement for the {\tt mkstemp} library, listed in Figure~\ref{fig:dcache:mktemp}. 
 Although most applications' execution times are not dominated by secure file creation,
 it is a common task for many applications, and of low marginal cost.
 
@@ -477,8 +487,8 @@ The applications we use for benchmarking include:
 \item {\tt git status} and {\tt git diff}: display status and unstaged changes in a cloned Linux kernel git repository.
 \end{compactitem}
 For each application we test, we evaluate the performance in both cases of 
-a warm cache (Table~\ref{table:lookup-apps-warm}) and a
-a cold cache (Table~\ref{table:lookup-apps}).
+a warm cache (Table~\ref{tab:dcache:lookup-apps-warm}) and a
+a cold cache (Table~\ref{tab:dcache:lookup-apps}).
 To warm the cache, we run the experiment once and drop the first run.
 For the warm cache tests, we also provide statistics on the path characteristics of each application.
 %% as well as evaluate the optimizations individually and together.
@@ -553,7 +563,8 @@ App & \multicolumn{4}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized ker
 \scalebox{.8}[1.0]{\tt git diff}   &     .84 &  .01 &  61 &  0 &    .86 & .01 & -14.0 \% \\
 \hline
 \end{tabular}
-\caption{Execution time, hit rate, and negative \dentry{} rate for real-world applications bounded by directory cache lookup latency with a cold cache. Lower is better.}
+\caption[Directory cache optimization: application execution time (cold cache).]
+{Execution time, hit rate, and negative \dentry{} rate for real-world applications bounded by directory cache lookup latency with a cold cache. Lower is better.}
 %\vspace{-10pt}
 \label{tab:dcache:lookup-apps}
 \end{table}
@@ -573,7 +584,7 @@ improving the hit rate for the fastpath lookup.
 \fixmedp{Can we get stats  to confirm this suspicion?}
 \end{comment}
 
-Table~\ref{table:lookup-apps-warm} also indicates statistics about these workloads
+Table~\ref{tab:dcache:lookup-apps-warm} also indicates statistics about these workloads
 on unmodified Linux.  
 %First, we measure the average path length (in characters),
 %and components.  
@@ -612,11 +623,10 @@ in a practical deployment, network latency may mask these improvements to the cl
 \centering
 \includegraphics[width=3.6in]{dcache/plots/dovecot.pdf}
 \vspace{-5pt}
-\caption[Throughput of the Dovecot IMAP server]
+\caption[Directory cache optimization: the Dovecot IMAP server throughput.]
 {Throughput for marking and unmarking mail on the Dovecot IMAP server. Higher is better. }
 % In the optimized kernel, throughputs of all workloads are improved by 5--11\%. }
 \label{fig:dcache:dovecot}
-\vspace{-10pt}
 \end{figure}
 
 \begin{table}[t]
@@ -636,17 +646,17 @@ $10^3$ &      1,017.02 &  0.58 &  1,081.02 &  0.38 &  5.92 \% \\
 $10^4$ &         99.03 &  0.11 &    110.14 &  0.10 & 10.09 \% \\
 \hline
 \end{tabular}
-\caption{Throughput of downloading generated directory listing pages from an {\tt Apache} server. Higher is better.}
+\caption[Directory cache optimization: the Apache server throughput.]
+{Throughput of downloading generated directory listing pages from an {\tt Apache} server. Higher is better.}
 \label{tab:dcache:apache}
-\vspace{-10pt}
 \end{table}
 
-Figure~\ref{fig:dovecot} shows the throughput for the 
+Figure~\ref{fig:dcache:dovecot} shows the throughput for the 
 Dovecot mail server on both kernels; improvements range from 7.8--12.2\%.
 Commensurate with the {\tt readdir} microbenchmark, larger directories 
 generally see larger improvement, plateauing at a 10\% gain.
 %perform better, but even small mailbox sizes benefit from the optimization.
-We similarly exercise the Apache web server's ability to generate a file listing using the Apache benchmark (Table~\ref{table:apache}).
+We similarly exercise the Apache web server's ability to generate a file listing using the Apache benchmark (Table~\ref{tab:dcache:apache}).
 These pages are not cached by Apache, but generated dynamically for each request.
 This workload also demonstrates improvements in throughput from 6--12\%.
 %Similar to previous results, the throughput improvement is linear in the
@@ -694,7 +704,7 @@ Target & \multicolumn{2}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized 
 
 \subsection{Code Changes}
 
-In order estimate the difficulty of adoption, Table~\ref{table:portability} lists the lines of code changed in our Linux prototype.
+In order estimate the difficulty of adoption, Table~\ref{tab:dcache:loc} lists the lines of code changed in our Linux prototype.
 The vast majority of the changes required (about 1,000 LoC)
 are hooks localized to the dcache itself ({\tt dcache.c} and {\tt namei.c});
 most of these optimizations are in a separate set of files totaling about 2,400 LoC.
@@ -710,7 +720,7 @@ Thus, the burden of adoption for other kernel subsystems is very minor.
 \scriptsize
 \centering
 %\subfloat[VFS layer]{
-\begin{tabular}{p{1.4in}rrr}
+\begin{tabular}{p{1.8in}rrr}
 Source files & \multicolumn{1}{c}{Original (LoC)} & \multicolumn{2}{c}{Patched/Added (LoC)} \\
 \hline
 %unifdef -DCONFIG_OPTIMIZE_DCACHE -U CONFIG_OPTIMIZE_DCACHE_CHECK_FULLPATH -DCONFIG_OPTIMIZE_READDIR -UCONFIG_OPTIMIZE_DCACHE_DEBUG -UCONFIG_OPTIMIZE_DCACHE_LOOKUP_NOBARRIER -UCONFIG_OPTIMIZE_DCACHE_REANAME_COPY DDENTRY_SIGNATURE_BITS=192 -DCONFIG_OPTIMIZE_DCACHE_RENAME_NEGATIVE -DCONFIG_OPTIMIZE_DCACHE_RENAME_NEGATIVE_CREATE -DCONFIG_OPTIMIZE_DCACHE_SIGNATURE_MHASH -DCONFIG_OPTIMIZE_DCACHE_PERM_CACHE_CID UCONFIG_DENTRY_LOOKUP_TIME -UCONFIG_PATH_LOOKUP_TIME -UCONFIG_DENTRY_ALLOCATE_TIME -UCONFIG_INODE_LOOKUP_TIME -DCONFIG_OPTIMIZE_READDIR_SKIP_LOOKUP  -UCONFIG_OPTIMIZE_DCACHE_SCAN_BACKWARD -UCONFIG_PATH_LOOKUP_BREAKPOINT -UCONFIG_OPTIMIZE_DCACHE_DUMMY  -DCONFIG_DCACHE_WORD_ACCESS -UCONFIG_OPTIMIZE_DCACHE_RENAME_COPY -UCONFIG_OPTIMIZE_DCACHE_STATISTICS -DCONFIG_MHASH_192 -UCONFIG_MHASH_128 -U CONFIG_OPTIMIZE_DCACHE_PROFILE -UCONFIG_OPTIMIZE_DCACHE_SIGNATURE_SIMPLE -UCONFIG_OPTIMIZE_DCACHE_SIGNATURE_JELKINS_OLD -UCONFIG_OPTIMIZE_DCACHE_SIGNATURE_JELKINS_LOOKUP3 -UCONFIG_OPTIMIZE_DCACHE_SIGNATURE_JELKINS_SPOOKY -UCONFIG_OPTIMIZE_DCACHE_SYMLINK_LOOKUP dcache.c > dcache-clean.c
@@ -732,8 +742,9 @@ Other VFS headers  & 2,431 & 218 &  9.0 \% \\
 Security Modules (SELinux, etc)   & 20,479 & 76 & 0.0 \% \\
 \hline
 \end{tabular}
-\caption{{\em Lines-of-code} (LoC) in Linux changed, as measured by {\tt sloccount}~\citep{sloccount}.}
-\label{table:dcache:portability}
+\caption[Directory cache optimization: lines-of-code in Linux changed.]
+{{\em Lines-of-code} (LoC) in Linux changed, as measured by {\tt sloccount}~\citep{sloccount}.}
+\label{tab:dcache:loc}
 %\vspace{-10pt}
 \end{table}
 
@@ -757,6 +768,7 @@ This gives us confidence that our prototype's path handling behavior will be tra
 
 \end{comment}
 
+\begin{comment}
 \subsection{Discussion and Future Work}
 
 %\fixmedp{Chia-Che, please review this section.  Any of this to hold back (as in we might want to actually do this?}
@@ -775,7 +787,7 @@ and these idiosyncracies constrain the choice of supporting data structure.
 We recommend an interface that is as simple and stateless as possible; 
 this recommendation is in line with other recommendations for scalability~\citep{clements13scalable}.
 
-\begin{comment}
+
 \fixmedp{Maybe vague this up?}
 A contribution of this work is separating permission checking from finding 
 a \dentry{} in the cache.  
@@ -796,7 +808,7 @@ for concurrent lookup and rename of the same path.
 This complexity could be reduced for the common case (lookup)
 by making the cache completely RCU-compliant---i.e., 
 copying or invalidating dentries under a renamed directory, rather than moving the parent with a pointer swing.
-\end{comment}
+
 
 
 %% Total: 524288
@@ -824,3 +836,5 @@ indicating an opportunity to improve lookup time and space usage.
 A number of high-performance hash tables have been developed in recent years that
 impose a constant bound on the search time as well as on wasted space~\citep{cuckoo04,li14cuckoo,triplett11hash,herlihy08hopscotch}.
 %Based on our data,  we expect that a better hash table algorithm could also improve lookup time, in baseline Linux or our design.
+
+\end{comment}

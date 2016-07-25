@@ -1,47 +1,14 @@
-\section{Background and Motivation}
+\section{Background}
 \label{sec:background}
 
-This section discusses the security features of  \sgx{}, and the challenges faced by developers that
-wish to use \sgx{} for partitioned \java{} applications.
+%This section discusses the security features of  \sgx{}, and the challenges faced by developers that
+%wish to use \sgx{} for partitioned \java{} applications.
 %the key challenges developers face when trying to manually partition applications using a technology such as \sgx{}.
 %discuss the programming models and threats to security of \sgx{} enclaves.
 
-\subsection{Security Concerns on SGX Enclaves}
+%\subsection{Security Concerns on SGX Enclaves}
 
-\intel{} \sgx{} ({\it Software Guard Extensions})
-are a set of new x86/x64 instructions
-introduced in the \intel{} Skylake processor family.
-Using \sgx{}, an 
-application can designate part of its virtual memory as an {\em enclave}.
-The CPU guarantees that the contents of the enclave never leave the CPU package unencrypted.
-The CPU also measures the integrity of a binary loaded into the enclave, and offers remote attestation,
-similar to a TPM~\citep{TPM}.
 
-%%% create a protected memory region, called an {\em enclave}, inside it's virtual memory,
-%%% where it can load its security sensitive data with hardware-enforced isolation from the untrusted OS. 
-%%% The processor with \sgx{}
-%%% guarantees that any data loaded in enclave
-%%% stays encrypted in the DRAM, by using a secret key deterministically derived from the application's cryptographic measurement and the CPU secret. 
-
-\sgx{} is an appealing tool for protecting small amounts of highly-sensitive data or code, because it can defend 
-against a malicious or compromised OS, hypervisor, or even hardware peripheral.
-For instance, Hoekstra et al.~\citep{sgx-workshop1} show how SGX can be used
-to build a trusted path from a video chat application to a GPU and network card, which maintains confidentiality and integrity of the
-video stream, even if the OS is compromised.
-Similarly, because DRAM contents are encrypted, SGX can resist attacks such as cold-boot attacks~\citep{halderman09coldboot} or 
-malicious peripheral devices~\citep{hudson15thunderstrike}.
-
-\sgx{} provides useful building blocks for secure applications, but does not
-absolve the programmer of all responsibility for reasoning about end-to-end security.
-Bugs in the application or supporting libraries can still disclose sensitive data from an enclave,
-and porting code into SGX can be subtle.
-
-Fundamentally, this argues for writing enclave code in higher-level languages
-(e.g., \java{}) that provide important 
-safety properties, such as memory and type safety, that reduce or eliminate common vulnerabilities.
-Ideally, one would formally verify security properties of enclave code~\citep{moat}; this verification is significantly aided by using 
-higher-level languages amenable to formal reasoning.  Verification is significantly harder
-with C/C++ or assembly languages.
 
 
 %The rest of this subsection outlines several pitfalls in partitioning an application for SGX.
@@ -186,12 +153,13 @@ with C/C++ or assembly languages.
 %%% guarantees that the secrets in the enclave are never leaked
 %%% without the developers explicit consent. 
 
-
 \subsection{Two SGX Usage Models}
+\label{sec:civet:overview:libosvssdk}
+
 \paragraph{Non-partitioned applications.}
 One model for using SGX is to run an entire application in the enclave.
 This is exemplified by Haven~\citep{baumann14haven}, which runs a Windows application and all supporting libraries
-on top of a library OS inside of the enclave.  This approach is illustrated on the left side of Figure~\ref{fig:libosvssdk}.
+on top of a library OS inside of the enclave.  This approach is illustrated on the left side of Figure~\ref{fig:civet:libosvssdk}.
 The non-partitioned model does not require any application changes, but, in the case of Haven, bloats the TCB by 5.5 billion lines of code.
 By pulling millions of lines of extraneous code into an enclave, there is a significantly increased risk 
 of vulnerabilities that disclose
@@ -199,23 +167,9 @@ sensitive data, such as Heartbleed~\citep{heartbleed}.
 The non-partitioned model does offer simple deployment and can provide practical benefits, 
 such as protecting an application from an untrusted cloud hypervisor.
 
-\begin{figure}[t!]
-\centering
-\includegraphics[width=\linewidth]{civet/figures/libosvssdk.pdf}
-\footnotesize
-\vspace{-0.2in}
-\caption[Comparison between the Non-partitioned model and the partitioned model.]
-{Comparison between the Non-partitioned model (e.g., Haven)
-and partitioned model for protecting applications in enclaves.
-Green (light) boxes are trusted components and red (dark) boxes are untrusted.
-The non-partitioned model yields a larger TCB in the enclave,
-while the partitioned model requires developers to determine the untrusted interface at the enclave boundary.}
-\label{fig:libosvssdk}
-\end{figure}
-
 \paragraph{Partitioned applications.}
 This paper focuses on a second usage model for enclaves, where an application is partitioned into
-the untrusted and trusted sides (right side of Figure~\ref{fig:libosvssdk}).
+the untrusted and trusted sides (right side of Figure~\ref{fig:civet:libosvssdk}).
 Only sensitive data and computation are placed inside the enclaves.
 This model requires the developers to
 identify what in the application should be protected; harden an interface between trusted and untrusted components; 
@@ -226,6 +180,19 @@ regulatory compliance or competitive advantage in business, the additional effor
 base (TCB), and thus a reduced attack surface.
 A key goal of \sysname{} is to minimize the developer's effort to partition an application---both in lines of 
 code changed, and in leveraging language analysis to reason about narrow points in the application's data and control flow.
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=4in]{graphene-sgx/figures/libosvssdk.pdf}
+\footnotesize
+\caption[Comparison between two usage models of \sgx{}.]
+{Comparison between the Non-partitioned model (e.g., Haven)
+and partitioned model for protecting applications in enclaves.
+Green (light) boxes are trusted components and red (dark) boxes are untrusted.
+The non-partitioned model yields a larger TCB in the enclave,
+while the partitioned model requires developers to determine the untrusted interface at the enclave boundary.}
+\label{fig:civet:libosvssdk}
+\end{figure}
 
 \subsection{Challenges in Partitioning \java{} Applications on \sgx{}}
 

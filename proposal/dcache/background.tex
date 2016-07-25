@@ -251,6 +251,7 @@ during concurrent access without locking.
 \end{comment}
 
 
+\begin{comment}
 \subsection{Other Operating Systems}
 
 \paragraph{FreeBSD, OS X, and Solaris.}  These Unix variants all have a directory cache that is 
@@ -396,7 +397,6 @@ Solaris also has a simpler reference management system for cached paths than Fre
 %% Useful to understand hold count vs use count
 %https://clusterhq.com/blog/complexity-freebsd-vfs-using-zfs-example-part-1-2/
 
-\begin{comment}
 \fixmedp{I didn't really understand this.  What is a vnode?  Do all 3 really derive from the same source base exactly?  I'm not sure I completely understand the stackability issue.}
 \fixmedp{Aren't there multiple BSD kernels (freebsd, netbsd, etc)?  Are they all actually the same kernel?  I would explain the difference between sun OS and Solaris}
 \paragraph{BSD, Sun OS and Max OS X}
@@ -458,7 +458,6 @@ The Solaris kernel uses a housekeeping thread to reduce name cache size
 when there is memory pressure. 
 Optimistic synchronization is not supported yet.
 
-\end{comment}
 
 \paragraph{Windows.}  Essentially all OS API abstractions in Windows are represented 
 with objects, managed by the Object Manager~\citep{windowsinternals}.
@@ -499,6 +498,7 @@ without the manageability issues of {\em storing} propagated hierarchical permis
 %and does not change Unix semantics.
 %needed to precisely implement 
 
+\end{comment}
 
 %% Unlike Unix variants, when a file system path is not cached in the Object Manager,
 %% the low-level file system is responsible for resolving the full path, rather than one component 
@@ -569,7 +569,7 @@ without the manageability issues of {\em storing} propagated hierarchical permis
 
 \begin{figure}
 \centering
-\includegraphics[width=4.5in]{dcache/plots/lookup-breakdown.pdf} \\
+\includegraphics[width=3.6in]{dcache/plots/lookup-breakdown.pdf} \\
 \footnotesize
 \begin{tabular}{lll}
 {\bf Path1:} \tt FFF &
@@ -583,14 +583,13 @@ without the manageability issues of {\em storing} propagated hierarchical permis
 %In our solution, The latencies of ``Hash Table Lookup'' and ``Permission Check'' are constant. }
 %\fixmetsai{Maybe we break down the fast path, too?}  } 
 %% dp: The fast path would be interesting.  It is a little early here, but let's try it.
-\label{fig:breakdown}
+\label{fig:dcache:breakdown}
 %\vspace{-15pt}
 \end{figure}
 
-
 \subsection{Opportunities for Improvement}
 
-Figure~\ref{fig:breakdown} shows the time spent in the principal components
+Figure~\ref{fig:dcache:breakdown} shows the time spent in the principal components
 of a path lookup in Linux, for four paths of increasing lengths.
 The first-order impact on lookup time is the length of the path itself,
 which dictates how many times each component will be hashed, looked-up in the 

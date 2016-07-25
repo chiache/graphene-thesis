@@ -24,7 +24,7 @@ and how we use path signatures to further accelerate lookup.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=4.5in]{dcache/figures/dcache-structure.pdf}
+\includegraphics[width=4in]{dcache/figures/dcache-structure.pdf}
 \footnotesize
 \caption[Optimized Linux Directory Cache Structure.]
 {Optimized Linux Directory Cache Structure. \dentries{} are chained in hash buckets. To index the hash bucket for a target \dentry{}, the original lookup routine {\tt d\_lookup} uses a hashing function with key as a combination of the pointer to parent directory and file name ({\em slowpath}).
@@ -225,7 +225,7 @@ our design currently handles wrap-around by invalidating all active PCCs.
 \centering
 \includegraphics[width=4.5in]{dcache/figures/dcache-data_structure.pdf}
 \footnotesize
-\caption[Data structures added for fast directory cache lookup.]
+\caption[Directory cache optimization: Data structures added.]
 {Data structures added for fast directory cache lookup. To support {\em fastpath} lookup, we add a 88-byte fast dentry structure to the original \dentry{} and a variable-sized PCC structure into {\tt cred}. 
 %% dp: meh
 %Both structures are aligned to 64-byte cacheline to make lookup cache-friendly.
@@ -1677,31 +1677,31 @@ of the Linux kernels, it maintains the same property of atomicity.
 
 
 
-\subsection{Summary}
-
-This section demonstrates how our directory cache optimizations
-can support the wide range of features Linux has built
-upon the directory cache, including namespaces, enhanced security modules, and symbolic links.
-Our prototype focuses on Linux, which has arguably the most features intertwined with its directory cache,
-but we believe these optimizations would work in other systems, with modest 
-porting effort.
-
-Our design has the following requirements, which we expect would be met by any 
-POSIX-compliant directory cache.
-First, POSIX permission semantics require directory access checks on the path from
-the current root or working directory to the file (i.e., prefix checking);
-our implementation inherits Linux's invariant that any cached directory's parents are in the cache,
-but any design that can implement prefix checking should suffice.
-Second, we require that, if a directory's permissions change, there is a programmatic way to find all
-descendants in the cache (\S\ref{sec:dcache:rename}).
-Our implementation integrates with optimistic synchronization 
-in the Linux dcache for good performance and consistency, but 
-this design could integrate with any reasonable synchronization scheme, such as
-FreeBSD's reader/writer locks.  
-%% SOSP Space
-%We assume there is sufficient synchronization
-%in the kernel slowpath to prevent inconsistency during cache invalidation,
-%such as using a lock to ensure the atomicity of a directory rename.
-Finally, we leverage the fact that Linux has an immutable credentials structure (\S\ref{sec:dcache:cred});
-adapting to mutable or less consolidated credentials would require extra effort.
-
+%\subsection{Summary}
+%
+%This section demonstrates how our directory cache optimizations
+%can support the wide range of features Linux has built
+%upon the directory cache, including namespaces, enhanced security modules, and symbolic links.
+%Our prototype focuses on Linux, which has arguably the most features intertwined with its directory cache,
+%but we believe these optimizations would work in other systems, with modest 
+%porting effort.
+%
+%Our design has the following requirements, which we expect would be met by any 
+%POSIX-compliant directory cache.
+%First, POSIX permission semantics require directory access checks on the path from
+%the current root or working directory to the file (i.e., prefix checking);
+%our implementation inherits Linux's invariant that any cached directory's parents are in the cache,
+%but any design that can implement prefix checking should suffice.
+%Second, we require that, if a directory's permissions change, there is a programmatic way to find all
+%descendants in the cache (\S\ref{sec:dcache:rename}).
+%Our implementation integrates with optimistic synchronization 
+%in the Linux dcache for good performance and consistency, but 
+%this design could integrate with any reasonable synchronization scheme, such as
+%FreeBSD's reader/writer locks.  
+%%% SOSP Space
+%%We assume there is sufficient synchronization
+%%in the kernel slowpath to prevent inconsistency during cache invalidation,
+%%such as using a lock to ensure the atomicity of a directory rename.
+%Finally, we leverage the fact that Linux has an immutable credentials structure (\S\ref{sec:dcache:cred});
+%adapting to mutable or less consolidated credentials would require extra effort.
+%

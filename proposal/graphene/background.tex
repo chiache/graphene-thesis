@@ -1,42 +1,41 @@
 \section{Background and Overview}
 \label{sec:graphene:background}
 
-Recent library OSes~\citep{porter11drawbridge,unikernels,baumann13bascule,osv}
-are designed for security and efficiency, but are limited to single-process applications.
+%Recent library OSes~\citep{porter11drawbridge,unikernels,baumann13bascule,osv}
+%are designed for security and efficiency, but are limited to single-process applications.
 %The security isolation of libOSes derives from 
 %limited, explicit data sharing and 
-%a narrow
-%host interface.  
-A libOS typically executes in either a paravirtual VM~\citep{unikernels,osv}
+%a narrow host interface.  
+A \libos{} typically executes in either a paravirtual VM~\citep{unikernels,osv}
 % \daniela{I would have the use of a VM as a discussion topic in the end of the paper.}, 
-or an OS process, called a {\em picoprocess},
+or an OS process, called a {\em \picoproc{}}~\citep{porter11drawbridge,baumann13bascule},
 with an interface restricted to a narrowed set of host kernel ABIs.
 These host ABIs heavily restrict effects outside of the application's address space;
-as a result, applications in a picoprocess have very little opportunity to interfere with each other,
+as a result, applications in a \picoproc{} have very little opportunity to interfere with each other,
 yielding security isolation comparable to a VM.
 Library OS efficiency comes from deduplicating features, such as hardware management;
 in a VM these features typically appear in both the guest and host kernels.
 
 
-Graphene executes within a picoprocess (Figure~\ref{fig:arch}),
+\sysname{} executes within a \picoproc{} (Figure~\ref{fig:graphene:arch}),
 which includes an {\em unmodified} application binary and supporting libraries, 
 running on a libOS instance.
 The libOS is implemented over a host kernel ABI
 designed to expose very generic abstractions that can be easily 
 implemented on any host OS, including virtual memory, threads, synchronization, byte streams (similar to pipes),
 a file system, and networking.
-Although the Graphene prototype  host kernel is Linux, 
+Although the \sysname{} prototype  host kernel is Linux, 
 we adapt a host ABI from Drawbridge/Bascule,
 which has been previously implemented on Windows, Hyper-V, and Barrelfish~\citep{porter11drawbridge,baumann13bascule,baumann09barrelfish}.
-%The Graphene host ABI is
+%The \sysname{} host ABI is
 % summarized in Table~\ref{tab:abi} and discussed in more detail in \S\ref{sec:linux:pal}\fixmedp{if not cut...}.  
-%which exposes only tens of simple host calls. \daniela{briefly define picoprocess: A picoprocess is unmodified application code running with a libOS.}
+%which exposes only tens of simple host calls. \daniela{briefly define \picoproc{}: A \picoproc{} is unmodified application code running with a libOS.}
 
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.9\linewidth]{graphene/figures/arch.pdf}
-\caption[Building blocks of \sysname{}]
+\includegraphics[width=5.5in]{graphene/figures/arch.pdf}
+\caption[\sysname{}: the building blocks.]
 {Building blocks of \sysname{}.  Black components are unmodified.
 We modify the four lowest application libraries:
 {\tt ld.so} (the ELF linker and loader),
@@ -46,7 +45,7 @@ and {\tt libpthread.so} (standard threading library),
 that issue Linux system calls as function calls directly to {\tt libLinux.so}.
 Our Linux library implements the Linux system calls
 using a variant of the Drawbridge ABI,
-which is provided by the Platform Adaptation Layer (PAL),
+which is provided by the Platform Adaptation Layer (\pal{}),
 implemented using calls to the kernel.
 A trusted reference monitor that ensures libOS isolation
 is implemented as a kernel module.
@@ -55,20 +54,19 @@ Another small module is added for fast bulk IPC.}
 \end{figure}
 
 
-Graphene exports \palcalls{} host ABIs through a 
-Platform Adaptation Layer (PAL) (Table~\ref{tab:abi}).
-The PAL is injected into the picoprocess by the host kernel, 
-and translates the generic picoprocess ABI into host kernel system calls.
-Most of these kernel calls only affect the application-internal state;
-any calls with external effects are mediated by a trusted {\em reference 
-monitor}.  
-%The reference monitor is a trusted non-Graphene process running on the system.
-All Graphene applications are launched by the reference monitor,
+\sysname{} exports \palcalls{} host ABIs through a 
+Platform Adaptation Layer (\pal{}) (Table~\ref{tab:graphene:abi}).
+\pal{} is a binary injected into the \picoproc{} by the host, 
+and translates the generic \picoproc{} ABI into host system APIs.
+Most of these calls only affect the application-internal state;
+any calls with external effects are mediated by a trusted {\em reference monitor}.  
+%The reference monitor is a trusted non-\sysname{} process running on the system.
+All \sysname{} applications are launched by the reference monitor,
 which installs a system call filter and interposes on permitted kernel calls to ensure isolation
 (\S\ref{sec:security}).
 
 
-These PAL ABIs should be a sufficient substrate upon which to
+These \pal{} ABIs should be a sufficient substrate upon which to
 implement guest-specific semantics, or guest OS {\em personality}.
 As an example of this layering, consider the heap memory management abstraction.
 Linux provides applications with a data segment---a 
@@ -77,7 +75,7 @@ of segmented memory management hardware.
 The primary thread's stack is at one end of the data segment, and the heap is at another.  
 The heap grows up (extended by {\tt sys\_brk}) 
 and the stack grows down until they meet in the middle.
-In contrast, the PAL ABI provides only three simple functions 
+In contrast, the \pal{} ABI provides only three simple functions 
 that allocate, protect, or unmap regions of virtual memory
 with basic access permissions (read, write, and execute).
 This clean division of labor encapsulates 
@@ -96,11 +94,11 @@ and refactor this code as an application library.
 The driving insight is that there is a natural, functionally-narrow division point 
 one layer below the system call table
 in most OS kernels.
-Unlike many OS interfaces, these PAL ABIs generally minimize the amount of application state in the kernel, facilitating
-migration: a picoprocess can programmatically read and modify its own OS state,
-copy the state to another picoprocess, and the remote picoprocess can 
+Unlike many OS interfaces, these \pal{} ABIs generally minimize the amount of application state in the kernel, facilitating
+migration: a \picoproc{} can programmatically read and modify its own OS state,
+copy the state to another \picoproc{}, and the remote \picoproc{} can 
 load a copy of this state into the OS---analogous to hardware registers.
-A picoprocess may not modify another picoprocess's OS state.
+A \picoproc{} may not modify another \picoproc{}'s OS state.
 
 
 
@@ -117,7 +115,7 @@ A picoprocess may not modify another picoprocess's OS state.
 \begin{table}[t!b!]
 \footnotesize
 \centering
-\begin{tabular}{|l|r|p{3.9in}|}
+\begin{tabular}{|l|r|p{4.4in}|}
 \hline
 \multicolumn{3}{|c|}{\bf Adopted from Drawbridge} \\
 \hline
@@ -127,13 +125,13 @@ Memory & 3 & Allocate and protect virtual memory. \\
 \hline
 Scheduling & 12 & Threads and synchronization. \\
 \hline
-Files \&  Streams & 12 & Files inside a {\tt chroot}-style; jails and byte streams among picoprocesses. \\
+Files \&  Streams & 12 & Files inside a {\tt chroot}-style; jails and byte streams among \picoprocs{}. \\
 \hline
-Process & 2 & Create a child picoprocess, and exit self. \\
+Process & 2 & Create a child \picoproc{}, and exit self. \\
 \hline
 Misc & 4 & Get random bits, time of day, etc. \\ % flush instruction cache, etc.\\
 \hline
-\multicolumn{3}{|c|}{\bf Added by Graphene} \\
+\multicolumn{3}{|c|}{\bf Added by \sysname{}} \\
 \hline
 {\bf Class} & {\bf ABIs} & {\bf Description} \\
 \hline
@@ -141,27 +139,27 @@ Segments & 1 & Manage x86 segment registers (FS and GS) for TLS. \\
 \hline
 Exceptions & 2 & Handle hardware exceptions. \\
 \hline
-Streams & 4 & Share stream handles across picoprocesses, rename files, and set stream attributes (file permissions, socket options, etc.) \\
+Streams & 4 & Share stream handles across \picoprocs{}, rename files, and set stream attributes (file permissions, socket options, etc.) \\
 \hline
 Bulk IPC & 3 & Exchange copy-on-write pages.\\
 \hline
 Sandboxes & 1 & Move into a new sandbox, with a new manifest applied. Pipes and streams that violates the new policy are closed.\\
 \hline
 \end{tabular}
-\caption{Classes of 
-host ABI functions adopted from Drawbridge~\citep{porter11drawbridge}, 
-followed by ABIs added by Graphene.}
+\caption[\sysname{}: list of host ABI functions.]
+{Classes of  host ABI functions adopted from \drawbridge{}~\citep{porter11drawbridge}, 
+followed by ABIs added by \sysname{}.}
 \label{tab:graphene:abi}
 \end{table}
 
 
 
-\subsection{Multi-Process Support in a Library OS}
+\subsection{Multi-Process Support in Library OSes}
 
 A key design feature of Unix is that users compose simple utilities to create
 larger applications.  Thus, it is unsurprising that many popular applications for Unix or Linux
 require multiple processes---an essential feature missing from current libOS designs.
-%This gap is filled by the Graphene libOS, which
+%This gap is filled by the \sysname{} libOS, which
 %extends recent libOSes to support multi-process applications.
 The underlying design challenge is minimally expanding 
 a tightly-drawn isolation boundary
@@ -184,7 +182,7 @@ PID-based APIs.
 
 \vspace{5pt}
 \noindent{\bf Design Options.~}
-Multi-process  support requires extensions to the PAL ABI of recent libOS designs.
+Multi-process  support requires extensions to the \pal{} ABI of recent libOS designs.
 Because multi-process abstractions, 
 such as signals or System V IPC, 
 tend to be idiosyncratic,
@@ -210,15 +208,15 @@ None of these problems are insurmountable, and it would be interesting in future
 work to compare both options.
 
 \vspace{5pt}
-\noindent{\bf Graphene Approach.~}
+\noindent{\bf Multi-Process Support in \sysname{}.~}
 %\daniela{Because Approach and Motivating Example are on the same level, its seems that
 %you are starting a new topic under Approach, when the discussion is actually a continuation of
 %Motivating Example}
-In Graphene, multiple libOS instances in multiple picoprocesses collaborate to 
+In \sysname{}, multiple libOS instances in multiple \picoprocs{} collaborate to 
 implement shared abstractions, such as 
  copy-on-write fork, signals, exit notification,
 and System V IPC.
-For instance, when process A signals process B on Graphene, A's libOS issues
+For instance, when process A signals process B on \sysname{}, A's libOS issues
 a remote procedure call (RPC) to B's libOS over a host-provided byte stream (similar to a Unix pipe),
 and B's libOS then calls the appropriate signal handler.
 
@@ -228,26 +226,26 @@ and B's libOS then calls the appropriate signal handler.
 %%% such as
 
 
-%Graphene approaches multi-processing by selectively replicating state and issuing remote procedure calls (RPCs) 
+%\sysname{} approaches multi-processing by selectively replicating state and issuing remote procedure calls (RPCs) 
 %%across multiple, collaborating
 %library OS instances.
 %Guests may work together to provide the unmodified multi-process application with
 %coordination abstractions 
 
-%Shared abstractions on Graphene's are implemented outside of the host, ensuring  host OS independence.
+%Shared abstractions on \sysname{}'s are implemented outside of the host, ensuring  host OS independence.
 % by implementing these
 %shared abstractions entirely
 %outside of the host kernel.
 %Shared abstractions are implemented outside of the host.
 %From the host kernel's perspective, 
-Graphene implements all shared abstractions in the libOS, and libOSes cooperatively manage these abstractions
+\sysname{} implements all shared abstractions in the libOS, and libOSes cooperatively manage these abstractions
 over RPC streams.
-Single-process applications still service system calls from local state, and Graphene 
+Single-process applications still service system calls from local state, and \sysname{} 
 includes optimizations to place state where it is most likely to be used,
 minimizing RPC overheads.
 The host reference monitor can easily isolate libOSes
 by 
-% Graphene design isolates libOSes by 
+% \sysname{} design isolates libOSes by 
 %requiring all coordination to use 
 %explicit bytes streams \daniela{, pipe-like abstractions provided by the kernel. (suggestion: Reviewer  3)}.
 %Security isolation is enforced
@@ -258,18 +256,18 @@ RPC messages, % between libOSes that should be isolated,
 without the need to understand the libOS-level details or semantics of these abstractions.
 In our PID example, only mutually trusting libOSes can signal each other.
 %if the reference monitor prevents creation of RPC streams
-%across mutually untrusting picoprocesses,
+%across mutually untrusting \picoprocs{},
 %the libOSes cannot exchange signals.
 
-%%% Graphene is designed to 
-%%% The Graphene design leverages a number of optimizations to service application system calls 
+%%% \sysname{} is designed to 
+%%% The \sysname{} design leverages a number of optimizations to service application system calls 
 %%% from local state whenever possible, and to minimize message passing overheads otherwise
 %%%  (\S\ref{sec:namespaces:insights}).
 %%% Our experience is that starting with a local system call design and then extending it to share state is relatively straightforward,
 %%% and introduces little-to-no overhead when the request can be serviced locally.
 
 
-The Graphene library OS is designed
+The \sysname{} library OS is designed
 to gracefully handle disconnection from other libOSes, 
 facilitating dynamic application sandboxing.
 RPC streams may be disconnected at any time by 
@@ -277,9 +275,9 @@ either the reference monitor or at the request of a libOS.
 %Message streams may be severed externally, by the reference monitor, or 
 %one guest may simply disconnect from others to isolate itself.
 %An application may disconnect itself from the 
-%Any Graphene application may dynamically detach from the confederation, 
+%Any \sysname{} application may dynamically detach from the confederation, 
 %or a host-level sandbox may dynamically separate two guests by severing their communication channels.
-When Graphene libOSes are disconnected, each instance will handle the subsequent
+When \sysname{} libOSes are disconnected, each instance will handle the subsequent
 divergence 
 %and the library OS will will fork these abstractions
 {\em transparently} to the application.
@@ -289,51 +287,51 @@ delivering exit notifications, etc.
 % \daniela{(applications run unmodified) - Reviewer 1 asked clarification on transparently}.
 
 %% A key insight behind our design is that the common use case for these \daniela{cooperating} abstractions
-%% is between a pair of processes.  Thus Graphene leverages a number of optimizations 
+%% is between a pair of processes.  Thus \sysname{} leverages a number of optimizations 
 %% to reduce broadcast messages, avoid replication of needless state,
 %% and service requests locally
 
 
 \vspace{5pt}
-\noindent {\bf PAL ABI Changes.~} When implementing Graphene,
-we found that the Drawbridge ABI lacked 12 PAL calls
+\noindent {\bf Changes to \pal{} ABI.~} When implementing \sysname{},
+we found that the Drawbridge ABI lacked 12 \pal{} calls
 essential to running a Linux libOS with multi-process support, and 
-Graphene did not require 3 PAL calls to support checkpoint and resume.
+\sysname{} did not require 3 \pal{} calls to support checkpoint and resume.
 Of the 12 new calls, 4 are required for single-process Linux and similar ABI have also been added by Bascule:
 rename a file, manage segmentation hardware, and 2 for exception upcalls;
 5 are required for stream inheritance, attribute configuration, and sandboxing;
 and 3 new calls are used to utilize Bulk IPC channel, for optimizing copy-on-write fork (\S\ref{sec:impl}).
-%Our design requires only 11 additional PAL calls, which we believe are fundamental to executing 
+%Our design requires only 11 additional \pal{} calls, which we believe are fundamental to executing 
 %Unix-style multi-process applications.
-Our design deliberately provides options where these new PAL calls are missing, to preserve the platform compatibility proven by {\em Drawbridge}. For example, copy-on-write fork can still be supported without Bulk IPC, by simply exchanging data through a regular pipe.
+Our design deliberately provides options where these new \pal{} calls are missing, to preserve the platform compatibility proven by {\em Drawbridge}. For example, copy-on-write fork can still be supported without Bulk IPC, by simply exchanging data through a regular pipe.
 
 \vspace{5pt}
-\noindent{\bf Comparison with microkernels.~}
-The building blocks of Graphene are very similar to the system abstractions of a 
+\noindent{\bf Comparison with Micro-kernels.~}
+The building blocks of \sysname{} are very similar to the system abstractions of a 
 microkernel~\citep{liedtke95sosp,klein09sel4,elphinstone13microkernels,liedtke93sosp,chen93memory,Baron:1985:MOE,Accetta:1986:MNK}.
 %such as the port and
 %message abstractions of Mach~\citep{
 Unlike a multi-server microkernel system, such as GNU Hurd~\citep{hurd} or Mach-US~\citep{stevenson95mach-us},
 which implements Unix abstractions across a set of daemons that are shared by all processes in the system,
-Graphene implements system abstractions as a library in the application's address space,
-and can coordinate library state among picoprocesses to implement shared abstractions.
-Graphene guarantees isolation equivalent to running 
-an application on a dedicated VM; this isolation could be simulated on a multi-server microkernel
+\sysname{} implements system abstractions as a library in the application's address space,
+and can coordinate library state among \picoprocs{} to implement shared abstractions.
+\sysname{} guarantees isolation equivalent to running 
+an application on a dedicated VM; this isolation could be simulated on a multi-server micro-kernel
 by running a dedicated set of service daemons for each application.
 
-%%% Graphene's differences are motivated by two considerations: efficient support of both stand-alone, 
+%%% \sysname{}'s differences are motivated by two considerations: efficient support of both stand-alone, 
 %%% single-process applications and multi-process applications; as well as flexible security isolation. 
-%%% Graphene contributes techniques to seamlessly and efficiently transition 
+%%% \sysname{} contributes techniques to seamlessly and efficiently transition 
 %%% between single-process and multi-process support, as well as adapting 
 %%% some known techniques to a new environment.
 
-The Graphene host ABI could be described as a hybrid microkernel,
+The \sysname{} host ABI could be described as a hybrid microkernel,
 which also exposes the file system and network of the host kernel.
-Similarly, we assume that picoprocesses are provided by a legacy OS kernel, like Linux or Windows,
-or by a Type 2 hypervisor.  We expect that a bare metal hypervisor could export a PAL,
+Similarly, we assume that \picoprocs{} are provided by a legacy OS kernel, like Linux or Windows,
+or by a Type 2 hypervisor.  We expect that a bare metal hypervisor could export a \pal{},
 but would probably require services from a trusted VM, such as Xen's dom0~\citep{barham03xen}.
-%or the PAL would implement more thread scheduling, networking, and file system code;
-%or the PAL ABI would change to push this code into the libOS.
+%or the \pal{} would implement more thread scheduling, networking, and file system code;
+%or the \pal{} ABI would change to push this code into the libOS.
 Arguably, recent libOS designs might be improved by rethinking the division of labor in
 the network and file system stacks, but this is beyond the scope of this paper.
 
@@ -345,7 +343,7 @@ used by a system like Dune~\citep{belay12dune}
 in order to implement a second process abstraction, memory manager, and scheduler in the libOS.
 This approach threatens the efficiency benefits of deduplicating these features.
 A final option is exposing additional kernel interfaces, such as signals, 
-by adding more system calls to a picoprocess.
+by adding more system calls to a \picoproc{}.
 This approach undermines host independence, as many of these coordination abstractions 
 tend to be very OS-specific.
 %Unix signals vs.\ Windows events, {\tt waitpid()} vs.\ blocking on a process handle, etc.

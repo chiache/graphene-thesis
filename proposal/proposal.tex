@@ -18,6 +18,7 @@
 \usepackage{alltt}
 \usepackage{color}
 \usepackage[square]{natbib}
+\usepackage[titletoc,title]{appendix}
 \usepackage{lastpage}
 \usepackage{times}
 \usepackage{multirow}
@@ -29,6 +30,7 @@
 \usepackage{mathtools}
 \usepackage{amsmath}
 \usepackage{float}
+\usepackage[font={small}]{caption}
 \usepackage{booktabs}
 \usepackage[hidelinks]{hyperref}
 
@@ -55,6 +57,19 @@
   \renew@command{#1}%
 }
 \makeatother
+
+\declarecommand{\graphene}{Graphene}
+\declarecommand{\gsgx}{Graphene-SGX}
+\declarecommand{\civet}{Civet}
+\declarecommand{\intel}{Intel}
+\declarecommand{\sgx}{SGX}
+\declarecommand{\libos}{libOS}
+\declarecommand{\liboses}{libOSes}
+\declarecommand{\picoproc}{picoprocess}
+\declarecommand{\picoprocs}{picoprocesses}
+\declarecommand{\haven}{Haven}
+\declarecommand{\drawbridge}{Drawbridge}
+\declarecommand{\java}{Java}
 
 \begin{document}
 \pagenumbering{gobble}
@@ -182,6 +197,8 @@
 %\centerline{\bf{Table of Contents}}
 \renewcommand{\contentsname}{\centerline{\normalsize\bf{Table of Contents}}}
 \renewcommand{\cftchapfont}{\normalsize\bf\def\\{}\def\em{}}
+\renewcommand{\cftsecfont}{\normalsize\def\\{}\def\em{}}
+\renewcommand{\cftsubsecfont}{\normalsize\def\\{}\def\em{}}
 \pdfbookmark[0]{Table of Contents}{Contents}
 \tableofcontents
 
@@ -229,11 +246,17 @@
 \input{dcache/paper}
 \input{syspop/syspop}
 \input{future/future}
+\input{related}
 \input{conclusion}
 
 \addcontentsline{toc}{chapter}{References}
 \renewcommand{\bibname}{\centerline{\normalsize\bf{References}}}
 \bibliographystyle{plainnat}
 \bibliography{../bibliography}
+
+\newpage
+\begin{appendices}
+\input{syspop/defs}
+\end{appendices}
 
 \end{document}

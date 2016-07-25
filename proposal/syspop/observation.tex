@@ -177,11 +177,11 @@ These utilities still attempt the old calls for backward-compatibility with olde
 
 
 %\callout{System developers can use our framework to actively notify relevant package maintainers while retiring system calls.} 
-\callout{Among 43 least-used system calls, some are replaceable
-by alternatives with higher \usagemetric{};
-5 are officially retired but still tried by few applications.
-System developers could use this data to identify relevant applications,
-accelerating replacement of these system calls.}
+%\callout{Among 43 least-used system calls, some are replaceable
+%by alternatives with higher \usagemetric{};
+%5 are officially retired but still tried by few applications.
+%System developers could use this data to identify relevant applications,
+%accelerating replacement of these system calls.}
 
 
 
@@ -205,7 +205,7 @@ However, even though {\tt restart\_\linebreak[0]syscall} is not used by any appl
 %\rev{rewrite}{because none of our samples is written to be NUMA-aware}.
 %\fixmetsai{Check if libnuma uses these system calls.}
 
-\callout{In addition to ten already retired system calls, we found seven other candidate system calls for deprecation or in need of more exposure to developers.}
+%\callout{In addition to ten already retired system calls, we found seven other candidate system calls for deprecation or in need of more exposure to developers.}
 
 \begin{comment}
 \begin{table}[t]
@@ -399,9 +399,9 @@ Only
 %% this metric evaluates the expected fraction of any installation that can be supported,
 %% to provide meaningful measurements
 
-\callout{It takes the most effort to support first and last 10\%
-of any installation (0--10\% and 90--100\% \compatmetric{}).
-The gain in functionality is precipitous when adding the 81st--202nd system calls.}
+%\callout{It takes the most effort to support first and last 10\%
+%of any installation (0--10\% and 90--100\% \compatmetric{}).
+%The gain in functionality is precipitous when adding the 81st--202nd system calls.}
 
 For simplicity, Table~\ref{table:syscall-stage}
 only includes system calls, % \compatmetric{} based on system ,
@@ -417,7 +417,7 @@ during the early stage of developing a system prototype.
 \subsection{Vectored System Call Opcodes}
 \label{sec:observation:vector}
 
-\fixmedp{I think RD is right: can we give more landscape of what the long tail of vectored calls are for?  Why do they exist?}
+%\fixmedp{I think RD is right: can we give more landscape of what the long tail of vectored calls are for?  Why do they exist?}
 
 Some system calls, such as {\tt ioctl}, {\tt fcntl},
 and {\tt prctl}, essentially export a secondary system call table, 
@@ -427,7 +427,7 @@ dramatically increasing the effort to realize full API compatibility.
 %and essentially make it harder to implement a compatibility layer.
 It is also difficult to enforce robust security policies on these interfaces,
 as the arguments to each operation are highly variable.
-\fixmedp{Can we comment on what, say SELinux or AppArmor actually do with ioctl?}
+%\fixmedp{Can we comment on what, say SELinux or AppArmor actually do with ioctl?}
 
 
 The main expansion is from {\tt ioctl}.
@@ -469,8 +469,8 @@ operations, about half of the {\tt fcntl} opcodes, and only 9--20 {\tt prcntl} o
 %% implement only part of these vectored system calls to obtain significant improvement on \compatmetric{}.
 %% %For instance, Graphene library OS~\citep{tsai14graphene} only implements {\tt FIONREAD} of {\tt ioctl} to satisfy the most common usage in applications. 
 
-\callout{In building a prototype system, a relatively small set of operations
-in vectored system calls are essential.}
+%\callout{In building a prototype system, a relatively small set of operations
+%in vectored system calls are essential.}
 %Highly important operations in vectored system calls
 %can be implemented first, to achieve better \compatmetric{}
 %with partial support of these system calls.}}
@@ -483,7 +483,7 @@ in vectored system calls are essential.}
 \begin{figure}[t]
 \vspace{-0.1in}
 \center{
-\includegraphics[width=0.85\linewidth]{syspop/figures/ioctl-popularity-by-inst.pdf}
+\includegraphics[width=3.6in]{syspop/figures/ioctl-popularity-by-inst.pdf}
 }
 \caption{188 {ioctl} operations with highest \usagemetric{}.  Roughly 447 infrequent operations on the tail are omitted. Higher is more important; 100\% indicates all installations include software that request the operations.}
 \label{fig:ioctl-popularity}
@@ -499,15 +499,14 @@ of reducing the system attack surface.
 %since leaving them around causes the OS open to attacks if any vulnerabilities exist in these APIs.
 %\fixmetsai{What can we find out in this long tail?}
 
-\callout{{\tt ioctl} system call has a very long tail of unused operations, which may create system security risks.}
+%\callout{{\tt ioctl} system call has a very long tail of unused operations, which may create system security risks.}
 
 \begin{figure}[t]
 \vspace{-0.3in}
 \center{
-\hspace{-0.1\linewidth}
-\includegraphics[width=0.57\linewidth]{syspop/figures/fcntl-popularity-by-inst.pdf}
-\hspace{-0.1\linewidth}
-\includegraphics[width=0.56\linewidth]{syspop/figures/prctl-popularity-by-inst.pdf}
+\includegraphics[width=2.3in]{syspop/figures/fcntl-popularity-by-inst.pdf}
+\hspace{0.5in}
+\includegraphics[width=2.3in]{syspop/figures/prctl-popularity-by-inst.pdf}
 }
 \caption{Ranking of \usagemetric{} among {\tt fcntl} and {\tt prctl} codes.  Higher is more important; 100\% indicates all installations include software that request the operations.}
 \label{fig:fcntl-prctl-popularity}
@@ -572,8 +571,7 @@ an important usage pattern.  %is a reasonable sample.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=1.0\linewidth]{syspop/figures/dev-proc-popularity-by-inst.pdf}
-\vspace{-0.25in}
+\includegraphics[width=3.6in]{syspop/figures/dev-proc-popularity-by-inst.pdf}
 \caption{\usagemetric{} distribution over files under {\tt /dev} and {\tt /proc}.  Higher is more important; 100\% indicates all installations include software that accesses the file. }
 \label{fig:dev-proc-popularity}
 \end{figure}
@@ -658,9 +656,9 @@ carefully setting directory permissions should be sufficient.
 %% to restrict the access to particular applications.}
 %% %to prevent them from becoming system vulnerabilities. 
 
-\callout{A few pseudo-files are essential and must be implemented
-by any Linux-emulator.  Most serve a specific purpose, and might benefit
-from stricter enforcement of the principle of least privilege.}
+%\callout{A few pseudo-files are essential and must be implemented
+%by any Linux-emulator.  Most serve a specific purpose, and might benefit
+%from stricter enforcement of the principle of least privilege.}
 
 %For pseudo-files and devices that are ubiquitously important, system developers should provide more secure alternatives
 %if possible. Infrequently used APIs that are important for particular applicatins need to be further secured.}}
@@ -743,8 +741,8 @@ unnecessary code into their address space.
 By splitting \libc{} into several sub-libraries, based on \usagemetric{}
 and common linking patterns, systems could realize a non-trivial space savings.
 
-\fixmedp{Can we assert that important and unimportant APIs are interleaved
-  on the same pages, so lazy loading doesn't help?}
+%\fixmedp{Can we assert that important and unimportant APIs are interleaved
+%  on the same pages, so lazy loading doesn't help?}
 There are several reasons to avoid loading extra code into an application.
 First, there are code reuse attacks, such as return-oriented programming (ROP)~\citep{return-oriented},
 that rely on the ability to find particular code snippets, called gadgets.
@@ -794,13 +792,13 @@ that are commonly accessed by the same application into the same sub-library.
 %% By sorting the relocation table according to API usage,
 %% Most \libc{} can load only first few pages of relocation tables, and leave the remaining relocation entries for lazy loading.
 
-\callout{Decomposing or re-ordering library API can lower memory costs
-in typical application processes.}
+%\callout{Decomposing or re-ordering library API can lower memory costs
+%in typical application processes.}
 %API usage statistics are hints for compilers to optimize memory footprint of dynamic loading by sorting relocation tables by \usagemetric
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.9\linewidth]{syspop/figures/libc-popularity.pdf}
+\includegraphics[width=3.6in]{syspop/figures/libc-popularity.pdf}
 \caption{\usagemetric{} distribution over the set of GNU Library C. Higher is more important; 100\% indicates all installations include software that use the \libc{} API. }
 \label{fig:libc-popularity}
 \end{figure}
@@ -819,7 +817,7 @@ The APIs used to initialize a program  are listed in Table~\ref{table:libc-init-
 In several cases, such as {\tt set\_tid\_address}, however, \libc{} or \libpthread{} may be the only binaries using these interfaces directly,
 indicating that changes to some important system interfaces would only require changes in one or two low-level libraries.
 
-\callout{GNU Library C and the dynamic linker can have a first-order effect on the \usagemetric{} of some system calls.}
+%\callout{GNU Library C and the dynamic linker can have a first-order effect on the \usagemetric{} of some system calls.}
 
 %%% \begin{compactenum}
 %%% \item Users and developers are often unaware of the footprint caused inside initialization and finalization of \libc{}. For library APIs, users at least have basic sense about what the footprint may look like.
@@ -835,7 +833,7 @@ indicating that changes to some important system interfaces would only require c
 \begin{table}[t]
 \center{
 \small
-\begin{tabular}{>{\footnotesize\raggedright\arraybackslash}m{1.9in}>{\raggedright\arraybackslash}m{1.1in}}
+\begin{tabular}{>{\footnotesize\raggedright\arraybackslash}m{4.5in}>{\raggedright\arraybackslash}m{1.6in}}
 \hline
 \addlinespace
 System Calls & Libraries \\
