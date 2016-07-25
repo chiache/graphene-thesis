@@ -450,8 +450,7 @@ by a factor of ten.  The optimizations of asynchronous sending and migrating own
 when a producer/consumer pattern were detected were particularly helpful.
 
 %%\begin{comment}
-\subsection{Scalability}
-
+\paragraph{Scalability.}
 We compare the scalability of \sysname{}'s RPC substrate with the scalability
 of Linux pipes, using a micro-benchmark that compares the cost of ping-ponging a no-op RPC within a sandbox.
 %In order to evaluate the scalability of \sysname{}'s m
@@ -535,7 +534,7 @@ tuning experience, we expect RPC messages to be infrequent and to scale further 
 
 %We validate that the \sysname{} host can dynamically move a \picoproc{} into a new sandbox, and that the \sysname{} handles this transparently to the application. In this test case, the host forcibly disconnects all streams between two guests after execution begins. Both library OSes behave as if the other \picoproc{} terminated, delivering exit notifications, closing application-visible pipes. The \picoproc{} which was not already leader for IPC coordination  assumes this role in the new sandbox. Thus, we show that \sysname{} gracefully handles dynamic sandboxing or disconnection of collaborating \picoprocs{}.
 
-\subsection{Security}
+\subsection{Security Study}
 
 Demonstrating security is always challenging, as it requires exploring all possible attacks.
 We instead offer statistics that indicate an overall reduction in attack surface,

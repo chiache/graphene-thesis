@@ -306,7 +306,7 @@ When \picoproc{} 2 receives this RPC,
 {\tt libLinux} will then query its local {\tt sigaction} 
 structure and mark {\tt SIGUSR1} as pending.
 The next time \picoproc{} 2 makes a {\tt libLinux} call,
-the {\tt SIGUSR1} handler will be called upon return. Also in Figure~\ref{fig:coordination}, \picoproc{} 4 (PID 2) waits on 
+the {\tt SIGUSR1} handler will be called upon return. Also in Figure~\ref{fig:graphene:coordination}, \picoproc{} 4 (PID 2) waits on 
 \picoproc{} 3 termination (in the same sandbox with PID 1). When \picoproc{} 3 terminates, it invokes the library implementation of exit, which issues
 an {\tt exitnotify} RPC to \picoproc{} 4.
 %In this example, \picoprocs{} in different sandboxes have the same PID number, but this does not cause conflict as they are isolated and can only communicate with processes in the same sandbox.
