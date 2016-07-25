@@ -412,7 +412,7 @@ to drive the partitioning effort, and contributes a synthesis with hardware-leve
 %% the trusted and untrusted parts to communicate with 
 %% each other.
 
-\section{Protection Against an Untrusted OS, without SGX.}
+\section{Protection Against an Untrusted OS}
 
 A number of systems that protect against an untrusted OS predate SGX, or are designed for hardware platforms with different memory protection techniques, such as ARM TrustZone.
 Virtual Ghost~\citep{criswell2014virtual} uses compile-time and runtime monitoring to protect an application
@@ -429,7 +429,7 @@ While these solutions focus on protecting applications from untrusted OS, Chen e
 %supports secure application with services like isolated memory, encryption and key management by instrumenting the kernel to use a hardware abstraction layer in a system called Virtual Ghost.
 
 
-\section{Information Flow Control.}
+\section{Information Flow Control}
 
 Much of the foundational work in language-level information flow was done with a combination of static analysis
 and runtime checking on a high-level language, such as Java~\citep{myers1999jflow, banerjee2002secure, hammer2006information, franz2008eliminating, chandra2007fine, smith2007improving, yip2009improving}.
@@ -441,7 +441,6 @@ a few studies have also studied issues in integrating language and OS-level info
 stronger integrity assurances for the application, reducing the need for instrumentation in untrusted code, and 
 streamlining remote provisioning of sensitive code or data.
 
-\begin{comment}
 %JFlow: Practical Mostly-Static Information Flow Control
 Andrew Myers ~\citep{myers1999jflow} extend the \java{} language with annotations that are statically checked, and adds a new primitive type {\em label} which can be dynamically checked for cases when the label-type cannot be inferred statically.
 %Secure Information Flow and Pointer Confinement in a Java-like Language 
@@ -474,6 +473,6 @@ Zeldovich et al.~\citep{zeldovich+histar}, move the information flow of OS abstr
 %Laminar: Practical Fine-Grained Decentralized Information Flow Control
 Roy et al., ~\citep{roy2009laminar} combine OS and PL techniques to enforce information flow control at the data structure granularity via JVM and a reference monitor enforces the same 
 information flow policy on OS resources such as files and sockets.
-\end{comment}
 
-
+\input{dcache/related}
+\input{syspop/related}
