@@ -1,0 +1,479 @@
+\chapter{Related Works}
+\label{chap:related}
+
+\section{Previous Library OSes}
+
+\begin{comment}
+Recent library OSes, including Graphene,
+search for a better
+division of labor between the host kernel and guests.
+Paravirtualized VMs attempt to move away from modeling specific hardware designs in software
+toward a more virtualization-friendly hardware model~\citep{barham03xen,whitaker02denali, eiraku09outsourcing}.
+Library OSes can be viewed as extreme paravirtualization---attempting
+to find the most ideal interface between guest and host. %abstractions of hardware without also baking-in host semantics.
+\end{comment}
+
+
+This work extends previous library OSes~\citep{porter11drawbridge,xax,unikernels,baumann13bascule,osv},
+which focused on single-process applications,
+to support coordination abstractions required 
+for multi-process applications, such as shell scripts.
+
+
+Bascule~\citep{baumann13bascule} implements a Linux library OS on a variant of the Drawbridge ABI,
+but does not include support for multi-process abstractions such as signals or copy-on-write fork.
+The Bascule Linux library OS also implements fewer Linux system calls than Graphene, missing
+features such as signals.
+Bascule demonstrates a complementary facility to Graphene's multi-process support: composable library OS extensions, 
+such as speculation and record/replay.
+OSv is a recent open-source, % project to design and implement a 
+single-process 
+library OS to support a managed language runtime, such as Java, on a bare-metal hypervisor~\citep{osv}.
+
+
+A number of recent projects have provided a minimal, isolated environment
+for web applications to download and execute native code~\citep{nacl,xax,howell13refactoring,gazelle,atlantis}.
+The term ``picoprocess'' is adopted from some of these designs, and they share 
+the goal of pushing system complexity out of the kernel and into the application.
+%%% Despite these common design themes, the motivations
+%%% for these projects varies widely, including
+%%% robustly enforcing browser policy\citep{gazelle};
+%%% ensuring that a web page is compatible with the JavaScript, CSS, and other interpreters in the browser~\citep{atlantis};
+%%% and simply the ability to push code from the data center onto the client where it makes 
+%%% sense~\citep{nacl, embassies, howell13refactoring}.
+Unlike a library OS, these systems
+generally sacrifice the ability to execute unmodified application code, 
+eliminate common UNIX multi-process functionality (e.g., fork), or both.
+
+
+The term library OS also refers to an older generation of research
+focused on tailoring hardware management heuristics 
+to individual application needs~\citep{kaashoek97exokernel,anderson92libos,cheriton94cache,leslie96nemesis,libra},
+whereas newer library OSes, including Graphene, focus
+on providing application compatibility
+across different hosts without dragging along an entire legacy OS.
+A common thread among all libOSes is moving functionality from the kernel
+into applications and reducing the TCB size or attack surface.
+Kaashoek et al.~\citep{kaashoek97exokernel} identify multi-processing as a problem for an Exokernel libOS,
+and implemented some shared OS abstractions.
+The Exokernel's sharing designs rely on shared memory rather than byte streams,
+and would not work on recent libOSes,
+nor will they facilitate dynamically sandboxing two processes.
+
+%% In moving services out of the kernel and into user libraries our design resembles a microkernel~\citep{liedtke95sosp, Baron:1985:MOE}.
+%% %liedtke93sosp,liedtke95sosp, Baron:1985:MOE, Jones:1986:MMK, Rashid:1987:RAM}.
+%% An important distinction is that
+%% microkernels generally centralize system services in a single trusted daemon,
+%% whereas Graphene distributes management of coordination APIs among
+%% cooperating guests.
+
+\begin{comment}
+Dune~\citep{belay12dune} %merges the concept of a process and VM,
+leverages virtualization hardware 
+to allow an application
+to safely manage privileged CPU features
+such as page tables and interrupts.
+%Dune leverages virtualization hardware  to safely 
+%isolate privileged hardware access within a process.
+Dune's goals are complimentary to ours; we expect that
+certain aspects of the PAL implementation would be simplified on Dune.
+\end{comment}
+
+User Mode Linux~\citep{user-mode-linux} (UML) executes a Linux kernel inside a process
+by replacing  architecture-specific code with 
+code 
+that uses Linux host system calls. % to emulate this functionality.
+%Because UML runs a complete Linux kernel and multiple processes,
+%it is effectively
+UML is best described as  an alternative approach to paravirtualization~\citep{barham03xen},
+and, unlike a library OS, does not deduplicate functionality.
+
+\section{Distributed Coordination APIs}
+
+Distributed operating systems, such as LOCUS~\citep{locus83sosp,fleisch86locus}, Amoeba~\citep{mullender90amoeba,cheriton89naming} and  
+Athena~\citep{champine90athena} required a consistent namespace for process identifiers and other IPC abstractions
+across physical machines.
+%A key requirement for naming in a distributed OS is network transparency---that the name should be independent of the physical placement of an object in the system.
+Like microkernels, these systems generally centralize all management in a single, system-wide service.
+%For instance, Amoeba has a single session server that allocates process identifiers.
+%This system service may be replicated or partitioned for improved performance on a large network or to
+%divide management responsibility across administrative domains~\citep{cheriton89naming}.
+%Each Graphene guest also needs to coordinate naming of Unix abstractions, such as processes or System V IPC keys.
+%Although Graphene draws some inspiration from these distributed OSes, 
+%Graphene's goals and usage model are different, and 
+Rote adoption of a central name service does not meet our goals
+of security isolation and host independence.
+
+Several aspects of the Graphene host kernel ABI are similar to the
+Plan 9 design~\citep{pike90plan9}, including the unioned view of the host file system
+and the inter-picoprocess byte stream.
+Plan 9 demonstrates how to implement this host kernel ABI,
+whereas Graphene uses a similar ABI 
+to encapsulate multi-process coordination 
+in the libOS.
+
+%% or coordinating coordinate a distributed file system
+%% across multiple workstations,
+%% but rather to demonstrate how it can be leveraged to 
+%% implement a more efficient guest library OS. instance, Plan 9 uses the 9P protocol to coordinate a distributed file system
+%% across multiple workstations. In contrast, Graphene uses streams
+
+
+
+
+Barrelfish~\citep{baumann09barrelfish} argues that multi-core scaling is best served 
+by replicating shared kernel abstractions at every core, and using message passing 
+to coordinate updates at each replica, as opposed to using cache coherence to update a shared data structure.  
+Barrelfish is a new OS; in contrast,
+Cerberus~\citep{song11eurosys} applies similar ideas to coordinate abstractions
+across multiple Linux VMs running on Xen.
+%Cerberus coordinates a unified view of the process tree, file system, network card,
+%and the address space when threads run on separate cores---forwarding 
+%some system calls to other kernels as remote procedure calls.
+In order for a library OS to provide multi-process abstractions, 
+Graphene must solve some similar problems, but innovates by
+replicating additional classes of coordination abstractions, such as System V IPC,
+and facilitates dynamic sandboxing.
+%and optimizes performance through 
+%techniques such as lazy discovery.
+The focus of this paper is not on multi-core scalability, but on security isolation and compatibility with legacy, multi-process applications.
+That said, we expect that systems like Barrelfish~\citep{baumann09barrelfish} 
+could leverage our implementation techniques to efficiently 
+construct higher-level OS abstractions, such as System V IPC and signals.
+
+%% We note that several recent projects argue that multi-core scalability 
+%% is enhanced by eschewing cache coherence and shared data structures, 
+%% in favor of a similar 
+%% design which
+%% replicates state across cores
+%% {\em within an OS kernel}~\citep{baumann09barrelfish} or {\em across legacy guest OSes}~\citep{song11eurosys}.
+%% The focus of this paper is not on multi-core scalability, but on security isolation and compatibility with legacy, multi-process applications.
+%% That said, we expect that systems like Barrelfish~\citep{baumann09barrelfish} 
+%% could leverage our implementation techniques to efficiently 
+%% construct higher-level OS abstractions, such as System V IPC and signals.
+
+L3 introduced a ``clans and chiefs'' model of IPC redirection, in which IPC to
+a non-sibling process was validated by a the parent (``chief'') before a message could leave the clan~\citep{liedtke92clans}.
+%This model was primarily used to enforce access control on system abstractions,
+%and abandoned for capabilities on kernel objects in L4
+Although this model was abandoned as cumbersome for general-purpose access control~\citep{elphinstone13microkernels},
+the Graphene sandbox design observes
+that a stricter variation is a natural fit
+for security isolation among multi-process applications.
+
+Cerberus focuses on replicating lower-level state, such as process address spaces
+which Graphene leaves in the host kernel.
+As a result, the performance characteristics are different.
+Although this comparison is rough, 
+we replicated their test of ping-ponging 1000 
+{\tt SIGUSR1} signals and compare the ratio to their reported data, 
+albeit with different hardware and our baseline kernel is newer 
+(3.2 vs 2.6.18).  
+When signals are sent inside of a single guest on Graphene, they are {\em faster}
+by 79\%, whereas performance drops by a 5.5--18$\times$ on Cerberus.
+When passing signals across coordinating guests both approaches are competitive:
+Graphene's cross-process signal delivery is 4.6$\times$ slower than native, whereas Cerberus ranges from 
+3.3--11.3$\times$ slower, depending on the hardware.
+
+
+%% For instance, Graphene guests may require a mixture of isolated and shared namespaces.
+%% Moreover, Graphene naming must support dynamic detachment of one guest from a confederation of other guests.
+%% Our work contributes  an implementation of distributed naming inside the library OS, facilitating security isolation, 
+%% and application-transparent detachment.
+
+\section{Legacy OS support for migration and isolation}
+
+Researchers have added checkpoint and migration support to Linux~\citep{linux-cr}
+by serializing kernel data structures to a file
+and reloading them later.  
+This introduces several challenges, including
+security concerns of loading data structures into the OS kernel from a potentially 
+untrusted source.
+%, as well as significant engineering and maintenance effort.
+In contrast, Graphene checkpoint/restore 
+%on a simple host ABI
+requires little more than a guest memory dump.
+%The host state can be easily restricted by a sandbox.
+
+%% supports migration of one or more process across
+%% hosts with the same kernel.
+%% To maintain consistency of namespace and resource throughout migration,
+%% Zap provides a thin virtualization layer upon which
+%% application can have the same virtualized and conflict-free view of system.
+%% To simplify process dependency that complicates migration, Zap migrates
+%% processes in the unit of Pods, a container with virtualized namespace,
+%% memory checkpoints and private file system. 
+
+%Docker - http://www.docker.io/ - really looks like it just automates creation of a minimal hard drive
+
+OS-based virtualization, such as 
+Linux VServer~\citep{vserver},  containers~\citep{bhattiprolu08containers},
+and Solaris Zones~\citep{price04zones},
+implement security isolation by maintaining multiple copies of kernel data structures,
+such as the process tree,
+in the host kernel's address space.
+In order to facilitate sandboxing, 
+Linux has added support for launching single processes
+with isolated views of namespaces, including process IDs and network interfaces~\citep{lwn-namespaces}.
+FreeBSD jails apply a similar approach to augment an isolated {\tt chroot} environment
+with other isolated namespaces, including the network and hostname~\citep{jails}.
+Similarly, Zap~\citep{osman02zap} migrates groups of process, called a Pod,
+which includes a thin layer virtualizing system resource names.
+In these approaches, all guests must use the same OS API, and the host kernel
+still exposes hundreds of system calls to all guests.
+Library OSes move these data structures into the guest, enabling
+a range of personalities to run on a single guest and limiting the attack surface
+of the host.
+
+
+Shuttle~\citep{shan12shuttle} permits selective violations of strict isolation
+to communicate with host services 
+under OS-based virtualization.
+For example, collaborating applications may communicate using the Windows Common Object Model (COM);
+Shuttle develops a model to permit access to the host COM service.
+%Windows guest applications 
+%may rely on the host's Service Control Manager
+%for certain functionality, and this functionality cannot be replicated inside of each guest.
+%Similarly, some collaborating applications may 
+Rather than attempting to secure host services,
+Graphene moves these services out of the host
+and into collaborating guests.
+
+
+%From an API perspective, this is similar to Graphene's isolation.  
+%This approach requires all applications to run on the same host kernel,
+%and 
+%However, these approaches are implemented in the same address space 
+%as the host kernel and still expose a wide attack surface area.  
+%The library OS
+%approach moves much of this attack surface area out of the kernel and into the guest.
+
+\section{Applications of SGX.}
+
+Several recent efforts have been made to leverage SGX technology
+in cloud platforms to secure applications against a potentially untrusted host OS or hypervisor.
+For instance, VC3~\citep{vc3} runs MapReduce jobs in SGX enclaves.
+An essential caveat for VC3 is that these mappers and reducers must be written
+in C or C++, breaking compatibility with the vast majority of Hadoop mappers and reducers,
+which are written in Java and can run on \sysname{}.
+Similarly, Brenner et al.~\citep{zookeeper}, developed a transparent encryption 
+layer to the Apache ZooKeeper cluster,
+running cluster services in an enclave and transparently encrypting data in transit between enclaves.
+SGX has also been applied to securing network functionality~\citep{shih2016s},
+as well as inter-domain routing in Tor~\citep{kim2015first}.
+
+\section{Code Partitioning.}
+
+A number of projects have developed tools for partitioning applications, both with SGX enclaves in mind, and more generally.
+Atamli et al.~\citep{atamli2015securing} explore different schemes for partitioning applications,
+and identify different trade-offs in performance and security with different strategies.\fixmedp{This is a little cursory; can you say anything more crisp about an insight contributed here?}\fixme{That paper is from Springer and it needs me to pay \$30 to read it. Not available even through stonybrook proxy.}
+Moat~\citep{moat} uses formal verification to determine whether an enclave
+image maintains confidentiality of sensitive data,
+and identifies potential information leaks.  \sysname{}, on the other hand, applies
+a combination of static and dynamic analysis for information flow tracking of the dynamically-loaded Java code in enclaves, and prevent leakage of confidential information at the enclave boundary .%\fixmedp{right?}
+
+Orthogonal to SGX, a number of systems have been developed to 
+partition Java applications into pieces that run in multiple JVMs.
+%Extensive research has already been done to automate 
+%partitioning of JAVA applications.
+%A Bytecode Translator for Distributed 
+%Execution of “Legacy” Java Software
+Addistant~\citep{addistant} and J-Orchestra~\citep{jorchestra}
+automatically divide Java applications to run across multiple hosts or JVMs.
+Zdancewic et al.~\citep{jif-split} use programmer annotations
+to partition a code to statically check and dynamically enforce 
+%\fixmedp{eliminate?  please check}
+information flow policies.
+Swift~\citep{swift} partitions web applications such that
+security-critical data remains on the trusted server,
+and, secondarily, to minimize client-server communication.
+Finally, a number of tools have been developed for automatically injecting remote method invocations (RMI)
+for distributing Java applications~\citep{philippsen1997javaparty, czajkowski2002code, spiegel1999pangaea, tilevich2008nrmi, aridor1999cjvm, diaconescu2005compiler}.
+\sysname{} extends these approaches with techniques appropriate
+for partitioning code into SGX enclaves.
+
+%% partitions legacy JAVA applications into parts which 
+%% can run on separate hosts and JVMs. They rewrite the 
+%% bytecode of a JAVA application to either rename the 
+%% references of remote object to a proxy or replace the 
+%% remote object by a proxy.
+%% %J-Orchestra: Automatic Java Application Partitioning
+%% Tilevich et al improved this technique in 
+%% J-Orchestra~ to handle native code 
+%% by placing the native code together with the code 
+%% referring it. \sysname{} uses same techniques as 
+%% Addistant and J-Orchestra to partition the code into 
+%% separate parts.
+%% %Secure Program Partitioning
+%% Similarly, Zdancewic et al. ~\citep{jif-split}, allows 
+%% developer to annotate the code with principal and 
+%% policy definitions as per the JFlow~\citep{myers1999jflow} 
+%% format, and partitions the code based on those 
+%% annotations for each principal and the list of hosts 
+%% that each principal trusts. \sysname{} on the 
+%% other hand, partitions code based on whether the 
+%% class is a secure class or a dependency of a secure 
+%% class. 
+%% %Secure Web Applications via Automatic Partitioning
+%% Similar partitioning policy is adopted by 
+%% Chong et al. in Swift~\citep{swift} to place security 
+%% critical data and code of web applications on the 
+%% server, and to minimize the client-server 
+%% communication. While Swift performs fine-grained 
+%% partitioning to run different statements in the same 
+%% method separately on client and server, \sysname{} 
+%% places whole methods of secure classes in the enclave.
+
+A number of projects have used  developer annotations or runtime tools
+to implement privilege separation~\citep{brumley2004privtrans} or enforce least privilege~\citep{bittau2008wedge}
+on memory objects.
+Several systems have also separated programs into trusted and untrusted components, and used different OS instances
+for servicing each piece of the application~\citep{singaravelu2006reducing, ta2006splitting, khatiwala2006data}.
+\sysname{} adopts a similar approach, using developer input to identify classes containing sensitive data
+to drive the partitioning effort, and contributes a synthesis with hardware-level protections against an untrusted system stack.
+
+% an partitioned applications to implement privilege 
+
+%Historically, applications have been partitioned to reduce the TCB.
+%% Brumley et al., allow developers to use annotations to automatically partition the program based on privilege separation.
+%% Bittau et al., provide developers with runtime tools to determine which code needs which privileges for which memory objects to help partition the application using the principle of least privilege.
+%% Singaravelu et al.~\citep{singaravelu2006reducing}, reduce the TCB of security sensitive programs by partitioning into trusted and untrusted parts, and run the trusted parts of the application on the CPU core and the untrusted parts of the application on a virtualized untrusted legacy OS.
+%% Ta-Min et al.~\citep{ta2006splitting}, partition applications based on interfaces to redirect calls from trusted part of the application to a private trusted OS and untrusted calls to an untrusted legacy OS. However, \sysname{} partitions applications at the higher bytecode level and do not rely on a trusted OS.
+%% %Data Sandboxing - partition + information flow 
+%% Khatiwala et  al.~\citep{khatiwala2006data}, partition applications based on their security sensitiveness, and intercept the system calls made by the two parts of applications to enforce information flow policies to sandbox the secret data. 
+
+%% An Application written in \java{} can be deployed on distributed servers by partitioning the applications into separate parts and replacing the missing parts by Remote Method Invocation(RMI).
+%% Philippsen et al. ~\citep{philippsen1997javaparty} transparently convert multi-threaded \java{} applications into distributed applications by adding remote objects by declaration, and use techniques such as shared memory to optimize performance.
+%% Czajkowski et  al.~\citep{czajkowski2002code} compare four different techniques for code sharing across \java{} virtual machines based on performance considerations, dynamic class loading, and dependencies between shared code.
+%% Spiegel ~\citep{spiegel1999pangaea} use static analysis to optimize distribution policies for running distributed programs across loosely coupled machines.
+%% Tilevich et al.~\citep{tilevich2008nrmi}, implement an equivalent of call-by-reference in \java{} as call-by-copy-restore to provide a natural distributed programming environment compared to Remote Method Invocation.
+%% Aridor et al.~\citep{aridor1999cjvm}, virtualize a cluster to provide a single system image of the JVM without any code modifications to the application.
+%% Diaconescu et al.~\citep{diaconescu2005compiler}, use dependence
+%% analysis, weighted graph partitioning, code and communication generation, and profiling
+%% to build a compiler and runtime infrastructure
+%% that enables experimentation with various program partitioning
+%% and mapping strategies.
+
+
+
+%study the effect of different schemes for partitioning applications on performance and security benefits.
+
+%OpenSGX~\citep{jain2016opensgx} is an SGX simulator, which has ben
+
+%built an OpenSGX simulator platform along with the necessary user library and program loader tools similar to ~\sysname{}.
+%This OpenSGX platform has been used to secure Network Function Virtualization states~\citep{shih2016s} as well as inter-domain routing and Tor directory
+
+
+
+%VC3: Trustworthy Data Analytics in the Cloud using SGX
+%% Schuster et al., built an infrastructure named 
+%% VC3~\citep{vc3} using the \intel{} SDK to run secure 
+%% trusted C/C++ MapReduce jobs on HDInsight, a Windows 
+%% hadoop distribution. However, as many MapReduce jobs 
+%% are written in Java, these jobs will need to be 
+%% re-written in C/C++ to use VC3. \sysname{} 
+%% supports running confidential JAVA MapReduce jobs on 
+%% Hadoop without rewriting the applications.
+%% %Running ZooKeeper Coordination Services in Untrusted Clouds
+%% Brenner et al.~\citep{zookeeper}, developed a transparent encryption 
+%% layer to the Apache ZooKeeper cluster,
+%% that encrypts all sensitive data inside ZooKeeper 
+%% on-the-fly, and executes in an enclave. Similarly, 
+%% \sysname{} encrypts all secret data before it 
+%% leaves the enclave.
+
+
+
+%Moat: Verifying Confidentiality of Enclave Programs
+%% Sinha et al., developed a static verifier named 
+%% Moat~\citep{moat} that statically analyzes the 
+%% behavior of enclave binary at the instruction level 
+%% to verify whether the enclave program 
+%% maintains confidentiality of data, else shows an 
+%% exploit to demonstrate information leak to untrusted 
+%% code. If the enclave binary doesn't pass the 
+%% verification, the developer has to fix the 
+%% information leak to be able to pass through Moat 
+%% verifier. \sysname{} however dynamically enforces 
+%% that there is no information leakage. Thus, even if 
+%% some enclave binary doesnt pass through Moat 
+%% verifier, the developer need not worry about fixing 
+%% the information leak; \sysname{} will 
+%% automatically prevent the information leak.
+%% One of the assumptions of Moat is that the enclave 
+%% binary is statically linked. However, \sysname{} 
+%% can support dynamic loading as information flow 
+%% control is enforced at runtime.
+%% %They do not include the compiler in their TCB as they analyze the behavior of enclave binary at the instruction level. 
+%% %However, \sysname{} includes JVM and enclave image utility in TCB as it not only prevents information 
+%% %In addition to preventing information leaks, 
+%% Moreover, \sysname{} also automatically partitions 
+%% a JAVA application, and provides the interface for 
+%% the trusted and untrusted parts to communicate with 
+%% each other.
+
+\section{Protection Against an Untrusted OS, without SGX.}
+
+A number of systems that protect against an untrusted OS predate SGX, or are designed for hardware platforms with different memory protection techniques, such as ARM TrustZone.
+Virtual Ghost~\citep{criswell2014virtual} uses compile-time and runtime monitoring to protect an application
+from a potentially-compromised OS; Virtual Ghost requires recompilation of the guest OS.
+Flicker~\citep{flicker}, MUSHI~\citep{zhang2012mushi} and InkTag~\citep{inktag} protect applications from untrusted OS using SMM mode or virtualization
+to enforce memory isolation between the OS and a trusted application.
+Koberl et al.~\citep{koeberl2014trustlite}, isolate software on low-cost embedded devices using a Memory Protection Unit.
+Li et al.~\citep{li2014minibox} built a 2-way sandbox for x86 by separating the Native Client(NaCl)~\citep{yee2009native} sandbox into modules for sandboxing and service runtime to support application execution and use Trustvisor~\citep{trustvisor} to protect the piece of application logic from the untrusted OS.
+Jang et al.~\citep{jang2015secret} build a secure channel to authenticate the application in the Untrusted area from the ARM TrustZone.
+Song et al.~\citep{songhdfi} extend each memory unit with an additional tag
+to enforce fine-grained isolation at machine word granularity in the HDFI system.
+While these solutions focus on protecting applications from untrusted OS, Chen et  al.~\citep{chenshreds}, protects pieces of application from the rest of it by restricting access to only parts of memory from specific segments of threads.
+
+%supports secure application with services like isolated memory, encryption and key management by instrumenting the kernel to use a hardware abstraction layer in a system called Virtual Ghost.
+
+
+\section{Information Flow Control.}
+
+Much of the foundational work in language-level information flow was done with a combination of static analysis
+and runtime checking on a high-level language, such as Java~\citep{myers1999jflow, banerjee2002secure, hammer2006information, franz2008eliminating, chandra2007fine, smith2007improving, yip2009improving}.
+A number of systems have also developed efficient, dynamic taint-tracking systems for languages such as Java~\citep{haldar2005dynamic, nair2008virtual}.
+These are essential building blocks for the information flow tracking used in \sysname{}.
+For the most part, these systems assume the integrity of the application and its runtime environment;
+a few studies have also studied issues in integrating language and OS-level information flow tracking~\citep{roy2009laminar, sabelfeld2003language}.
+\sysname{} exposes the capabilities of  SGX hardware to the developer and language runtime, providing
+stronger integrity assurances for the application, reducing the need for instrumentation in untrusted code, and 
+streamlining remote provisioning of sensitive code or data.
+
+\begin{comment}
+%JFlow: Practical Mostly-Static Information Flow Control
+Andrew Myers ~\citep{myers1999jflow} extend the \java{} language with annotations that are statically checked, and adds a new primitive type {\em label} which can be dynamically checked for cases when the label-type cannot be inferred statically.
+%Secure Information Flow and Pointer Confinement in a Java-like Language 
+Banerjee et  al.~\citep{banerjee2002secure}, enforce non-interference policy for a \java{} like language by confining pointers to a high security region.
+%Information Flow Control for Java Based on Path Conditions in Dependence Graphs
+Hammer et al., ~\citep{hammer2006information} detect information leakage in \java{} using dependence graphs and constraint solving on the path conditions instead of type-based enforcement.
+%Dynamic taint propagation for Java 
+Haldar et  al., ~\citep{haldar2005dynamic} enforce source to sink dynamic taint tracking from untrusted inputs to sensitive methods that should not use tainted data.
+%A Virtual Machine Based Information Flow Control System for Policy Enforcement 
+Niar et al.~\citep{nair2008virtual}, extend the information flow tracking to implicit flows by tracking the control flow taint dynamically at runtime. 
+%Eliminating Trust From Application Programs By Way Of Software Architecture
+Franz et al.~\citep{franz2008eliminating}, too prevent implicit information flow by tracking the program counter to build a multi-level security aware \java{} VM by adding a security label to every data item and preventing assignments that would leak secrets.
+%Fine-grained information flow analysis and enforcement in a java virtual machine 
+Chandra et al.,~\citep{chandra2007fine} decouple the information flow policy specification and enforcement by statically annotating the \java{} class files with labels, and then tracking the labels to enforce the specified policy at runtime.
+%Improving Usability of Information Flow Security in Java
+Smith et al., ~\citep{smith2007improving} posit that statically checking only a small subset of the core JAVA classes is necessary to enforce information flow control across the I/O boundary without the need to track every data structure. 
+%Improving application security with data flow assertions 
+Yip et  al.~\citep{yip2009improving}, extend the concepts of information flow to PHP to check information flow assertions before writing data to a file or network.
+
+
+%Language-based information-flow security 
+Sabelfeld et al.~\citep{sabelfeld2003language}, survey the language-based information flow security solutions and discuss challenges to support system-wide end-to-end information flow security.
+%Labels and event processes in the Asbestos operating system 
+Vandebogart et al.~\citep{vandebogart+asbestos}, enforce
+application-defined security policies from the context of the OS to provide a combination of discretionary as well as mandatory access control.
+%Information flow control for standard OS abstractions 
+Krohn et  al.~\citep{krohn+flume}, enforce system-wide decentralized information flow control by interposing a reference monitor to track information flow across OS abstractions such as pipes and file descriptors.
+%Making information flow explicit in HiStar 
+Zeldovich et al.~\citep{zeldovich+histar}, move the information flow of OS abstractions into a user-level library OS to remove the legacy OS from the TCB.
+%Laminar: Practical Fine-Grained Decentralized Information Flow Control
+Roy et al., ~\citep{roy2009laminar} combine OS and PL techniques to enforce information flow control at the data structure granularity via JVM and a reference monitor enforces the same 
+information flow policy on OS resources such as files and sockets.
+\end{comment}
+
+
