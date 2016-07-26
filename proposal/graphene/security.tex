@@ -77,8 +77,7 @@ When a process detaches from a sandbox---effectively splitting the sandbox---the
 reference monitor closes
 any byte streams that could bridge the two sandboxes.
 
-\vspace{5pt}
-\noindent {\bf Threat Model.~}
+\paragraph{Threat Model.}
 We assume  a trustworthy host OS and reference monitor,
 which mediates all system calls with effects outside of a picoprocess's address space,
 such as file {\tt open} or network socket {\tt bind} or {\tt connect}.
@@ -246,8 +245,7 @@ on a host system like Dune~\citep{belay12dune},
 or dynamically rewriting parts of the static binary~\citep{hunt99detours}.
 \end{comment}
 
-\vspace{5pt}
-\noindent{\bf Example.~}
+\paragraph{Example.}
 Figure~\ref{fig:graphene:syscall-restriction} illustrates three possible situations. 
 %% An unmodified Linux application is dynamically linked against the 
 %% \sysname{} {\tt libc}, 
@@ -320,8 +318,7 @@ rules by interposing on all system calls involving file paths or remote network 
 %\fixmedp{Revise if we can do something smarter; 2x check implementation status before submission}.
 
 %% dp Sadface :(
-\vspace{5pt}
-\noindent{\bf Privilege.~} 
+\paragraph{Privilege.~} 
 Although the reference monitor is trusted, it does not run 
 with administrative privilege.
 Linux 3.5, which we use as our host kernel, 
@@ -332,8 +329,7 @@ This flag prevents a process from acquiring root privilege, % (e.g., via executi
 is inherited by all descendant processes,
 and cannot be disabled.
 
-\vspace{5pt}
-\noindent{\bf Creating New Sandboxes.~} We add a \pal{} call which
+\paragraph{Creating New Sandboxes.~} We add a \pal{} call which
 permits a picoprocess to request that it be moved into a new sandbox.
 This call, as well as file system path checks, are implemented
 as extensions to the  AppArmor LSM~\citep{apparmor}.

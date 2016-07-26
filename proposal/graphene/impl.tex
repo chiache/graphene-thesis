@@ -1,7 +1,7 @@
 \section{Implementation Details}
 \label{sec:impl}
 
-\noindent{\bf Linux \pal{}.~}
+\paragraph{Linux \pal{}.}
 The majority of \pal{} calls are simple wrappers for similar Linux system calls, 
 adding less than 100 LoC on average for translation between \pal{} and Linux abstractions.
 The largest \pal{} calls are for exception handling, synchronization, and picoprocess
@@ -11,8 +11,7 @@ application instance, and would be more efficiently implemented in the kernel.
 Finally, the other major \pal{} components are an ELF loader (2 kLoC), headers (800 LoC),
 and internal support code (2.3 kLoC).
 
-\vspace{5pt}
-\noindent{\bf Alternative \pal{} Ports.~}
+\paragraph{Alternative \pal{} Ports.}
 We prove the platform independence of \sysname{}
 by porting \pal{} to {\em FreeBSD}, {\em OSX} and {\em Windows}.
 With the alternative host \pal{}, unmodified Linux binaries,
@@ -45,7 +44,7 @@ Linux kernel reference monitor module ({\tt /dev/graphene}) & \sandboxmodlines{}
 Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 \hline
 \end{tabular}
-\caption[\sysname{}: lines of code written or changed.]
+\caption[\sysname{}: lines of code written or changed]
 {Lines of code written or changed to produce \sysname{}.  Applications and other libraries are unchanged.}
 \label{tab:LoC}
 \end{table}
@@ -58,8 +57,7 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 
 %\fixmedp{Chia-Che, update LoC table}
 
-\vspace{5pt}
-\noindent{\bf Implementing Linux Personality.~} 
+\paragraph{Implementing Linux Personality.} 
 %\fixmedp{Revisit the logical flow of these paragraphs}
 The \sysname{} {\tt libLinux.so} implements a subset 
 of the Linux system call API (currently \syscalls{} calls)
@@ -130,8 +128,7 @@ and exceptions (Bascule~\citep{baumann13bascule} adds
 similar extensions).
 \end{comment}
 
-\vspace{5pt}
-\noindent{\bf Synchronization.~} Perhaps surprisingly, implementing Linux
+\paragraph{Synchronization.} Perhaps surprisingly, implementing Linux
 synchronization appears substantially easier than Windows synchronization, 
 as {\tt libLinux} did not require all of the various
 synchronization ABIs provided by Drawbridge.
