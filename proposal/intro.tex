@@ -64,8 +64,19 @@ For instance, the Heartbleed bug~\citep{heartbleed} discovered in OpenSSL crypto
 can leak the private keys of trusted authorities through the vulnerability in OpenSSL's heartbeating service.
 To eliminate vulnerabilities in a complex, modern applications is as infeasible as eliminating vulnerabilities in the operating systems.
 
+\begin{figure}[t!]
+\centering
+\includegraphics[width=4.5in]{figures/defense.pdf}
+\caption[Types of potential attacks on an application, and the TCB required by \graphene{}, \gsgx{} and \civet{}]
+{Type of potential attacks on the security of an application and the trusted computing base (TCB) required by \graphene{}, \gsgx{} and \civet{}.
+An application can be attacked from either the corrupted host system stack, malicious applications, or compromised components and processes in the application.
+\graphene{} can expel all untrusted applications and the system APIs that are affected by them.
+\gsgx{} further removes the host kernel and hardware, as well as untrusted processes, from the TCB. \civet{} then defends against compromised, in-process components. \graphene{} has the larger TCB, and \civet{} reduces the TCB the most.}
+\label{fig:defense}
+\end{figure}
+
 This thesis primarily describes three security isolation solutions,
-to defend against different levels of attack:
+to defend against different levels of attack (shown in Figure~\ref{fig:defense}):
 \begin{compactitem}
 \item {\em \graphene{}} (\S\ref{chap:graphene}) enforces security isolation between mutually untrusting applications.
 \item {\em \gsgx{}} (\S\ref{chap:gsgx}) enforces security isolation on applications against untrusted system stacks and other applications.
@@ -289,16 +300,6 @@ thus every \picoproc{} can execute and be attested separately.
 In a nutshell, \gsgx{} tries to honor and exploit the established partitioning in multi-process applications,
 with the benefit of minimizing the porting effort from using the non-partitioned model.
 
-\begin{figure}[t!]
-\centering
-\includegraphics[width=4.5in]{figures/defense.pdf}
-\caption[Types of potential attacks on an application, and the TCB required by \graphene{}, \gsgx{} and \civet{}]
-{Type of potential attacks on the security of an application and the trusted computing base (TCB) required by \graphene{}, \gsgx{} and \civet{}.
-An application can be attacked from either the corrupted host system stack, malicious applications, or compromised components and processes in the application.
-\graphene{} can expel all untrusted applications and the system APIs that are affected by them.
-\gsgx{} further removes the host kernel and hardware, as well as untrusted processes, from the TCB. \civet{} then defends against compromised, in-process components.}
-\label{fig:graphene:arch}
-\end{figure}
 
 
 %
