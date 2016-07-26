@@ -38,9 +38,8 @@ Unless otherwise noted, \sysname{} measurements include the reference monitor.
 %In order to assess the relative overhead of the monitor (\S\ref{sec:eval:micro}), 
 %we include some microbenchmark measurements with and without the monitor.
 
-\vspace{5pt}
-\noindent{\bf Seccomp filter optimization.~}
-Our benchmark shows that applying a seccomp filter can cause xxx\% overhead on {\tt getppid} syscall latency. We use a seccomp optimization patch, which just-in-time compiles filter code into machine code \fixme{reference}.
+\paragraph{Seccomp filter optimization.~}
+Our benchmark shows that applying a seccomp filter can cause \fixme{xxx}\% overhead on {\tt getppid} syscall latency. We use a seccomp optimization patch, which just-in-time compiles filter code into machine code \fixme{reference}.
 The result shows that the patch can improve xxx\% of {\tt getppid} latency.
 This patch is not officially adopted by Linux kernel, but it can be confirmed secure at least for x86-64 architecture.
 
@@ -419,7 +418,7 @@ msgrcv & in process	&	149	& 0.1 &	237	& 0.2 &	60	\%	\\
             & inter process	&	153	& 0.1 &	779	& 2.2 &	409	\%	\\
             & persistent	&	N/A	& &	979	& 0.6 &	561	\%	\\\hline
 \end{tabular}
-\caption[\sysname{}: micro-benchmark for System V message queues]
+\caption[\sysname{}: \libos{} for System V message queues]
 {Micro-benchmark comparison for System V message queues
 between a native Linux process and \sysname{} \picoprocs{}.
 Execution time is in microseconds, and lower is better.
@@ -429,9 +428,8 @@ overheads are relative to Linux, and negative overheads indicate improved perfor
 \label{tab:graphene:msgq}
 \end{table}
 
-\vspace{5pt}
-\noindent{\bf System V IPC.~}
-Table~\ref{tab:graphene:msgq} lists micro-benchmarks
+\paragraph{System V IPC.}
+Table~\ref{tab:graphene:msgq} lists \libos{}s
 which exercise each System V message queue function,
 within one \picoproc{} (in process), across two concurrent \picoprocs{} (inter process),
 and across two non-concurrent \picoprocs{} (persistent).
@@ -452,7 +450,7 @@ when a producer/consumer pattern were detected were particularly helpful.
 %%\begin{comment}
 %\paragraph{Scalability.}
 %We compare the scalability of \sysname{}'s RPC substrate with the scalability
-%of Linux pipes, using a micro-benchmark that compares the cost of ping-ponging a no-op RPC within a sandbox.
+%of Linux pipes, using a \libos{} that compares the cost of ping-ponging a no-op RPC within a sandbox.
 %%In order to evaluate the scalability of \sysname{}'s m
 %%we created a microbenchmark where processes within one sandbox ping-pong a no-op RPC,
 %%in figure~\ref{fig:rpc4core}.For comparison we executed a similar test where processes send equal sized
@@ -563,8 +561,8 @@ In our design, only trusted applications such as system utilities can run as a n
 
 %For example, a malicious process in a VM could hog system resources on purpose (e.g, continuously computing the factorial of a number to waste CPU cycles) to affect performance/availability of another VM system. 
 
-\vspace{5pt}
-\noindent{\bf Isolation Experiments.~} This subsection tests whether \sysname{} meets its goal of providing equivalent isolation
+\paragraph{Isolation Experiments.}
+This subsection tests whether \sysname{} meets its goal of providing equivalent isolation
 to a VM.
 We conducted an evaluation of the security of the isolation mechanisms in \sysname{} and analyzed whether a malicious \sysname{} \picoproc{} could 
 (i) fork a non-\sysname{} process, 
@@ -589,8 +587,8 @@ In our last experiment, \picoproc{} 1 attempts to obtain secrets from \picoproc{
 
 %This attack involves correlating a web browser’s data resident size (inspected via the {\tt proc} file system) to the web sites visited by a user. 
 %Since the proc file system is accessed as though it was part of the normal file system, any access to it has to go through the system  open command.
-\vspace{5pt}
-\noindent {\bf Analysis of Linux Vulnerabilities.~} \sysname{} restricts \picoprocs{} to 15\% of the system call table.
+\paragraph{Analysis of Linux Vulnerabilities.}
+\sysname{} restricts \picoprocs{} to 15\% of the system call table.
 To evaluate the impact on system security,
 we \emph{manually} analyzed
 all reported Linux vulnerabilities from 2011--2013 (a total
@@ -669,8 +667,7 @@ these results indicate that moving the system call table into
 the application has the potential to substantially reduce exploitable 
 system vulnerabilities.
 
-\vspace{5pt}
-\noindent{\bf New Opportunities.~}
+\paragraph{New Opportunities.}
 To explore new use cases of the \sysname{} sandboxing model, we modified the 
 Apache {\tt mod\_\-auth\_\-basic.so} module to call the new library OS function
 {\tt sandbox\_create} after user authentication.

@@ -313,7 +313,7 @@ an {\tt exitnotify} RPC to \picoproc{} 4.
 
 %%% Using a helper thread alongside each process to asynchro-
 %%% nously handle signaling
-%%% is common in many microkernel-based OSes such as GNU Hurd~\citep{hurd}.
+%%% is common in many \microkernel{}-based OSes such as GNU Hurd~\citep{hurd}.
 %%% GNU Hurd also maintains local mappings of PIDs and RPC ports for inter-process messaging.
 %%% However, PID namespace in GNU Hurd is only tracked between the parents/children, so signaling cannot be transferred between arbitrary processes.
 %%% \sysname{} handles PID namespace with global consistency inside a sandbox,
@@ -355,8 +355,7 @@ allowing \picoprocs{} to lazily detect reuse similar to generation numbers
 for inodes in NFS~\citep{sandberg85nfs}.
 \end{comment}
 
-\vspace{5pt}
-\noindent{\bf System V IPC.~} System V IPC
+\paragraph{System V IPC.} System V IPC
 maps an application-specified key onto a unique identifier.
 All System V IPC abstractions, including message queues and semaphores,
 are then referenced by this identifier (ID).
@@ -370,8 +369,7 @@ The leader also dynamically allocates keys to \picoprocs{}.
 %%% makes the definitive decision about whether a ID mapping is still valid.
 %%% A key which does not have a valid mapping can be assigned to an ID by any \picoproc{}.
 
-\vspace{5pt}
-\noindent{\bf Message Queues.~} In \sysname{}, the owner of a queue ID is responsible for 
+\paragraph{Message Queues.} In \sysname{}, the owner of a queue ID is responsible for 
 storing the messages written to the queue; all message sends and receives must 
 go through the owning \picoproc{}.  
 In our initial implementation, any sends to or receives from a remote queue were several
@@ -411,8 +409,7 @@ and the receiving process may request ownership of the queue from the leader.
 
 %\daniela{I wonder if the remainder of this section should be part of implementation details(section 5)}
 
-\vspace{5pt}
-\noindent{\bf Semaphores.~} IPC semaphores 
+\paragraph{Semaphores.} IPC semaphores 
 follow a similar pattern to message queues, where ownership of a given semaphore is migrated
 to the \picoproc{} that most frequently acquires the semaphore.
 %If the owner of a semaphore exits, \sysname{} transfers ownership to the leader.  rather than serialize the semaphore to disk.
@@ -421,8 +418,7 @@ Most of the overhead in the Apache benchmark (\S\ref{sec:graphene:eval:perf}) is
 %either expanding the host ABI to share synchronization primitives within a sandbox,
 %using shared memory to reduce semaphore latency.
 
-\vspace{5pt}
-\noindent{\bf Shared File Descriptors.~} 
+\paragraph{Shared File Descriptors.} 
 Open handle descriptors in the \sysname{} host ABI do not include a seek pointer; 
 Unix-style seek behavior is implemented in the library OS.
 The default Linux behavior is that children copy the open handles and file seek cursors,
@@ -438,8 +434,7 @@ Every update to the seek pointer will require coordination
 if the \picoproc{} isn't owning it,
 and similar optimization using migration can be applied here. 
 
-\vspace{5pt}
-\noindent{\bf File System States.~} 
+\paragraph{File System States.} 
 In some cases file system states need to be shared across \picoprocs{},
 but the host ABI cannot export the result of Linux-specific behaviors.
 For example, Linux allows user to perform specialized operations on file system
@@ -448,8 +443,7 @@ or atomically locking a file.
 Coordinating these states can be cause significant slowdown on regular file system operations, so we simply export the state in regular files on the host,
  and atomically update them by renaming.
 
-\vspace{5pt}
-\noindent{\bf Shared Memory.~} The \sysname{} host ABI 
+\paragraph{Shared Memory.} The \sysname{} host ABI 
 does not currently permit shared memory among \picoprocs{}.
 We expect that a host ABI and existing support for coordinating System V IDs would be sufficient to implement this,
 with the caveat that the host must be able to handle sandbox disconnection gracefully, perhaps converting the pages to copy-on-write.
@@ -479,23 +473,21 @@ in the sandbox and respond to messages even if its process {\tt main} routine ha
 and the evaluation data reflects this state.
 \end{comment}
 
-\vspace{5pt}
-\noindent{\bf Failure and Disconnection Tolerance.~}  
+\paragraph{Failure and Disconnection Tolerance.}  
 \sysname{} is designed to tolerate disconnection of collaborating \libos{} instances,
 either because of crashes or blocked RPCs.  In general, \sysname{} makes 
 these disconnections isomorphic to a reasonable application behavior,
 although there may be some edge cases that cannot be made completely transparent to the application.
 
 In the absence of crashes, placing shared state in a given \picoproc{} introduces the risk that an errant 
-application will corrupt shared \libos{} state.  The microkernel approach of 
+application will corrupt shared \libos{} state.  The \microkernel{} approach of 
 moving all shared state into a separate server process is more resilient to this problem.
 Anecdotally, \sysname{}'s performance optimization of migrating ownership to the process that 
 most heavily uses a given shared abstraction also improves the likelihood that only the corrupted
 process will be affected.  
 Making \sysname{} resilient to arbitrary memory corruption of any \picoproc{} is left for future work.
 
-\vspace{5pt}
-\noindent{\bf Leader Recovery.~}
+\paragraph{Leader Recovery.}
 \sysname{} provides a leadership recovery mechanism when a leader failure is detected.
 A non-leader \picoproc{} can detect the failure of a leader by either observing the shutdown of RPC streams or timing out on waiting for responses. 
 Once the \picoproc{} detects leader failure, it sends out a message on the broadcast stream to volunteer for leadership.
@@ -524,13 +516,12 @@ This subsection summarizes the design principles that have emerged from this pro
 %behind the decision.  The next subsections synthesize these aspects 
 %with specific examples of signaling and message queues.
 
-\vspace{5pt}
-\noindent {\bf Service requests from local state whenever possible.}
+\paragraph{Service requests from local state whenever possible.}
 Sending RPC messages over Linux pipes is expensive;
 this is unsurprising, given the long history of 
 work on reducing IPC overhead in microkernels~\citep{liedtke93sosp,chen93memory}.  
 We expect that \sysname{} performance could be improved on a 
-microkernel with
+\microkernel{} with
 a more optimized IPC substrate, such as L4~\citep{liedtke95sosp,klein09sel4,elphinstone13microkernels};
 we take a complementary approach of avoiding IPC if possible.
 %but this is beyond the scope of our work, and we want \sysname{} to perform well on any 
@@ -542,8 +533,7 @@ In these situations, synchronous RPC requests can be replaced with local functio
 performance substantially.  For instance, migrating ownership of message queues 
 reduced overhead for message receive by a factor of $10\times$.
 
-\vspace{5pt}
-\noindent {\bf Lazy discovery and caching improve performance.}  
+\paragraph{Lazy discovery and caching improve performance.}  
 No library OS keeps a complete replica of all distributed state,
 avoiding substantial overheads to pass messages replicating irrelevant state.
 Instead, \sysname{} incurs the overhead of discovering the owner of a name
@@ -557,8 +547,7 @@ If they exchange a second signal, the mapping is cached and reused, amortizing t
 setup cost.  For instance, the first signal a process sends to a new processes
 takes \~{}2ms, but subsequent signals take only \~{}55 $\mu$s.
 
-\vspace{5pt}
-\noindent {\bf Batched allocation of names minimizes leader workload.}
+\paragraph{Batched allocation of names minimizes leader workload.}
 In order to keep the leader off of the critical path of operations like {\tt fork}, 
 the leader typically allocates larger blocks of names, such as process IDs or System V queue IDs.
 In the case of {\tt fork}, if a \picoproc{} creates a child, it will request a batch of 
@@ -568,8 +557,7 @@ Collaborating processes also cache the owner of a range of PIDs, avoiding
 leader queries for adjacent queries.
 
 %% dp: Sad to see this go, but it is sort of subsumed by the other discussion
-\vspace{5pt}
-\noindent {\bf The coordination within a sandbox is often pairwise.}
+\paragraph{The coordination within a sandbox is often pairwise.}
 \sysname{} optimizes the common case of pairwise coordination,
 by authorizing one side of the coordination to dictate the abstraction state,
 but also allows
@@ -583,8 +571,7 @@ or indicates that the thread does not exist.
 This trade does make commands like {\tt ps} slower, 
 but optimizes more common patterns, such as waiting for a child to exit.
 
-\vspace{5pt}
-\noindent {\bf Make RPCs asynchronous whenever possible.} 
+\paragraph{Make RPCs asynchronous whenever possible.} 
 For operations that must write to state in another \picoproc{}, 
 the \sysname{} design strives to cache enough information in the sender 
 to evaluate whether the operation will succeed, thereby obviating the 
@@ -599,8 +586,7 @@ of sending messages to a remote queue.
 %% of names, such as a thread ID or System V message queue ID, to the authoritative \picoproc{} for that abstraction, if one exists.
 
 
-\vspace{5pt}
-\noindent {\bf Summary.}
+\paragraph{Summary.}
 The current \sysname{} design minimizes the use of RPC,
 avoiding heavy communication overheads in the common case.
 This design also allows for substantial flexibility to dynamically moving processes out of

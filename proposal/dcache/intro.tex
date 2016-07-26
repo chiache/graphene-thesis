@@ -122,7 +122,7 @@ This issue is taken particularly seriously in the Linux kernel community, which 
 made substantial revisions and increasingly elaborate optimizations to reduce the hit cost
 of its directory cache, such as removing locks from the read path or replacing lock ordering with deadlock avoidance in a retry loop~\citep{corbet09jls,dcache-rcu}.
 Figure~\ref{fig:dcache:by-version} plots directory cache hit latency against  lines of directory cache code changed 
-over several versions of Linux, using a path-to-inode lookup microbenchmark on the test system described
+over several versions of Linux, using a path-to-inode lookup \microbench{} on the test system described
 in \S~\ref{sec:dcache:eval}.
 These efforts have improved hit latency by 47\% from 2011 to 2013, but have plateaued
 for the last three years.
@@ -229,7 +229,7 @@ while pushing extra work of consistency maintenance onto less frequent, already-
 %This paper explains several practical directory cache optimizations,
 This paper demonstrates that these techniques improve performance for applications that use the directory cache heavily,
 and the harm is minimal to applications that do not benefit.
-%and that the worst case microbenchmark is only 12\% slower within \fixmedp{XX}\% of unmodified Linux.
+%and that the worst case \microbench{} is only 12\% slower within \fixmedp{XX}\% of unmodified Linux.
 %Each optimization we describe improves performance in isolation, and all can be combined.
 %These optimizations change very few lines of code, and are backward-compatible with 
 %legacy applications.  
