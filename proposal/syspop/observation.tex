@@ -4,53 +4,30 @@
 %\note{about 3 pages, include graphs}
 %\note{try to break the page here so the whole observation can start on a new page}
 
-This section presents measurements of API usage,
-as well as several trends in how APIs are used. Of particular note is that
-the OS interface required by essentially all applications is 
-%the total OS interface that essentially all applications require is
-substantially larger than the roughly 300 Linux system calls---the required interface
-also includes several vectored system call operations, such as {\tt ioctl}, and special filesystem interfaces like {\tt /sys} and {\tt /proc}.
-We also note that a number of system calls and other APIs are so rarely used that they can be deprecated with little disruption or effort.
-
-%\fixmedp{This list feels like fluff to me.  Commenting for now, unless you have a good argument to resurrect it}
-%\fixmetsai{This list is a trailer. It pictures what kinds of insight we are looking for, so readers would know what they can expect.}
-%% dp: Adding a few sentences at end
-\begin{comment}
-Based on our study, we suggest improvements for the following qualities of Linux APIs:
-\begin{compactitem}
-\item {\em Cleanness}:
-Deprecating unused APIs can keep the interface
-implementation clean,
-saving the efforts for developers to maintain, test and document
-the APIs.
-\item {\em Security}:
-Shrinking or partitioning APIs can reduce
-unnecessary attack surface, preventing unknown vulnerabilities
-in these APIs to be exploited.
-\item {\em Ease of improving compatibility}:
-Knowing the APIs with the highest \usagemetric{}, developers can find
-the shortest path to boost the overall system compatibility.
-\item {\em Resource Usage}:
-As a minor benefit, deprecating APIs can free up system resources occupied, for storing API states, directory entries or symbol tables.
-\end{compactitem}
-\end{comment}
-
-This section first examines the use of system calls in Linux applications.
-Section~\ref{sec:observation:hello} analyzes the most efficient path to add system calls
-to a prototype, outlining a path from the minimal footprint for ``hello world'', 
-up through the most demanding application (qemu), maximizing the number
-of supported applications at each step.
-Section~\ref{sec:observation:vector} analyzes the importance of operations
-under vectored system calls, such as {\tt ioctl}.
-Section~\ref{sec:observation:pseudo} evaluates the \usagemetric{} of 
-pseudo-files, such as those under {\tt /proc}.
-Finally, Section~\ref{sec:observation:libc}
-examines current usage patterns for \libc{}.
-Throughout the section, we identify several points at which APIs could be gainfully
-restricted, removed, or refactored,
-as well as identifying points where unexpected APIs can be essential to performance or
-functionality.
-We highlight key insights and recommendations in boxes.
+%This section presents measurements of API usage,
+%as well as several trends in how APIs are used. Of particular note is that
+%the OS interface required by essentially all applications is 
+%%the total OS interface that essentially all applications require is
+%substantially larger than the roughly 300 Linux system calls---the required interface
+%also includes several vectored system call operations, such as {\tt ioctl}, and special filesystem interfaces like {\tt /sys} and {\tt /proc}.
+%We also note that a number of system calls and other APIs are so rarely used that they can be deprecated with little disruption or effort.
+%
+%This section first examines the use of system calls in Linux applications.
+%Section~\ref{sec:observation:hello} analyzes the most efficient path to add system calls
+%to a prototype, outlining a path from the minimal footprint for ``hello world'', 
+%up through the most demanding application (qemu), maximizing the number
+%of supported applications at each step.
+%Section~\ref{sec:observation:vector} analyzes the importance of operations
+%under vectored system calls, such as {\tt ioctl}.
+%Section~\ref{sec:observation:pseudo} evaluates the \usagemetric{} of 
+%pseudo-files, such as those under {\tt /proc}.
+%Finally, Section~\ref{sec:observation:libc}
+%examines current usage patterns for \libc{}.
+%Throughout the section, we identify several points at which APIs could be gainfully
+%restricted, removed, or refactored,
+%as well as identifying points where unexpected APIs can be essential to performance or
+%functionality.
+%We highlight key insights and recommendations in boxes.
 
 %% \rev{Explain the structure.}{In the following subsections,
 %% we will discuss our findings on the API usage of different interface types,
@@ -124,7 +101,7 @@ developers only have to pay minimum efforts to re-implement the wrappers in libr
 \begin{figure}[t]
 \centering
 \includegraphics[width=4.5in]{syspop/figures/syscall-popularity-all-by-inst.pdf}
-\caption[N-most important system calls among total \syscallnum{} system calls.]
+\caption[N-most important system calls in Linux.]
 {The trend of \usagemetric{} as N-most important system calls among total \syscallnum{} system calls of \osversion{} with Linux kernel \kernelversion{}. .
 Higher is more important; 100\% indicates all installations include software that make the system call.}
 \label{fig:syscall-popularity-trend}
