@@ -64,7 +64,7 @@ Resume & N/A & 1.146 {\bf s}  &  &  1387 {\bf $\mu$s} &  \\
 Checkpoint size & N/A & \multicolumn{2}{|l|}{105 MB} & \multicolumn{2}{|l|}{376 KB}   \\
 \hline
 \end{tabular}
-\caption[\sysname{}: startup, checkpoint, and resume times.]
+\caption[\sysname{}: startup, checkpoint, and resume times]
 {Startup, checkpoint, and resume times for a native Linux process,
 a KVM virtual machine,
 and a \sysname{} \picoproc{}, where appropriate. Lower is better.  
@@ -211,7 +211,7 @@ Unix utils & 0.87 & .00 & 1.10 & .01 & 26 \% & 2.01 & .00 & 134 \%
 Unixbench & 0.55 & .00 & 0.55 & .00 & 0 \% & 1.49 & .00 & 192 \%
 \\\hline
 \end{tabular}
-\caption[\sysname{}: application benchmark results.]
+\caption[\sysname{}: application benchmark results]
 {Application benchmark execution times in a native Linux process, a process inside a KVM virtual machine, and a \sysname{} \picoproc{} with reference monitoring (+RM). }
 \label{tab:graphene:apps}
 \end{table}
@@ -351,7 +351,7 @@ fork+sh&576&8&1,720&10&199&1,775&11&208 \\\hline
 %%% 10K creat & 83 & 0.1  & 28 & 0.0 & 195 & 27 & 0.0 & 204 \\\hline
 %%% 10K del & 149 & 0.3  & 94 & 0.1 & 58 & 88 & 0.2 & 69 \\\hline
 \end{tabular}
-\caption[\sysname{}: \lmbench{} benchmarking results.]
+\caption[\sysname{}: \lmbench{} benchmarking results]
 {\lmbench{} comparison among native Linux processes
 and \sysname{} \picoprocs{}, both without and with the reference monitor (+RM).
 Execution time is in microseconds, and lower is better. 
@@ -419,7 +419,7 @@ msgrcv & in process	&	149	& 0.1 &	237	& 0.2 &	60	\%	\\
             & inter process	&	153	& 0.1 &	779	& 2.2 &	409	\%	\\
             & persistent	&	N/A	& &	979	& 0.6 &	561	\%	\\\hline
 \end{tabular}
-\caption[\sysname{}: micro-benchmark for System V message queues.]
+\caption[\sysname{}: micro-benchmark for System V message queues]
 {Micro-benchmark comparison for System V message queues
 between a native Linux process and \sysname{} \picoprocs{}.
 Execution time is in microseconds, and lower is better.
@@ -450,20 +450,20 @@ by a factor of ten.  The optimizations of asynchronous sending and migrating own
 when a producer/consumer pattern were detected were particularly helpful.
 
 %%\begin{comment}
-\paragraph{Scalability.}
-We compare the scalability of \sysname{}'s RPC substrate with the scalability
-of Linux pipes, using a micro-benchmark that compares the cost of ping-ponging a no-op RPC within a sandbox.
-%In order to evaluate the scalability of \sysname{}'s m
-%we created a microbenchmark where processes within one sandbox ping-pong a no-op RPC,
-%in figure~\ref{fig:rpc4core}.For comparison we executed a similar test where processes send equal sized
-For this experiment, we used a 48-core SuperMicro SuperServer, with four 12-core AMD Opteron 6172 chips running at 2.1 GHz and 64 GB of RAM.
-The performance of \sysname{} closely matches Linux (Figure~\ref{fig:graphene:rpc48core}),
-indicating that the \sysname{} RPC mechanism doesn't introduce any scalability bottlenecks above
-the scalability of IPC on the host OS (Linux).
-The relative performance differences are more variable above 24 cores, which we believe are the 
-result of host-level scheduling.
-We hasten to note that these are worst-case stress tests; based on our application behaviors as well as 
-tuning experience, we expect RPC messages to be infrequent and to scale further in practice.
+%\paragraph{Scalability.}
+%We compare the scalability of \sysname{}'s RPC substrate with the scalability
+%of Linux pipes, using a micro-benchmark that compares the cost of ping-ponging a no-op RPC within a sandbox.
+%%In order to evaluate the scalability of \sysname{}'s m
+%%we created a microbenchmark where processes within one sandbox ping-pong a no-op RPC,
+%%in figure~\ref{fig:rpc4core}.For comparison we executed a similar test where processes send equal sized
+%For this experiment, we used a 48-core SuperMicro SuperServer, with four 12-core AMD Opteron 6172 chips running at 2.1 GHz and 64 GB of RAM.
+%The performance of \sysname{} closely matches Linux (Figure~\ref{fig:graphene:rpc48core}),
+%indicating that the \sysname{} RPC mechanism doesn't introduce any scalability bottlenecks above
+%the scalability of IPC on the host OS (Linux).
+%The relative performance differences are more variable above 24 cores, which we believe are the 
+%result of host-level scheduling.
+%We hasten to note that these are worst-case stress tests; based on our application behaviors as well as 
+%tuning experience, we expect RPC messages to be infrequent and to scale further in practice.
 
 
 %% messages over pipes on native Linux.The results indicated that the RPC substrate itself 
@@ -622,7 +622,7 @@ Kernel other     & 13      & \hspace{0.2in} 0 &\\\hline
 Total            & 291     & \hspace{0.2in} 147 & 51\% \\\hline 
 %\hline
 \end{tabular}
-\caption[\sysname{}: analysis of Linux vulnerabilities prevented.]
+\caption[\sysname{}: analysis of Linux vulnerabilities prevented]
 {Manual analysis of Linux vulnerabilities from 2011-2013 and \sysname{}'s prevention.}
 \label{table:vulnerabilities}
 \end{table}
