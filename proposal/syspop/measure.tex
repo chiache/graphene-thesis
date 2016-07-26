@@ -1,14 +1,7 @@
 % dp: too cutesy?
 \section{Some APIs Are More Equal Than Others}
 %\section{How to Correctly Evaluate API Compatibility}
-\label{sec:measure}
-
-\begin{comment}
-When evaluating the thoroughness of a system prototype that has a Unix compatibility layer,
-papers often appeal to the number of total supported system APIs
-as a noisy indicator that the prototype probably covers all important use cases.
-Such a metric is easy to quantify, but problematic.
-\end{comment}
+\label{sec:syspop:measure}
 
 We started this study from a research perspective, in search of a better way to evaluate
 the completeness of system prototypes with a Unix compatibility layer.
@@ -36,12 +29,12 @@ is just as likely to support all or none of the Linux applications distributed w
 
 
 
-This paper considers system APIs (``APIs'') broadly:
-this includes system calls, as well as any other means by which OS kernel functionality is
-requested, such as a pseudo-file system ({\tt /proc}).
-This paper also considers
-libraries like libc, which are typically responsible for exporting an API, like POSIX,
-as well as the primary way application developers interact with the OS kernel.
+%This paper considers system APIs (``APIs'') broadly:
+%this includes system calls, as well as any other means by which OS kernel functionality is
+%requested, such as a pseudo-file system ({\tt /proc}).
+%This paper also considers
+%libraries like libc, which are typically responsible for exporting an API, like POSIX,
+%as well as the primary way application developers interact with the OS kernel.
 %For applications, system libraries are also system APIs. Modern applications rarely use the kernel interfaces like system calls directly, but instead call library APIs as wrapper or translation layer of kernel interfaces. 
 %For Linux platforms, \libc{}, or {\em Standard Library C}, is the most ubiquitously used system libraries, providing a large fraction of
 %general-purpose APIs commonly used by every application.
@@ -475,11 +468,12 @@ Our static analysis identifies system call instructions and constructs a whole-p
 
 \begin{figure}[t!]
 \center{
-\includegraphics[width=2.1in]{syspop/figures/executable-type.pdf}\hspace{-0.6in}\includegraphics[width=1.8in]{syspop/figures/elf-binary-type.pdf}
+\includegraphics[width=2.4in]{syspop/figures/executable-type.pdf}\hspace{-0.6in}\includegraphics[width=2.1in]{syspop/figures/elf-binary-type.pdf}
 }
 \footnotesize
-\caption{Percentage of ELF inaries and applications written in interpreted languages among all executables in the \osdist{} repository, categorized by interpreters. ELF binaries include static binaries, shared libraries and dynamically-linked executables. Interpreters are detected by {\em shebangs} of the files. Higher is more important.}
-\label{fig:executable-type}
+\caption[Types of executables included in the study of Linux API usage.]
+{Percentage of ELF binaries and applications written in interpreted languages among all executables in the \osdist{} repository, categorized by interpreters. ELF binaries include static binaries, shared libraries and dynamically-linked executables. Interpreters are detected by {\em shebangs} of the files. Higher is more important.}
+\label{fig:syspop:executable-type}
 \end{figure}
 
 Our study focuses primarily on ELF binaries, which account for the largest fraction of Linux applications
