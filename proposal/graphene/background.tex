@@ -35,7 +35,7 @@ which has been previously implemented on Windows, Hyper-V, and Barrelfish~\citep
 \begin{figure}[t!]
 \centering
 \includegraphics[width=5.5in]{graphene/figures/arch.pdf}
-\caption[\sysname{}: the building blocks.]
+\caption[\sysname{}: the building blocks]
 {Building blocks of \sysname{}.  Black components are unmodified.
 We modify the four lowest application libraries:
 {\tt ld.so} (the ELF linker and loader),
@@ -146,7 +146,7 @@ Bulk IPC & 3 & Exchange copy-on-write pages.\\
 Sandboxes & 1 & Move into a new sandbox, with a new manifest applied. Pipes and streams that violates the new policy are closed.\\
 \hline
 \end{tabular}
-\caption[\sysname{}: list of host ABI functions.]
+\caption[\sysname{}: list of host ABI functions]
 {Classes of  host ABI functions adopted from \drawbridge{}~\citep{porter11drawbridge}, 
 followed by ABIs added by \sysname{}.}
 \label{tab:graphene:abi}
@@ -207,8 +207,7 @@ which would complicate live migration across platforms.
 None of these problems are insurmountable, and it would be interesting in future
 work to compare both options.
 
-\vspace{5pt}
-\noindent{\bf Multi-Process Support in \sysname{}.~}
+\paragraph{Multi-Process Support in \sysname{}.}
 %\daniela{Because Approach and Motivating Example are on the same level, its seems that
 %you are starting a new topic under Approach, when the discussion is actually a continuation of
 %Motivating Example}
@@ -305,13 +304,12 @@ and 3 new calls are used to utilize Bulk IPC channel, for optimizing copy-on-wri
 %Unix-style multi-process applications.
 Our design deliberately provides options where these new \pal{} calls are missing, to preserve the platform compatibility proven by {\em Drawbridge}. For example, copy-on-write fork can still be supported without Bulk IPC, by simply exchanging data through a regular pipe.
 
-\vspace{5pt}
-\noindent{\bf Comparison with Micro-kernels.~}
+\paragraph{Comparison with \microkernel{}s.}
 The building blocks of \sysname{} are very similar to the system abstractions of a 
-microkernel~\citep{liedtke95sosp,klein09sel4,elphinstone13microkernels,liedtke93sosp,chen93memory,Baron:1985:MOE,Accetta:1986:MNK}.
+\microkernel{}~\citep{liedtke95sosp,klein09sel4,elphinstone13microkernels,liedtke93sosp,chen93memory,Baron:1985:MOE,Accetta:1986:MNK}.
 %such as the port and
 %message abstractions of Mach~\citep{
-Unlike a multi-server microkernel system, such as GNU Hurd~\citep{hurd} or Mach-US~\citep{stevenson95mach-us},
+Unlike a multi-server \microkernel{} system, such as GNU Hurd~\citep{hurd} or Mach-US~\citep{stevenson95mach-us},
 which implements Unix abstractions across a set of daemons that are shared by all processes in the system,
 \sysname{} implements system abstractions as a library in the application's address space,
 and can coordinate library state among \picoprocs{} to implement shared abstractions.
@@ -325,7 +323,7 @@ by running a dedicated set of service daemons for each application.
 %%% between single-process and multi-process support, as well as adapting 
 %%% some known techniques to a new environment.
 
-The \sysname{} host ABI could be described as a hybrid microkernel,
+The \sysname{} host ABI could be described as a hybrid \microkernel{},
 which also exposes the file system and network of the host kernel.
 Similarly, we assume that \picoprocs{} are provided by a legacy OS kernel, like Linux or Windows,
 or by a Type 2 hypervisor.  We expect that a bare metal hypervisor could export a \pal{},
@@ -335,8 +333,7 @@ but would probably require services from a trusted VM, such as Xen's dom0~\citep
 Arguably, recent libOS designs might be improved by rethinking the division of labor in
 the network and file system stacks, but this is beyond the scope of this paper.
 
-\vspace{5pt}
-\noindent{\bf Alternatives.~}
+\paragraph{Alternatives.}
 Another approach to support multi-process applications in a libOS 
 would be to use hardware MMU virtualization such as nested paging
 used by a system like Dune~\citep{belay12dune}
