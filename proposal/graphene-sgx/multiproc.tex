@@ -162,8 +162,8 @@ In addition, a child process does not verify the measurement of its parent,
 but instead presents the measurements of all ancestors
 to remote trusted server when attesting its own integrity.
 In other word, for the same binary {\tt ls} isolated in the enclave,
-the measurement reflects the distinction if the binary is {\tt execve'}d by,
-say an isolated shell or Apache server.
+the measurement reflects the distinction if the binary is called by,
+say a shell or Apache server.
 
 %To identify binaries that can be trusted (either as parents or children)
 %during process creation,
@@ -186,12 +186,11 @@ to maintain the state of shared objects,
 as well as 
 the namespace states such as in which \picoprocs{} these objects are proxied.
 
-In \graphene{}, a wide range of multi-process abstractions and namespaces are supported,
-by passing messages over RPC streams across processes.
+\graphene{} coordinates multi-process abstractions and namespaces
+by passing messages over RPC streams.
 Such a design is beneficial for supporting multi-process abstractions in enclaves.
-In \sysname{}, enclaves will not have to share any in-memory state
-for multi-process abstraction,
-and the RPC streams for coordination can be secured by the enclaves proactively.
+\sysname{} inherits the same design of inter-process coordination,
+and the RPC streams used for coordination can be secured by the enclaves proactively on untrusted hosts.
 
 %In \graphene{}, security isolation among multi-process abstractions,
 %regardless of their semantics,
@@ -206,7 +205,6 @@ and the RPC streams for coordination can be secured by the enclaves proactively.
 %all information sent over RPC streams must be encrypted,
 %because \libos{} cannot determine whether the information may contain any secret.
 
-
-
+\fixme{Needs to work this part out}
 
 
