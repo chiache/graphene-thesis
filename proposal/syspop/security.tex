@@ -42,7 +42,8 @@ of probability of installation.
 \includegraphics[width=3.6in]{syspop/figures/unweighted-syscall-popularity-all.pdf}
 }
 \footnotesize
-\caption{The trend of \unwusagemetric{} in N-most important system calls among total \syscallnum{} system calls of \osversion{} with Linux kernel \kernelversion{}.}
+\caption[\Unwusagemetric{} of Linux system calls]
+{The trend of \unwusagemetric{} in N-most important system calls among total \syscallnum{} system calls of \osversion{} with Linux kernel \kernelversion{}.}
 \label{fig:unweighted-syscall-popularity-trend}
 \end{figure}
 
@@ -130,10 +131,9 @@ packages use the more vulnerable {\tt access} system call instead of the more se
 \begin{table}[t!b!]
 \footnotesize
 \centering
-\setlength{\tabcolsep}{5pt}  
-\begin{tabular}{m{0.85in}rm{0.85in}r}
+\begin{tabular}{m{1.2in}>{\raggedleft\arraybackslash}m{1.2in}m{1.2in}>{\raggedleft\arraybackslash}m{1.2in}}
 \toprule
-{\bf Insecure API} & {\bf U.API Imp.} & {\bf Secure API} & {\bf U.API Imp.}\\
+{\bf Insecure API} & {\bf \UnwusageMetric{}} & {\bf Secure API} & {\bf \Unwusagemetric{}}\\
 \midrule
 \multicolumn{4}{c}{\bf Unclear vs. Well-defined ID Management Semantics} \\
 \midrule
@@ -177,7 +177,8 @@ packages use the more vulnerable {\tt access} system call instead of the more se
 %& {\tt chmod}    & 39.80\% & \multirow{2}{*}{\tt fchmodat}   & \multirow{2}{*}{ 0.13\%} \\
 %& {\tt fchmod}   & 32.78\% & & \\
 \end{tabular}
-\caption{The \unwusagemetric{} (``U. API Imp.'') of secure and insecure API variations.}
+\caption[\Unwusagemetric{} of secure and insecure API variations]
+{\Unwusagemetric{} of secure and insecure API variations. Higher is more important.}
 \label{tab:security_api}
 \end{table}
 
@@ -236,11 +237,11 @@ This indicates that more often than not, developers choose simplicity
 unless a task demands the functionality of a more powerful API variant.
 
 \begin{table}[t!b!]
-  \footnotesize
-  \centering
-  \begin{tabular}{m{0.75in}rm{0.75in}r}
+\footnotesize
+\centering
+\begin{tabular}{m{1.2in}>{\raggedleft\arraybackslash}m{1.2in}m{1.2in}>{\raggedleft\arraybackslash}m{1.2in}}
 \toprule
-\textbf{Old API} & \textbf{U. API Imp.} & \textbf{New API} & \textbf{U. API Imp.}\\
+{\bf Old API} & {\bf \UnwusageMetric{}} & {\bf New API} & {\bf \UnwusageMetric{}}\\
 \midrule
 {\tt getdents} & 99.80\% & {\tt getdents64} & 0.08\% \\
 \addlinespace
@@ -253,18 +254,19 @@ unless a task demands the functionality of a more powerful API variant.
 \addlinespace
 {\tt wait4} & 60.56\% & {\tt waitid} & 0.24\% \\
 \end{tabular}%
-\caption{The \unwusagemetric{} (``U. API Imp'') of old (generally deprecated) and new (preferred) API variations. Higher is more important.}
+\caption[\Unwusagemetric{} of old and new API variations.]
+{\Unwusagemetric{} of old (generally deprecated) and new (preferred) API variations. Higher is more important.}
 \vspace{-0.1in}
 \label{tab:old}%
 \end{table}%
 
 
 \begin{table}[t!b!]
-  \footnotesize
-  \centering
-  \begin{tabular}{lrlr}
+\footnotesize
+\centering
+\begin{tabular}{m{1.2in}>{\raggedleft\arraybackslash}m{1.2in}m{1.2in}>{\raggedleft\arraybackslash}m{1.2in}}
 \toprule
-\textbf{Linux Specific} & \textbf{U. API Imp.} & \textbf{Portable / Generic} & \textbf{U. API Imp.}\\
+{\bf Linux Specific API} & {\bf \Unwusagemetric{}} & {\bf Portable / Generic API} & {\bf \Unwusagemetric{}}\\
 \midrule
 {\tt preadv} & 0.15\% & {\tt readv} & 62.23\% \\
 %\addlinespace
@@ -279,38 +281,35 @@ unless a task demands the functionality of a more powerful API variant.
 {\tt sendmmsg} & 5.17\% & {\tt sendmsg} & 42.49\% \\
 \addlinespace
 {\tt pipe2} & 40.33\% & {\tt pipe} & 50.33\% \\
-  \end{tabular}%
-  \caption{The \unwusagemetric{} (U. API Imp.)of more API variants,
-and comparison between Linux-specific versions
-and more portable or generic versions.
-Higher is more important.}
-\vspace{-0.1in}
-  \label{tab:linux-specific}%
+\end{tabular}%
+\caption[\Unwusagemetric{} of other API variants]
+{\Unwusagemetric{} of other API variants,
+and comparison between Linux-specific versions and more portable or generic versions. Higher is more important.}
+\label{tab:linux-specific}%
 \end{table}%
 
 
 \begin{table}[t!b!]
-  \footnotesize
-  \centering
-  \begin{tabular}{m{0.75in}rm{0.75in}r}
+\footnotesize
+\centering
+\begin{tabular}{m{1.2in}>{\raggedleft\arraybackslash}m{1.2in}m{1.2in}>{\raggedleft\arraybackslash}m{1.2in}}
 \toprule
-\textbf{System Call} & \textbf{U. API Imp.} & \textbf{System Call} & \textbf{U. API Imp.}\\
+{\bf Linux API} & {\bf \Unwusagemetric{}} & {\bf Alternative API} & {\bf \Unwusagemetric{}}\\
 \midrule
 {\tt read} & 99.88\% & {\tt pread64} & 27.23\% \\
+{\tt select} & 61.53\% & {\tt pselect6} & 4.13\% \\
 \addlinespace
 \multirow{2}{*}{\tt dup3} & \multirow{2}{*}{8.72\%} & {\tt dup2} & 99.75\% \\
 & & {\tt dup} & 66.64\% \\
 \addlinespace
 {\tt recvmsg} & 68.82\% & {\tt recvfrom} & 53.80\% \\
-%\addlinespace
 {\tt sendmsg} & 42.49\% & {\tt sendto} & 71.71\% \\
-\addlinespace
-{\tt select} & 61.53\% & {\tt pselect6} & 4.13\% \\
-\addlinespace
-{\tt chdir} & 44.61\% & {\tt fchdir} & 2.20\% \\
-    \end{tabular}%
-   \caption{The \unwusagemetric{} among similar API variants. Higher is more important.}
-  \label{tab:preference}%
+%\addlinespace
+%{\tt chdir} & 44.61\% & {\tt fchdir} & 2.20\% \\
+\end{tabular}%
+\caption[\Unwusagemetric{} among similar API variants]
+{\Unwusagemetric{} among similar API variants. Higher is more important.}
+\label{tab:preference}%
 \end{table}%
 
  

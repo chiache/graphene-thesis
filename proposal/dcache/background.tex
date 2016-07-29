@@ -1,5 +1,5 @@
 \section{Background}
-\label{sec:background}
+\label{sec:dcache:background}
 
 %\fixmedp{maybe introduce the term prefix check here too?}
 
@@ -88,7 +88,7 @@ may determine search permission based on a number of factors beyond the execute 
 %% file system objects as simulation of tree traversal based on given paths.
 
 \subsection{Linux Directory Cache}
-\label{sec:background:dcache}
+\label{sec:dcache:background:dcache}
 
 The Linux directory cache, or {\bf \dcache{}}, caches 
 {\bf \dentry{}} (directory entry) structures, which map a path to an in-memory inode\footnote{Other Unix systems call the VFS-level representation of an inode a vnode.} for the file (or directory, device, etc).
@@ -125,7 +125,7 @@ searching for a file on multiple paths specified by an environment variable,
 such as  {\tt LD\_LIBRARY\_PATH}.
 
 \paragraph{Current dcache optimizations.}
-Much of the dcache optimization effort illustrated in Figure~\ref{fig:by-version}
+Much of the dcache optimization effort illustrated in Figure~\ref{fig:dcache:by-version}
 has improved cache hit latency, primarily by reducing the cost of
 synchronization in the lookup function with read-copy update (RCU)~\citep{mckenney04rcu,dcachercu04}.
 RCU eliminates the atomic instructions needed for a read lock and for reference counting individual \dentries{},
@@ -577,8 +577,8 @@ without the manageability issues of {\em storing} propagated hierarchical permis
 {\bf Path3:} \tt XXX/YYY/ZZZ/FFF \\
 \multicolumn{3}{l}{{\bf Path4:} \tt XXX/YYY/ZZZ/AAA/BBB/CCC/DDD/FFF} \\
 \end{tabular}
-\caption[Principal sources of path lookup latency.]
-{Principal sources of path lookup latency in the Linux \linuxver{} kernel. Lower is better.}
+\caption[Principal sources of unmodified and optimzied latency of path lookup]
+{Principal sources of path lookup latency in the unmodified and optimzed Linux \linuxver{} kernel. Lower is better.}
 %The experiment shows that the latencies of ``Hash Table Lookup'', ``Permission Check'' and ``Path Scanning \& Hashing'' are linear to the number of path components ($O(n)$).
 %In our solution, The latencies of ``Hash Table Lookup'' and ``Permission Check'' are constant. }
 %\fixmetsai{Maybe we break down the fast path, too?}  } 

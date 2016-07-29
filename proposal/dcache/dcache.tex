@@ -26,8 +26,8 @@ and how we use path signatures to further accelerate lookup.
 \centering
 \includegraphics[width=4in]{dcache/figures/dcache-structure.pdf}
 \footnotesize
-\caption[Optimized Linux Directory Cache Structure.]
-{Optimized Linux Directory Cache Structure. \dentries{} are chained in hash buckets. To index the hash bucket for a target \dentry{}, the original lookup routine {\tt d\_lookup} uses a hashing function with key as a combination of the pointer to parent directory and file name ({\em slowpath}).
+\caption[Optimized Linux directory cache structure.]
+{Optimized Linux directory cache structure. \dentries{} are chained in hash buckets. To index the hash bucket for a target \dentry{}, the original lookup routine {\tt d\_lookup} uses a hashing function with key as a combination of the pointer to parent directory and file name ({\em slowpath}).
 Our {\em fastpath} hashes the full canonical path of target file to look up the \dentry{}
 in the Direct Lookup Hash Table,
 and checks the per-credential Prefix Check Cache.}
@@ -36,7 +36,7 @@ and checks the per-credential Prefix Check Cache.}
 
 %\fixmedp{update the picture with new tables}
 Like many Unix variants, Linux stores cached path-to-inode mappings (\dentries{}) in a hash
-table (\S\ref{sec:background:dcache}).  This hash table is keyed by a combination of 
+table (\S\ref{sec:dcache:background:dcache}).  This hash table is keyed by a combination of 
 the virtual address of the parent \dentry{} and the next path component string, illustrated in
 Figure~\ref{fig:dcache}.  
 Virtual addresses of kernel objects do not change over time and are identical across processes.
@@ -54,7 +54,7 @@ In practice, prefix checks have a high degree of spatial and temporal locality,
 and are highly suitable for caching,
 even if this 
 means pushing some additional work onto infrequent modifications of the directory structure (e.g., {\tt rename} of a directory).
-RCU already makes this trade-off (\S\ref{sec:background:dcache}).
+RCU already makes this trade-off (\S\ref{sec:dcache:background:dcache}).
 
 %Application file access patterns exhibit substantial temporal and spatial locality.
 %Moreover, lookups (i.e., reads of the directory hierarchy)
@@ -225,7 +225,7 @@ our design currently handles wrap-around by invalidating all active PCCs.
 \centering
 \includegraphics[width=4.5in]{dcache/figures/dcache-data_structure.pdf}
 \footnotesize
-\caption[Directory cache optimization: Data structures added.]
+\caption[Data structures added in Linux for directory cache optimization]
 {Data structures added for fast directory cache lookup. To support {\em fastpath} lookup, we add a 88-byte fast dentry structure to the original \dentry{} and a variable-sized PCC structure into {\tt cred}. 
 %% dp: meh
 %Both structures are aligned to 64-byte cacheline to make lookup cache-friendly.

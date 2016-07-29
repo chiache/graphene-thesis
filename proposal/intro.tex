@@ -8,10 +8,10 @@ In traditional systems, the security of an application is built upon
 trusting the whole system stack to enforce its security policies.
 The system stack needed to be trusted
 --- as part of the application's {\em trusted computing base (TCB)}
---- includes the hardware (from CPUs to devices), operating systems, system libraries, and language runtimes.
+--- includes the hardware (from CPUs to devices), operating systems, system libraries, and language runtimes (a languge runtime can be considered an application or part of the system stack).
 If a vulnerability exists anywhere in the system stack,
-attackers can exploit the vulnerability to bypass security mechanisms applied by the application,
-compromising any security policies that application applies.
+attackers can exploit the vulnerability to bypass the security mechanisms the application rely on,
+compromising any security policies that application enforces.
 
 However, as the design of the hardware, operating systems, libraries and runtimes grows increasingly complex,
 it becomes harder for system developers to eliminate the vulnerabilities
@@ -456,7 +456,7 @@ to a few predefined entry points,
 the developers still have to reason about what the soundness of the
 entry-point definitions, protection against malicious inputs,
 and the code paths that must not inadvertently leak sensitive data.
-For instance, Iago attacks~\citep{iago}, where an OS offers malicious system call return values,
+For instance, Iago attacks~\citep{checkoway13iago}, where an OS offers malicious system call return values,
 can be notoriously difficult to defend against from an enclave;
 although limited countermeasures exist for the OS API (typically with the cooperation of a 
 trusted hypervisor)~\citep{kwon2016sego},%\fixmedp{cite the asplos 16 inktag paper},
@@ -819,23 +819,48 @@ or more vulnerable (e.g., execute privilege-escalating scripts).
 For components in the same process, we have seen examples, such as the heart-bleed bug~\citep{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
 
 \paragraph{Seamless Transition of Security Isolation.}
-Security isolation for applications mostly requires users to run applications in a container-like environment, consciously and explicitly.
-Simply put, a user must always launch an application in \graphene{} or \gsgx{} by executing their loaders, {\tt pal} or {\tt pal-sgx}.
-In practice, however, users often have insufficient knowledge of the security requirement of applications
-to decide whether to enforce stronger security isolation.
-The common result of the problem is that security isolation solutions becomes mutually exclusive for an operating system to choose.
+Each existing solution of security isolation can protect applications
+under specific security principles and assumptions.
+For instance, \graphene{} or other \picoproc{}-based solutions isolate mutually untrusting applications on a trusted host,
+whereas enclaves protect more sensitive applications on an untrusted host.
+No existing solutions can support all security principles and assumptions.
+Moreover, many solutions provide a container-like environment in which the operating system views are completely isolated.
+These limitations cause different solutions to be mutually exclusive,
+and users are held responsible for making the decisions of choosing the solution
+--- simply put, to explicitly run {\tt pal} or {\tt pal-sgx} to load applications in \graphene{} or \gsgx{}. 
+The penalties of the security solution such as performance overhead or incompatibility
+will make users to be reluctant
+to choose one solution to run all related applications,
+if given the choice.
 
-We observe that \graphene{} and \gsgx{} provide compatible Linux personality,
-so that applications can run seamlessly in these environments.
-Such a characteristic of the solutions make it feasible to migrate an application or a \picoproc{} dynamically among Linux, \graphene{} and \gsgx{}.
-Operating system can determine the appropriate security isolation for applications, based on the security principles.
-For instance, operating systems can determine how to isolate an application based on its origin
---- a signed, security-sensitive application will seamlessly run in an enclave,
-while a suspicious, downloaded application will run in a \picoproc{}.
-If a regular application interacts with the sensitive one, the latter's \libos{} can demand the former to be migrated into an enclave.
+%Security isolation for applications mostly requires users to run applications in a container-like environment, consciously and explicitly.
+%Simply put, a user must always launch an application in \graphene{} or \gsgx{} by executing their loaders, {\tt pal} or {\tt pal-sgx}.
+%In practice, however, users often have insufficient knowledge of the security requirement of applications
+%to decide whether to enforce stronger security isolation.
+%The common result of the problem is that security isolation solutions becomes mutually exclusive for an operating system to choose.
+
+While operating systems have sufficient information to determine the security principles of an application,
+the existing solutions of security isolation
+are not designed to seamlessly transit into one another.
+We can use \graphene{}, \gsgx{} and Linux as an example of transition between solutions.
+%We observe that \graphene{} and \gsgx{} provide compatible Linux personality,
+%so that applications can run seamlessly in these environments.
+The Linux personality of \graphene{} and \gsgx{}
+make it feasible to dynamically migrate applications from Linux to a \picoproc{}
+or an enclave according to the security principles.
+%Operating system can determine the appropriate security isolation for applications, based on the security principles.
+%For instance, operating systems can determine how to isolate an application based on its origin
+A security-sensitive application
+that is signed by the developers to always run in an enclave,
+can demand a regular process to be migrated into another enclave
+if the the process is requesting any interaction
+--- a requirement that can be verified by the enclave, without trusting the Linux host.
+%while a suspicious, downloaded application will run in a \picoproc{}.
+%If a regular application interacts with the sensitive one, the latter's \libos{} can demand the former to be migrated into an enclave.
 %In contrast, if a application becomes tainted by a suspicious application,
 %operating system can migrate the application to a \picoproc{}.
-Similar technique can be applied to drop the privilege of a regular application to a \picoproc{} if tainted.
+Similar technique can be applied to drop the privilege of a regular application to a \picoproc{}
+if tainted by a low-security applications already isolated in another \picoproc{}.
 
 
 \paragraph{Minimizing TCB.}
@@ -843,11 +868,11 @@ Although \graphene{}, \gsgx{} and \civet{} can fundamentally reduce the TCB requ
 we observe missed opportunities in these solutions to further minimize the risk.
 In \graphene{}, the \libos{} of untrused applications are evicted from the TCB,
 but the host kernel must still be trusted. The system call restriction enforced by Seccomp filters is helpful, but it is hard to reason that the vulnerabilities are eliminated in the kernel.
-For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\cite{l4family}.
+For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\citep{l4family}.
 
 In \gsgx{} and \civet{}, we observe more opportunities of reducing TCB with engineering efforts.
 Fo instance, \gsgx{}, the size of \libos{} and supporting libraries
 can be as large as tens to hundreds of megabytes.
 The supporting classes partitioned by the \civet{} design-time tool
 may contain more than thousands of \java{} classes.
-All these code and data are not always necessary, and can be shredded more carefully.
+All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.

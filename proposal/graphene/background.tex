@@ -32,10 +32,10 @@ which has been previously implemented on Windows, Hyper-V, and Barrelfish~\citep
 %which exposes only tens of simple host calls. \daniela{briefly define \picoproc{}: A \picoproc{} is unmodified application code running with a libOS.}
 
 
-\begin{figure}[t!]
+\begin{figure}[t]
 \centering
 \includegraphics[width=5.5in]{graphene/figures/arch.pdf}
-\caption[\sysname{}: the building blocks]
+\caption[The \sysname{} building blocks]
 {Building blocks of \sysname{}.  Black components are unmodified.
 We modify the four lowest application libraries:
 {\tt ld.so} (the ELF linker and loader),
@@ -112,7 +112,7 @@ A \picoproc{} may not modify another \picoproc{}'s OS state.
 %% isolation of library OSes. These ABIs can always fall back to the
 %% Drawbridge/Bascule ABIs if users decide to prioritize compatibility.
 
-\begin{table}[t!b!]
+\begin{table}[t]
 \footnotesize
 \centering
 \begin{tabular}{|l|r|p{4.4in}|}
@@ -146,7 +146,7 @@ Bulk IPC & 3 & Exchange copy-on-write pages.\\
 Sandboxes & 1 & Move into a new sandbox, with a new manifest applied. Pipes and streams that violates the new policy are closed.\\
 \hline
 \end{tabular}
-\caption[\sysname{}: list of host ABI functions]
+\caption[List of host ABI functions defined in \sysname{}]
 {Classes of  host ABI functions adopted from \drawbridge{}~\citep{porter11drawbridge}, 
 followed by ABIs added by \sysname{}.}
 \label{tab:graphene:abi}
@@ -299,7 +299,7 @@ essential to running a Linux libOS with multi-process support, and
 Of the 12 new calls, 4 are required for single-process Linux and similar ABI have also been added by Bascule:
 rename a file, manage segmentation hardware, and 2 for exception upcalls;
 5 are required for stream inheritance, attribute configuration, and sandboxing;
-and 3 new calls are used to utilize Bulk IPC channel, for optimizing copy-on-write fork (\S\ref{sec:impl}).
+and 3 new calls are used to utilize Bulk IPC channel, for optimizing copy-on-write fork (\S\ref{sec:graphene:impl}).
 %Our design requires only 11 additional \pal{} calls, which we believe are fundamental to executing 
 %Unix-style multi-process applications.
 Our design deliberately provides options where these new \pal{} calls are missing, to preserve the platform compatibility proven by {\em Drawbridge}. For example, copy-on-write fork can still be supported without Bulk IPC, by simply exchanging data through a regular pipe.
