@@ -827,7 +827,7 @@ No existing solutions can support all security principles and assumptions.
 Moreover, many solutions provide a container-like environment in which the operating system views are completely isolated.
 These limitations cause different solutions to be mutually exclusive,
 and users are held responsible for making the decisions of choosing the solution
---- to explicitly run {\tt pal} or {\tt pal-sgx} to load applications in \graphene{} or \gsgx{}. 
+--- simply put, to explicitly run {\tt pal} or {\tt pal-sgx} to load applications in \graphene{} or \gsgx{}. 
 The penalties of the security solution such as performance overhead or incompatibility
 will make users to be reluctant
 to choose one solution to run all related applications. 
@@ -867,11 +867,11 @@ Although \graphene{}, \gsgx{} and \civet{} can fundamentally reduce the TCB requ
 we observe missed opportunities in these solutions to further minimize the risk.
 In \graphene{}, the \libos{} of untrused applications are evicted from the TCB,
 but the host kernel must still be trusted. The system call restriction enforced by Seccomp filters is helpful, but it is hard to reason that the vulnerabilities are eliminated in the kernel.
-For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\cite{l4family}.
+For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\citep{l4family}.
 
 In \gsgx{} and \civet{}, we observe more opportunities of reducing TCB with engineering efforts.
 Fo instance, \gsgx{}, the size of \libos{} and supporting libraries
 can be as large as tens to hundreds of megabytes.
 The supporting classes partitioned by the \civet{} design-time tool
 may contain more than thousands of \java{} classes.
-All these code and data are not always necessary, and can be shredded more carefully.
+All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.
