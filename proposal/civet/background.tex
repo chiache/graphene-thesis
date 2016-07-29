@@ -1,5 +1,5 @@
 \section{Background}
-\label{sec:background}
+\label{sec:civet:background}
 
 %This section discusses the security features of  \sgx{}, and the challenges faced by developers that
 %wish to use \sgx{} for partitioned \java{} applications.
@@ -284,7 +284,7 @@ To our knowledge, no previous work has successfully executed a JVM inside an enc
 %the frequency of interaction with the untrusted code.
 
 
-\paragraph{\bf Challenge 1: Cleanly partitioning classes and objects (\S\ref{sec:concept:partition}).}
+\paragraph{\bf Challenge 1: Cleanly partitioning classes and objects (\S\ref{sec:civet:concept:partition}).}
 Java encapsulates the placement of object data and code within virtual memory, which facilitates features
 like inheritance and garbage collection, but complicates integration with SGX.
 To program for an \sgx{} enclave, the developer must understand which regions of virtual memory 
@@ -402,7 +402,7 @@ for if and when updates to objects are propagated across the enclave boundary.
 %Supporting dynamic loading makes enclaves open to code injection
 %if the applications have exploitable vulnerabilities.
 
-\paragraph{\bf Challenge 2: Dynamically loading byte-code with integrity (\S\ref{sec:concept:loading}).}
+\paragraph{\bf Challenge 2: Dynamically loading byte-code with integrity (\S\ref{sec:civet:concept:loading}).}
 \sgx{} establishes trust by verifying the integrity of the code in the enclave.
 Therefore, enclaves must be bootstrapped with static, native binaries.
 %that have consistent measurements.
@@ -471,7 +471,7 @@ dynamically loaded code, including encrypted class files.
 %% never scheduling CPU, memory or other resources to the enclaves.
 %% \sysname{} does not specifically defend against denial-of-service attacks.
 
-\paragraph{\bf Challenge 3: Seamless access of in-enclave objects (\S\ref{sec:concept:accessing}).}
+\paragraph{\bf Challenge 3: Seamless access of in-enclave objects (\S\ref{sec:civet:concept:interface}).}
 Java code outside of the enclave must be able to call enclave entry points and 
 have some notion of objects that are inside the enclave.
 Unlike C, where most function addresses are determined once and statically
@@ -561,11 +561,11 @@ The {\em JNI-based} approach uses JNI to run the security sensitive operations i
 The {\em JVM-based} approach requires the \java{} VM to provide APIs to support common use cases of the enclaves.
 Green (light) boxes are trusted components and red (dark) boxes are untrusted.
 }
-\label{fig:alternatives}
+\label{fig:civet:alternatives}
 \end{figure}
 
 
-Figure~\ref{fig:alternatives} illustrates the alternative approaches
+Figure~\ref{fig:civet:alternatives} illustrates the alternative approaches
 to access SGX hardware from \java{} applications:
 The first approach is to run the whole \java{} applications with the \java{} VM inside the enclaves,
 using a library OS ({\em libOS-based}).

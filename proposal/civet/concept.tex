@@ -1,7 +1,7 @@
 %% dp: This title is pretty vague.  
 %\section{Addressing the Combination of \java{} and \sgx{}}
 \section{\java{} Support for Partitioning into \sgx{}}
-\label{sec:concept}
+\label{sec:civet:concept}
 
 This section explains the support \sysname{} adds to \java{}
 for partitioning applications into \sgx{} enclaves.
@@ -9,7 +9,7 @@ for partitioning applications into \sgx{} enclaves.
 %in partitioning \java{} applications on 
 
 \subsection{Cleanly partitioning classes and objects}
-\label{sec:concept:partition}
+\label{sec:civet:concept:partition}
 
 %To address the partition challenge in a managed language like \java{},
 %\sysname{} diminishes the need for developers
@@ -18,7 +18,7 @@ for partitioning applications into \sgx{} enclaves.
 
 \sysname{} includes Shredder to automatically partition \java{} applications on \sgx{},
 requiring  minimal developer effort.
-Figure~\ref{fig:builder} shows the workflow of a developer using the \sysname{} Shredder tool.
+Figure~\ref{fig:civet:builder} shows the workflow of a developer using the \sysname{} Shredder tool.
 The developer selects the application's main class, either as a JAR or class files
 and the classpath of the library.
 The developer also specifies the list of
@@ -49,7 +49,7 @@ package to run in the enclave.
 %Only the minimum necessary classes are kept for the enclave,
 The Shredder tool creates an enclave JAR file after augmentation,
 instrumentation, and signing.}
-\label{fig:builder}
+\label{fig:civet:builder}
 \end{figure}
 
 The Shredder creates a single package with all dependencies of the
@@ -116,7 +116,7 @@ which we leave for future work.
 %% and added to {\tt LD\_LIBRARY\_PATH} for the trusted \java{} VM.
 %% \sysname{} currently does not partition the JNI libraries, but we see the partition of JNI as a manageable future work. 
 
-Based on our case studies (\S\ref{sec:case-study}),
+Based on our case studies (\S\ref{sec:civet:cases}),
 we observe that specifying the entry classes and identifying any dynamically loaded classes,
 requires minimal developer effort.
 In all of our use cases, the applications are partitioned with only one entry class, and very few dynamically loaded classes.
@@ -163,7 +163,7 @@ In all of our use cases, the applications are partitioned with only one entry cl
 
 
 \subsection{Dynamically loading byte-code with integrity}
-\label{sec:concept:loading}
+\label{sec:civet:concept:loading}
 
 
 After the Shredder partitions the applications
@@ -179,7 +179,7 @@ the \sysname{} runtime framework creates an enclave containing the trusted class
 
 %\fixmedp{Trusted and isolated are used pretty interchangeably.  Pick one keyword and use it consistently, please}
 
-Figure~\ref{fig:runtime} shows the structure of the \sysname{} runtime framework(a more detailed view of Figure~\ref{fig:synthesis}).
+Figure~\ref{fig:civet:runtime} shows the structure of the \sysname{} runtime framework(a more detailed view of Figure~\ref{fig:civet:synthesis}).
 The \sysname{} runtime framework is split into the front-end (untrusted) and the back-end (trusted).
 When the front-end calls into a trusted class,
 it finds enclave image that contains the class,
@@ -262,12 +262,12 @@ The JVM in the enclave is ported using Graphene library OS.
 Untrusted classes can invoke methods of trusted classes through proxy objects,
 which can transparently access the enclave interface, through serialization
 and deserialization over an ring buffer accessed by both untrusted JVM and trusted JVM. }
-\label{fig:runtime}
+\label{fig:civet:runtime}
 \end{figure}
 
 
 \subsection{Seamless access to in-enclave objects}
-\label{sec:concept:accessing}
+\label{sec:civet:concept:interface}
 
 For programmer convenience, 
 untrusted code can seamlessly call in-enclave objects in \sysname{}.
@@ -382,7 +382,7 @@ In order to ensure confidentiality of sensitive data, \sysname{} takes additiona
 whether a returned object creates an unexpected control flow.
 At enclave exit, \sysname{} only allows an object to be returned if it is not tainted with any secret data,
 in which case the object is serialized and passed back to the caller.
-Section~\ref{sec:security} details our information flow tracking mechanism.
+Section~\ref{sec:civet:security} details our information flow tracking mechanism.
 
 In cases where the object is tainted and an instance of a trusted class,
 \sysname{} instead creates a reference in the enclave (to prevent garbage collection of the object internally),
@@ -399,7 +399,7 @@ This encrypted literal can then be passed to subsequent enclave calls, where the
 %% However, unconditionally allowing returning objects may become a threat to the information confidentiality of the enclave,
 %% because the object may contain part of the enclave secrets due to the information flow.
 %% \sysname{} only allows returning objects
-%% that are not tainted by the information flow from any secrets. More details about determining the taintedness of the objects are discussed in section~\ref{sec:security}.
+%% that are not tainted by the information flow from any secrets. More details about determining the taintedness of the objects are discussed in section~\ref{sec:civet:security}.
 
 %% Based on the taintedness of the objects, \sysname{} has different policies and mechanisms of returning the objects to the caller,
 %% to maintain both information confidentiality and progress of the application.
@@ -444,7 +444,7 @@ This encrypted literal can then be passed to subsequent enclave calls, where the
 
 
 \subsection{Remote Attestation and Provisioning}
-\label{sec:concept:others}
+\label{sec:civet:concept:others}
 
 \paragraph{Generating attestation reports.}
 A feature of \sgx{} hardware is the ability to generate an attestation report for a remote entity,
@@ -508,7 +508,7 @@ for provisioning sensitive data to a remote enclave.
 
 
 \section{Hardening \sgx{} at Enclave Boundary using Information Flow Control in \java{} }
-\label{sec:security}
+\label{sec:civet:security}
 
 \sysname{} % models the high-level security guarantees and features
 %of the \sgx{} hardware in the \java{} language,
@@ -621,11 +621,11 @@ do require the programmer to specify secret data classes and declassify objects 
 \footnotesize
 \caption[\sysname{}: declassifier APIs.]
 {How \sysname{} provides declassifier APIs to declassify sensitive data.
-When the untrusted class ({\tt Untrusted}) from Figure ~\ref{fig:synthesis} now calls the {\tt encrypt} method of a trusted class ({\tt Trusted}),
+When the untrusted class ({\tt Untrusted}) from Figure ~\ref{fig:civet:synthesis} now calls the {\tt encrypt} method of a trusted class ({\tt Trusted}),
 \sysname{} automatically calls the {\tt encrypt} method inside enclave, and pass the {\tt String} parameter.
 Before returning the result, the trusted class has to use the {\tt declassify} to remove the taint of {\tt tainted} variable that is tainted by the {\tt encrypt} method of class {\tt Encryptor} because of the tainted secret variable {\tt s}.
 }
-\label{fig:declassify}
+\label{fig:civet:declassify}
 \end{figure}
 
 %Because the code running in enclave has access to complete address space, including the trusted as well as untrusted memory regions, it is easy for the trusted code to inadvertently undermine \sgx{} protection by writing secret information in the untrusted region. Further, leaking any information derived from or related to the secret may be used by the untrusted code to guess the value of secret information. For example, even in the presence of memory protection, sandboxing and virtualization, it is possible to recover the secret key used by crypto algorithms~\citep{kocher1996timing,osvik2006cache,weiss2012cache, zhang2012cross}. So, to ascertain the secrecy of the sensitive data, no information derived from the secret should exit enclave in plaintext.
@@ -656,7 +656,7 @@ The \sysname{} {\tt Enclave} class provides a {\tt declassify(Object o)} API tha
 copy of the object.  In practice, we expect this function to be used in conjunction with tests
 on the returned data, or cryptographic functions to protect the data in transit across an untrusted channel.
 
-Continuing our example from Figure~\ref{fig:synthesis}, in Figure~\ref{fig:declassify}, if the {\tt Untrusted} class wants to call the {\tt encrypt} method on the trusted object {\tt t}, \sysname{} front-end transparently passes the argument string {\tt o} to the enclave, and the corresponding {\tt encrypt} method is called in the enclave. The secret {\tt s} is tainted because it was provisioned from remote trusted server as shown in Figure ~\ref{fig:synthesis}. As a result, the call to method {\tt encrypt} of class {\tt Encryptor} taints the encrypted output string {\tt tainted}. If the developer had returned this {\tt tainted} variable, the \sysname{} information flow tracking would re-encrypt the ciphertext, and thus make the return value useless for the {\tt Untrusted} class. However, as the developer wants to return the ciphertext as is, she can declassify the {\tt tainted} string by passing it through the declassifier API to get an untainted version of the same object. Such untainted objects can be released from the enclave without further encryption.
+Continuing our example from Figure~\ref{fig:civet:synthesis}, in Figure~\ref{fig:civet:declassify}, if the {\tt Untrusted} class wants to call the {\tt encrypt} method on the trusted object {\tt t}, \sysname{} front-end transparently passes the argument string {\tt o} to the enclave, and the corresponding {\tt encrypt} method is called in the enclave. The secret {\tt s} is tainted because it was provisioned from remote trusted server as shown in Figure ~\ref{fig:civet:synthesis}. As a result, the call to method {\tt encrypt} of class {\tt Encryptor} taints the encrypted output string {\tt tainted}. If the developer had returned this {\tt tainted} variable, the \sysname{} information flow tracking would re-encrypt the ciphertext, and thus make the return value useless for the {\tt Untrusted} class. However, as the developer wants to return the ciphertext as is, she can declassify the {\tt tainted} string by passing it through the declassifier API to get an untainted version of the same object. Such untainted objects can be released from the enclave without further encryption.
 
 %to let the application developer explicitly indicate that the argument object does not contain any secret information, and is safe to leave the enclave as is. For instance, if the enclave code encrypts a blob of data using the tainted secret provisioned key, the information flow will taint the encrypted data. However, because the encrypted data is safe to exit enclave if a perfectly secure encryption algorithm is used, the developer can explicitly mark the encrypted data as declassified. We note that the developers need to be extra careful while declassifying objects to inadvertently leaking secret information.
 
