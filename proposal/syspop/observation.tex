@@ -310,15 +310,16 @@ are supported by the prototype.
 \begin{figure}[t]
 \centering
 \includegraphics[width=4.5in]{syspop/figures/syscall-compatibility.pdf}
-\caption{Accumulated \compatmetric{} when N top-ranked system calls are implemented in the OS. Higher is more compliant.}
+\caption[Accumulated compatibility of system prototype prioritzed by importance]
+{Accumulated \compatmetric{} when N top-ranked system calls are implemented in the OS. Higher is more compliant.}
 \label{fig:syscall-compatibility}
 \end{figure}
 
 \begin{table}[t]
 \center{
-\begin{tabular}{c>{\footnotesize\raggedright\arraybackslash}m{0.42\linewidth}>{\raggedleft}m{0.08\linewidth}>{\raggedleft\arraybackslash}m{0.2\linewidth}}
+\begin{tabular}{c>{\footnotesize\raggedright\arraybackslash}m{4in}>{\raggedleft}m{0.4in}>{\raggedleft\arraybackslash}m{1in}}
 \toprule
-Stage & {\normalsize Sample System Calls} & \# & {\footnotesize \CompatMetric{}} \\
+Stage & {\normalsize Sample System Calls} & \# syscalls & {\footnotesize \CompatMetric{}} \\
 \addlinespace
 \midrule
 I &
@@ -351,7 +352,8 @@ V & {\normalsize All remaining} & +70 (272) & 100 \% \\
 \end{tabular}
 }
 \footnotesize
-\caption{Five stages of implementing system calls based on the \usagemetric{} ranking. For each stage, a set of system calls is listed, with the work needed to accomplish (\# of system calls) and the \compatmetric{} that can be reached.}
+\caption[Proposed steps of Linux system call implemetation prioritzed by importance]
+{Five stages of implementing system calls based on the \usagemetric{} ranking. For each stage, a set of system calls is listed, with the work needed to accomplish (\# of system calls) and the \compatmetric{} that can be reached.}
 \label{table:syscall-stage}
 \end{table}
 
@@ -462,7 +464,8 @@ operations, about half of the {\tt fcntl} opcodes, and only 9--20 {\tt prcntl} o
 \center{
 \includegraphics[width=3.6in]{syspop/figures/ioctl-popularity-by-inst.pdf}
 }
-\caption{188 {ioctl} operations with highest \usagemetric{}.  Roughly 447 infrequent operations on the tail are omitted. Higher is more important; 100\% indicates all installations include software that request the operations.}
+\caption[\Usagemetric{} of common {\tt ioctl} opcodes]
+{188 {ioctl} operations with highest \usagemetric{}.  Roughly 447 infrequent operations on the tail are omitted. Higher is more important; 100\% indicates all installations include software that request the operations.}
 \label{fig:ioctl-popularity}
 \end{figure}
 
@@ -485,7 +488,8 @@ of reducing the system attack surface.
 \hspace{0.5in}
 \includegraphics[width=2.3in]{syspop/figures/prctl-popularity-by-inst.pdf}
 }
-\caption{Ranking of \usagemetric{} among {\tt fcntl} and {\tt prctl} codes.  Higher is more important; 100\% indicates all installations include software that request the operations.}
+\caption[\Usagemetric{} of {\tt fcntl} and {\tt prctl} opcodes]
+{Ranking of \usagemetric{} among {\tt fcntl} and {\tt prctl} opcodes.  Higher is more important; 100\% indicates all installations include software that request the operations.}
 \label{fig:fcntl-prctl-popularity}
 \end{figure}
 
@@ -549,7 +553,8 @@ an important usage pattern.  %is a reasonable sample.
 \begin{figure}[t]
 \centering
 \includegraphics[width=3.6in]{syspop/figures/dev-proc-popularity-by-inst.pdf}
-\caption{\usagemetric{} distribution over files under {\tt /dev} and {\tt /proc}.  Higher is more important; 100\% indicates all installations include software that accesses the file. }
+\caption[\Usagemetric{} of selected {\tt /dev} and {\tt /proc} pseudo-files]
+{\usagemetric{} distribution over files under {\tt /dev} and {\tt /proc}.  Higher is more important; 100\% indicates all installations include software that accesses the file. }
 \label{fig:dev-proc-popularity}
 \end{figure}
 
@@ -776,7 +781,8 @@ that are commonly accessed by the same application into the same sub-library.
 \begin{figure}[t]
 \centering
 \includegraphics[width=3.6in]{syspop/figures/libc-popularity.pdf}
-\caption{\usagemetric{} distribution over the set of GNU Library C. Higher is more important; 100\% indicates all installations include software that use the \libc{} API. }
+\caption[\Usagemetric{} distribution of GNU Library C functions]
+{\usagemetric{} distribution over the set of GNU Library C. Higher is more important; 100\% indicates all installations include software that use the \libc{} API. }
 \label{fig:libc-popularity}
 \end{figure}
 

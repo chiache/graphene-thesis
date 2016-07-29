@@ -1,11 +1,12 @@
 \section{Implementation Details}
-\label{sec:graphene:impl}
+\label{sec:civet:impl}
 
 In this section, we discuss in detail about how the framework of \sysname{}
 is implemented. 
 
+
 \paragraph{Graphene library OS for \sgx{}.}
-Similar to Drawbridge in Haven, Graphene libOS can map a larger number of system interfaces
+Similar to Drawbridge in Haven, Graphene \libos{} can map a larger number of system interfaces
 to a much narrower host interface.
 The untrusted interface of Graphene libOS after porting to \sgx{}
 is mostly identical to the original host interface,
@@ -19,12 +20,12 @@ Even if the same Graphene libOS is used
 to run the applications,
 different binaries in the enclaves yield different measurements. 
 Such a design decouples the problem of distributing the library OS
-and guaranteeing code integrity for each application, as the enclave integrity is based on the integrity of the application --- not just the libOS.
+and guaranteeing code integrity for each application, as the enclave integrity is based on the integrity of the application --- not just the \libos{}.
  
-\sysname{} makes minor modifications to Graphene libOS to allow
+\sysname{} makes minor modifications to Graphene \libos{} to allow
 the enclave to run
 in the same process as the the untrusted \java{} VM.
-The trusted and untrusted VM share a ring buffer (as shown in ~\ref{fig:runtime} for communication during control transfer,
+The trusted and untrusted VM share a ring buffer (as shown in ~\ref{fig:civet:runtime} for communication during control transfer,
 but the ring buffer itself is not trusted. The \sysname{} framework encrypts tainted security-sensitive data before passing the data on the ring buffer.
  
 \paragraph{Control transfer at enclave entry.}
