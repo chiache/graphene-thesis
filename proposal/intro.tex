@@ -830,7 +830,8 @@ and users are held responsible for making the decisions of choosing the solution
 --- simply put, to explicitly run {\tt pal} or {\tt pal-sgx} to load applications in \graphene{} or \gsgx{}. 
 The penalties of the security solution such as performance overhead or incompatibility
 will make users to be reluctant
-to choose one solution to run all related applications. 
+to choose one solution to run all related applications,
+if given the choice.
 
 %Security isolation for applications mostly requires users to run applications in a container-like environment, consciously and explicitly.
 %Simply put, a user must always launch an application in \graphene{} or \gsgx{} by executing their loaders, {\tt pal} or {\tt pal-sgx}.
@@ -851,7 +852,7 @@ or an enclave according to the security principles.
 %For instance, operating systems can determine how to isolate an application based on its origin
 A security-sensitive application
 that is signed by the developers to always run in an enclave,
-can demand a regular process to be migrated into an enclave
+can demand a regular process to be migrated into another enclave
 if the the process is requesting any interaction
 --- a requirement that can be verified by the enclave, without trusting the Linux host.
 %while a suspicious, downloaded application will run in a \picoproc{}.
@@ -859,7 +860,7 @@ if the the process is requesting any interaction
 %In contrast, if a application becomes tainted by a suspicious application,
 %operating system can migrate the application to a \picoproc{}.
 Similar technique can be applied to drop the privilege of a regular application to a \picoproc{}
-if tainted by a low-security applications already isolated in a \picoproc{}.
+if tainted by a low-security applications already isolated in another \picoproc{}.
 
 
 \paragraph{Minimizing TCB.}
