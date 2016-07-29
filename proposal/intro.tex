@@ -819,23 +819,47 @@ or more vulnerable (e.g., execute privilege-escalating scripts).
 For components in the same process, we have seen examples, such as the heart-bleed bug~\citep{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
 
 \paragraph{Seamless Transition of Security Isolation.}
-Security isolation for applications mostly requires users to run applications in a container-like environment, consciously and explicitly.
-Simply put, a user must always launch an application in \graphene{} or \gsgx{} by executing their loaders, {\tt pal} or {\tt pal-sgx}.
-In practice, however, users often have insufficient knowledge of the security requirement of applications
-to decide whether to enforce stronger security isolation.
-The common result of the problem is that security isolation solutions becomes mutually exclusive for an operating system to choose.
+Each existing solution of security isolation can protect applications
+under specific security principles and assumptions.
+For instance, \graphene{} or other \picoproc{}-based solutions isolate mutually untrusting applications on a trusted host,
+whereas enclaves protect more sensitive applications on an untrusted host.
+No existing solutions can support all security principles and assumptions.
+Moreover, many solutions provide a container-like environment in which the operating system views are completely isolated.
+These limitations cause different solutions to be mutually exclusive,
+and users are held responsible for making the decisions of choosing the solution
+--- to explicitly run {\tt pal} or {\tt pal-sgx} to load applications in \graphene{} or \gsgx{}. 
+The penalties of the security solution such as performance overhead or incompatibility
+will make users to be reluctant
+to choose one solution to run all related applications. 
 
-We observe that \graphene{} and \gsgx{} provide compatible Linux personality,
-so that applications can run seamlessly in these environments.
-Such a characteristic of the solutions make it feasible to migrate an application or a \picoproc{} dynamically among Linux, \graphene{} and \gsgx{}.
-Operating system can determine the appropriate security isolation for applications, based on the security principles.
-For instance, operating systems can determine how to isolate an application based on its origin
---- a signed, security-sensitive application will seamlessly run in an enclave,
-while a suspicious, downloaded application will run in a \picoproc{}.
-If a regular application interacts with the sensitive one, the latter's \libos{} can demand the former to be migrated into an enclave.
+%Security isolation for applications mostly requires users to run applications in a container-like environment, consciously and explicitly.
+%Simply put, a user must always launch an application in \graphene{} or \gsgx{} by executing their loaders, {\tt pal} or {\tt pal-sgx}.
+%In practice, however, users often have insufficient knowledge of the security requirement of applications
+%to decide whether to enforce stronger security isolation.
+%The common result of the problem is that security isolation solutions becomes mutually exclusive for an operating system to choose.
+
+While operating systems have sufficient information to determine the security principles of an application,
+the existing solutions of security isolation
+are not designed to seamlessly transit into one another.
+We can use \graphene{}, \gsgx{} and Linux as an example of transition between solutions.
+%We observe that \graphene{} and \gsgx{} provide compatible Linux personality,
+%so that applications can run seamlessly in these environments.
+The Linux personality of \graphene{} and \gsgx{}
+make it feasible to dynamically migrate applications from Linux to a \picoproc{}
+or an enclave according to the security principles.
+%Operating system can determine the appropriate security isolation for applications, based on the security principles.
+%For instance, operating systems can determine how to isolate an application based on its origin
+A security-sensitive application
+that is signed by the developers to always run in an enclave,
+can demand a regular process to be migrated into an enclave
+if the the process is requesting any interaction
+--- a requirement that can be verified by the enclave, without trusting the Linux host.
+%while a suspicious, downloaded application will run in a \picoproc{}.
+%If a regular application interacts with the sensitive one, the latter's \libos{} can demand the former to be migrated into an enclave.
 %In contrast, if a application becomes tainted by a suspicious application,
 %operating system can migrate the application to a \picoproc{}.
-Similar technique can be applied to drop the privilege of a regular application to a \picoproc{} if tainted.
+Similar technique can be applied to drop the privilege of a regular application to a \picoproc{}
+if tainted by a low-security applications already isolated in a \picoproc{}.
 
 
 \paragraph{Minimizing TCB.}
