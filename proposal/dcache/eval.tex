@@ -63,7 +63,7 @@ with ``+/-'' columns or error bars.
 \multicolumn{2}{l}{{\bf 4-dotdot:} \tt XXX/YYY/../../AAA/BBB/../../FFF} \\
 \end{tabular}
 \end{minipage}
-\caption[Directory cache optimization: {\tt stat} and {\tt open} latency.]
+\caption[The optimized {\tt stat} and {\tt open} latency.]
 {System call {\tt stat} and {\tt open} latency for micro-benchmark ({\tt lat\_syscall} in {\tt LMBench}), based on different path patterns. 
 We include a synthetic evaluation of always missing on the fastpath and falling back to the slowpath,
 and a comparison with Plan 9's lexical parent semantics, where appropriate.
@@ -207,7 +207,7 @@ in these cases, the benefit of our optimization is proportional to the path leng
 \hline
 \end{tabular}}
 \end{minipage}
-\caption[Directory cache optimization: {\tt chmod} and {\tt rename} latency.]
+\caption[Overhead of the {\tt chmod} and {\tt rename} latency in the optimized directory cache]
 {{\tt chmod} and {\tt rename} latency in directories of various depths and sizes. Lower is better.}
 \label{fig:dcache:chmod-rename}
 \end{figure}
@@ -379,7 +379,7 @@ We leave exploration of these trade-offs for future work.
 \centering
 \includegraphics[width=3.2in]{dcache/plots/stat-open-scal.pdf}
 \vspace{-5pt}
-\caption[Directory cache optimization: {\tt stat} and {\tt open} latency in parallel.]
+\caption[The optimized {\tt stat} and {\tt open} latency when called in parallel.]
 {Latency of {\tt stat} and {\tt open} (of the same path) as more threads execute in parallel.  Lower is better.}
 \label{fig:dcache:scalability}
 %\vspace{-10pt}
@@ -408,7 +408,7 @@ our optimizations do add overhead to renaming a large directory, which would lik
 \includegraphics[width=2.1in]{dcache/plots/lm_readdir.pdf}
 \hspace{1in}
 \includegraphics[width=2.1in]{dcache/plots/lm_mkstemp.pdf}
-\caption[Directory cache optimization: {\tt readdir} and {\tt mkstemp} latency.]
+\caption[The optimized {\tt readdir} and {\tt mkstemp} latency.]
 {Latency in logscale for {\tt readdir} function calls, and latency in microsecond for {\tt mkstemp} function calls, on directories with different sizes. Lower is better. }
 \label{fig:dcache:readdir}
 \end{figure}
@@ -563,7 +563,7 @@ App & \multicolumn{4}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized ker
 \scalebox{.8}[1.0]{\tt git diff}   &     .84 &  .01 &  61 &  0 &    .86 & .01 & -14.0 \% \\
 \hline
 \end{tabular}
-\caption[Directory cache optimization: application execution time (cold cache).]
+\caption[The optimized application execution time (in cold cache).]
 {Execution time, hit rate, and negative \dentry{} rate for real-world applications bounded by directory cache lookup latency with a cold cache. Lower is better.}
 %\vspace{-10pt}
 \label{tab:dcache:lookup-apps}
@@ -646,7 +646,7 @@ $10^3$ &      1,017.02 &  0.58 &  1,081.02 &  0.38 &  5.92 \% \\
 $10^4$ &         99.03 &  0.11 &    110.14 &  0.10 & 10.09 \% \\
 \hline
 \end{tabular}
-\caption[Directory cache optimization: the Apache server throughput.]
+\caption[The optimized Apache server throughput.]
 {Throughput of downloading generated directory listing pages from an {\tt Apache} server. Higher is better.}
 \label{tab:dcache:apache}
 \end{table}
@@ -742,8 +742,8 @@ Other VFS headers  & 2,431 & 218 &  9.0 \% \\
 Security Modules (SELinux, etc)   & 20,479 & 76 & 0.0 \% \\
 \hline
 \end{tabular}
-\caption[Directory cache optimization: lines-of-code in Linux changed.]
-{{\em Lines-of-code} (LoC) in Linux changed, as measured by {\tt sloccount}~\citep{sloccount}.}
+\caption[lines-of-code changed in Linux for directory cache optimization]
+{{\em Lines-of-code} (LoC) changed in Linux, as measured by {\tt sloccount}~\citep{sloccount}.}
 \label{tab:dcache:loc}
 %\vspace{-10pt}
 \end{table}
