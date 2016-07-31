@@ -1,84 +1,179 @@
-Modern system stacks and applications have grown in term of both complexity and requirement.
-The complexity of system stacks --- from operating systems to the hardware --- have made them prone to bugs and vulnerabilities,
-leading to risk of exploitation.
-In a multi-tenant environment like the cloud, benign and malicious users share the same trusted computing base in the system stack,
-in which the malicious users can actively attack the system.
-Moreover, even if the operating systems are not attacked by the users,
-the hardware can be attacked or counterfeited physically, if the providers or maintainers of the hosts are malicious.
-Overall, an application can face risk of exploitation,
-by trusting the system stacks to maintain their integrity, whereas the application itself can also be vulnerable due to its complexity.
+Partitioning a complex system into
+isolated, reasonably simple pieces
+is a method
+to restrict the aftermath of potential vulnerabilities or
+performance bottlenecks.
+In a partitioned system, developers are more likely to reason about
+the soundness of the system design and implementation,
+instead of demanding arbitrary trust from the users.
+For instance, library OSes
+~\citep{porter11drawbridge, baumann13bascule, unikernels}
+target on isolating mutually distrusting applications
+by partitioning the host into in-process OS instances,
+or \emph{\picoprocs{}},
+with reasonably narrow surface to attack the kernel.
+The performance benefits
+from partitioning the host resource and congesting logics
+are presented in the 90's,
+by Exokernel~\citep{engler95exokernel}
+and Nemesis~\citep{leslie96nemesis}.
+Furthermore, more recent works such as HiStar~\citep{zeldovich+histar}
+or isolated execution
+~\citep{flicker, trustzone, intelsgx, criswell2014virtualghost}
+aim for minimizing the partition that needs to be trusted
+for highly sensitive applications.
 
-To reduce the risk of exploitation in the system stacks,
-system researchers have engaged in effort to build secure operating systems, such as Exokernel~\citep{engler95exokernel} or HiStar~\citep{zeldovich+histar}.
-These secure operating systems attempt to minimize the trusted computing base of the privileged components run in the kernel (as the concept of micro-kernels) and scooping the operating systems into the userspace (as the concept of library OSes).
-However, existing micro-kernels or library OSes are mostly designed as prototypes, which are incapable of supporting sophisticated applications in the modern days.
-The center of the problem is the {\em compatibility} requirement of applications:
-many applications depend on the modern system APIs and features of a monolithic operating system (e.g., Linux), and cannot be easily redesigned for other platforms.
-For existing library OSs,
-one of the system features that are especially missing or incomplete for Linux applications is the multi-process support,
-which are often used in server-type workloads or shell scripts.
-On the other hand, virtualization can provide both compatibility and security isolation for native applications built for monolithic operating systems, but often requires too much resources such as memory, to run each guests in multi-tenant environments.
 
-We present {\em \graphene{} library OS}, to enforce security isolation for native Linux applications,
-with reasonable compatibility, performance and resource cost.
-\graphene{} library OS supports and secures many multi-process abstractions that are native to Linux, such as forking, signaling, and system V IPC (message queues and semaphores), etc.
-For multi-process applications, \graphene{} run each process in separate pico-processes loaded with a library OS,
-yet each pico-processes can coordinate to provide a unified view of the operating system.
-Within each pico-process, \graphene{} implements a large portion of Linux system calls, using a much narrower, platform-independent host ABI.
-To enforce security isolation on multi-process abstractions,
-\graphene{} coordinate all the namespaces and operations
-over a simple pipe-like RPC streams, with can be easily sandboxed from the hosts.
-By restricting coordination over RPC streams,
-\graphene{} effectively enforce security isolation on various of multi-process abstractions whose mechanisms can be complicated and idiosyncratic.
+%Modern system stacks and applications have grown in term of both complexity and requirement.
+%The complexity of system stacks --- from operating systems to the hardware --- have made them prone to bugs and vulnerabilities,
+%leading to risk of exploitation.
+%In a multi-tenant environment like the cloud, benign and malicious users share the same trusted computing base in the system stack,
+%in which the malicious users can actively attack the system.
+%Moreover, even if the operating systems are not attacked by the users,
+%the hardware can be attacked or counterfeited physically, if the providers or maintainers of the hosts are malicious.
+%Overall, an application can face risk of exploitation,
+%by trusting the system stacks to maintain their integrity, whereas the application itself can also be vulnerable due to its complexity.
 
-\graphene{} \libos{} can also secure native applications from potentially compromised system stacks, if it is combined with isolated execution.
-Isolated execution, either enforced by hardware (e.g., \intel{} \sgx{}~\citep{intelsgx}) or hypervisors (e.g., Flicker~\citep{flicker}, VirtualGhost~\citep{criswell2014virtualghost}, etc), creates a privileged context for applications,
-and prevents the system stacks above the hardware or the hypervisors
-to compromise the confidentiality and integrity of the applications.  
-We focus on combining \graphene{} with \sgx{}, as {\em \graphene{}-SGX},
-to provide stronger isolated execution than hypervisor-based solutions,
-for defending against both OS-level and hardware-level attacks.
-\gsgx{} improves the usability of \sgx{}, by minimizing the effort of porting native applications to the \sgx{} platform,
-but still maintains compatible security guarantees as the applications that built for the platform.
-Compare to other library OSes that are combined with \sgx{} (e.g., \haven{}~\citep{baumann14haven}),
-\gsgx{} provides more fine-grained protection for applications binaries and processes,
-breaking down the isolated execution of
-an application that are already partitioned into processes,
-to yield smaller trusted computing base.
+Among all these partitioned solutions,
+the majority requires non-trivial development effort to 
+rewrite the legacy code in the partitioned systems,
+as well as the applications that can benefit from the system.
+A primary reason of the price
+is that a partitioned system
+often needs a cleaner, narrower interface betweens the partitions,
+thus its APIs and functionalities
+must be largely redefined and reduced.
+Partially due to research prototyping,
+many existing partitioned systems only demonstrate POSIX compatibility
+~\citep{engler95exokernel, leslie96nemesis, zeldovich+histar},
+so more complex applications
+will have to be reprogrammed to execute in the systems.
+Unikernel~\citep{unikernels} requires applications to be implemented
+in OCaml language for the sake of compilation-time
+partitioning and optimization.
+Only few works~\citep{porter11drawbridge, baumann13bascule, tsai14graphene}
+are designed for isolating or optimizing
+legacy applications adopted from mainstream operating systems such as Microsoft Windows or Linux.
 
-Despite the effort of using \libos{} and isolated execution
-to reduce the risk of exploitation in the system stacks,
-the application itself can still be vulnerable
---- due to the its own complexity.
-We observe that with the help of managed languages,
-applications can be partitioned by automation,
-and the trusted components needed to be loaded into the isolated execution
-can be effectively reduced.
-We present {\em \civet{}}, a framework that combines \sgx{} and Language protection in \java{},
-to benefit from both types of protection.
-Using Civet,
-developers of Java applications can enforce the partitioning and security guarantees they desired.
-Moreover, the components loaded into \sgx{} can be harden by language-based protection,
-such as filtering the output
-that are tainted by the information flow.
 
-In addition, from the experience of building more practical and secure operating systems,
-we observe that the compatibility requirement on modern operating systems have made significant impact
-on the development of the operating systems,
-even effecting performance and security of the systems.
-For example, we discover that the performance of looking up a longer, cached path in the Linux file system directory cache
-is suboptimal due to the requirement of checking directory permissions during the lookup.
-We can further optimize the latency of lookup operations
-by decoupling the lookup with permission checking,
-without breaking the compatibility of any file system operations.
-Another observation we made is that
-the compatibility requirement of operating systems can be balanced with other system properties,
-using a more practical measurement.
-We propose measurements that correlate both the usage of APIs in applications
-and the popularity of applications among user,
-to replace the traditionally used bug-for-bug compatibility.
-With the formal observation, we optimize the file system directory cache in both Linux and \graphene{};
-with the latter, we measure and improve the partial completeness of the Linux application support in \graphene{}. 
+%To reduce the risk of exploitation in the system stacks,
+%system researchers have engaged in effort to build secure operating systems, such as Exokernel~\citep{engler95exokernel} or HiStar~\citep{zeldovich+histar}.
+%These secure operating systems attempt to minimize the trusted computing base of the privileged components run in the kernel (as the concept of micro-kernels) and scooping the operating systems into the userspace (as the concept of library OSes).
+%However, existing micro-kernels or library OSes are mostly designed as prototypes, which are incapable of supporting sophisticated applications in the modern days.
+%The center of the problem is the {\em compatibility} requirement of applications:
+%many applications depend on the modern system APIs and features of a monolithic operating system (e.g., Linux), and cannot be easily redesigned for other platforms.
+%For existing library OSs,
+%one of the system features that are especially missing or incomplete for Linux applications is the multi-process support,
+%which are often used in server-type workloads or shell scripts.
+%On the other hand, virtualization can provide both compatibility and security isolation for native applications built for monolithic operating systems, but often requires too much resources such as memory, to run each guests in multi-tenant environments.
+
+The key challenge for reusing legacy code or applications in a partitioned system
+is to reproduce the specifications or personality in which the legacy code has been implemented
+--- even when the requirements oppose the system assumptions.
+For instance,
+\picoprocs{} isolate the OS states for each applications
+within the process boundaries~\citep{porter11drawbridge, baumann13bascule, baumann14haven}.
+For Linux applications that are designed as multi-process,
+such as servers or shell scripts,
+the OS states must be maintained across \picoprocs{}
+so the OS views can be arbitrarily unified or partitioned~\citep{tsai14graphene}.
+Generally speaking,
+legacy code reuse is not simply a matter of translating language slangs or supporting system APIs,
+but to reconsider and deliver the intentions and assumptions of the developers.
+%Take Linux applications for example,
+%it is a well-known design principle to break down the execution
+%into smaller binaries that run in multiple processes,
+%and the decision shall be honored
+%when partitioning the underlying operating systems.
+
+%We present \term{\graphene{} library OS}, to enforce security isolation for native Linux applications,
+%with reasonable compatibility, performance and resource cost.
+%\graphene{} library OS supports and secures many multi-process abstractions that are native to Linux, such as forking, signaling, and system V IPC (message queues and semaphores), etc.
+%For multi-process applications, \graphene{} run each process in separate pico-processes loaded with a library OS,
+%yet each pico-processes can coordinate to provide a unified view of the operating system.
+%Within each pico-process, \graphene{} implements a large portion of Linux system calls, using a much narrower, platform-independent host ABI.
+%To enforce security isolation on multi-process abstractions,
+%\graphene{} coordinate all the namespaces and operations
+%over a simple pipe-like RPC streams, with can be easily sandboxed from the hosts.
+%By restricting coordination over RPC streams,
+%\graphene{} effectively enforce security isolation on various of multi-process abstractions whose mechanisms can be complicated and idiosyncratic.
+
+If the target of partitioning is a legacy system or application
+in which code reuse is preferred,
+the challenge falls on
+clean compartmentalization of the code
+and seamless access of the objects across partitions.
+Code compartmentalization
+~\citep{addistant, jorchestra, jif-split, swift}
+is a technique adopted from
+programming languages and code analysis.
+However, from the system's perspective,
+there are system design efforts that
+can fundamentally influence the result of compartmentalization
+and improve legacy code reuse.
+These efforts include
+lifting the limitations imposed on more sophisticated languages
+and creating clean, smooth transition of system states
+which the partitioning is based on.
+This thesis shows an example of partitioning an application
+into Intel SGX enclaves~\citep{intelsgx},
+by leveraging advantages from the \java{} language,
+on a system designed to transparently load and interface legacy \java{} classes in enclaves.
+
+
+%\graphene{} \libos{} can also secure native applications from potentially compromised system stacks, if it is combined with isolated execution.
+%Isolated execution, either enforced by hardware (e.g., \intel{} \sgx{}~\citep{intelsgx}) or hypervisors (e.g., Flicker~\citep{flicker}, VirtualGhost~\citep{criswell2014virtualghost}, etc), creates a privileged context for applications,
+%and prevents the system stacks above the hardware or the hypervisors
+%to compromise the confidentiality and integrity of the applications.  
+%We focus on combining \graphene{} with \sgx{}, as {\em \graphene{}-SGX},
+%to provide stronger isolated execution than hypervisor-based solutions,
+%for defending against both OS-level and hardware-level attacks.
+%\gsgx{} improves the usability of \sgx{}, by minimizing the effort of porting native applications to the \sgx{} platform,
+%but still maintains compatible security guarantees as the applications that built for the platform.
+%Compare to other library OSes that are combined with \sgx{} (e.g., \haven{}~\citep{baumann14haven}),
+%\gsgx{} provides more fine-grained protection for applications binaries and processes,
+%breaking down the isolated execution of
+%an application that are already partitioned into processes,
+%to yield smaller trusted computing base.
+
+%Despite the effort of using \libos{} and isolated execution
+%to reduce the risk of exploitation in the system stacks,
+%the application itself can still be vulnerable
+%--- due to the its own complexity.
+%We observe that with the help of managed languages,
+%applications can be partitioned by automation,
+%and the trusted components needed to be loaded into the isolated execution
+%can be effectively reduced.
+%We present {\em \civet{}}, a framework that combines \sgx{} and Language protection in \java{},
+%to benefit from both types of protection.
+%Using Civet,
+%developers of Java applications can enforce the partitioning and security guarantees they desired.
+%Moreover, the components loaded into \sgx{} can be harden by language-based protection,
+%such as filtering the output
+%that are tainted by the information flow.
+
+
+
+
+%In addition, from the experience of building more practical and secure operating systems,
+%we observe that the compatibility requirement on modern operating systems have made significant impact
+%on the development of the operating systems,
+%even effecting performance and security of the systems.
+%For example, we discover that the performance of looking up a longer, cached path in the Linux file system directory cache
+%is suboptimal due to the requirement of checking directory permissions during the lookup.
+%We can further optimize the latency of lookup operations
+%by decoupling the lookup with permission checking,
+%without breaking the compatibility of any file system operations.
+%Another observation we made is that
+%the compatibility requirement of operating systems can be balanced with other system properties,
+%using a more practical measurement.
+%We propose measurements that correlate both the usage of APIs in applications
+%and the popularity of applications among user,
+%to replace the traditionally used bug-for-bug compatibility.
+%With the formal observation, we optimize the file system directory cache in both Linux and \graphene{};
+%with the latter, we measure and improve the partial completeness of the Linux application support in \graphene{}. 
+
+
 
 As future works, we will focus on improving \graphene{}, \gsgx{} and \civet{},
 to build more generalized models of security isolation, and minimize the weakness we have observed in these solutions.
