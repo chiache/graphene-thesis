@@ -11,40 +11,45 @@
 \begin{table}
 \footnotesize
 \centering
-\begin{tabular}{|p{1in}|p{2.5in}|p{2.5in}|}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{1in}|>{\raggedright\arraybackslash}p{2.5in}|>{\raggedright\arraybackslash}p{2.5in}|}
 \hline
 {\bf Abstraction} & {\bf Security Concern} & {\bf Strategy} \\
 \hline
-Fork & 
-\raggedright
-Files & Batch allocations of PIDs, children generally created using local state at parent.  \\
+Files &
+&
+\\
 \hline
-Signaling & PID to \picoproc{} map & Local signals call handler; remote signal delivery by RPC.  Cache mapping of PID to \picoproc{} ID. \\
+Directories &
+&
+\\
 \hline
-\raggedright
-Exit notification & 
-\raggedright
-Remote process status  & Exiting processes issue an RPC, or one synthesized if child becomes unavailable.  The {\tt wait} system call blocks until notification received by IPC helper. \\
+Memory &
+&
+\\
 \hline
-{\tt /proc/[pid]} & Process metadata & Read over RPC.  \\
+Networks &
+&
+\\
 \hline
-Message Queues & 
-\raggedright
-Key mapping, queue contents & Mappings managed by a leader, contents stored in various \picoprocs{}.  When possible, send messages asynchronously, and migrate queues to the consumer.\\
+RPC Streams &
+&
+\\
 \hline
-Semaphores & 
-\raggedright
-Key mapping, count. & Mappings managed by leader, migrate ownership to \picoproc{} most frequently acquiring the semaphore. \\
+Threading / Scheduling &
+&
+\\
 \hline
-\raggedright
-File System & 
-\raggedright
-File truncate sizes, FIFO files, domain sockets, symbolic links, file locks & No coordination, create special files in the host to represent symbolic links and file locks. \\
+Processes &
+&
+\\
 \hline
-\raggedright
-Shared File Descriptors & 
-\raggedright
-Seek pointers & Mappings managed by parent, migrate ownership to \picoproc{} most frequently accessing the file descriptors. \\
+Exception &
+&
+\\
+\hline
+Pausing / System Time &
+&
+\\
 \hline
 \end{tabular}
 \caption[Securig host abstractions in \sysname{}]
