@@ -34,26 +34,25 @@ for highly sensitive applications.
 %Overall, an application can face risk of exploitation,
 %by trusting the system stacks to maintain their integrity, whereas the application itself can also be vulnerable due to its complexity.
 
-Among all these partitioned solutions,
-the majority requires non-trivial development effort to 
-rewrite the legacy code in the partitioned systems,
-as well as the applications that can benefit from the system.
-A primary reason of the price
-is that a partitioned system
-often needs a cleaner, narrower interface betweens the partitions,
-thus its APIs and functionalities
-must be largely redefined and reduced.
-Partially due to research prototyping,
-many existing partitioned systems only demonstrate POSIX compatibility
+Among these partitioned solutions,
+the majority require
+development effort to rewrite the legacy application code
+in order to execute in the partitioned systems.
+A primary reason %of the price
+is that these systems
+have redefined or reduced the specifications,
+to gain a clean, narrow interface betweens the partitions.
+Many existing partitioned systems only demonstrate POSIX compatibility
 ~\citep{engler95exokernel, leslie96nemesis, zeldovich+histar},
-so more complex applications
-will have to be reprogrammed to execute in the systems.
+partially due to research prototyping.
+A complex application
+will have to be reprogrammed to be adopted into these systems.
 Unikernel~\citep{unikernels} requires applications to be implemented
-in OCaml language for the sake of compilation-time
+in a functional language for the sake of compilation-time
 partitioning and optimization.
 Only few works~\citep{porter11drawbridge, baumann13bascule, tsai14graphene}
 are designed for isolating or optimizing
-legacy applications adopted from mainstream operating systems such as Microsoft Windows or Linux.
+legacy applications adopted from mainstream operating systems such as Windows or Linux.
 
 
 %To reduce the risk of exploitation in the system stacks,
@@ -67,8 +66,8 @@ legacy applications adopted from mainstream operating systems such as Microsoft 
 %which are often used in server-type workloads or shell scripts.
 %On the other hand, virtualization can provide both compatibility and security isolation for native applications built for monolithic operating systems, but often requires too much resources such as memory, to run each guests in multi-tenant environments.
 
-The key challenge for reusing legacy code or applications in a partitioned system
-is to reproduce the specifications or personality in which the legacy code has been implemented
+The key challenge for reusing legacy application code
+is to emulate the specifications or personalities in which the applications are implemented
 --- even when the requirements oppose the system assumptions.
 For instance,
 \picoprocs{} isolate the OS states for each applications
@@ -76,15 +75,33 @@ within the process boundaries~\citep{porter11drawbridge, baumann13bascule, bauma
 For Linux applications that are designed as multi-process,
 such as servers or shell scripts,
 the OS states must be maintained across \picoprocs{}
-so the OS views can be arbitrarily unified or partitioned~\citep{tsai14graphene}.
+so the OS views can be arbitrarily unified or partitioned
+(\term{\graphene{}}~\citep{tsai14graphene}).
 Generally speaking,
 legacy code reuse is not simply a matter of translating language slangs or supporting system APIs,
-but to reconsider and deliver the intentions and assumptions of the developers.
+but to deliver the expectations of the developers.
 %Take Linux applications for example,
 %it is a well-known design principle to break down the execution
 %into smaller binaries that run in multiple processes,
 %and the decision shall be honored
 %when partitioning the underlying operating systems.
+
+As the purpose is to keep the design
+clean and reasonable,
+a vital principle is to dissociate the logics of preserving personalities,
+from security mechanisms and performance optimizations.
+Take \graphene{} for instance,
+the implementation of Linux's idiosyncratic IPC abstractions
+are contained in the library OS,
+using simple RPC streams
+that can be straightforwardly isolated on the host.
+Motivated from partitioned systems,
+an opportunity of significantly reducing the lookup latency
+in file system directory cache
+can be demonstrated in both Linux~\citep{tsai15dcache} and \graphene{}.
+The optimization is founded on
+decoupling the hit lookup latency and permission checks,
+as well as miscellaneous features in the Linux file system hierarchy.
 
 %We present \term{\graphene{} library OS}, to enforce security isolation for native Linux applications,
 %with reasonable compatibility, performance and resource cost.
@@ -98,11 +115,11 @@ but to reconsider and deliver the intentions and assumptions of the developers.
 %By restricting coordination over RPC streams,
 %\graphene{} effectively enforce security isolation on various of multi-process abstractions whose mechanisms can be complicated and idiosyncratic.
 
-If the target of partitioning is a legacy system or application
-in which code reuse is preferred,
+If the subject of partitioning is a legacy system or application
+in which code reuse is desired,
 the challenge falls on
-clean compartmentalization of the code
-and seamless access of the objects across partitions.
+clean compartmentalization of code
+and seamless access of objects across partitions.
 Code compartmentalization
 ~\citep{addistant, jorchestra, jif-split, swift}
 is a technique adopted from
@@ -115,7 +132,8 @@ These efforts include
 lifting the limitations imposed on more sophisticated languages
 and creating clean, smooth transition of system states
 which the partitioning is based on.
-This thesis shows an example of partitioning an application
+This thesis demonstrates an example
+in which applications can be painlessly partitioned
 into Intel SGX enclaves~\citep{intelsgx},
 by leveraging advantages from the \java{} language,
 on a system designed to transparently load and interface legacy \java{} classes in enclaves.
@@ -154,7 +172,6 @@ on a system designed to transparently load and interface legacy \java{} classes 
 
 
 
-
 %In addition, from the experience of building more practical and secure operating systems,
 %we observe that the compatibility requirement on modern operating systems have made significant impact
 %on the development of the operating systems,
@@ -174,6 +191,22 @@ on a system designed to transparently load and interface legacy \java{} classes 
 %with the latter, we measure and improve the partial completeness of the Linux application support in \graphene{}. 
 
 
+Regardlessly, creating an adaptable design
+in any partitioned system,
+in order to resurrect as much legacy system or application code as possible,
+is a nontrivial effort.
+The process of building a compatible system will benefit from a more principled procedure,
+in which the completeness of emulation can be measured.
+Given an API specification,
+the compliance of a partial implementation can be evaluated
+based on a study of API usage in applications and application popularity
+~\citep{tsai16apistudy}.
+The measurement provides a methodology
+for system developers to reason about the
+preservation of specifications and personalities.
 
-As future works, we will focus on improving \graphene{}, \gsgx{} and \civet{},
-to build more generalized models of security isolation, and minimize the weakness we have observed in these solutions.
+
+
+
+%As future works, we will focus on improving \graphene{}, \gsgx{} and \civet{},
+%to build more generalized models of security isolation, and minimize the weakness we have observed in these solutions.
