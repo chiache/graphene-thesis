@@ -1,4 +1,5 @@
-\chapter{Future Directions and Proposal}
+\chapter{Proposed Works and Future Directions}
+\label{chap:future}
 
 \section{Multi-Principle Applications}
 
@@ -9,3 +10,85 @@
 \section{Generalization}
 
 \section{Proposed Thesis Schedule}
+
+
+%\section{Future Directions}
+%In our previous works, we explore several models of enforcing security isolation, to restrict vulnerabilities
+%that occur in diverse scenarios.
+%For instance, \graphene{} and \gsgx{} both utilize a highly compatible library OS,
+%but isolate applications with drastically different assumptions.
+%In addition, \gsgx{} and \civet{} relies on two distinct strategies to maximize the usability
+%--- \gsgx{} secures an application as it is, whereas \civet{} benefits from language techniques.
+%As future works, we will focus on improving \graphene{}, \graphenesgx{} and \civet{},
+%to build more generalized models, and minimize the weakness we have observed in these solutions.
+%
+%\paragraph{Security Isolation for Multi-Principle Applications.}
+%In \graphene{} or many others like VM or container-based solutions,
+%applications are protected with a trust model of all-or-nothing.
+%In other word, each process or component of an application can only be fully trusted or not trusted at all.
+%The key reason of such a restriction is that the applied security isolation cannot reflect the complexity of privilege model in the application.
+%In reality, multiple security principles can co-exist in an application.
+%For instance, a web server that serves requests from clients identified as different clearance
+%will need to maintain the correspondent confidentiality levels.
+%The web server may perform operations that are more security sensitive (e.g., retrieve a secret key)
+%or more vulnerable (e.g., execute privilege-escalating scripts).
+%For components in the same process, we have seen examples, such as the heart-bleed bug~\citep{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
+%
+%\paragraph{Seamless Transition of Security Isolation.}
+%Each existing solution of security isolation can protect applications
+%under specific security principles and assumptions.
+%For instance, \graphene{} or other \picoproc{}-based solutions isolate mutually untrusting applications on a trusted host,
+%whereas enclaves protect more sensitive applications on an untrusted host.
+%No existing solutions can support all security principles and assumptions.
+%Moreover, many solutions provide a container-like environment in which the operating system views are completely isolated.
+%These limitations cause different solutions to be mutually exclusive,
+%and users are held responsible for making the decisions of choosing the solution
+%--- simply put, to explicitly run {\tt pal} or {\tt pal-sgx} to load applications in \graphene{} or \gsgx{}. 
+%The penalties of the security solution such as performance overhead or incompatibility
+%will make users to be reluctant
+%to choose one solution to run all related applications,
+%if given the choice.
+%
+%%Security isolation for applications mostly requires users to run applications in a container-like environment, consciously and explicitly.
+%%Simply put, a user must always launch an application in \graphene{} or \gsgx{} by executing their loaders, {\tt pal} or {\tt pal-sgx}.
+%%In practice, however, users often have insufficient knowledge of the security requirement of applications
+%%to decide whether to enforce stronger security isolation.
+%%The common result of the problem is that security isolation solutions becomes mutually exclusive for an operating system to choose.
+%
+%While operating systems have sufficient information to determine the security principles of an application,
+%the existing solutions of security isolation
+%are not designed to seamlessly transit into one another.
+%We can use \graphene{}, \gsgx{} and Linux as an example of transition between solutions.
+%%We observe that \graphene{} and \gsgx{} provide compatible Linux personality,
+%%so that applications can run seamlessly in these environments.
+%The Linux personality of \graphene{} and \gsgx{}
+%make it feasible to dynamically migrate applications from Linux to a \picoproc{}
+%or an enclave according to the security principles.
+%%Operating system can determine the appropriate security isolation for applications, based on the security principles.
+%%For instance, operating systems can determine how to isolate an application based on its origin
+%A security-sensitive application
+%that is signed by the developers to always run in an enclave,
+%can demand a regular process to be migrated into another enclave
+%if the the process is requesting any interaction
+%--- a requirement that can be verified by the enclave, without trusting the Linux host.
+%%while a suspicious, downloaded application will run in a \picoproc{}.
+%%If a regular application interacts with the sensitive one, the latter's \libos{} can demand the former to be migrated into an enclave.
+%%In contrast, if a application becomes tainted by a suspicious application,
+%%operating system can migrate the application to a \picoproc{}.
+%Similar technique can be applied to drop the privilege of a regular application to a \picoproc{}
+%if tainted by a low-security applications already isolated in another \picoproc{}.
+%
+%
+%\paragraph{Minimizing TCB.}
+%Although \graphene{}, \gsgx{} and \civet{} can fundamentally reduce the TCB required for an application,
+%we observe missed opportunities in these solutions to further minimize the risk.
+%In \graphene{}, the \libos{} of untrused applications are evicted from the TCB,
+%but the host kernel must still be trusted. The system call restriction enforced by Seccomp filters is helpful, but it is hard to reason that the vulnerabilities are eliminated in the kernel.
+%For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\citep{l4family}.
+%
+%In \gsgx{} and \civet{}, we observe more opportunities of reducing TCB with engineering efforts.
+%For instance, \gsgx{}, the size of \libos{} and supporting libraries
+%can be as large as tens to hundreds of megabytes.
+%The supporting classes partitioned by the \civet{} design-time tool
+%may contain more than thousands of \java{} classes.
+%All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.
