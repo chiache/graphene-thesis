@@ -584,27 +584,31 @@ we observe that system developers including us
 routinely make design choices based on 
 what they believe to be the common and uncommon behaviors of a system.
 For instance, in \graphene{}, we start with handpicking the abstractions and specifications
-that we believe to be more important to the applications we are interested in.
-For optimizing Linux file system directory cache,
+that we believe to be more important to the applications.
+When optimizing Linux file system directory cache,
 we shorten the latency of {\tt stat} and {\tt open} system calls
 at the expense of {\tt rename} and {\tt chmod},
 assuming that {\tt stat} and {\tt open} are the more commonly used operations in majority of applications.
 %In the case of a general-purpose OS, determining
 %exactly what the common case is can be challenging.
-As a result of such a bias,
-a developer's view of what system APIs are important
-is skewed heavily towards that developer's preferred workloads.
+In general,
+a developer's view of what system APIs are important is skewed towards
+the developer's preferred workloads.
 %the choice of what features matter skews heavily towards
 %workloads particular developers use.
 Similarly, developers who struggle to evaluate the impact of a 
-change that affects backward-compatibility
-must implement every abstractions and specifications to reason about the support of legacy application in the product system.
-At the center of these problems is the missing of information about how system abstraction are depended on in the run-time,
-and a metric to estimate the completeness of legacy applications that can be supported
-for any random users.
-We create a sensible, representative measurement, that includes the effect of both applications and users,
-and show the significant improvement on legacy application support in \graphene{}
-if guided by this approach.
+change on compatibility
+must implement every abstractions and specifications,
+and then be able to reason about the completeness of legacy support.
+%support of legacy application in the product system.
+At the center of these problems is the missing of information about how system abstraction are used in the run-time.
+%and a metric to estimate the completeness of legacy applications that can be supported
+%for any random users.
+We create sensible, representative metrics,
+which measure the effects of both applications and users.
+Using the metrics and insights from the study,
+the significant improvement on legacy application support in \graphene{} is demonstrated
+if we guide the development using this approach.
 
 
 In general, we explore the possibility of legacy code reuse in both
