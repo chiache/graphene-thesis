@@ -92,40 +92,44 @@ the unneeded or redundant system logics can be dismissed from the critical path.
 %which are often used in server-type workloads or shell scripts.
 %On the other hand, virtualization can provide both compatibility and security isolation for native applications built for monolithic operating systems, but often requires too much resources such as memory, to run each guests in multi-tenant environments.
 
-A key challenge for a partitioned or optimized system is
-how to reuse legacy code, %from prior systems and applications,
-for the sake of harvesting the enormous development effort made in previous systems.
-Millions of applications built and deployed
+A key challenge in a partitioned or optimized system is
+to maximally reuse legacy code, %from prior systems and applications,
+in order to harvest the development efforts made in previous systems.
+Essentially, millions of applications built and deployed
 on mainstream OSes,
 such as Windows and Linux,
-requires porting efforts to be adapted to an innovative system. 
+will require porting efforts if users need to adapt them to another platform. 
 %maximizing the legacy support in a system
 %will lower the barricade for users to adopt it.
-In some recent library OSes~\citep{porter11drawbridge, baumann13bascule, tsai14graphene, baumann14haven},
-legacy support is achieved
+In recent library OSes~\citep{porter11drawbridge, baumann13bascule, tsai14graphene, baumann14haven},
+legacy application support is achieved
 %are designed for isolating or optimizing
 %legacy applications adopted from mainstream operating systems such as Windows or Linux.
 by emulating
 %The key challenge for reusing legacy application code
 %is to emulate 
 the specifications or personalities of the applications' origins,
-on top of the system's building blocks,
-which enforce security isolation, platform independence, migrations, or other features.
+on top of the system's building blocks
+that enforces security isolation, platform independence, migration, or other features.
 %--- even when the requirements oppose the system assumptions.
 %Essentially, a system supporting legacy applications
 %must reproduce the abstractions and assumptions that applications depend on,
 %besides translating
 %language slangs and system interfaces.
 %Based on the principle,
+A personality that is especially hard to emulate in \picoprocs{}
+is multi-process abstractions,
+which will require multiple \libos{} instances to work collaboratively. 
 We design a library OS called \term{\graphene{}}~\citep{tsai14graphene},
-which provides Linux multi-process abstractions and security isolation
-across \picoprocs{}.
+which support various Linux multi-process abstractions used in legacy applications,
+yet provided comparable security isolation
+as single-process \picoprocs{}.
 %For instance,
 %\picoprocs{} isolate the OS states for each applications
 %within the process boundaries~\citep{porter11drawbridge, baumann13bascule, baumann14haven}.
-As the Linux personality, a multi-process application
-should be split into several \picoprocs{},
-yet the \picoprocs{} must cooperate to provide a unified system view.
+%As the Linux personality, a multi-process application
+%should be split into several \picoprocs{},
+%yet the \picoprocs{} must cooperate to provide a unified system view.
 %For Linux applications that are designed as multi-process,
 %such as servers or shell scripts,
 %the OS states must be maintained across \picoprocs{}
@@ -136,17 +140,17 @@ yet the \picoprocs{} must cooperate to provide a unified system view.
 %into smaller binaries that run in multiple processes,
 %and the decision shall be honored
 %when partitioning the underlying operating systems.
-The idiosyncratic multi-process abstractions of Linux, such as {\tt fork}, signals, file descriptor sharing, \sysvipc{},
-are implemented in the \picoprocs{},
-using simple pipe-like RPC streams on the host.
-Therefore, \graphene{} can simplified the complexity of isolating OS coordination
-as forbidding RPC streams across distrusting applications.
-Not limited on one host,
-\graphene{} expands the support for Linux multi-process applications
-to various platforms including \term{Intel SGX enclaves}.
-\graphene{} in Intel SGX enclaves isolates Linux multi-process applications
-in a sealed environment immune to 
-compromised host OSes and peripherals.
+The idiosyncratic multi-process abstractions of Linux, such as forking, signals, \sysvipc{}, etc,
+are coordinated across \picoprocs{},
+over simple, pipe-like RPC streams on the host.
+Therefore, \graphene{} can simplified the complexity of isolating shareable abstractions
+by simply forbidding RPC streams across distrusting applications.
+\graphene{} can expand the support for Linux multi-process applications
+to various platforms, including \term{Intel SGX enclaves}.
+In Intel SGX enclaves, \graphene{} can isolate Linux multi-process applications
+in a sealed environment,
+fully immune to 
+attacks from host OSes and hardware peripherals.
 
 %As the purpose is to keep the design
 %clean and reasonable,
