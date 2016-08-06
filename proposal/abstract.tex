@@ -170,22 +170,21 @@ attacks from host OSes and hardware peripherals.
 %as well as miscellaneous features in the Linux file system hierarchy.
 
 
-The principles in developing a system to reuse legacy applications
-can be vastly distinct according to the specifications,
-and be entangled with security mechanisms and performance optimizations.
-As a result, 
-the implementation of a legacy support system
-is destined to be complex and 
-on a case-by-case basis,
-leading to security glitches and performance suboptimality.
+The principles for developing legacy support are vastly distinct
+for different specifications,
+and entangled with the implementation of
+security mechanisms and performance optimizations.
+Many systems provide legacy support
+in a complex, case-by-case way,
+potentially causing more security glitches and performance suboptimality.
 An insight
 for solving this problem %that affects both partitioned and non-partitioned system
 is to avoid
 emulating specifications and checking security policies
-on the common paths.
+on the critical path of common cases.
 We demonstrate a case of optimizing a performance-centric, heavily engineered components,
-the Linux file system directory cache,
-in preservation of existing file-system features and permission checks
+\term{the Linux file system directory cache},
+while preserving the legacy file-system features and security models
 ~\citep{tsai15dcache}.
 The original, component-by-component path lookup
 that is interleaved with checking permissions and attributes,
