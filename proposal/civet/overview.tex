@@ -21,7 +21,7 @@
 %		The {\em JVM-based} approach requires the \java{} VM to provide APIs to support common use cases of the enclaves.
 %		Green (light) boxes are trusted components and red (dark) boxes are untrusted.
 %	}
-%	\label{fig:alternatives}
+%	\label{fig:civet:alternatives}
 %\end{figure}
 
 There are multiple approaches to access SGX hardware from \java{} applications as illustrated in Figure~\ref{fig:alternatives}. Firstly, the whole \java{} application can run with the \java{} VM inside the enclaves,
@@ -68,7 +68,7 @@ The developer can request for other non-sensitive classes or packages to also be
 %but interact with the untrusted components.
 
 For most cases, \sysname{} only requires the developers
-to identify the entry classes, and, as desired, to annotate declassifiers for information flow tracking (\S\ref{sec:concept:accessing}).
+to identify the entry classes, and, as desired, to annotate declassifiers for information flow tracking (\S\ref{sec:civet:concept:interface}).
 This approach minimizes the developer effort required to partition the application.
 %The design-time tool of \sysname{} largely reduces the cost of partitioning applications into enclaves.
 
@@ -107,7 +107,7 @@ The \sysname{} runtime framework abstracts the low-level semantics of the \sgx{}
 % and make \sgx{} protection guarantees first class components of the \java{} language.
 %When \sysname{} is called to run isolated \java{} components,
 The \sysname{} framework creates two \java{} execution environments: 
-one in the enclave and one outside the enclave, as illustrated in Figure~\ref{fig:synthesis}.
+one in the enclave and one outside the enclave, as illustrated in Figure~\ref{fig:civet:synthesis}.
 Both environments have an individual \java{} VM.
 The \java{} VM outside the enclave is the default \java{} VM; the \java{} VM inside the enclave is a lightweight \java{} VM,
 with just enough features to support the trusted components but a smaller TCB.
@@ -121,7 +121,7 @@ The \sysname{} framework front-end uses the signed JAR file that
 contains all the trusted supporting classes
 as the image to verify and load into the enclave.
 %(all trusted classes packaged in the same JAR file share one enclave).
-Figure~\ref{fig:synthesis} illustrates this process.
+Figure~\ref{fig:civet:synthesis} illustrates this process.
 %Take the code snippet in Figure~\ref{fig:synthesis} for example.
 When the class {\tt Untrusted} instantiates the trusted class {\tt Trusted},
 \sysname{} framework creates the enclave,
@@ -132,7 +132,7 @@ and instantiates {\tt Trusted} inside the enclave so the execution will be isola
 After the trusted classes are instantiated, the untrusted classes can call public methods on the Trusted objects.
 Calling a trusted object function from outside the enclave transfers control to the \sysname{} framework back-end, which then 
 calls the appropriate method on the object in the enclave---conceptually similar to a remote procedure call, but on the same CPU core.
-In the example in Figure~\ref{fig:synthesis}, a call to method {\tt Trusted.process()} from an the {\tt Untrusted} class,
+In the example in Figure~\ref{fig:civet:synthesis}, a call to method {\tt Trusted.process()} from an the {\tt Untrusted} class,
 causes entry to the enclave to run the method.
 %which transfers control into the enclave.
 %The \sysname{} front-end will re-enter the enclave, and the back-end will make the invocation on the correspondent object, with isolation.
@@ -230,7 +230,7 @@ and provides building blocks for tracking information flows within the enclave, 
 \centering
 \includegraphics[width=3.6in]{civet/figures/synthesis-new.pdf}
 \footnotesize
-\caption[\sysname{}: abstracting \sgx{} hardware protection for \java{}.]
+\caption[Abstracting \sgx{} hardware protection for \java{} in \sysname{}]
 {How \sysname{} abstracts the \sgx{} hardware protection for \java{} applications.
 When an untrusted class ({\tt Untrusted}) calls the constructor of a trusted class ({\tt Trusted}),
 \sysname{} creates the enclave and instantiates the {\tt Trusted} class
@@ -238,7 +238,7 @@ inside the enclave.
 The public methods of the {\tt Trusted} class ({\tt process}) are exported
 as the untrusted interface of the enclave, and the invocation of these methods will be re-routed into the enclave.
 \sysname{} also provides APIs for accessing enclave features such as secure provisioning.}
-\label{fig:synthesis}
+\label{fig:civet:synthesis}
 \end{figure}
 
 
@@ -420,7 +420,7 @@ All code in the enclave is part of the trusted computing base (TCB),
 %We trust any components loaded inside an enclave,
 including the \sysname{} infrastructure 
 %\fixmedp{Broken ref}
-(~\S\ref{sec:implementation}); %(low-level interface, the libOS, \jvm{}),
+(~\S\ref{sec:civet:impl}); %(low-level interface, the libOS, \jvm{}),
 all supporting classes and their JNI;
 and other resources or classes provisioned from remote hosts.
 %All trusted components must be verified by either \sgx{} hardware or the infrastructure against their cryptographical measurements or checksums.

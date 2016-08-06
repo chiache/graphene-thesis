@@ -1,118 +1,201 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-\section{Enforcing Security Isolation for Applications}
-\label{sec:intro:isolation}
 
-In traditional systems, the security of an application is built upon
-trusting the whole system stack to enforce its security policies.
-The system stack needed to be trusted
---- as part of the application's {\em trusted computing base (TCB)}
---- includes the hardware (from CPUs to devices), operating systems, system libraries, and language runtimes (a languge runtime can be considered an application or part of the system stack).
-If a vulnerability exists anywhere in the system stack,
-attackers can exploit the vulnerability to bypass the security mechanisms the application rely on,
-compromising any security policies that application enforces.
+\emph{Legacy code is everywhere.}
+As an immense resource for developers,
+legacy code represents the accumulated development efforts ever made in the prior applications or systems,
+%Once any code is written,
+%it becomes part of the existing legacy code,
+%and can be
+%reused,
+which can be further reused, re-factored and re-purposed in future development.
+Up to millions of legacy applications
+are available
+in the mainstream App stores~\citep{google-play, apple-store, ubuntu-packages},
+and a large fraction of these existing applications
+are dependent to specific operating system specifications (e.g., Windows or Linux)
+and/or programming languages (e.g., C/C++, Python, Java).
+In many occasions,
+developers attempt to harvest the design and implementation effort of a legacy application
+and port the application to other platforms
+(operating systems or language runtimes).
+However, many of them will face the nonnegligible cost of
+rewriting and adapting the legacy code,
+on porting applications to a platform vastly different from the original one.
+%To reuse the design and implementation of legacy applications,
+%developers constantly attempt to port one application
+%from a specification or programming language to another.
+%Based on the complexity of applications,
+%the development efforts needed for porting can become enormous,
+%without much helps from systems or programming languages.
+For instance, the memory mapping APIs in different operating systems,
+such as {\tt VirtualAlloc} in Windows and {\tt mmap} in Linux,
+not only differ in their semantics, but also in the assumptions behind their definitions.
+The differences in the assumptions
+include allocation granularity, security policies
+and the logics of handing edge cases like having unaligned addresses and sizes.
+As the result, porting an legacy application embedded with the assumptions of its development platform
+requires more efforts than simply translating language slangs or system APIs.
 
-However, as the design of the hardware, operating systems, libraries and runtimes grows increasingly complex,
-it becomes harder for system developers to eliminate the vulnerabilities
-from the system stacks.
-Theoretically, system developers can use debugging or formal verification
-to assist or verify the elimination of vulnerabilities.
-However, the formal technique cannot be proven perfect, and the latter requires tremendous effort to ensure its correctness
-when the whole system stack is huge.
 
-The existence of vulnerabilities in the trusted system stack especially affects applications that run in a multi-tenant environment, such as {\em cloud} environment.
-If there is only one tenant,
-the application or user will behaves benignly,
-without actively attempting to discover or exploit any system vulnerabilities.
-On the contrary, in a multi-tenant environment,
-the application or user can share the same host with a malicious application or user,
-who will act to compromise the system stack.
-The problem can never be completely resolved by security checks,
-because vulnerabilities can exist in the security logics,
-and the attackers who succeed exploiting the vulnerabilities may bypass the checks.
+%In traditional systems, the security of an application is built upon
+%trusting the whole system stack to enforce its security policies.
+%The system stack needed to be trusted
+%--- as part of the application's {\em trusted computing base (TCB)}
+%--- includes the hardware (from CPUs to devices), operating systems, system libraries, and language runtimes (a languge runtime can be considered an application or part of the system stack).
+%If a vulnerability exists anywhere in the system stack,
+%attackers can exploit the vulnerability to bypass the security mechanisms the application rely on,
+%compromising any security policies that application enforces.
 
-To address the problem of system vulnerabilities, system researchers have engaged efforts in building more secure operating systems,
-to isolate the consequence of compromised system stacks.
-For instance,
-micro-kernels, such as Exokernel~\citep{engler95exokernel} or HiStar~\citep{zeldovich+histar},
-intend to reduce the TCB in the operating systems that are shared by applications.
-The operating system components that are removed from the shared TCB are placed into a {\em library OS}, which operates in the userspace or even in the application processes.
-If a malicious application attack its library OS,
-the succeeded exploitation will only affect the very piece of library OS,
-whereas other applications are isolated.
-Because the complexity of the host kernel is significantly reduced,
-it is easier to eliminate its vulnerabilities.
 
-Another common approach of enforcing security isolation against malicious application to use virtualization.
-With virtualization, the shared TCB among all the guests (or tenants)
-are reduced to a minimal hypervisor,
-and each guest will be running in an isolated virtual machine which loads a monolithic guest operating systems.
-Similar as the applications isolated by library OSes, the exploitation that occurs in each guest OS will not affect other guests.
+The root cause of the complexity in porting legacy applications
+falls on the design decisions made by system developers,
+in consideration of achieving various system requirements
+such as security mechanisms, quality of service and resource consumption.
+In some systems, in order to reduce security vulnerabilities or isolate performance pitfalls,
+developers choose to partition or reorganize the system into
+small, simpler pieces.
+The purpose of partitioning or reorganization is to systematically guarantee
+the elimination of security risks or performance bottlenecks,
+in a way that developers can reasonably justify. %the soundness of design and implementation.
+These partitioned or optimized systems are more likely to
+have reduced or simplified specifications than the prior systems,
+thus making legacy code reuse in these systems even more challenging.
 
-Either library OSes or virtual machines does not defend against two types of attacks.
-The first type of attack is from the malicious host providers.
-In cloud environment, a malicious provider can load a modified kernels or hypervisors into the hosts,
-bypassing the security isolation enforced by library OSes or virtual machines.
-Even without loading a malicious system stack,
-the provider can still attack the hosts by physically launching attacks on the hardware, using techniques such as the Cold-boot Attack~\citep{halderman09coldboot} or 
-intrude the boot process using counterfeit peripheral devices.
-Finally, library OSes or virtual machines does not defend against vulnerabilities
-inside an application or a process
-that can be exploited to attack the application itself.
-For instance, the Heartbleed bug~\citep{heartbleed} discovered in OpenSSL cryptography library
-can leak the private keys of trusted authorities through the vulnerability in OpenSSL's heartbeating service.
-To eliminate vulnerabilities in a complex, modern applications is as infeasible as eliminating vulnerabilities in the operating systems.
 
-\begin{figure}[t!]
-\centering
-\includegraphics[width=4.5in]{figures/defense.pdf}
-\caption[Types of potential attacks on an application, and the TCB required by \graphene{}, \gsgx{} and \civet{}]
-{Type of potential attacks on the security of an application and the trusted computing base (TCB) required by \graphene{}, \gsgx{} and \civet{}.
-An application can be attacked from either the corrupted host system stack, malicious applications, or compromised components and processes in the application.
-\graphene{} can expel all untrusted applications and the system APIs that are affected by them.
-\gsgx{} further removes the host kernel and hardware, as well as untrusted processes, from the TCB. \civet{} then defends against compromised, in-process components. \graphene{} has the larger TCB, and \civet{} reduces the TCB the most.}
-\label{fig:defense}
-\end{figure}
+%However, in a system that is redesigned and restructured
+%for the sake of reducing security vulnerabilities and performance pitfalls,
+%reusing legacy code
+%--- either in the system or supported applications
+%--- can be a challenging task.
+%\fixme{Need connection here}
+%While reimplementing the legacy code in the system is an enormous but bounded effort,
+%the cost for porting the legacy code in all existing applications
+%can be boundless,
+%if the new system is not exactly compatible with the prior ones.
+%The need of preventing porting effort of existing applications
+%often causes systems to attach an emulation layer that reproduces the specifications of prior systems.
 
-This thesis primarily describes three security isolation solutions,
-to defend against different levels of attack (as summarized in Figure~\ref{fig:defense}):
-\begin{compactitem}
-\item {\em \graphene{}} (\S\ref{chap:graphene}) enforces security isolation between mutually untrusting applications.
-\item {\em \gsgx{}} (\S\ref{chap:gsgx}) enforces security isolation on applications against untrusted system stacks and other applications.
-\item {\em \civet{}} (\S\ref{chap:civet}) enforces security isolation inside an application, against untrusted application partitions as well as the system stacks and other applications.
-\end{compactitem}
+%However, as the design of the hardware, operating systems, libraries and runtimes grows increasingly complex,
+%it becomes harder for system developers to eliminate the vulnerabilities
+%from the system stacks.
+%Theoretically, system developers can use debugging or formal verification
+%to assist or verify the elimination of vulnerabilities.
+%However, the former technique cannot be proven perfect, and the latter requires tremendous effort to ensure its correctness
+%when the whole system stack is huge.
 
-\section{Security Isolation for Linux Multi-Process Applications\\ using a Library OS}
-\label{sec:intro:graphene}
 
-Existing library OSes (\libos{}) enforce security isolation of mutually untrusting process,
-at a lower cost than using virtualization
-~\citep{porter11drawbridge,unikernels,baumann13bascule}.
-More recent \liboses{}
-provide several qualitative benefits of virtualization,
-such as migration and host platform compatibility.
+
+
+%A plausible reason for developers to
+%redesign a system
+%is that the existing systems have grown unlimitedly complex,
+%and the developers stop being able to
+%justify the soundness of the system design and implementation.
+
+%The existence of vulnerabilities in the trusted system stack especially affects applications that run in a multi-tenant environment, such as {\em cloud} environment.
+%If there is only one tenant,
+%the application or user will behaves benignly,
+%without actively attempting to discover or exploit any system vulnerabilities.
+%On the contrary, in a multi-tenant environment,
+%the application or user can share the same host with a malicious application or user,
+%who will act to compromise the system stack.
+%The problem can never be completely resolved by security checks,
+%because vulnerabilities can exist in the security logics,
+%and the attackers who succeed exploiting the vulnerabilities may bypass the checks.
+
+%To address the problem of system vulnerabilities, system researchers have engaged efforts in building more secure operating systems,
+%to isolate the consequence of compromised system stacks.
+%For instance,
+%micro-kernels, such as Exokernel~\citep{engler95exokernel} or HiStar~\citep{zeldovich+histar},
+%intend to reduce the TCB in the operating systems that are shared by applications.
+%The operating system components that are removed from the shared TCB are placed into a {\em library OS}, which operates in the userspace or even in the application processes.
+%If a malicious application attack its library OS,
+%the succeeded exploitation will only affect the very piece of library OS,
+%whereas other applications are isolated.
+%Because the complexity of the host kernel is significantly reduced,
+%it is easier to eliminate its vulnerabilities.
+
+
+%Another common approach of enforcing security isolation against malicious application to use virtualization.
+%With virtualization, the shared TCB among all the guests (or tenants)
+%are reduced to a minimal hypervisor,
+%and each guest will be running in an isolated virtual machine which loads a monolithic guest operating systems.
+%Similar as the applications isolated by library OSes, the exploitation that occurs in each guest OS will not affect other guests.
+
+%Either library OSes or virtual machines does not defend against two types of attacks.
+%The first type of attack is from the malicious host providers.
+%In cloud environment, a malicious provider can load a modified kernels or hypervisors into the hosts,
+%bypassing the security isolation enforced by library OSes or virtual machines.
+%Even without loading a malicious system stack,
+%the provider can still attack the hosts by physically launching attacks on the hardware, using techniques such as the Cold-boot Attack~\citep{halderman09coldboot} or 
+%intrude the boot process using counterfeit peripheral devices.
+%Finally, library OSes or virtual machines does not defend against vulnerabilities
+%inside an application or a process
+%that can be exploited to attack the application itself.
+%For instance, the Heartbleed bug~\citep{heartbleed} discovered in OpenSSL cryptography library
+%can leak the private keys of trusted authorities through the vulnerability in OpenSSL's heartbeating service.
+%To eliminate vulnerabilities in a complex, modern applications is as infeasible as eliminating vulnerabilities in the operating systems.
+
+%\begin{figure}[t!]
+%\centering
+%\includegraphics[width=4.5in]{figures/defense.pdf}
+%\caption[Types of potential attacks on an application, and the TCB required by \graphene{}, \gsgx{} and \civet{}]
+%{Type of potential attacks on the security of an application and the trusted computing base (TCB) required by \graphene{}, \gsgx{} and \civet{}.
+%An application can be attacked from either the corrupted host system stack, malicious applications, or compromised components and processes in the application.
+%\graphene{} can expel all untrusted applications and the system APIs that are affected by them.
+%\gsgx{} further removes the host kernel and hardware, as well as untrusted processes, from the TCB. \civet{} then defends against compromised, in-process components. \graphene{} has the larger TCB, and \civet{} reduces the TCB the most.}
+%\label{fig:defense}
+%\end{figure}
+
+%This thesis primarily describes three security isolation solutions,
+%to defend against different levels of attack (as summarized in Figure~\ref{fig:defense}):
+%\begin{compactitem}
+%\item {\em \graphene{}} (\S\ref{chap:graphene}) enforces security isolation between mutually untrusting applications.
+%\item {\em \gsgx{}} (\S\ref{chap:gsgx}) enforces security isolation on applications against untrusted system stacks and other applications.
+%\item {\em \civet{}} (\S\ref{chap:civet}) enforces security isolation inside an application, against untrusted application partitions as well as the system stacks and other applications.
+%\end{compactitem}
+
+%\section{Security Isolation for Linux Multi-Process Applications\\ using a Library OS}
+%\label{sec:intro:graphene}
+
+For instance, \term{\liboses{}} enforce isolation on mutually distrusting process,
+by essentially \emph{collapsing} OS components
+into an application library, to be loaded into the user memory of application processes, or \term{\picoprocs{}}.
+The benefits of using \liboses{} to run applications include
+isolating the consequences of having security vulnerabilities in guest OSes,
+and removing unneeded or redundant logics causing performance bottlenecks 
+--- comparable to the benefits brought by \term{virtualization},
+but at a significantly lower cost~\citep{porter11drawbridge,unikernels,baumann13bascule}.
+%More recent \liboses{}
+%provide several qualitative benefits of virtualization,
+%such as migration and host platform compatibility.
 %Library OSes move portions of
 %OS kernel functionality into an application library.
-In a \libos{}, the guest OS is essentially ``collapsed''
-into an application library, to be loaded into the user memory of application processes ({\em \picoprocs{}}).
+%In a \libos{}, the guest OS is 
 %% dp: too early for this nomenclature, I think
 % \daniela{(a libraryOS instance)},
 A \libos{} implements the OS system calls and supporting data structures as library functions---mapping
 high-level APIs onto
-a few paravirtual interfaces to the host kernel.
+a narrow paravirtual interface to the host kernel.
 Recent library OSes improve efficiency over full guest OSes by eliminating duplicated features
 between the guest and host kernel,
 such as the CPU scheduler, or
 %eliminating guest-level multiplexing code, as the library OS supports only one application;
 even compiling out unnecessary guest kernel APIs~\citep{unikernels}.
+Sometimes, on top of a minimized \term{\microkernel{}} that often has the size and functionality of a hypervisor,
+library OSes or applications can bypass the multiplexing of hardware resource
+to improve the performance~\citep{engler95exokernel},
+or separating operating system logics that will cause pollution of slowdowns,
+such as bulk allocation of processing buffers~\citep{leslie96nemesis}.
 In total, this can reduce the memory requirements of running a single, isolated application
 by orders of magnitude, and similarly
 increase the number of applications which can run
 on a single system~\citep{porter11drawbridge,unikernels}.
 In addition, \liboses{} have been proven
 useful for porting legacy applications
-onto new hardware platforms, such as \intel{} \sgx{}~\citep{baumann14haven}.
+onto new hardware platforms, such as \term{\intel{} \sgx{} enclaves}~\citep{baumann14haven}.
 %% dp: This sentence seems a little premature
 %In recent works, library OSes provide rich OS features for isolated contexts while the host OSes are untrusted
 
@@ -130,25 +213,46 @@ onto new hardware platforms, such as \intel{} \sgx{}~\citep{baumann14haven}.
 %Because library OSes execute within a VM \daniela{this phrase does not read good to me because (i) it might imply the picoprocesses need hypervisor support, as misunderstood by reviewer 1 and (ii) you already emphasized the drawbacks of leveraging a VM} or lightweight process ({\em picoprocess}~\citep{xax}),
 %library OSes execute with
 
+
+In a few \liboses{} such as Drawbridge~\citep{porter11drawbridge}, Bascule~\citep{baumann13bascule} and Haven~\citep{baumann14haven},
+partial support for legacy applications is provided
+by emulating the OS personalities in \picoprocs{}.
+Among the OS abstractions and features needed by legacy applications,
+many are single-process abstractions
+for which emulation can be wrapped in \picoprocs{}, with proper level of translation and bookkeeping.
+For instance, Drawbridge loads legacy Windows applications including Microsoft Word.
+To provide Windows abstractions and personalities,
+Drawbridge reuses 5.6 million lines of code from Windows 7 in a single \picoproc{},
+and implements in-process legacy services such as the Windows registry.
+However, in contrast to single-process abstractions,
+multi-process abstractions which are especially critical to many Unix applications
+are more challenging to emulate in \picoprocs{},
+due to the assumptions and narrowed interfaces of \picoprocs{}.
 %% dp: Daniela, great suggestion!  We need to make this situation seem more
 %%     like the sky will fall without our help
-A key drawback of recent library OSes, however,
-is that they are limited to single-process applications.
-Yet many applications, such as network servers and
-shell scripts,
-create multiple processes
-for
-performance scalability, fault isolation, and programmer convenience.
+%A key drawback of recent library OSes, however,
+%is that they are limited to single-process applications.
+%Yet many applications, such as network servers and
+%shell scripts,
+%create multiple processes
+%for
+%performance scalability, fault isolation, and programmer convenience.
 %These applications would benefit from the efficiency and security benefits
 %of a library OS.
 In order for the efficiency benefits of \liboses{} to be widely applicable,
 especially for unmodified Unix applications,
 %either applications must be rewritten to implement ad hoc coordination mechanisms, or
-\liboses{} must  provide commonly-used multi-process abstractions,
-such as fork,  signals, System V IPC, and exit notification.
+\liboses{} must provide commonly-used multi-process abstractions,
+such as fork, signals, System V IPC, file descriptor sharing, exit notification, etc.
 To support multi-process abstractions, \liboses{} often have to rely on sharing OS states,
 backed by the hosts' memory sharing features.
-For example, Drawbridge~\citep{porter11drawbridge} cannot simulate process forking because copy-on-write memory sharing is not a platform-independent features.
+For example, Drawbridge and Bascule cannot emulate process forking because copy-on-write memory sharing is not a platform-independent features.
+Furthermore, in Haven, because unmodified applications are isolated
+in Intel SGX enclaves,
+memory sharing is strictly forbidden by the hardware platform,
+to prevent a \picoproc{} leaking application secret to other enclaves.
+In a word, emulating OS abstractions and personalities can be fundamentally challenging
+if when opposing the assumptions of operating systems. 
 
 
 %\begin{figure}[t!]
@@ -160,21 +264,21 @@ For example, Drawbridge~\citep{porter11drawbridge} cannot simulate process forki
 %\label{fig:graphene:concept}
 %\end{figure}
 
-We present {\em \graphene{}}, a Linux-compatible \libos{} to secure unmodified, Linux multi-process applications.
-In \graphene{}, multiple \libos{} instances collaboratively implement
-multi-process abstractions,
-yet appear to the application
-as a single, shared OS.
-\graphene{} instances coordinate state using remote procedure calls (RPCs) over
-host-provided, pipe-like streams.
-In a distributed POSIX implementation, placement of shared state and messaging complexity
-are first-order performance concerns.
-%We chose to shift implementation complexity into the library OS
-%in order to uphold simple enforcement of security isolation in the host.
-By coordinating shared states across \libos{} \picoprocs{,
-\graphene{} is able to create an illusion 
-of running in a single OS
-for multiple processes in an application.
+%We present {\em \graphene{}}, a Linux-compatible \libos{} to secure unmodified, Linux multi-process applications.
+%In \graphene{}, multiple \libos{} instances collaboratively implement
+%multi-process abstractions,
+%yet appear to the application
+%as a single, shared OS.
+%\graphene{} instances coordinate state using remote procedure calls (RPCs) over
+%host-provided, pipe-like streams.
+%In a distributed POSIX implementation, placement of shared state and messaging complexity
+%are first-order performance concerns.
+%%We chose to shift implementation complexity into the library OS
+%%in order to uphold simple enforcement of security isolation in the host.
+%By coordinating shared states across \libos{} \picoprocs{,
+%\graphene{} is able to create an illusion 
+%of running in a single OS
+%for multiple processes in an application.
 
 %Previous library OS designs ensured security isolation of independent applications,
 %comparable to a VM, by keeping a relatively narrow host ABI.
@@ -182,25 +286,60 @@ for multiple processes in an application.
 %design because it strikes a unique balance between
 %and robust, flexible security enforcement.
 
-The design of \graphene{} ensures security isolation of
-mutually distrusting, multi-process
-applications on the same host.
-Essential to this goal is
-minimally expanding the host ABI to support multi-processing,
-as well as leveraging RPCs as a natural point to mediate inter-\libos{} communication.
-RPC coordination among \graphene{} instances can be dynamically disconnected, facilitating novel sandboxing
-techniques.  For instance, we develop an Apache web server extension that, upon logging in a given user,
-places the worker process's \libos{} in a sandbox with access to only that user's data.
-We expect more nuanced degrees of trust are possible in future work.
+%The design of \graphene{} ensures security isolation of
+%mutually distrusting, multi-process
+%applications on the same host.
+%Essential to this goal is
+%minimally expanding the host ABI to support multi-processing,
+%as well as leveraging RPCs as a natural point to mediate inter-\libos{} communication.
+%RPC coordination among \graphene{} instances can be dynamically disconnected, facilitating novel sandboxing
+%techniques.  For instance, we develop an Apache web server extension that, upon logging in a given user,
+%places the worker process's \libos{} in a sandbox with access to only that user's data.
+%We expect more nuanced degrees of trust are possible in future work.
 
 %\graphene{}'s design gives the user and system administrator a high degree of flexibility
 %in isolating arbitrary groups of unmodified application processes,
 %while upholding the efficiency and host compatibility benefits of recent \liboses{}.
 
+
+The key to emulating multi-process abstractions in a \libos{},
+especially when memory sharing is not safe or available,
+is to coordinate shared OS states
+across \picoprocs{}.
+The multiple \libos{} instances that accompany application processes
+must cooperate and provide a unified OS view.
+The OS states needed to coordinate
+include process states that are inherited at process creation
+(e.g., {\tt fork}, {\tt execve}),
+abstraction states that are shared among related processes
+(e.g., signals, \sysvipc{} semaphores)
+and namespace states to locate the owners of abstractions
+(e.g., process IDs, \sysvipc{} keys).
+However, a \libos{} that coordinates all these vastly diverse, idiosyncratic OS states
+must not over-expand the host platform interface,
+and thus increase the risk of
+allowing malicious applications to compromise the host kernel.
+As a solution, we present \term{\graphene{}},
+a Linux-compatible \libos{} that collaboratively implement
+multi-process abstractions,
+yet appear to the application as a single, shared OS.
+\graphene{} instances coordinate all OS states using remote procedure calls (RPCs) over
+host-provided, pipe-like streams.
+The use of host RPC streams
+does not expand the host interface already used by \graphene{},
+and can be naturally isolated
+by sandboxing the destination of RPC streams
+with the application.
+%In a distributed POSIX implementation, placement of shared state and messaging complexity
+%are first-order performance concerns.
+%%We chose to shift implementation complexity into the library OS
+%%in order to uphold simple enforcement of security isolation in the host.
+
+
 %\fixmedp{After a complete draft is written, coalesce all goals and make sure they are addressed early on.  We are doing some scatter-shot motivation}
 
-\section{Isolating Native Applications on Untrusted Hosts}
-\label{sec:intro:gsgx}
+%\section{Isolating Native Applications on Untrusted Hosts}
+%\label{sec:intro:gsgx}
 
 %The complexity of modern operating systems has become
 %a major source of security vulnerabilities,
@@ -210,15 +349,15 @@ We expect more nuanced degrees of trust are possible in future work.
 %because the applications may cohabit with compromised tenants,
 %or be hosted by malicious providers.
 
-Existing works provide isolated execution of applications
-on untrusted operating systems or host hardware,
-using either hypervisors~\citep{criswell2014virtualghost, flicker, inktag, zhang2012mushi} or security hardware~\citep{intelsgx, secureblue++}.
-Especially security hardware such as \intel{} \sgx{}~\citep{intelsgx} can defense against hardware-level attacks,
-with low execution overhead.
-\sgx{} is a set of new instructions introduced in the latest \intel{} CPUs,
-to create a encrypted memory region called {\it enclave}
-in the application's address space.
-\sgx{} guarantees that only signed code loaded in the enclave can access the sensitive data stored in the enclave memory.
+%Existing works provide isolated execution of applications
+%on untrusted operating systems or host hardware,
+%using either hypervisors~\citep{criswell2014virtualghost, flicker, inktag, zhang2012mushi} or security hardware~\citep{intelsgx, secureblue++}.
+%Especially security hardware such as \intel{} \sgx{}~\citep{intelsgx} can defense against hardware-level attacks,
+%with low execution overhead.
+%\sgx{} is a set of new instructions introduced in the latest \intel{} CPUs,
+%to create a encrypted memory region called {\it enclave}
+%in the application's address space.
+%\sgx{} guarantees that only signed code loaded in the enclave can access the sensitive data stored in the enclave memory.
 
 %Protecting applications without the requirement of trusting the hosts
 %has become valuable in modern computer systems for many reasons.
@@ -232,19 +371,19 @@ in the application's address space.
 %The attacks from the cloud is possible even if
 %the operating systems' vulnerabilities are never exploited.
 
-However, isolating an application with \sgx{} enclaves
-requires additional porting effort,
-to partition the application into a signed, trusted binary,
-and the rest.
-Only the trusted binary will be loaded in enclaves.
-The enclave will interact with the rest of the application
-through an {\em untrusted interface},
-to pass input and output of the isolated execution,
-and access OS features such as files and network.
-For a complex application such as a network server or a desktop GUI,
-the effort to partition the application is too high,
-and the untrusted interface is often too large,
-given the complexity of interaction between the enclave and the rest of the application.
+%However, isolating an application with \sgx{} enclaves
+%requires additional porting effort,
+%to partition the application into a signed, trusted binary,
+%and the rest.
+%Only the trusted binary will be loaded in enclaves.
+%The enclave will interact with the rest of the application
+%through an {\em untrusted interface},
+%to pass input and output of the isolated execution,
+%and access OS features such as files and network.
+%For a complex application such as a network server or a desktop GUI,
+%the effort to partition the application is too high,
+%and the untrusted interface is often too large,
+%given the complexity of interaction between the enclave and the rest of the application.
 
 %Unfortunately, leveraging SGX for security
 %often requires rewriting the applications to a large extent.
@@ -257,14 +396,52 @@ given the complexity of interaction between the enclave and the rest of the appl
 %only supports spin-locking as scheduling tool,
 %because other primitives require cooperation from the OS.
 
-With the support of a \libos{}, developers can port an application to \sgx{} with minimal effort,
-using a {\em non-partitioned model}~\citep{baumann14haven}.
-The non-partitioned model loads the whole application binary into the enclave,
-and a \libos{} to support the OS features.
-The benefits of using a non-partitioned model also include
-limiting the untrusted interface to a narrow, fixed interface,
-and the fact that the application is protected ``as is''
---- especially useful for privacy-preserving applications.
+
+%With the support of a \libos{}, developers can port an application to \sgx{} with minimal effort,
+%using a {\em non-partitioned model}~\citep{baumann14haven}.
+%The non-partitioned model loads the whole application binary into the enclave,
+%and a \libos{} to support the OS features.
+%The benefits of using a non-partitioned model also include
+%limiting the untrusted interface to a narrow, fixed interface,
+%and the fact that the application is protected ``as is''
+%--- especially useful for privacy-preserving applications.
+
+
+In particular, in an system enforcing stronger, hardware-based security isolation
+on legacy applications,
+such as Haven~\citep{baumann14haven},
+it is necessary
+%the system must not only emulate the personalities,
+to provide the security benefits promised on the platform
+(i.e., an \intel{} \sgx{} enclave),
+instead of simply emulating the personalities.
+For instance,
+the security benefits of enclaves
+include integrity guarantee of application binaries,
+complete sealing of the confidential information, and attestation of the execution environment.
+In Haven, these benefits rely on
+the \libos{} to securely provision an encrypted virtual disk
+from a trusted, remote service.
+This mechanism creates a \emph{trusted path} to
+load authenticated application binaries
+and exchange information,
+in a way completely transparent to the isolated application.
+However, Haven{} also has drawbacks, such as huge TCB (trusted computing base)
+expansion by the \libos{} (209MB in total),
+being overly reliant on a remote trusted service,
+and being incapable to isolate multi-process applications,
+especially in the finer, per-process granularity.
+Addressing these drawbacks,
+\graphene{} is ported to \intel{} \sgx{},
+to isolate multi-process applications in a multi-enclave environment.
+The coordination of \graphene{} based on RPC streams
+allows isolated \picoprocs{} to build trusted paths for coordination,
+by attesting and encrypting the RPC streams.
+\graphene{} verifies binary integrity using per-binary checksums,
+to remove the requirement of using a remote trusted service,
+and to allow each \picoproc{} to be attested and trusted individually.
+
+
 
 %To alleviate the pain of migrating applications to SGX,
 %recent works like Haven~\citep{baumann14haven} provides a mechanism
@@ -274,32 +451,57 @@ and the fact that the application is protected ``as is''
 %which means these systems can secure execution environments
 %without trusting the host.
 
-A primary drawback of the non-partitioned model is the huge TCB loaded into the enclave.
-In the partitioned model, only minimal code needed for the isolated execution will be loaded into the enclave.
-However, in the non-partitioned model, the whole application must be loaded into the enclave,
-in addition to the TCB contributed by the \libos{}.
-For instance, size of the \libos{} used in \cite{baumann14haven} is 209MB,
-which yields significant expansion to the original TCB.
+%A primary drawback of the non-partitioned model is the huge TCB loaded into the enclave.
+%In the partitioned model, only minimal code needed for the isolated execution will be loaded into the enclave.
+%However, in the non-partitioned model, the whole application must be loaded into the enclave,
+%in addition to the TCB contributed by the \libos{}.
+%For instance, size of the \libos{} used in \cite{baumann14haven} is 209MB,
+%which yields significant expansion to the original TCB.
+%
+%We present {\em \gsgx{}}, a port of \graphene{} \libos{} on \sgx{}, to secure unmodified Linux applications in \sgx{} enclaves{}.
+%The support for Linux applications
+%has been missing in the non-partitioned model,
+%which is a missed opportunity according to the 75\% market share of Linux cloud providers~\citep{linuxcloud2014}.
+%\gsgx{} supports most OS features provided by \graphene{}
+%including both single- and multi-process abstractions.
+%
+%The design of \gsgx{} ensures the minimal enclave TCB
+%that can be achieved without further partitioning any application binaries.
+%The integrity of the loaded application binaries
+%is enforced in a fine-grained fashion:
+%each binary must be signed and checked individually,
+%and only binaries that are actually needed will be ever loaded.
+%For multi-process applications,
+%\gsgx{} isolates each \picoproc{} in a separate enclave,
+%thus every \picoproc{} can execute and be attested separately.
+%In a nutshell, \gsgx{} tries to honor and exploit the established partitioning in multi-process applications,
+%with the benefit of minimizing the porting effort from using the non-partitioned model.
 
-We present {\em \gsgx{}}, a port of \graphene{} \libos{} on \sgx{}, to secure unmodified Linux applications in \sgx{} enclaves{}.
-The support for Linux applications
-has been missing in the non-partitioned model,
-which is a missed opportunity according to the 75\% market share of Linux cloud providers~\citep{linuxcloud2014}.
-\gsgx{} supports most OS features provided by \graphene{}
-including both single- and multi-process abstractions.
 
-The design of \gsgx{} ensures the minimal enclave TCB
-that can be achieved without further partitioning any application binaries.
-The integrity of the loaded application binaries
-is enforced in a fine-grained fashion:
-each binary must be signed and checked individually,
-and only binaries that are actually needed will be ever loaded.
-For multi-process applications,
-\gsgx{} isolates each \picoproc{} in a separate enclave,
-thus every \picoproc{} can execute and be attested separately.
-In a nutshell, \gsgx{} tries to honor and exploit the established partitioning in multi-process applications,
-with the benefit of minimizing the porting effort from using the non-partitioned model.
-
+Besides supporting legacy applications,
+one first-order requirement in most systems will be achieving
+optimal performance, either as pursuing low latency or high throughput,
+based on how users define quality of service.
+Nevertheless, there is inevitable trade-off between the emulation of OS personalities
+and the system performance.
+For instance, in \graphene{}, coordinating OS states %for multi-process abstractions
+over PRC streams
+will cause nonnegligible overhead to the latency of IPC,
+compared with coordination by memory sharing in the kernel or in the \picoprocs{}.
+However, in system design,
+there are also opportunities to identify and remove unneeded or redundant
+overhead or bottleneck,
+especially on the critical path or the common paths of
+frequent operations.
+An example for reducing overhead
+is to remove redundant permission checks in \liboses{},
+because \picoprocs{} rely on the host kernel to enforce security policies.
+Similarly, to compensate the overhead of IPC
+in a distributed implementation, placement of shared OS states and messaging complexity
+will be the first-order performance concerns.
+For \picoprocs{} that most frequently access an abstraction state,
+place the state in this very \picoproc{}
+will optimally avoid the need for coordination over RPC streams.
 
 
 %
@@ -320,6 +522,109 @@ with the benefit of minimizing the porting effort from using the non-partitioned
 %such as Apache web server, OpenJDK virtual machine, or shell scripts,
 %all of which relies on multi-process abstractions
 %such as {\tt fork}, {\tt execve}, signals or System V IPC.
+
+The similar principle of simplifying the critical paths of frequent operations
+also applies to optimizing legacy systems.
+In a legacy operating system like Linux,
+complex logics are design to simultaneously implement specifications
+and improve performance,
+causing suboptimal results in the system.
+One classic example is the file system directory cache,
+which is designed for
+avoiding the significant latency of looking up paths
+on physical storage,
+but also used as data structures to maintain file system features
+such as file attributes and symbolic links.
+In our study, even when the directory cache is warm (no cache misses),
+the latency of path-searching system calls
+still dominates many lookup-bound applications,
+such as the GIT version control system.
+The culprit of the suboptimal latency is
+the requirement of permission checks that
+interleaves with looking up path components in the directory cache.
+A more plausible design
+shall be decoupling the permission checks
+from the path-based lookup in the directory cache,
+and fully exploiting locality to cache the results of redundant operations
+(i.e., permission checks, retrieving attributes, resolving symboling links, etc)
+that used to be on the critical path of the hit latency.
+Our results show that the optimization can be generalized
+to full Linux file system features,
+different security mechanisms (e.g., AppArmor, SELinux)
+and underlying storage.
+
+
+
+From improving legacy code compatibility in different systems
+(Linux to \graphene{}),
+we observe that system developers including us
+routinely make design choices based on 
+what they believe to be the common and uncommon behaviors of a system.
+For instance, in \graphene{}, we start with handpicking the abstractions and specifications
+that we believe to be more important to the applications we are interested in.
+For optimizing Linux file system directory cache,
+we shorten the latency of {\tt stat} and {\tt open} system calls
+at the expense of {\tt rename} and {\tt chmod},
+assuming that {\tt stat} and {\tt open} are the more commonly used operations in majority of applications.
+%In the case of a general-purpose OS, determining
+%exactly what the common case is can be challenging.
+As a result of such a bias,
+a developer's view of what system APIs are important
+is skewed heavily towards that developer's preferred workloads.
+%the choice of what features matter skews heavily towards
+%workloads particular developers use.
+Similarly, developers who struggle to evaluate the impact of a 
+change that affects backward-compatibility
+must implement every abstractions and specifications to reason about the support of legacy application in the product system.
+At the center of these problems is the missing of information about how system abstraction are depended on in the run-time,
+and a metric to estimate the completeness of legacy applications that can be supported
+for any random users.
+We create a sensible, representative measurement, that includes the effect of both applications and users,
+and show the significant improvement on legacy application support in \graphene{}
+if guided by this approach.
+
+
+In general, we explore the possibility of legacy code reuse in both
+partitioning a system
+(i.e., Graphene) and
+optimizing a legacy system
+(i.e., Linux file system directory cache),
+and derive principles to improve the result of implementation.
+We observe that in order to partition a system or application
+in a even finer granularity,
+such as an extremely sensitive component,
+legacy code reuse will become even more challenging.
+In this case,
+inevitably, applying techniques from programming languages and code analysis
+will become necessary.
+Specifically, one of the techniques that developers will need is the automated compartmentalization of legacy code.
+The reason is, 
+unless the partitioned component code is compact and simple,
+the effort required
+for cleanly and minimally partitioning the code
+will be too high.
+Especially for an application originally developed in a managed or object-oriented language (e.g., \java{}),
+code compartmentalization can be effective enough to generate close-to-optimal partitioning.
+
+The reason for pursuing \java{} applications partitioning
+is two-folded.
+On the one hand, legacy applications developed in \java{} or other managed languages
+are not supported by
+some isolated environments such as \intel{} \sgx{} enclaves.
+For applications isolated by an enclave,
+both the execution and interface have to be statically loaded
+before the enclave starts.
+For \java{} classes that are dynamically loaded and allocated by \java{} VMs,
+additional support from the system is required.
+On the other hand,
+an application or component isolated by the enclave must be verified to
+be immune to security vulnerabilities,
+otherwise there is risk of leaking the secrets from the enclave.
+By allowing developers to reuse \java{} code in enclaves{},
+more advantages and tools from the programming language can further ensure the soundness of isolated components.
+The automated partitioning of \java{} applications into enclaves
+is an ongoing work.
+
 
 %By supporting Linux multi-process applications,
 %\gsgx{} simply applies to a broader range of cloud-based applications
@@ -364,8 +669,8 @@ with the benefit of minimizing the porting effort from using the non-partitioned
 %and flexibility of implementing any desired security model
 %suitable for each binary.
 
-\section{Combining Isolated Execution with Language Protection\\ for Partitioned Applications}
-\label{sec:intro:civet}
+%\section{Combining Isolated Execution with Language Protection\\ for Partitioned Applications}
+%\label{sec:intro:civet}
 
 %% \fixme{Chia-Che Tsai's opening}
 %% Modern security hardwares such as TPM or \intel{} SGX
@@ -382,37 +687,37 @@ with the benefit of minimizing the porting effort from using the non-partitioned
 %% within the signed images
 %% will compromise the security properties in runtime.
 
-%\fixmedp{I would start by motivating the goal of application partitioning.
-%I think you could add a little more here, but this is a rough sketch.}
-For applications that handle sensitive data such as private keys,
-or implement proprietary algorithms,
-running on a untrusted host whose hardware and hypervisor
-may be compromised is a huge risk.
-%, such as medical applications, or 
-%implement proprietary algorithms, such as algorithmic stock trading.  
-%These applications are composed of 
-%libraries and other code from third parties, and may run on 
-%hardware and hypervisors provided by an untrusted cloud provider.
-%Using the partitioned model the developers can 
-%bound the effort to protect sensitive data and algorithms,
-%while still taking advantage of inexpensive code and cloud hardware.
-%A partitioned application isolates sensitive data and code, typically using
-%language or hardware techniques.
-If users run these applications in isolated execution such as \sgx{},
-due to the complexity of the applications,
-the cost of partitioning and porting the applications may be too high to pay.
-However, as discussed in \S\ref{sec:intro:gsgx},
-using the non-partitioned model, the application must tolerate a much larger TCB in the isolated execution,
-whereas a large fraction of the TCB is less sensitive.
-
-A solution to this dilemma
-is to automate the partitioning using language techniques.
-For instance, applications implemented in managed languages like \java{}
-are easier to partition,
-if a few hints about the sensitive data can be provided by the developers.
-Since \java{} classes are often well modularized,
-an automated language-level tool can analyze the minimal supporting classes to process the sensitive data,
-creating a clean partition with more reasonable TCB.
+%%\fixmedp{I would start by motivating the goal of application partitioning.
+%%I think you could add a little more here, but this is a rough sketch.}
+%For applications that handle sensitive data such as private keys,
+%or implement proprietary algorithms,
+%running on a untrusted host whose hardware and hypervisor
+%may be compromised is a huge risk.
+%%, such as medical applications, or 
+%%implement proprietary algorithms, such as algorithmic stock trading.  
+%%These applications are composed of 
+%%libraries and other code from third parties, and may run on 
+%%hardware and hypervisors provided by an untrusted cloud provider.
+%%Using the partitioned model the developers can 
+%%bound the effort to protect sensitive data and algorithms,
+%%while still taking advantage of inexpensive code and cloud hardware.
+%%A partitioned application isolates sensitive data and code, typically using
+%%language or hardware techniques.
+%If users run these applications in isolated execution such as \sgx{},
+%due to the complexity of the applications,
+%the cost of partitioning and porting the applications may be too high to pay.
+%However, as discussed in \S\ref{sec:intro:gsgx},
+%using the non-partitioned model, the application must tolerate a much larger TCB in the isolated execution,
+%whereas a large fraction of the TCB is less sensitive.
+%
+%A solution to this dilemma
+%is to automate the partitioning using language techniques.
+%For instance, applications implemented in managed languages like \java{}
+%are easier to partition,
+%if a few hints about the sensitive data can be provided by the developers.
+%Since \java{} classes are often well modularized,
+%an automated language-level tool can analyze the minimal supporting classes to process the sensitive data,
+%creating a clean partition with more reasonable TCB.
 
 %%Why SGX
 %%\fixme{Bhushan's opening}
@@ -442,25 +747,26 @@ creating a clean partition with more reasonable TCB.
 %SGX also offers protection against malicious devices off the CPU package,
 %such as a compromised storage device.
 
-Besides automated partitioning,
-securing \java{} applications in \sgx{} opens opportunities to hardening the security of isolated execution,
-using language-level protections
-~\citep{bittau2008wedge,brumley2004privtrans,khatiwala2006data}.
-For instance, the type-checking feature in the \java{} language
-can avoid the risk of exploitable pointers or control flow errors,
-which is significant in an unsafe language like C
-~\citep{nergal2001libc,bletsch2011jump,checkoway2010return}.
 
-In addition, although SGX can restrict enclave entry 
-to a few predefined entry points,
-the developers still have to reason about what the soundness of the
-entry-point definitions, protection against malicious inputs,
-and the code paths that must not inadvertently leak sensitive data.
-For instance, Iago attacks~\citep{iago}, where an OS offers malicious system call return values,
-can be notoriously difficult to defend against from an enclave;
-although limited countermeasures exist for the OS API (typically with the cooperation of a 
-trusted hypervisor)~\citep{kwon2016sego},%\fixmedp{cite the asplos 16 inktag paper},
-there are no off-the-shelf defenses against Iago-style attacks from the compromised application code.
+%Besides automated partitioning,
+%securing \java{} applications in \sgx{} opens opportunities to hardening the security of isolated execution,
+%using language-level protections
+%~\citep{bittau2008wedge,brumley2004privtrans,khatiwala2006data}.
+%For instance, the type-checking feature in the \java{} language
+%can avoid the risk of exploitable pointers or control flow errors,
+%which is significant in an unsafe language like C
+%~\citep{nergal2001libc,bletsch2011jump,checkoway2010return}.
+%
+%In addition, although SGX can restrict enclave entry 
+%to a few predefined entry points,
+%the developers still have to reason about what the soundness of the
+%entry-point definitions, protection against malicious inputs,
+%and the code paths that must not inadvertently leak sensitive data.
+%For instance, Iago attacks~\citep{checkoway13iago}, where an OS offers malicious system call return values,
+%can be notoriously difficult to defend against from an enclave;
+%although limited countermeasures exist for the OS API (typically with the cooperation of a 
+%trusted hypervisor)~\citep{kwon2016sego},%\fixmedp{cite the asplos 16 inktag paper},
+%there are no off-the-shelf defenses against Iago-style attacks from the compromised application code.
 
 %Further, SGX is designed to run a small, native code library inside of a larger
 %application; support for running managed languages in an enclave is currently limited.  
@@ -520,27 +826,27 @@ there are no off-the-shelf defenses against Iago-style attacks from the compromi
 %Based on the different languages used by developers,
 %applications can be offered stronger language specific security guarantees.
 
-Although combining isolated execution and language protections
-is beneficial for partitioned applications,
-the synthesization of the two mechanism can be difficult in practice.
-%In general, hardware protection and language-level protection 
-%provide separate security guarantees.
-%Unfortunately, developers often struggle to combine both types of protection, due to the limitations and lack of support for both approaches.
-We focus on the combination of \sgx{} and \java{} as a running example:
-\sgx{} are designed to run native code that is primarily developed in C or C++.
-Without further support, a partitioned \java{} application
-cannot be directly loaded into an enclave.
-There is also no API support for \sgx{} features in \java{},
-making it challenging for \java{} applications to use any \sgx{} features to their advantage.
-%Developers often have to create an ad hoc integration of hardware and language-level protection,
-%or they are forced to exclusively expose the application between
-%attacks from the system stacks and vulnerabilities inside the applications.
-The current state-of-the-art of secure more complex applications with \sgx{} is to develop ad hoc solutions that target specific use cases.
-% approaches of combining
-%language and hardware protection often rely on ad-hoc solutions that
-%are specific to certain use cases or technologies.
-For example, \cite{vc3} use \sgx{} to secure data analysis in a MapReduce framework supporting C++
---- instead of the Hadoop framework that generally supports \java{}.
+%Although combining isolated execution and language protections
+%is beneficial for partitioned applications,
+%the synthesization of the two mechanism can be difficult in practice.
+%%In general, hardware protection and language-level protection 
+%%provide separate security guarantees.
+%%Unfortunately, developers often struggle to combine both types of protection, due to the limitations and lack of support for both approaches.
+%We focus on the combination of \sgx{} and \java{} as a running example:
+%\sgx{} are designed to run native code that is primarily developed in C or C++.
+%Without further support, a partitioned \java{} application
+%cannot be directly loaded into an enclave.
+%There is also no API support for \sgx{} features in \java{},
+%making it challenging for \java{} applications to use any \sgx{} features to their advantage.
+%%Developers often have to create an ad hoc integration of hardware and language-level protection,
+%%or they are forced to exclusively expose the application between
+%%attacks from the system stacks and vulnerabilities inside the applications.
+%The current state-of-the-art of secure more complex applications with \sgx{} is to develop ad hoc solutions that target specific use cases.
+%% approaches of combining
+%%language and hardware protection often rely on ad-hoc solutions that
+%%are specific to certain use cases or technologies.
+%For example, \cite{vc3} use \sgx{} to secure data analysis in a MapReduce framework supporting C++
+%--- instead of the Hadoop framework that generally supports \java{}.
 
 %% dp: this sentence seems off track, unless you want to say something about ``this has to be in C''
 %Similarly, S-NFV uses SGX to isolate states of Network Function Virtualization Applications~\citep{shih2016s}.
@@ -677,16 +983,7 @@ is safe to be released from the enclave.
 %that can shield the developer from the complexity of determining whether security sensitive information 
 %is leaked outside the enclave.
 
-We present {\em \civet{}}, a framework that combines the benefits of
-\sgx{}'s isolated execution and the language protection from \java{}, to protect partitioned applications.
-The design of \civet{} avoids the downsides of taking either approach in isolation.
-\civet{} includes three primary parts:
-a tool that automates the partitioning of applications, ultimately generating an enclave image that includes
-the minimal supporting classes;
-a runtime framework that verifies and loads the supporting classes into an enclave, and enforces information flow control on the enclave border;
-and \java{} APIs to seamless access the \sgx{} features such
-as attestation and secure provisioning.
-The building block the the \civet{} framework uses \gsgx{} to run a reduced \java{} VM, to load the framework and the trusted classes.
+
 %\fixme{Bhushan, read until here.}
 %a framework that help Java developers partition their code
 %between security sensitive and non-security sensitive parts by adding a few lines of annotations.
@@ -746,6 +1043,159 @@ The building block the the \civet{} framework uses \gsgx{} to run a reduced \jav
 %for any closed source library implementing proprietary or secret algorithm.
 %Finally, we use the enclave to protect security critical data of a Java Web Start (JavaWS) application.
 
+
+
+%Civet prevents any bugs either in the untrusted application or the isolated crypto library to cause leakage of the encryption key.
+%Another use case is a Hadoop job that is provisioned with a secret algorithm, and automatically encrypts computation results
+%to eliminate risks of leaking the secret sauce.  
+
+%\section{Exploring Practicality}
+%
+%Besides designing practical solution of security isolation,
+%we obtain several insights about balancing other system properties
+%that are critical to the applications.
+%At the center of the problem is the compatibility requirement by the applications.
+%We observe that operating system development is bound by compatibility requirements such as implementing the specifications or the API support, and the requirement can impact the development of other system properties.
+%
+%For instance, during the development of \graphene{}, we observe that the lookup hit latency of file system directory cache is suboptimal,
+%due to the requirement of checking directory permissions.
+%We redesign the logic of
+%directory cache lookup, in both Linux and \graphene{},
+%to significantly improve the hit latency without breaking any compatibility requirements.
+%As another example, we observe that the measurement of bug-for-bug compatibility in operating systems causes difficulty in improving the APIs for better security or portability,
+%as well as evaluating the completeness of a system prototype.
+%We create more reasonable measurements
+%that reflect the impact or progress of API implementation,
+%and use the measurements to evaluate and improve the API support in \graphene{}.
+%The former study is described in \S\ref{chap:dcache}, and the latter study is in \S\ref{chap:syspop}.
+
+
+%\section{Future Directions}
+%In our previous works, we explore several models of enforcing security isolation, to restrict vulnerabilities
+%that occur in diverse scenarios.
+%For instance, \graphene{} and \gsgx{} both utilize a highly compatible library OS,
+%but isolate applications with drastically different assumptions.
+%In addition, \gsgx{} and \civet{} relies on two distinct strategies to maximize the usability
+%--- \gsgx{} secures an application as it is, whereas \civet{} benefits from language techniques.
+%As future works, we will focus on improving \graphene{}, \gsgx{} and \civet{},
+%to build more generalized models, and minimize the weakness we have observed in these solutions.
+%
+%\paragraph{Security Isolation for Multi-Principle Applications.}
+%In \graphene{} or many others like VM or container-based solutions,
+%applications are protected with a trust model of all-or-nothing.
+%In other word, each process or component of an application can only be fully trusted or not trusted at all.
+%The key reason of such a restriction is that the applied security isolation cannot reflect the complexity of privilege model in the application.
+%In reality, multiple security principles can co-exist in an application.
+%For instance, a web server that serves requests from clients identified as different clearance
+%will need to maintain the correspondent confidentiality levels.
+%The web server may perform operations that are more security sensitive (e.g., retrieve a secret key)
+%or more vulnerable (e.g., execute privilege-escalating scripts).
+%For components in the same process, we have seen examples, such as the heart-bleed bug~\citep{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
+%
+%\paragraph{Seamless Transition of Security Isolation.}
+%Each existing solution of security isolation can protect applications
+%under specific security principles and assumptions.
+%For instance, \graphene{} or other \picoproc{}-based solutions isolate mutually untrusting applications on a trusted host,
+%whereas enclaves protect more sensitive applications on an untrusted host.
+%No existing solutions can support all security principles and assumptions.
+%Moreover, many solutions provide a container-like environment in which the operating system views are completely isolated.
+%These limitations cause different solutions to be mutually exclusive,
+%and users are held responsible for making the decisions of choosing the solution
+%--- simply put, to explicitly run {\tt pal} or {\tt pal-sgx} to load applications in \graphene{} or \gsgx{}. 
+%The penalties of the security solution such as performance overhead or incompatibility
+%will make users to be reluctant
+%to choose one solution to run all related applications,
+%if given the choice.
+%
+%%Security isolation for applications mostly requires users to run applications in a container-like environment, consciously and explicitly.
+%%Simply put, a user must always launch an application in \graphene{} or \gsgx{} by executing their loaders, {\tt pal} or {\tt pal-sgx}.
+%%In practice, however, users often have insufficient knowledge of the security requirement of applications
+%%to decide whether to enforce stronger security isolation.
+%%The common result of the problem is that security isolation solutions becomes mutually exclusive for an operating system to choose.
+%
+%While operating systems have sufficient information to determine the security principles of an application,
+%the existing solutions of security isolation
+%are not designed to seamlessly transit into one another.
+%We can use \graphene{}, \gsgx{} and Linux as an example of transition between solutions.
+%%We observe that \graphene{} and \gsgx{} provide compatible Linux personality,
+%%so that applications can run seamlessly in these environments.
+%The Linux personality of \graphene{} and \gsgx{}
+%make it feasible to dynamically migrate applications from Linux to a \picoproc{}
+%or an enclave according to the security principles.
+%%Operating system can determine the appropriate security isolation for applications, based on the security principles.
+%%For instance, operating systems can determine how to isolate an application based on its origin
+%A security-sensitive application
+%that is signed by the developers to always run in an enclave,
+%can demand a regular process to be migrated into another enclave
+%if the the process is requesting any interaction
+%--- a requirement that can be verified by the enclave, without trusting the Linux host.
+%%while a suspicious, downloaded application will run in a \picoproc{}.
+%%If a regular application interacts with the sensitive one, the latter's \libos{} can demand the former to be migrated into an enclave.
+%%In contrast, if a application becomes tainted by a suspicious application,
+%%operating system can migrate the application to a \picoproc{}.
+%Similar technique can be applied to drop the privilege of a regular application to a \picoproc{}
+%if tainted by a low-security applications already isolated in another \picoproc{}.
+%
+%
+%\paragraph{Minimizing TCB.}
+%Although \graphene{}, \gsgx{} and \civet{} can fundamentally reduce the TCB required for an application,
+%we observe missed opportunities in these solutions to further minimize the risk.
+%In \graphene{}, the \libos{} of untrused applications are evicted from the TCB,
+%but the host kernel must still be trusted. The system call restriction enforced by Seccomp filters is helpful, but it is hard to reason that the vulnerabilities are eliminated in the kernel.
+%For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\citep{l4family}.
+%
+%In \gsgx{} and \civet{}, we observe more opportunities of reducing TCB with engineering efforts.
+%For instance, \gsgx{}, the size of \libos{} and supporting libraries
+%can be as large as tens to hundreds of megabytes.
+%The supporting classes partitioned by the \civet{} design-time tool
+%may contain more than thousands of \java{} classes.
+%All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.
+
+This thesis proposal studies the challenges and principles,
+in designing a partitioned or optimized system that can optimally reuse legacy code.
+The following list describes the contributions,
+from a technical view:
+
+\begin{compactitem}
+
+\item A Linux-compatible \libos{} called \term{\graphene{}}~\citep{tsai14graphene},
+which is ported to Linux, FreeBSD, OSX,
+Windows and \intel{} \sgx{} enclaves (also called \term{\graphenesgx{}}).
+Graphene isolates Linux, multi-process applications that are mutually distrusting,
+in \picoprocs{} or enclaves.
+In \graphene{}, multiple \libos{} instances
+collaboratively implement
+POSIX abstractions,
+such as namespaces, forking, signaling, and \sysvipc{},
+yet appear to the application
+as a single, shared OS.
+\graphene{} coordinates the namespace and abstraction states shared across processes
+over pipe-like RPC streams,
+which can be individually sandboxed from the host reference monitor.
+
+
+\item 
+In a Linux kernel optimized using this approach,
+the hit latency of {\tt stat} system calls on a long path
+can be optimized to up to 27\%.improving the
+latency of the Dovecot IMAP serer by up to 12% and the git
+version control system by up to 25%
+
+
+\item syspop
+
+
+\item
+We present {\em \civet{}}, a framework that combines the benefits of
+\sgx{}'s isolated execution and the language protection from \java{}, to protect partitioned applications.
+The design of \civet{} avoids the downsides of taking either approach in isolation.
+\civet{} includes three primary parts:
+a tool that automates the partitioning of applications, ultimately generating an enclave image that includes
+the minimal supporting classes;
+a runtime framework that verifies and loads the supporting classes into an enclave, and enforces information flow control on the enclave border;
+and \java{} APIs to seamless access the \sgx{} features such
+as attestation and secure provisioning.
+The building block the the \civet{} framework uses \graphenesgx{} to run a reduced \java{} VM, to load the framework and the trusted classes.
 %As a proof-of-the-concept, 
 We study three classic use cases of \civet{}.
 The first use case is to isolate the 
@@ -771,108 +1221,21 @@ and only basic understanding of the isolated execution,
 not the cumbersome hardware details.  %n{high-level understanding  knowledge of %almost no familiarity with how 
 %the SGX hardware.
 
-%Civet prevents any bugs either in the untrusted application or the isolated crypto library to cause leakage of the encryption key.
-%Another use case is a Hadoop job that is provisioned with a secret algorithm, and automatically encrypts computation results
-%to eliminate risks of leaking the secret sauce.  
-
-\section{Exploring Practicality}
-
-Besides designing practical solution of security isolation,
-we obtain several insights about balancing other system properties
-that are critical to the applications.
-At the center of the problem is the compatibility requirement by the applications.
-We observe that operating system development is bound by compatibility requirements such as implementing the specifications or the API support, and the requirement can impact the development of other system properties.
-
-For instance, during the development of \graphene{}, we observe that the lookup hit latency of file system directory cache is suboptimal,
-due to the requirement of checking directory permissions.
-We redesign the logic of
-directory cache lookup, in both Linux and \graphene{},
-to significantly improve the hit latency without breaking any compatibility requirements.
-As another example, we observe that the measurement of bug-for-bug compatibility in operating systems causes difficulty in improving the APIs for better security or portability,
-as well as evaluating the completeness of a system prototype.
-We create more reasonable measurements
-that reflect the impact or progress of API implementation,
-and use the measurements to evaluate and improve the API support in \graphene{}.
-The former study is described in \S\ref{chap:dcache}, and the latter study is in \S\ref{chap:syspop}.
+\end{compactitem}
 
 
-\section{Future Directions}
-In our previous works, we explore several models of enforcing security isolation, to restrict vulnerabilities
-that occur in diverse scenarios.
-For instance, \graphene{} and \gsgx{} both utilize a highly compatible library OS,
-but isolate applications with drastically different assumptions.
-In addition, \gsgx{} and \civet{} relies on two distinct strategies to maximize the usability
---- \gsgx{} secures an application as it is, whereas \civet{} benefits from language techniques.
-As future works, we will focus on improving \graphene{}, \gsgx{} and \civet{},
-to build more generalized models, and minimize the weakness we have observed in these solutions.
-
-\paragraph{Security Isolation for Multi-Principle Applications.}
-In \graphene{} or many others like VM or container-based solutions,
-applications are protected with a trust model of all-or-nothing.
-In other word, each process or component of an application can only be fully trusted or not trusted at all.
-The key reason of such a restriction is that the applied security isolation cannot reflect the complexity of privilege model in the application.
-In reality, multiple security principles can co-exist in an application.
-For instance, a web server that serves requests from clients identified as different clearance
-will need to maintain the correspondent confidentiality levels.
-The web server may perform operations that are more security sensitive (e.g., retrieve a secret key)
-or more vulnerable (e.g., execute privilege-escalating scripts).
-For components in the same process, we have seen examples, such as the heart-bleed bug~\citep{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
-
-\paragraph{Seamless Transition of Security Isolation.}
-Each existing solution of security isolation can protect applications
-under specific security principles and assumptions.
-For instance, \graphene{} or other \picoproc{}-based solutions isolate mutually untrusting applications on a trusted host,
-whereas enclaves protect more sensitive applications on an untrusted host.
-No existing solutions can support all security principles and assumptions.
-Moreover, many solutions provide a container-like environment in which the operating system views are completely isolated.
-These limitations cause different solutions to be mutually exclusive,
-and users are held responsible for making the decisions of choosing the solution
---- simply put, to explicitly run {\tt pal} or {\tt pal-sgx} to load applications in \graphene{} or \gsgx{}. 
-The penalties of the security solution such as performance overhead or incompatibility
-will make users to be reluctant
-to choose one solution to run all related applications,
-if given the choice.
-
-%Security isolation for applications mostly requires users to run applications in a container-like environment, consciously and explicitly.
-%Simply put, a user must always launch an application in \graphene{} or \gsgx{} by executing their loaders, {\tt pal} or {\tt pal-sgx}.
-%In practice, however, users often have insufficient knowledge of the security requirement of applications
-%to decide whether to enforce stronger security isolation.
-%The common result of the problem is that security isolation solutions becomes mutually exclusive for an operating system to choose.
-
-While operating systems have sufficient information to determine the security principles of an application,
-the existing solutions of security isolation
-are not designed to seamlessly transit into one another.
-We can use \graphene{}, \gsgx{} and Linux as an example of transition between solutions.
-%We observe that \graphene{} and \gsgx{} provide compatible Linux personality,
-%so that applications can run seamlessly in these environments.
-The Linux personality of \graphene{} and \gsgx{}
-make it feasible to dynamically migrate applications from Linux to a \picoproc{}
-or an enclave according to the security principles.
-%Operating system can determine the appropriate security isolation for applications, based on the security principles.
-%For instance, operating systems can determine how to isolate an application based on its origin
-A security-sensitive application
-that is signed by the developers to always run in an enclave,
-can demand a regular process to be migrated into another enclave
-if the the process is requesting any interaction
---- a requirement that can be verified by the enclave, without trusting the Linux host.
-%while a suspicious, downloaded application will run in a \picoproc{}.
-%If a regular application interacts with the sensitive one, the latter's \libos{} can demand the former to be migrated into an enclave.
-%In contrast, if a application becomes tainted by a suspicious application,
-%operating system can migrate the application to a \picoproc{}.
-Similar technique can be applied to drop the privilege of a regular application to a \picoproc{}
-if tainted by a low-security applications already isolated in another \picoproc{}.
 
 
-\paragraph{Minimizing TCB.}
-Although \graphene{}, \gsgx{} and \civet{} can fundamentally reduce the TCB required for an application,
-we observe missed opportunities in these solutions to further minimize the risk.
-In \graphene{}, the \libos{} of untrused applications are evicted from the TCB,
-but the host kernel must still be trusted. The system call restriction enforced by Seccomp filters is helpful, but it is hard to reason that the vulnerabilities are eliminated in the kernel.
-For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\citep{l4family}.
-
-In \gsgx{} and \civet{}, we observe more opportunities of reducing TCB with engineering efforts.
-Fo instance, \gsgx{}, the size of \libos{} and supporting libraries
-can be as large as tens to hundreds of megabytes.
-The supporting classes partitioned by the \civet{} design-time tool
-may contain more than thousands of \java{} classes.
-All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.
+The organization of this thesis proposal is as follows:
+{\bf Chapter~\ref{chap:graphene}} describes the implementation of \graphene{}\libos{} for isolating legacy Linux, multi-process applications.
+{\bf Chapter~\ref{chap:dcache}} explains the optimizations on the lookup latency of
+Linux's legacy file system directory cache.
+{\bf Chapter~\ref{chap:syspop}} discusses the study of system API usage and compatibility,
+and the use of study data to prioritize system building.
+{\bf Chapter~\ref{chap:civet}} presents the ongoing work for partitioning security-sensitive
+\java{} applications to gain fine-grained isolation from \intel{} \sgx{} enclaves,
+with optimal legacy code reuse.
+{\bf Chapter~\ref{chap:future}} lists the proposed tasks for the fulfillment of thesis,
+and possible future directions.
+{\bf Chapter~\ref{chap:related}} describes the former works and publications related to
+the topics covered in this thesis proposal.

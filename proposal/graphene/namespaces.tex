@@ -63,7 +63,7 @@ Shared File Descriptors &
 Seek pointers & Mappings managed by parent, migrate ownership to \picoproc{} most frequently accessing the file descriptors. \\
 \hline
 \end{tabular}
-\caption[\sysname{}: multi-process abstractions implemented]
+\caption[Multi-process abstractions implemented in sysname{}]
 {Multi-process abstractions implemented in \sysname{}, coordinated state, and implementation strategies.}
 \label{tab:graphene:multiproc}
 \end{table}
@@ -214,7 +214,7 @@ to simplify the handling of concurrent writes to the stream.
 Point-to-point streams are simply byte streams between two \picoprocs{};
 two processes may establish a point-to-point stream by passing handles through 
 an intermediate stream or over the broadcast stream.
-The handle-passing ABI is discussed further in Section~\ref{sec:impl}.
+The handle-passing ABI is discussed further in Section~\ref{sec:graphene:impl}.
 %The broadcast stream is primarily used for failure 
 %recovery (\S\ref{sec:namespaces:failurerecovery}); 
 %Mmost operations use point-to-point streams to minimize overheads.
@@ -269,7 +269,7 @@ process, process group, and thread IDs.
 \begin{figure}
 \centering
 \includegraphics[width=3.6in]{graphene/figures/coordination.pdf}
-\caption[\sysname{}: sandboxing inter-process cordination]
+\caption[Sandboxing inter-process cordination in \sysname{}]
 {Two pairs of \sysname{} \picoprocs{} in different sandboxes 
 coordinate signaling and process ID management.
 The location of each PID is tracked in {\tt libLinux}; Picoprocess 1 signals

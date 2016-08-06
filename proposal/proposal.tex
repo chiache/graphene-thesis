@@ -1,7 +1,8 @@
 \documentclass[12pt]{report}
 
 % comment out the following line when submitting
-\def \oscardebug{}
+\def \debug{}
+\def \prethesis{}
 
 \usepackage{geometry}
 \geometry{margin=1in}
@@ -17,7 +18,7 @@
 \usepackage{comment}
 \usepackage{alltt}
 \usepackage{color}
-\usepackage[square]{natbib}
+\usepackage[authoryear,square,sort]{natbib}
 \usepackage[titletoc,title]{appendix}
 \usepackage{lastpage}
 \usepackage{times}
@@ -33,7 +34,7 @@
 \usepackage{booktabs}
 \usepackage[hidelinks]{hyperref}
 
-\ifx \oscardebug \undefined
+\ifx \debug \undefined
 \newcommand{\fixme}[1]{{}}
 \newcommand{\fixmedp}[1]{{}}
 \else
@@ -41,10 +42,20 @@
 \newcommand{\fixmedp}[1]{{\bf\textcolor{red}{ [ FIXME dP: #1 ]}}}
 \fi
 
-\newcommand{\thesistitle}{Balancing Practicality and Security Isolation for Applications\\ with Untrustworthy System Stacks}
+\ifx \prethesis \undefined
+\newcommand{\note}[1]{{}}
+\else
+\newcommand{\note}[1]{{\bf\textcolor{blue}{ [ NOTE: #1 ]}}}
+\fi
+
+%\newcommand{\thesistitle}{Balancing Practicality and Security Isolation for Applications\\ with Untrustworthy System Stacks}
+%\newcommand{\thesistitle}{Legacy Code Reuse in Partitioned Systems for Isolating Security and Performance Pitfalls: from the OS perspective}
+\newcommand{\thesistitle}{Legacy Code Reuse in Partitioned or Optimized Systems for Isolating Security and Performance Pitfalls: An OS perspective}
 \newcommand{\thesisauthor}{Chia-Che Tsai}
 \newcommand{\thesisyear}{2016}
 \newcommand{\thesismonth}{August}
+
+\newcommand{\term}[1]{{\bf #1}}
 
 \makeatletter
 \newcommand*{\declarecommand}{%
@@ -57,20 +68,6 @@
 }
 \makeatother
 
-\declarecommand{\graphene}{Graphene}
-\declarecommand{\gsgx}{Graphene-SGX}
-\declarecommand{\civet}{Civet}
-\declarecommand{\intel}{Intel}
-\declarecommand{\sgx}{SGX}
-\declarecommand{\microkernel}{Microkernel}
-\declarecommand{\libos}{libOS}
-\declarecommand{\liboses}{libOSes}
-\declarecommand{\picoproc}{picoprocess}
-\declarecommand{\picoprocs}{picoprocesses}
-\declarecommand{\haven}{Haven}
-\declarecommand{\drawbridge}{Drawbridge}
-\declarecommand{\java}{Java}
-\declarecommand{\microbench}{micro-benchmark}
 
 \begin{document}
 \pagenumbering{gobble}
@@ -78,13 +75,13 @@
 \title{\bf{Title of Dissertation}}
 
 \vspace*{6\baselineskip}
-{\setstretch{1.5}\centering{\Large\bf{\thesistitle{}}}\\}
+{\centering{\bf{\thesistitle{}}}\\}
 \vspace*{3\baselineskip}
 \centerline{A Dissertation Proposal presented}
 \vspace*{1\baselineskip}
 \centerline{by} 
 \vspace*{1\baselineskip}
-\centerline{\large\bf{\thesisauthor{}}}
+\centerline{\bf{\thesisauthor{}}}
 \vspace*{1\baselineskip}
 \centerline{to} 
 \vspace*{1\baselineskip}
@@ -152,9 +149,29 @@
 %\centerline{Charles Taber}
 %\centerline{Dean of the Graduate School}
 
-\newpage
-\pagenumbering{gobble}
 
+\declarecommand{\graphene}{Graphene}
+\declarecommand{\graphenesgx}{Graphene-SGX}
+\declarecommand{\civet}{Civet}
+\declarecommand{\intel}{Intel}
+\declarecommand{\sgx}{SGX}
+\declarecommand{\microkernel}{Microkernel}
+\declarecommand{\libos}{library OS}
+\declarecommand{\liboses}{library OSes}
+\declarecommand{\picoproc}{picoprocess}
+\declarecommand{\picoprocs}{picoprocesses}
+\declarecommand{\haven}{Haven}
+\declarecommand{\drawbridge}{Drawbridge}
+\declarecommand{\java}{Java}
+\declarecommand{\microbench}{micro-benchmark}
+\declarecommand{\sysvipc}{System V IPC}
+
+
+\newpage
+\pagenumbering{arabic}
+\setcounter{page}{2}
+
+\phantomsection
 \addcontentsline{toc}{chapter}{Abstract}
 \centerline{Abstract of the Dissertation Proposal}
 \vspace*{3\baselineskip}
@@ -164,6 +181,8 @@
 \vspace*{1\baselineskip}
 \centerline{\bf{\thesisauthor{}}}
 \vspace*{2\baselineskip}
+\centerline{For the Degree of}
+\vspace*{1\baselineskip}
 \centerline{\bf{Doctor of Philosophy}}
 \vspace*{1\baselineskip}
 \centerline{in}
@@ -178,8 +197,6 @@
 \centerline{\bf{\thesisyear{}}}
 \vspace*{2\baselineskip}
 \input{abstract}
-
-\pagenumbering{arabic}
 
 %\newpage
 %\centerline{\bf{Dedication Page}}
@@ -226,6 +243,8 @@
 %This page is optional.
 
 \newpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Acknowledgements}
 \centerline{\bf{Acknowledgments}}
 \vspace*{4\baselineskip}
 \input{acknowledge}
@@ -242,14 +261,15 @@
 
 \input{intro}
 \input{graphene/graphene}
-\input{graphene-sgx/graphene-sgx}
-\input{civet/civet}
 \input{dcache/paper}
 \input{syspop/syspop}
+\input{civet/civet}
 \input{future/future}
 \input{related}
 \input{conclusion}
 
+\newpage
+\phantomsection
 \addcontentsline{toc}{chapter}{References}
 \renewcommand{\bibname}{\centerline{\normalsize\bf{References}}}
 \bibliographystyle{plainnat}
