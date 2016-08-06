@@ -1,5 +1,5 @@
 \section{Unweighted API Importance}
-\label{sec:security}
+\label{sec:syspop:security}
 
 \Usagemetric{} is weighted by the number of installations
 of applications that use the API.
@@ -36,16 +36,16 @@ of probability of installation.
 \end{minipage}}}
 \vspace{0.1in}
 
-\begin{figure}[t]
-\vspace{-0.2in}
-\center{
-\includegraphics[width=3.6in]{syspop/figures/unweighted-syscall-popularity-all.pdf}
-}
-\footnotesize
-\caption[\Unwusagemetric{} of Linux system calls]
-{The trend of \unwusagemetric{} in N-most important system calls among total \syscallnum{} system calls of \osversion{} with Linux kernel \kernelversion{}.}
-\label{fig:unweighted-syscall-popularity-trend}
-\end{figure}
+%\begin{figure}[t]
+%\vspace{-0.2in}
+%\center{
+%\includegraphics[width=3.6in]{syspop/figures/unweighted-syscall-popularity-all.pdf}
+%}
+%\footnotesize
+%\caption[\Unwusagemetric{} of Linux system calls]
+%{The trend of \unwusagemetric{} in N-most important system calls among total \syscallnum{} system calls of \osversion{} with Linux kernel \kernelversion{}.}
+%\label{fig:unweighted-syscall-popularity-trend}
+%\end{figure}
 
 We begin by looking at the \unwusagemetric{} of each system call. Figure~\ref{fig:unweighted-syscall-popularity-trend} shows the 
 distribution of system calls across packages. 
@@ -176,6 +176,7 @@ packages use the more vulnerable {\tt access} system call instead of the more se
 %& {\tt fstat}    & 99.80\% & & \\ {\tt stat}     & 99.80\% & {\tt newfstatat}   & 99.79\% \\
 %& {\tt chmod}    & 39.80\% & \multirow{2}{*}{\tt fchmodat}   & \multirow{2}{*}{ 0.13\%} \\
 %& {\tt fchmod}   & 32.78\% & & \\
+\bottomrule
 \end{tabular}
 \caption[\Unwusagemetric{} of secure and insecure API variations]
 {\Unwusagemetric{} of secure and insecure API variations. Higher is more important.}
@@ -253,10 +254,10 @@ unless a task demands the functionality of a more powerful API variant.
 {\tt tkill} & 0.51\% & {\tt tgkill} & 99.80\% \\
 \addlinespace
 {\tt wait4} & 60.56\% & {\tt waitid} & 0.24\% \\
+\bottomrule
 \end{tabular}%
 \caption[\Unwusagemetric{} of old and new API variations.]
 {\Unwusagemetric{} of old (generally deprecated) and new (preferred) API variations. Higher is more important.}
-\vspace{-0.1in}
 \label{tab:old}%
 \end{table}%
 
@@ -281,6 +282,7 @@ unless a task demands the functionality of a more powerful API variant.
 {\tt sendmmsg} & 5.17\% & {\tt sendmsg} & 42.49\% \\
 \addlinespace
 {\tt pipe2} & 40.33\% & {\tt pipe} & 50.33\% \\
+\bottomrule
 \end{tabular}%
 \caption[\Unwusagemetric{} of other API variants]
 {\Unwusagemetric{} of other API variants,
@@ -306,6 +308,7 @@ and comparison between Linux-specific versions and more portable or generic vers
 {\tt sendmsg} & 42.49\% & {\tt sendto} & 71.71\% \\
 %\addlinespace
 %{\tt chdir} & 44.61\% & {\tt fchdir} & 2.20\% \\
+\bottomrule
 \end{tabular}%
 \caption[\Unwusagemetric{} among similar API variants]
 {\Unwusagemetric{} among similar API variants. Higher is more important.}

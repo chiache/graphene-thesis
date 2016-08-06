@@ -8,12 +8,12 @@ We also evaluate several \libc{} variants for their degree of completeness again
 \begin{table}[t]
 \centering
 \small
-\begin{tabular}{m{1.2in}>{\centering}m{0.5in}>{\raggedright\arraybackslash\footnotesize}m{3.2in}>{\raggedleft\arraybackslash}m{1in}}
+\begin{tabular}{m{1.4in}>{\centering}m{0.5in}>{\raggedright\arraybackslash\footnotesize}m{2.9in}>{\raggedleft\arraybackslash}m{1in}}
 \toprule
 Systems & \# & Suggested APIs to add & \Compatmetric{} \\
 \midrule
 \addlinespace
-User-Mode-Linux \kernelversion{} & 284 & {\tt name\_to\_handle\_at}, {\tt iopl}, {\tt ioperm}, {\tt perf\_event\_open} & 93.1\% \\
+User-Mode-Linux \kernelversion{} & 284 & {\tt name\_to\_handle\_at}, {\tt iopl}, {\tt perf\_event\_open} & 93.1\% \\
 \addlinespace
 \hline
 \addlinespace
@@ -27,6 +27,7 @@ FreeBSD-emu 10.2 & 225 & {\tt inotify}*, {\tt splice}, {\tt umount2}, {\tt timer
 \addlinespace
 Graphene  & 143 & {\tt sched\_setscheduler}, {\tt sched\_setparam} & 0.42\% \\
 Graphene\textsuperscript{\P} & 145 & {\tt statfs}, {\tt utimes}, {\tt getxattr}, {\tt fallocate}, {\tt eventfd2} & 21.1\% \\
+\hline
 \end{tabular}
 \caption[Evalution of Linux-compatible system or emulation layers]
 {\Compatmetric{} of several Linux systems or emulation layers. For each system, we manually identify the number of supported system calls (``\#''), and calculate the \compatmetric{} (``W.Comp.'') . Based on \usagemetric{}, we suggest the most important APIs to add.
@@ -82,7 +83,7 @@ Graphene's \compatmetric{} would be 21.1\%.
 \begin{table}[t]
 \center{
 \small
-\begin{tabular}{>{\raggedright\arraybackslash}m{1in}>{\raggedleft\arraybackslash}m{0.4in}>{\raggedright\arraybackslash\footnotesize}m{2.4in}>{\raggedleft\arraybackslash}m{1in}>{\raggedleft\arraybackslash}m{1in}}
+\begin{tabular}{>{\raggedright\arraybackslash}m{1in}>{\raggedleft\arraybackslash}m{0.4in}>{\raggedright\arraybackslash\footnotesize}m{2.4in}>{\raggedleft\arraybackslash}m{0.9in}>{\raggedleft\arraybackslash}m{0.9in}}
 \toprule
 \Libc{} variants & \# & Unsupported functions (samples) & {\footnotesize \Compatmetric{}} & {\footnotesize \Compatmetric{}} {\scriptsize (normalized)} \\
 \midrule
@@ -100,6 +101,8 @@ musl 1.1.14 & 1890 & {\tt secure\_getenv}, {\tt random\_r} & 1.1\% & 43.2\% \\
 \hline
 \addlinespace
 dietlibc 0.33 & 962 & {\tt memalign}, {\tt stpcpy}, {\tt \_\_cxa\_finalize}  & 0\% & 0\% \\
+\addlinespace
+\hline
 \end{tabular}
 }
 \caption[\Compatmetric{} of \libc{} variants]

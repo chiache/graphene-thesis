@@ -100,7 +100,7 @@ developers only have to pay minimum efforts to re-implement the wrappers in libr
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=4.5in]{syspop/figures/syscall-popularity-all-by-inst.pdf}
+\includegraphics[width=6in]{syspop/figures/syscall-popularity-all-by-inst.pdf}
 \caption[N-most important system calls in Linux.]
 {The trend of \usagemetric{} as N-most important system calls among total \syscallnum{} system calls of \osversion{} with Linux kernel \kernelversion{}. .
 Higher is more important; 100\% indicates all installations include software that make the system call.}
@@ -309,7 +309,7 @@ are supported by the prototype.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=4.5in]{syspop/figures/syscall-compatibility.pdf}
+\includegraphics[width=5in]{syspop/figures/syscall-compatibility.pdf}
 \caption[Accumulated compatibility of system prototype prioritzed by importance]
 {Accumulated \compatmetric{} when N top-ranked system calls are implemented in the OS. Higher is more compliant.}
 \label{fig:syscall-compatibility}
@@ -317,7 +317,7 @@ are supported by the prototype.
 
 \begin{table}[t]
 \center{
-\begin{tabular}{c>{\footnotesize\raggedright\arraybackslash}m{4in}>{\raggedleft}m{0.4in}>{\raggedleft\arraybackslash}m{1in}}
+\begin{tabular}{c>{\footnotesize\raggedright\arraybackslash}m{3.6in}>{\raggedleft}m{0.8in}>{\raggedleft\arraybackslash}m{1in}}
 \toprule
 Stage & {\normalsize Sample System Calls} & \# syscalls & {\footnotesize \CompatMetric{}} \\
 \addlinespace
@@ -338,17 +338,18 @@ III &
 {\tt sigaltstack}, {\tt shutdown}, {\tt symlink},
 {\tt alarm}, {\tt listen}, {\tt pread64}, {\tt getxattr}, 
 {\tt shmget}, {\tt epoll\_wait},
-{\tt chroot}, {\tt sync}
+{\tt chroot}
 & +64 (145) & 50.09 \% \\
 \midrule
 IV &
 {\tt flock}, {\tt semget}, {\tt ppoll},
 {\tt mount}, {\tt brk}, {\tt pause},
 {\tt clock\_gettime}, {\tt getpgid}, {\tt settimeofday},
-{\tt capset}, {\tt reboot}, {\tt unshare}, {\tt tkill}
+{\tt capset}
 & +57 (202) & 90.61 \% \\
 \midrule
 V & {\normalsize All remaining} & +70 (272) & 100 \% \\
+\bottomrule
 \end{tabular}
 }
 \footnotesize
@@ -459,15 +460,6 @@ operations, about half of the {\tt fcntl} opcodes, and only 9--20 {\tt prcntl} o
 
 %\callout{The most ubiquitous vector operations should be upgraded to system calls.}
 
-\begin{figure}[t]
-\vspace{-0.1in}
-\center{
-\includegraphics[width=3.6in]{syspop/figures/ioctl-popularity-by-inst.pdf}
-}
-\caption[\Usagemetric{} of common {\tt ioctl} opcodes]
-{188 {ioctl} operations with highest \usagemetric{}.  Roughly 447 infrequent operations on the tail are omitted. Higher is more important; 100\% indicates all installations include software that request the operations.}
-\label{fig:ioctl-popularity}
-\end{figure}
 
 Compared to system calls, 
 {\tt ioctl} has a much longer tail of infrequently used operations.
@@ -482,15 +474,13 @@ of reducing the system attack surface.
 %\callout{{\tt ioctl} system call has a very long tail of unused operations, which may create system security risks.}
 
 \begin{figure}[t]
-\vspace{-0.3in}
-\center{
-\includegraphics[width=2.3in]{syspop/figures/fcntl-popularity-by-inst.pdf}
-\hspace{0.5in}
-\includegraphics[width=2.3in]{syspop/figures/prctl-popularity-by-inst.pdf}
-}
-\caption[\Usagemetric{} of {\tt fcntl} and {\tt prctl} opcodes]
-{Ranking of \usagemetric{} among {\tt fcntl} and {\tt prctl} opcodes.  Higher is more important; 100\% indicates all installations include software that request the operations.}
-\label{fig:fcntl-prctl-popularity}
+\centering
+\includegraphics[width=3in]{syspop/figures/ioctl-popularity-by-inst.pdf}
+\includegraphics[width=1.7in]{syspop/figures/fcntl-popularity-by-inst.pdf}
+\includegraphics[width=1.7in]{syspop/figures/prctl-popularity-by-inst.pdf}
+\caption[\Usagemetric{} of {\tt ioctl}, {\tt fcntl} and {\tt prctl} opcodes]
+{Ranking of \usagemetric{} among {ioctl}, {\tt fcntl} and {\tt prctl} opcodes.  Higher is more important; 100\% indicates all installations include software that request the operations.}
+\label{fig:syspop:opcode-popularity}
 \end{figure}
 
 
@@ -552,10 +542,10 @@ an important usage pattern.  %is a reasonable sample.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=3.6in]{syspop/figures/dev-proc-popularity-by-inst.pdf}
+\includegraphics[width=5.5in]{syspop/figures/dev-proc-popularity-by-inst.pdf}
 \caption[\Usagemetric{} of selected {\tt /dev} and {\tt /proc} pseudo-files]
 {\usagemetric{} distribution over files under {\tt /dev} and {\tt /proc}.  Higher is more important; 100\% indicates all installations include software that accesses the file. }
-\label{fig:dev-proc-popularity}
+\label{fig:syspop:dev-proc-popularity}
 \end{figure}
 
 Figure~\ref{fig:dev-proc-popularity} shows the \usagemetric{} of common pseudo-files under {\tt/dev} and {\tt /proc}.  
@@ -778,13 +768,13 @@ that are commonly accessed by the same application into the same sub-library.
 %in typical application processes.}
 %API usage statistics are hints for compilers to optimize memory footprint of dynamic loading by sorting relocation tables by \usagemetric
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=3.6in]{syspop/figures/libc-popularity.pdf}
-\caption[\Usagemetric{} distribution of GNU Library C functions]
-{\usagemetric{} distribution over the set of GNU Library C. Higher is more important; 100\% indicates all installations include software that use the \libc{} API. }
-\label{fig:libc-popularity}
-\end{figure}
+%\begin{figure}[t]
+%\centering
+%\includegraphics[width=3.6in]{syspop/figures/libc-popularity.pdf}
+%\caption[\Usagemetric{} distribution of GNU Library C functions]
+%{\usagemetric{} distribution over the set of GNU Library C. Higher is more important; 100\% indicates all installations include software that use the \libc{} API. }
+%\label{fig:libc-popularity}
+%\end{figure}
 
 %%%We observe that majority (xx \%) of the executables in the \osdist{} repository are ELF binaries (Figure~\ref{fig:executable-type}).
 %%%The other executables rely on interpreters like shell, perl, python, etc. We focus our study
@@ -814,7 +804,7 @@ indicating that changes to some important system interfaces would only require c
 %%% For example, in our study, the usage in \libc{} has increased the \usagemetric{} of system call {\tt set\_tid\_address} by 0.75, suggesting that deprecating the system call will takes only little effort but changing {\em libc} itself.    
 
 \begin{table}[t]
-\center{
+\centering
 \small
 \begin{tabular}{>{\footnotesize\raggedright\arraybackslash}m{4.8in}>{\raggedright\arraybackslash}m{1.3in}}
 \hline
@@ -841,8 +831,8 @@ librt \\
 \hline
 {\tt futex} &
 libc, ld.so, libpthread \\
+\hline
 \end{tabular}
-}
 \footnotesize
 \caption{Ubiquitous system call usage caused by initialization or finalization of \libc{} family.}
 \label{table:libc-init-call}

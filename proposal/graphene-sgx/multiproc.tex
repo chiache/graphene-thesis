@@ -1,4 +1,4 @@
-\section{Securing Multiple Processes in Multiple Enclaves}
+\subsection{Securing Multiple Processes in Multiple Enclaves}
 \label{sec:gsgx:multiproc}
 
 Upon existing platforms using \sgx{}, there is no
@@ -23,12 +23,12 @@ and implements inter-process communication
 (namespace coordination, signals, System V IPC, etc)
 with process isolation.
 
-\subsection{Forking into New Enclave}
-\label{sec:gsgx:multiproc:fork}
+%\subsection{Forking into New Enclave}
+%\label{sec:gsgx:multiproc:fork}
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=6in]{graphene-sgx/figures/fork.pdf}
+\includegraphics[width=6.5in]{graphene-sgx/figures/fork.pdf}
 \footnotesize
 \caption[Process creation in \sysname{}]
 {Process creation in \sysname{}.
@@ -175,22 +175,22 @@ say a shell or Apache server.
 %This list must be signed by a private key provided by the client,
 %while the public key must be included in the enclave measurement of the binary.
 
-\subsection{Securing Inter-Process Coordination}
-\label{sec:graphene:multiproc:ipc}
-
-After process creation, multiple processes in an application amy cooperate
-through sharing multi-process abstractions,
-such as signals or message queues.
-In \graphene{}, \picoprocs{} coordinate over RPC streams,
-to maintain the state of shared objects,
-as well as 
-the namespace states such as in which \picoprocs{} these objects are proxied.
-
-\graphene{} coordinates multi-process abstractions and namespaces
-by passing messages over RPC streams.
-Such a design is beneficial for supporting multi-process abstractions in enclaves.
-\sysname{} inherits the same design of inter-process coordination,
-and the RPC streams used for coordination can be secured by the enclaves proactively on untrusted hosts.
+%\subsection{Securing Inter-Process Coordination}
+%\label{sec:graphene:multiproc:ipc}
+%
+%After process creation, multiple processes in an application amy cooperate
+%through sharing multi-process abstractions,
+%such as signals or message queues.
+%In \graphene{}, \picoprocs{} coordinate over RPC streams,
+%to maintain the state of shared objects,
+%as well as 
+%the namespace states such as in which \picoprocs{} these objects are proxied.
+%
+%\graphene{} coordinates multi-process abstractions and namespaces
+%by passing messages over RPC streams.
+%Such a design is beneficial for supporting multi-process abstractions in enclaves.
+%\sysname{} inherits the same design of inter-process coordination,
+%and the RPC streams used for coordination can be secured by the enclaves proactively on untrusted hosts.
 
 %In \graphene{}, security isolation among multi-process abstractions,
 %regardless of their semantics,
@@ -204,7 +204,5 @@ and the RPC streams used for coordination can be secured by the enclaves proacti
 %to the applications,
 %all information sent over RPC streams must be encrypted,
 %because \libos{} cannot determine whether the information may contain any secret.
-
-\fixme{Needs to work this part out}
 
 

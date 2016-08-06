@@ -467,9 +467,9 @@ We assume that binaries can issue system calls directly with inline system call 
 Our static analysis identifies system call instructions and constructs a whole-program call graph.
 
 \begin{figure}[t!]
-\center{
-\includegraphics[width=2.4in]{syspop/figures/executable-type.pdf}\hspace{-0.6in}\includegraphics[width=2.1in]{syspop/figures/elf-binary-type.pdf}
-}
+\centering
+\includegraphics[width=3.2in]{syspop/figures/executable-type.pdf}\includegraphics[width=2.4in]{syspop/figures/elf-binary-type.pdf}
+\vspace{-0.5in}
 \footnotesize
 \caption[Types of executables included in the study of Linux API usage.]
 {Percentage of ELF binaries and applications written in interpreted languages among all executables in the \osdist{} repository, categorized by interpreters. ELF binaries include static binaries, shared libraries and dynamically-linked executables. Interpreters are detected by {\em shebangs} of the files. Higher is more important.}
@@ -536,13 +536,13 @@ We assume that the package installation statistics provided by \osdist{} are rep
 %The \osdist{} repository hosts \packagenum{} packages that contain application executables and libaries. 
 The popularity contest dataset is reasonably large (\popsamples{} installations),
 but reporting is opt-in.
-
+Moreover,
 %\fixmedp{check this para}
 %The popularity contest dataset does not correlate 
 %package installations, only shows how often each package is installed.
 %Thus, we assume the installation of every package
 %as an independent event, unless \osinstaller{} identifies the dependency otherwise.
-The data does not show how often these packages
+the data does not show how often these packages
 are actually used, only how often they are installed.
 Finally, this data set does not include sufficient historical data
 to compare changes to the API usage over time.
@@ -585,7 +585,6 @@ to compare changes to the API usage over time.
 Because our study only analyzes pre-compiled binaries, some compile-time customizations may be missed.
 Applications that are already ported using macro like {\tt \#ifdef LINUX} will be considered dependent to Linux-specific APIs,
 even though the application can be re-compiled for other systems.
-
 Our static analysis tool only identifies 
 whether an API is potentially used,
 not how frequently the API is used during the execution.

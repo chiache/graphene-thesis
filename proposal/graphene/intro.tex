@@ -26,7 +26,7 @@ increase the number of applications which can run
 on a single system~\citep{porter11drawbridge,unikernels}.
 Library OSes ahve also proved
 useful for porting legacy applications
-onto new hardware platforms, such as Intel's SGX~\citep{baumann14haven}.
+onto new hardware platforms, such as Intel's SGX enclaves~\citep{baumann14haven}.
 %% dp: This sentence seems a little premature
 %In recent works, library OSes provide rich OS features for isolated contexts while the host OSes are untrusted
 
@@ -67,14 +67,15 @@ For example, Drawbridge~\citep{porter11drawbridge} cannot simulate process forki
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.75\linewidth]{graphene/figures/concept.pdf}
+\includegraphics[width=4in]{graphene/figures/concept.pdf}
 \caption[Multi-process abstraction model of \sysname{} \libos{}]
 {Multi-process abstraction model of \sysname{} \libos{}. For each process of an application, a libOS instance will serve system calls and keep local OS states. States of multi-process abstractions are shared by coordinating over host-provided RPC streams, creating an illusion of running in single OS for the application.}
 %\vspace{-.1in}
 \label{fig:graphene:concept}
 \end{figure}
 
-This paper describes {\bf \sysname{}},  a Linux-compatible library OS.
+{\bf \sysname{}} is a Linux-compatible library OS
+to run legacy, unmodified Linux applications.
 In \sysname{}, multiple libOS instances collaboratively implement
 POSIX abstractions,
 yet appear to the application
@@ -88,7 +89,7 @@ are first-order performance concerns.
 By coordinating shared states across libOS instances,
 \sysname{} is able to create an illusion 
 of running in a single OS
-for multiple processes in an application (as figure~\ref{fig:concept}).
+for multiple processes in an application (as figure~\ref{fig:graphene:concept}).
 
 %Previous library OS designs ensured security isolation of independent applications,
 %comparable to a VM, by keeping a relatively narrow host ABI.

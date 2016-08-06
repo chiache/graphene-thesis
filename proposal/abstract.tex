@@ -1,11 +1,11 @@
-Unknown security vulnerabilities and performance bottlenecks inevitably exist
+Unknown security vulnerabilities and performance bottlenecks exist
 in modern applications and operating systems,
 %The pitfalls hidden in the legacy code affect users
-in a way that even developers cannot foresee clairvoyantly.
-An established strategy to contain
-the consequence of hidden pitfalls %potential vulnerabilities or bottlenecks
-is to partition a complex system into
-smaller, reasonably simple pieces, with strict isolation.
+and even developers can hardly prevent them.
+A known strategy to restrain
+the outcome of hidden system pitfalls %potential vulnerabilities or bottlenecks
+is to partition a system that is complex and hard to predict,
+into small pieces with reasonably simple logics.
 %Partitioning a complex system into
 %isolated, reasonably simple pieces
 %is a method
@@ -13,30 +13,33 @@ smaller, reasonably simple pieces, with strict isolation.
 %performance bottlenecks.
 In a partitioned system, developers
 are more likely to reason about
-the soundness of the design and implementation in the partitions
-that are more valuable to users.
+the soundness of the design and implementation.
+%in the partitions
+%that are more valuable to users.
 %instead of demanding arbitrary trust from the users.
 For instance, library OSes
 ~\citep{porter11drawbridge, baumann13bascule, unikernels}
 split the functionality of kernels into in-process OS instances,
-or \emph{\picoprocs{}},
-in order to isolate mutually distrusting applications.
+or so-called \term{\picoprocs{}},
+to isolate mutually distrusting applications.
 The security isolation enforced by library OSes
 is based on the fact that
-every \picoprocs{} have only a narrow attack surface to the kernel,
-while the library OS instances are isolated by address space.
-In term of performance,
+every \picoproc{} have only a narrow attack surface to the kernel,
+while execution in the library OSes is
+bounded by the address space.
+In term of performance benefits,
 %The performance benefits
 %from partitioning the host resource and congesting logics
 %are presented in the 90's,
-solutions like
+%solutions like
 Exokernel~\citep{engler95exokernel}
 and Nemesis~\citep{leslie96nemesis}
-identify and evict the OS logics causing congestion,
-such as multiplexing hardware resources or allocating processing buffers,
+identify and evict the OS logics causing congestion in the kernel,
+such as multiplexing resources or allocating buffers,
 into applications or library OSes.
-As a results, these logics that are unneeded or redundant for some applications
-can be removed from the critical paths.
+For each applications,
+the unneeded or redundant system logics can be dismissed from the critical path.
+%can be removed from the critical paths.
 
 
 
@@ -89,37 +92,44 @@ can be removed from the critical paths.
 %which are often used in server-type workloads or shell scripts.
 %On the other hand, virtualization can provide both compatibility and security isolation for native applications built for monolithic operating systems, but often requires too much resources such as memory, to run each guests in multi-tenant environments.
 
-A key challenge for a system being largely redesigned or restructured is to
-reuse legacy code from prior systems and applications,
-in order to harvest the enormous development effort already made in prior systems.
-With millions of applications built and deployed
-on mainstream OSes like Windows and Linux,
-maximizing the legacy support in a system
-will lower the barricade for users to adopt it.
-In some recent library OSes~\citep{porter11drawbridge, baumann13bascule, tsai14graphene, baumann14haven},
-legacy support is demonstrated
+A key challenge in a partitioned or optimized system is
+to maximally reuse legacy code, %from prior systems and applications,
+in order to harvest the development efforts made in previous systems.
+Essentially, millions of applications built and deployed
+on mainstream OSes,
+such as Windows and Linux,
+will require porting efforts if users need to adapt them to another platform. 
+%maximizing the legacy support in a system
+%will lower the barricade for users to adopt it.
+In recent library OSes~\citep{porter11drawbridge, baumann13bascule, tsai14graphene, baumann14haven},
+legacy application support is achieved
 %are designed for isolating or optimizing
 %legacy applications adopted from mainstream operating systems such as Windows or Linux.
 by emulating
 %The key challenge for reusing legacy application code
 %is to emulate 
-the specifications or personalities in which the applications are developed,
-on top of the building blocks for enforcing the security isolation.
+the specifications or personalities of the applications' origins,
+on top of the system's building blocks
+that enforces security isolation, platform independence, migration, or other features.
 %--- even when the requirements oppose the system assumptions.
-Essentially, a system to support legacy applications
-must reproduce the abstractions and assumptions that applications depend on,
-besides translating
-language slangs and system interfaces.
-Based on the principle,
-we build a library OS called \term{\graphene{}}~\citep{tsai14graphene},
-which provides Linux multi-process abstractions and security isolation
-across \picoprocs{}.
+%Essentially, a system supporting legacy applications
+%must reproduce the abstractions and assumptions that applications depend on,
+%besides translating
+%language slangs and system interfaces.
+%Based on the principle,
+A personality that is especially hard to emulate in \picoprocs{}
+is multi-process abstractions,
+which will require multiple \libos{} instances to work collaboratively. 
+We design a library OS called \term{\graphene{}}~\citep{tsai14graphene},
+which support various Linux multi-process abstractions used in legacy applications,
+yet provided comparable security isolation
+as single-process \picoprocs{}.
 %For instance,
 %\picoprocs{} isolate the OS states for each applications
 %within the process boundaries~\citep{porter11drawbridge, baumann13bascule, baumann14haven}.
-As the Linux personality, a multi-process application
-should be split into several \picoprocs{},
-yet the \picoprocs{} must cooperate to provide a unified system view.
+%As the Linux personality, a multi-process application
+%should be split into several \picoprocs{},
+%yet the \picoprocs{} must cooperate to provide a unified system view.
 %For Linux applications that are designed as multi-process,
 %such as servers or shell scripts,
 %the OS states must be maintained across \picoprocs{}
@@ -130,17 +140,17 @@ yet the \picoprocs{} must cooperate to provide a unified system view.
 %into smaller binaries that run in multiple processes,
 %and the decision shall be honored
 %when partitioning the underlying operating systems.
-The idiosyncratic multi-process abstractions of Linux, such as {\tt fork}, signals, file descriptor sharing, \sysvipc{},
-are implemented in the \picoprocs{},
-using simple pipe-like RPC streams on the host.
-Therefore, \graphene{} can simplified the complexity of isolating OS coordination
-as forbidding RPC streams across distrusting applications.
-Not limited on one host,
-\graphene{} expands the support for Linux multi-process applications
-to various platforms including \term{Intel SGX enclaves}.
-\graphene{} in Intel SGX enclaves isolates Linux multi-process applications
-in a sealed environment immune to 
-compromised host OSes and peripherals.
+The idiosyncratic multi-process abstractions of Linux, such as forking, signals, \sysvipc{}, etc,
+are coordinated across \picoprocs{},
+over simple, pipe-like RPC streams on the host.
+Therefore, \graphene{} can simplified the complexity of isolating shareable abstractions
+by simply forbidding RPC streams across distrusting applications.
+\graphene{} can expand the support for Linux multi-process applications
+to various platforms, including \term{Intel SGX enclaves}.
+In Intel SGX enclaves, \graphene{} can isolate Linux multi-process applications
+in a sealed environment,
+fully immune to 
+attacks from host OSes and hardware peripherals.
 
 %As the purpose is to keep the design
 %clean and reasonable,
@@ -160,37 +170,46 @@ compromised host OSes and peripherals.
 %as well as miscellaneous features in the Linux file system hierarchy.
 
 
-The principles in developing a system to reuse legacy applications
-can be vastly distinct according to the specifications,
-and be entangled with security mechanisms and performance optimizations.
-As a result, 
-the implementation of a legacy support system
-is destined to be complex and 
-on a case-by-case basis,
-leading to security glitches and performance suboptimality.
+The principles for developing legacy support are vastly distinct
+for different specifications,
+and entangled with the implementation of
+security mechanisms and performance optimizations.
+Many systems provide legacy support
+in a complex, case-by-case way,
+potentially causing more security glitches and performance suboptimality.
 An insight
 for solving this problem %that affects both partitioned and non-partitioned system
 is to avoid
 emulating specifications and checking security policies
-on the common paths.
+on the critical path of common cases.
 We demonstrate a case of optimizing a performance-centric, heavily engineered components,
-the Linux file system directory cache,
-in preservation of existing file-system features and permission checks
+the file system directory cache in Linux,
+while preserving the legacy file-system features and security models
 ~\citep{tsai15dcache}.
-The original, component-by-component path lookup
-that is interleaved with checking permissions and attributes,
-can be optimized as uncomplicated, full-path lookup.
-For instance, the optimized directory cache improves the latency of git version control system on Linux by up to 25\%.
+The original Linux kernel interleaves path component searching
+in the directory cache
+with permission checks against security modules,
+and retrieving file attributions.
+The lookup logic can be optimized
+by sparing the hit latency from permission and attribute checks,
+and searching the directory cache in constant time.
+The optimized Linux
+can improve the latency of git version control system on Linux by up to 25\%.
 On the other hand,
 the process of building up legacy application support
-can be further principled,
-with a representative measurement of the completeness of emulating specifications.
-To address the concern,
-we design a measurement methodology and conduct a study on Linux system APIs
-~\citep{tsai16apistudy}.
-The study reveals that all system APIs are not equally important for emulating,
-and by prioritizing API emulation
-developers can plan a optimal path to support a wide range of applications.
+can be more principled,
+using a fractal measurement to evaluate the completeness of emulation,
+instead of the traditional binary measurement.
+%
+% a representative measurement of the completeness of emulating specifications.
+%To address the concern,
+We conduct a study on Linux system API usage
+~\citep{tsai16apistudy}
+to reveal the impact of API implementation on users
+and suggest an optimal path for maximizing the completeness in a system prototype.
+%The study reveals that all system APIs are not equally important for emulating,
+%and by prioritizing API emulation
+%developers can plan a optimal path to support a wide range of applications.
 
 
 %We present \term{\graphene{} library OS}, to enforce security isolation for native Linux applications,
