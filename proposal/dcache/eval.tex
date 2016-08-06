@@ -191,13 +191,13 @@ in these cases, the benefit of our optimization is proportional to the path leng
 
 
 \begin{figure}[t!]
-\scriptsize
+\footnotesize
 \centering
-\begin{minipage}{4in}
+\begin{minipage}{5.3in}
 \raggedleft
-\includegraphics[width=4in]{dcache/plots/lm_chmod_rename.pdf}
+\includegraphics[width=5.4in]{dcache/plots/lm_chmod_rename.pdf}
 {\setlength{\tabcolsep}{3pt}
-\begin{tabular}{|l|R{.3in}R{.16in}|R{.3in}R{.16in}|R{.3in}R{.16in}|R{.3in}R{.16in}|R{.3in}R{.16in}|}
+\begin{tabular}{|l|R{.4in}R{.24in}|R{.4in}R{.24in}|R{.4in}R{.24in}|R{.4in}R{.24in}|R{.4in}R{.24in}|}
 \hline
  & $\upmu$s & +/- & $\upmu$s & +/- & $\upmu$s & +/- & $\upmu$s & +/- & $\upmu$s & +/- \\
 \hline
@@ -261,9 +261,9 @@ Types & \multicolumn{2}{c|}{Unmodified kernel} & \multicolumn{3}{c|}{Optimized k
 
 \begin{table*}[t]
 \centering
-\scriptsize
+\footnotesize
 %\begin{tabular}{|l|R{0.12in}R{0.06in}|rrrr|rrr|rrr|rrr|}
-\begin{tabular}{|l|R{0.12in}R{0.06in}|rrrr|rrr|}
+\begin{tabular}{|l|R{0.5in}R{0.25in}|rrrr|rrr|}
 \hline
 Applications & \multicolumn{2}{c|}{Path Stats} & \multicolumn{4}{c|}{Unmodified kernel} 
 %& \multicolumn{3}{c|}{Hit Optimization} & \multicolumn{3}{c|}{Miss Optimization} & \multicolumn{3}{c|}{All Optimizations} \\
@@ -375,9 +375,9 @@ We leave exploration of these trade-offs for future work.
 %\fixmedp{low-prio - F4 and F5 Evaluation with a memory budget, and microbenchmark with varying percentages of reuse, etc}
 
 \begin{figure}[t!]
-\scriptsize
+\footnotesize
 \centering
-\includegraphics[width=3.2in]{dcache/plots/stat-open-scal.pdf}
+\includegraphics[width=5.5in]{dcache/plots/stat-open-scal.pdf}
 \vspace{-5pt}
 \caption[The optimized {\tt stat} and {\tt open} latency when called in parallel.]
 {Latency of {\tt stat} and {\tt open} (of the same path) as more threads execute in parallel.  Lower is better.}
@@ -405,9 +405,8 @@ our optimizations do add overhead to renaming a large directory, which would lik
 \begin{figure}
 \scriptsize
 \centering
-\includegraphics[width=2.1in]{dcache/plots/lm_readdir.pdf}
-\hspace{1in}
-\includegraphics[width=2.1in]{dcache/plots/lm_mkstemp.pdf}
+\includegraphics[width=3in]{dcache/plots/lm_readdir.pdf}
+\includegraphics[width=3in]{dcache/plots/lm_mkstemp.pdf}
 \caption[The optimized {\tt readdir} and {\tt mkstemp} latency.]
 {Latency in logscale for {\tt readdir} function calls, and latency in microsecond for {\tt mkstemp} function calls, on directories with different sizes. Lower is better. }
 \label{fig:dcache:readdir}
@@ -537,7 +536,7 @@ the trade-offs underlying our optimizations, and can benefit substantially.
 %\fixmetsai{skip this part for now.}
 
 \begin{table}[t]
-\scriptsize
+\footnotesize
 \centering
 \begin{tabular}{|l|rrrr|rrr|}
 \hline
@@ -621,7 +620,7 @@ in a practical deployment, network latency may mask these improvements to the cl
 \scriptsize
 %\raggedright
 \centering
-\includegraphics[width=3.6in]{dcache/plots/dovecot.pdf}
+\includegraphics[width=5in]{dcache/plots/dovecot.pdf}
 \vspace{-5pt}
 \caption[Directory cache optimization: the Dovecot IMAP server throughput.]
 {Throughput for marking and unmarking mail on the Dovecot IMAP server. Higher is better. }
@@ -630,7 +629,7 @@ in a practical deployment, network latency may mask these improvements to the cl
 \end{figure}
 
 \begin{table}[t]
-\scriptsize
+\footnotesize
 \centering
 \begin{tabular}{|c|rr|rrr|}
 \hline
@@ -717,10 +716,10 @@ to manage PCCs correctly. % CIDs correctly (4--13 LoC out of 4--16 kLoC).
 Thus, the burden of adoption for other kernel subsystems is very minor.
 
 \begin{table}[t]
-\scriptsize
+\footnotesize
 \centering
 %\subfloat[VFS layer]{
-\begin{tabular}{p{1.8in}rrr}
+\begin{tabular}{p{3in}rrr}
 Source files & \multicolumn{1}{c}{Original (LoC)} & \multicolumn{2}{c}{Patched/Added (LoC)} \\
 \hline
 %unifdef -DCONFIG_OPTIMIZE_DCACHE -U CONFIG_OPTIMIZE_DCACHE_CHECK_FULLPATH -DCONFIG_OPTIMIZE_READDIR -UCONFIG_OPTIMIZE_DCACHE_DEBUG -UCONFIG_OPTIMIZE_DCACHE_LOOKUP_NOBARRIER -UCONFIG_OPTIMIZE_DCACHE_REANAME_COPY DDENTRY_SIGNATURE_BITS=192 -DCONFIG_OPTIMIZE_DCACHE_RENAME_NEGATIVE -DCONFIG_OPTIMIZE_DCACHE_RENAME_NEGATIVE_CREATE -DCONFIG_OPTIMIZE_DCACHE_SIGNATURE_MHASH -DCONFIG_OPTIMIZE_DCACHE_PERM_CACHE_CID UCONFIG_DENTRY_LOOKUP_TIME -UCONFIG_PATH_LOOKUP_TIME -UCONFIG_DENTRY_ALLOCATE_TIME -UCONFIG_INODE_LOOKUP_TIME -DCONFIG_OPTIMIZE_READDIR_SKIP_LOOKUP  -UCONFIG_OPTIMIZE_DCACHE_SCAN_BACKWARD -UCONFIG_PATH_LOOKUP_BREAKPOINT -UCONFIG_OPTIMIZE_DCACHE_DUMMY  -DCONFIG_DCACHE_WORD_ACCESS -UCONFIG_OPTIMIZE_DCACHE_RENAME_COPY -UCONFIG_OPTIMIZE_DCACHE_STATISTICS -DCONFIG_MHASH_192 -UCONFIG_MHASH_128 -U CONFIG_OPTIMIZE_DCACHE_PROFILE -UCONFIG_OPTIMIZE_DCACHE_SIGNATURE_SIMPLE -UCONFIG_OPTIMIZE_DCACHE_SIGNATURE_JELKINS_OLD -UCONFIG_OPTIMIZE_DCACHE_SIGNATURE_JELKINS_LOOKUP3 -UCONFIG_OPTIMIZE_DCACHE_SIGNATURE_JELKINS_SPOOKY -UCONFIG_OPTIMIZE_DCACHE_SYMLINK_LOOKUP dcache.c > dcache-clean.c
