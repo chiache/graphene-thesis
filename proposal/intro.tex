@@ -320,31 +320,33 @@ oppose the system assumptions. % of operating systems.
 The key to emulating multi-process abstractions in a \libos{},
 especially when memory sharing is not safe or available,
 is to coordinate shared OS states
-across \picoprocs{}.
-The multiple \libos{} instances that accompany application processes
-must cooperate and provide a unified OS view.
-The OS states needed to coordinate
+across \picoprocs{} using limited host abstractions.
+The \libos{} of related \picoprocs{} %that accompany application processes
+must collaboratively provide a unified OS view
+to the application.
+The OS states needed to be coordinated
 include process states that are inherited at process creation
-(e.g., {\tt fork}, {\tt execve}),
+(e.g., {\tt fork}, {\tt execve});
 abstraction states that are shared among related processes
-(e.g., signals, \sysvipc{} semaphores)
+(e.g., signals, \sysvipc{} semaphores);
 and namespace states to locate the owners of abstractions
 (e.g., process IDs, \sysvipc{} keys).
-However, a \libos{} that coordinates all these vastly diverse, idiosyncratic OS states
-must not over-expand the host platform interface,
-and thus increase the risk of
-allowing malicious applications to compromise the host kernel.
+A \libos{} that implements all the idiosyncratic OS states
+must not overly expand the host interface,
+and compromise the security isolation or platform independence of the system.
+%and thus increase the risk of
+%allowing malicious applications to compromise the host kernel.
 As a solution, we present \term{\graphene{}},
 a Linux-compatible \libos{} that collaboratively implement
-multi-process abstractions,
+various Linux multi-process abstractions,
 yet appear to the application as a single, shared OS.
 \graphene{} instances coordinate all OS states using remote procedure calls (RPCs) over
 host-provided, pipe-like streams.
 The use of host RPC streams
 does not expand the host interface already used by \graphene{},
 and can be naturally isolated
-by sandboxing the destination of RPC streams
-with the application.
+by sandboxing the RPC streams of the application.
+%with the application.
 %In a distributed POSIX implementation, placement of shared state and messaging complexity
 %are first-order performance concerns.
 %%We chose to shift implementation complexity into the library OS
