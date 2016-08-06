@@ -309,7 +309,7 @@ are supported by the prototype.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=4.5in]{syspop/figures/syscall-compatibility.pdf}
+\includegraphics[width=5in]{syspop/figures/syscall-compatibility.pdf}
 \caption[Accumulated compatibility of system prototype prioritzed by importance]
 {Accumulated \compatmetric{} when N top-ranked system calls are implemented in the OS. Higher is more compliant.}
 \label{fig:syscall-compatibility}
@@ -460,15 +460,6 @@ operations, about half of the {\tt fcntl} opcodes, and only 9--20 {\tt prcntl} o
 
 %\callout{The most ubiquitous vector operations should be upgraded to system calls.}
 
-\begin{figure}[t]
-\vspace{-0.1in}
-\center{
-\includegraphics[width=3.6in]{syspop/figures/ioctl-popularity-by-inst.pdf}
-}
-\caption[\Usagemetric{} of common {\tt ioctl} opcodes]
-{188 {ioctl} operations with highest \usagemetric{}.  Roughly 447 infrequent operations on the tail are omitted. Higher is more important; 100\% indicates all installations include software that request the operations.}
-\label{fig:ioctl-popularity}
-\end{figure}
 
 Compared to system calls, 
 {\tt ioctl} has a much longer tail of infrequently used operations.
@@ -483,15 +474,13 @@ of reducing the system attack surface.
 %\callout{{\tt ioctl} system call has a very long tail of unused operations, which may create system security risks.}
 
 \begin{figure}[t]
-\vspace{-0.3in}
-\center{
-\includegraphics[width=2.3in]{syspop/figures/fcntl-popularity-by-inst.pdf}
-\hspace{0.5in}
-\includegraphics[width=2.3in]{syspop/figures/prctl-popularity-by-inst.pdf}
-}
-\caption[\Usagemetric{} of {\tt fcntl} and {\tt prctl} opcodes]
-{Ranking of \usagemetric{} among {\tt fcntl} and {\tt prctl} opcodes.  Higher is more important; 100\% indicates all installations include software that request the operations.}
-\label{fig:fcntl-prctl-popularity}
+\centering
+\includegraphics[width=3in]{syspop/figures/ioctl-popularity-by-inst.pdf}
+\includegraphics[width=1.7in]{syspop/figures/fcntl-popularity-by-inst.pdf}
+\includegraphics[width=1.7in]{syspop/figures/prctl-popularity-by-inst.pdf}
+\caption[\Usagemetric{} of {\tt ioctl}, {\tt fcntl} and {\tt prctl} opcodes]
+{Ranking of \usagemetric{} among 188 {ioctl} operations with highest \usagemetric{}, {\tt fcntl} and {\tt prctl} opcodes.  Higher is more important; 100\% indicates all installations include software that request the operations.}
+\label{fig:syspop:opcode-popularity}
 \end{figure}
 
 
@@ -553,10 +542,10 @@ an important usage pattern.  %is a reasonable sample.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=3.6in]{syspop/figures/dev-proc-popularity-by-inst.pdf}
+\includegraphics[width=6in]{syspop/figures/dev-proc-popularity-by-inst.pdf}
 \caption[\Usagemetric{} of selected {\tt /dev} and {\tt /proc} pseudo-files]
 {\usagemetric{} distribution over files under {\tt /dev} and {\tt /proc}.  Higher is more important; 100\% indicates all installations include software that accesses the file. }
-\label{fig:dev-proc-popularity}
+\label{fig:syspop:dev-proc-popularity}
 \end{figure}
 
 Figure~\ref{fig:dev-proc-popularity} shows the \usagemetric{} of common pseudo-files under {\tt/dev} and {\tt /proc}.  
@@ -779,13 +768,13 @@ that are commonly accessed by the same application into the same sub-library.
 %in typical application processes.}
 %API usage statistics are hints for compilers to optimize memory footprint of dynamic loading by sorting relocation tables by \usagemetric
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=3.6in]{syspop/figures/libc-popularity.pdf}
-\caption[\Usagemetric{} distribution of GNU Library C functions]
-{\usagemetric{} distribution over the set of GNU Library C. Higher is more important; 100\% indicates all installations include software that use the \libc{} API. }
-\label{fig:libc-popularity}
-\end{figure}
+%\begin{figure}[t]
+%\centering
+%\includegraphics[width=3.6in]{syspop/figures/libc-popularity.pdf}
+%\caption[\Usagemetric{} distribution of GNU Library C functions]
+%{\usagemetric{} distribution over the set of GNU Library C. Higher is more important; 100\% indicates all installations include software that use the \libc{} API. }
+%\label{fig:libc-popularity}
+%\end{figure}
 
 %%%We observe that majority (xx \%) of the executables in the \osdist{} repository are ELF binaries (Figure~\ref{fig:executable-type}).
 %%%The other executables rely on interpreters like shell, perl, python, etc. We focus our study
