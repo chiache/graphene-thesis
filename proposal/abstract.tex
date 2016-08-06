@@ -186,20 +186,30 @@ We demonstrate a case of optimizing a performance-centric, heavily engineered co
 \term{the Linux file system directory cache},
 while preserving the legacy file-system features and security models
 ~\citep{tsai15dcache}.
-The original, component-by-component path lookup
-that is interleaved with checking permissions and attributes,
-can be optimized as uncomplicated, full-path lookup.
-For instance, the optimized directory cache improves the latency of git version control system on Linux by up to 25\%.
+The original Linux kernel interleaves path component searching
+in the directory cache
+with permission checks against security modules,
+and retrieving file attributions.
+The lookup logic can be optimized
+by sparing the hit latency from permission and attribute checks,
+and searching the directory cache in constant time.
+The optimized Linux
+can improve the latency of git version control system on Linux by up to 25\%.
 On the other hand,
 the process of building up legacy application support
-can be further principled,
-with a representative measurement of the completeness of emulating specifications.
-To address the concern,
-we design a measurement methodology and conduct a study on Linux system APIs
-~\citep{tsai16apistudy}.
-The study reveals that all system APIs are not equally important for emulating,
-and by prioritizing API emulation
-developers can plan a optimal path to support a wide range of applications.
+can be more principled,
+using a fractal measurement to evaluate the completeness of emulation,
+instead of the traditional binary measurement.
+%
+% a representative measurement of the completeness of emulating specifications.
+%To address the concern,
+We conduct a study on Linux system API usage
+~\citep{tsai16apistudy}
+to reveal the impact of API implementation on users
+and suggest an optimal path for maximizing the completeness in a system prototype.
+%The study reveals that all system APIs are not equally important for emulating,
+%and by prioritizing API emulation
+%developers can plan a optimal path to support a wide range of applications.
 
 
 %We present \term{\graphene{} library OS}, to enforce security isolation for native Linux applications,
