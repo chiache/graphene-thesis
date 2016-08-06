@@ -47,10 +47,10 @@ This patch is not officially adopted by Linux kernel, but it can be confirmed se
 \begin{table}[t!b!]
 \footnotesize
 \centering
-\begin{tabular}{|l|r|rr|rr|rr|}
+\begin{tabular}{|l|r|rr|rr|rr|rr|}
 \hline
-{\bf Test } & {\bf Linux } & \multicolumn{2}{|c|}{{\bf KVM}}
-& \multicolumn{2}{|c|}{{\bf \sysname{}}}\\
+{\bf Test } & {\bf Linux } & \multicolumn{2}{c|}{{\bf KVM}}
+& \multicolumn{2}{c|}{{\bf \sysname{}}} & \multicolumn{2}{c|}{{\bf \graphenesgx{}}}\\
 \hline
 
 %Start-up time& 88.40& 3293296.77 & 3725349\% & 125350.73 & 1417\%& 622.00 & 604\% \\
@@ -60,7 +60,7 @@ Checkpoint & N/A & 0.987 {\bf s} &  & 416  {\bf $\mu$s} & \\
 \hline
 Resume & N/A & 1.146 {\bf s}  &  &  1387 {\bf $\mu$s} &  \\
 \hline\hline
-Checkpoint size & N/A & \multicolumn{2}{|l|}{105 MB} & \multicolumn{2}{|l|}{376 KB}   \\
+Checkpoint size & N/A & \multicolumn{2}{l|}{105 MB} & \multicolumn{2}{l|}{376 KB}   \\
 \hline
 \end{tabular}
 \caption[Startup, checkpoint, and resume times in Linux, KVM and \sysname{}]
@@ -160,12 +160,12 @@ one could run anywhere from 12--188 libOSes within the same footprint.
 \footnotesize
 %\tiny
 \centering
-\tabcolsep=0.14cm
-\begin{tabular}{|l|rr|rrr|rrr|}
+
+\begin{tabular}{|l|rr|rrr|rrr|rrr|}
 \hline
-  &\multicolumn{8}{|c|}{Execution time (s), +/- Conf. Interval, \% Overhead} \\
+  &\multicolumn{11}{c|}{Execution time (s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf \gcc/make} & \multicolumn{2}{|c|}{\bf Linux} & \multicolumn{3}{|c|}{{\bf KVM}} & \multicolumn{3}{|c|}{{\bf \sysname{} + RM}} \\
+{\bf \gcc/make} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
 \hline
 % gcc
 %\multicolumn{2}{|l|}{helloworld} & .02 & .02 & 0 \% & .03 & 100 \% \\ 
@@ -179,15 +179,15 @@ gcc & 24.74 & .02 & 26.80 & .02 & 8 \% & 31.84 & .00 & 29 \% \\\hline
 
 
 \hline\hline
-Ap. Bnch  & \multicolumn{8}{|c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% Overhead} \\
+Ap. Bnch  & \multicolumn{11}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf Apache} & \multicolumn{2}{|c|}{\bf Linux} & \multicolumn{3}{|c|}{{\bf KVM}} & \multicolumn{3}{|c|}{{\bf \sysname{} + RM}} \\
+{\bf Apache} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
 \hline
 25 conc  &5.73&.25&4.84 &.03 &18 \% &4.02 &.00 &43 \% \\\hline
 50 conc  &5.57&.28&4.80 &.06 &16 \% &4.01 &.00 &39 \% \\\hline
 100 conc &5.87&.20&4.80 &.03 &22 \% &3.98 &.00 &47 \% \\\hline
 
-{\bf \light{}} & \multicolumn{2}{|c|}{\bf Linux} & \multicolumn{3}{|c|}{{\bf KVM}} & \multicolumn{3}{|c|}{{\bf \sysname{} + RM}} \\
+{\bf \light{}} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{|c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{|c|}{{\bf \graphenesgx{}}} \\
 \hline
 
 25 conc  &6.66 &.01 &6.46 &.03 &3 \% &5.65 &.00 &18 \% \\\hline
@@ -197,9 +197,9 @@ Ap. Bnch  & \multicolumn{8}{|c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% O
 \hline\hline
 %%%%% UnixBench
 
-  & \multicolumn{8}{|c|}{Execution Time (s), +/- Conf. Interval, \% Overhead} \\
+  & \multicolumn{11}{c|}{Execution Time (s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf bash } & \multicolumn{2}{|c|}{\bf Linux} & \multicolumn{3}{|c|}{{\bf KVM}} & \multicolumn{3}{|c|}{{\bf \sysname{} + RM}} \\
+{\bf bash } & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
 \hline
 %2.1 s linux
 %graphene 10.06s
@@ -307,16 +307,15 @@ as the Linux kernel implementation.
 \begin{table}[t!b!]
 \footnotesize
 \centering
-\begin{tabular}{|l|rr|rrr|rrr|}
+\begin{tabular}{|l|rr|rrr|rrr|rrr|}
 \hline
-{\bf Test } & \multicolumn{2}{|c|}{{\bf Linux}} &  \multicolumn{3}{|c|}{{\bf \sysname{}
-}} &
-\multicolumn{3}{|c|}{{\bf \sysname{} + RM
-}} \\
+{\bf Test } & \multicolumn{2}{c|}{{\bf Linux}} & \multicolumn{3}{c|}{{\bf \sysname{}
+}} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
 
 & {\footnotesize $\mu$s} & {\footnotesize +/-} & 
-{\footnotesize $\mu$s} & {\footnotesize +/-} & \%O&
-{\footnotesize $\mu$s} & {\footnotesize +/-} & \%O\\
+{\footnotesize $\mu$s} & {\footnotesize +/-} & \%O &
+{\footnotesize $\mu$s} & {\footnotesize +/-} & \%O & 
+{\footnotesize $\mu$s} & {\footnotesize +/-} & \%O \\
 
 \hline
 
@@ -394,12 +393,13 @@ would make all reference monitoring overheads negligible.
 \begin{table}[t!b!]
 \footnotesize
 \centering
-\begin{tabular}{|ll|rr|rrr|}
+\begin{tabular}{|ll|rr|rrr|rrr|}
 \hline
 \multicolumn{2}{|c|}{{\bf Test}} &
-\multicolumn{2}{|c|}{{\bf Linux}} &
-\multicolumn{3}{c|}{{\bf \sysname{}}} \\
- & & $\mu$s & +/- & $\mu$s & +/- & \\
+\multicolumn{2}{c|}{{\bf Linux}} &
+\multicolumn{3}{c|}{{\bf \sysname{}}} &
+\multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
+ & & $\mu$s & +/- & $\mu$s & +/- & & $\mu$s & +/- & \\
 \hline
 msgget & in process	&	3320	& 0.7 &	2823	& 0.3 &	-15	\%	\\
 (create) & inter process	&	3336	& 0.5 &	2879	& 3.6 &	-14	\%	\\
