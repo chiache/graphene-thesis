@@ -1159,67 +1159,92 @@ from a technical view:
 \begin{compactitem}
 
 \item A Linux-compatible \libos{} called \term{\graphene{}}~\citep{tsai14graphene},
-which is ported to Linux, FreeBSD, OSX,
+which runs legacy Linux applications in a platform independent environment.
+The platforms where \graphene{} has been ported and tested
+include Linux, FreeBSD, OSX,
 Windows and \intel{} \sgx{} enclaves (also called \term{\graphenesgx{}}).
-Graphene isolates Linux, multi-process applications that are mutually distrusting,
-in \picoprocs{} or enclaves.
-In \graphene{}, multiple \libos{} instances
-collaboratively implement
-POSIX abstractions,
-such as namespaces, forking, signaling, and \sysvipc{},
-yet appear to the application
-as a single, shared OS.
-\graphene{} coordinates the namespace and abstraction states shared across processes
-over pipe-like RPC streams,
-which can be individually sandboxed from the host reference monitor.
-
-
-\item 
-In a Linux kernel optimized using this approach,
-the hit latency of {\tt stat} system calls on a long path
-can be optimized to up to 27\%.improving the
-latency of the Dovecot IMAP serer by up to 12% and the git
-version control system by up to 25%
-
-
-\item syspop
+Graphene extends the security isolation on distrusting, single-process applications,
+to ones that share various UNIX multi-process abstractions,
+such as forking, signaling, sharing file descriptors, \sysvipc{}, etc.
+The shared states across multiple processes of an application
+is coordinated by the distributed POSIX implementation in \graphene{},
+over the host-provided RPC streams.
+Besides using a optional host abstraction of bulk IPC for optimizing copy-on-write forking,
+all multi-process abstractions can be
+implemented and coordinated completely over PRC streams,
+which can be generally provided on every platforms.
+Graphene can even support multi-process applications in \intel{} \sgx{} enclaves,
+and isolate each \picoproc{} in individual enclave.
+When Graphene isolates multiple processes in enclaves,
+the RPC streams can be trusted using \intel{} \sgx{}'s attestation feature,
+instead of relying on sandboxing by the host.
 
 
 \item
-We present {\em \civet{}}, a framework that combines the benefits of
-\sgx{}'s isolated execution and the language protection from \java{}, to protect partitioned applications.
-The design of \civet{} avoids the downsides of taking either approach in isolation.
-\civet{} includes three primary parts:
-a tool that automates the partitioning of applications, ultimately generating an enclave image that includes
-the minimal supporting classes;
-a runtime framework that verifies and loads the supporting classes into an enclave, and enforces information flow control on the enclave border;
+We identify a performance suboptimality issue in \term{Linux file system directory cache}
+~\citep{tsai15dcache}.
+The root cause is
+interleaving the operation of looking up cached path components
+with implementation of specifications,
+including permission checks against distinct security models,
+file attribute retrieval,
+and resolving symbolic links.
+We optimize the lookup procedure by decoupling searching the directory cache
+from checking permissions and attributes,
+when the searched path is already cached (cache hit).
+Using the locality,
+we cache the permission check result on path prefixes in an added data structure
+called prefix check cache,
+which must be invalidates when permission changes.
+The optimization assume hit latency is far more critical for applications
+than renaming or permission update latency.
+In the updated Linux kernel,
+the hit latency of {\tt stat} system calls on a long path
+can be optimized to up to 27\%,
+improving the latency of
+the Dovecot IMAP serveer by up to 12\%
+and the GIT version control system by up to 25\%
+
+
+\item
+A study of Linux API usage and compatibility~\citep{tsai16apistudy}, to collect the information which is missing in
+the decision-making process of system developers.
+The study provides
+an approach to measuring platform compatibility, suitable for evaluating the relative completeness of prototype systems.
+Rather than considering compatibility a binary property % (``will something break?''),
+%yet for prototypes, which are necessarily in-progress,
+we use a fractional metric
+%(``how many programs will not break?'')
+which is better suited to measuring  the progress of a prototype.
+Based on the study,
+we provides a range of insights into current API usage patterns.
+For instance, we identify an efficient path to implementing a new Linux compatibility layer, maximizing the additional applications per system call.
+We also identify
+that usage of many APIs is similarily distributed:
+some are widely used, and there is a sharp drop with a very long tail
+of rarely or never-used APIs.
+
+
+\item
+A framework called \term{Civet},
+that combines the benefits of isolated execution of \intel{} \sgx{} and
+language protections of \java{},
+for partitioning legacy \java{} applications.
+\civet{} includes
+a tool that automates code compartmentalization,
+generating an enclave with minimal supporting \java{} classes;
+a runtime framework that loads signed classes into an enclave,
+with language protection such as information flow control at the enclave boundary;
 and \java{} APIs to seamless access the \sgx{} features such
 as attestation and secure provisioning.
-The building block the the \civet{} framework uses \graphenesgx{} to run a reduced \java{} VM, to load the framework and the trusted classes.
-%As a proof-of-the-concept, 
-We study three classic use cases of \civet{}.
-The first use case is to isolate the 
-session keys and supporting cryptography library in an SSH client and server.
+The use cases of \civet{} includes
+isolating session keys and supporting cryptography library for a SSH connection,
 %in which the  used for encrypting the connection
 %is partitioned and isolated from the rest of the application, %in the enclave,
 %protecting the generated session key while still
 %using it for encryption and decryption.
-The second use case is a Hadoop workload that run a proprietary algorithm;
-the components of the workload (e.g., mapper and reducer)
-are securely provisioned from a trusted server.
-%Partitioner%\fixmedp{what is this?},
-%Mapper, Combiner and Reducer classes are provisioned from a trusted server, protecting confidentiality of the sensitive code.
-%always runs in an enclave.
-%protecting the confidentiality of the running algorithm.
-The third use case is a data manager developed as a web application, which can be deployed through a website.
-%---a building block for medical and other applications that handle sensitive data; 
-%we protect the secret client data in an enclave on the client's machine.
-%\fixmedp{can we explain a bit more about the security property of interest?}
-%which can serve as a web application for a website.
-For each use case, we show that developers can utilize \civet{} to partition the applications with minimal effort,
-and only basic understanding of the isolated execution,
-not the cumbersome hardware details.  %n{high-level understanding  knowledge of %almost no familiarity with how 
-%the SGX hardware.
+protecting Hadoop workloads that run proprietary algorithms,
+and a web application deployed over HTTP.
 
 \end{compactitem}
 
