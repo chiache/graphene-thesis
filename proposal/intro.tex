@@ -618,36 +618,38 @@ optimizing a legacy system
 (i.e., Linux file system directory cache),
 and derive principles to improve the result of implementation.
 We observe that in order to partition a system or application
-in a even finer granularity,
-such as an extremely sensitive component,
-legacy code reuse will become even more challenging.
-In this case,
-inevitably, applying techniques from programming languages and code analysis
+in finer granularity,
+%such as an extremely sensitive component,
+%legacy code reuse will become even more challenging.
+%In this case,
+%inevitably,
+applying techniques from programming languages %and code analysis
 will become necessary.
-Specifically, one of the techniques that developers will need is the automated compartmentalization of legacy code.
-The reason is, 
-unless the partitioned component code is compact and simple,
+Specifically, one technique that developers will need is automated compartmentalization of legacy code.
+%The reason is, 
+Unless the partitioned component code is compact and simple,
 the effort required
 for cleanly and minimally partitioning the code
 will be too high.
-Especially for an application originally developed in a managed or object-oriented language (e.g., \java{}),
-code compartmentalization can be effective enough to generate close-to-optimal partitioning.
+For an application developed in a managed or object-oriented language (e.g., \java{}),
+code compartmentalization can be effective enough to create close-to-optimal partitioning.
 
 The reason for pursuing \java{} application partitioning
 is two-folded.
 On the one hand, legacy applications developed in \java{} or other managed languages
-are not supported by
-some isolated environments such as \intel{} \sgx{} enclaves.
-For applications isolated by an enclave,
-both the execution and interface have to be statically loaded
-before the enclave starts.
-For \java{} classes that are dynamically loaded and allocated by \java{} VMs,
-additional support from the system is required.
+are supported by
+isolated environments such as \intel{} \sgx{} enclaves.
+To load an application into an enclave,
+both the execution and interface of the application code
+have to be static
+ever since the enclave starts.
+Because \java{} classes are dynamically loaded and managed by \java{} VMs,
+extra support from the system will be necessary.
 On the other hand,
-an application or component isolated by the enclave must be verified to
-be immune to security vulnerabilities,
-otherwise there is risk of leaking the secrets from the enclave.
-By allowing developers to reuse \java{} code in enclaves{},
+an application or component isolated in an enclave must be %verified to
+immune to security vulnerabilities,
+otherwise there will be risks of leaking the enclave secrets.
+By allowing developers to reuse \java{} code in enclaves,
 more advantages and tools from the programming language can further ensure the soundness of isolated components.
 The automated partitioning of \java{} applications into enclaves
 is an ongoing work.
