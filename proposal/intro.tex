@@ -53,7 +53,8 @@ The cause for the complexity of porting
 falls on the design decisions made in platforms,
 in consideration of various requirements
 such as security mechanisms, quality of service and resource consumption.
-In some systems, 
+Particularly,
+in some systems, 
 to reduce security vulnerabilities or isolate performance bottlenecks,
 developers partition the system into
 small, simpler pieces.
@@ -424,39 +425,44 @@ by sandboxing the RPC streams of the application.
 %--- especially useful for privacy-preserving applications.
 
 
-In particular, in an system enforcing stronger, hardware-based security isolation
+In particular, in an system enforcing stronger security isolation
 on legacy applications,
 such as Haven~\citep{baumann14haven},
 it is necessary
 %the system must not only emulate the personalities,
-to provide the security benefits promised on the platform
-(i.e., an \intel{} \sgx{} enclave),
-instead of simply emulating the personalities.
+to provide the security benefits promised by the platform
+(i.e., \intel{} \sgx{} enclaves).
+%instead of simply emulating the personalities.
 For instance,
 the security benefits of enclaves
 include integrity guarantee of application binaries,
-complete sealing of the confidential information, and attestation of the execution environment.
-In Haven, these benefits rely on
-the \libos{} to securely provision an encrypted virtual disk
-from a trusted, remote service.
-This mechanism creates a \emph{trusted path} to
+sealing of confidential information,
+and attestation of the execution.
+These benefits must be also provided by systems that use enclaves to isolate legacy applications.
+Haven relies on
+%the \libos{} to
+securely provisioning an encrypted virtual disk
+from a trusted, remote server,
+to ensure a \emph{trusted path} to
 load authenticated application binaries
-and exchange information,
-in a way completely transparent to the isolated application.
-However, Haven{} also has drawbacks, such as huge TCB (trusted computing base)
+and redirecting IOs,
+yet appears
+completely transparent to the application.
+However, Haven also has weaknesses, such as huge TCB (trusted computing base)
 expansion by the \libos{} (209MB in total),
-being overly reliant on a remote trusted service,
-and being incapable to isolate multi-process applications,
-especially in the finer, per-process granularity.
-Addressing these drawbacks,
-\graphene{} is ported to \intel{} \sgx{},
+being overly reliant on the remote trusted server,
+and being incapable of isolating multi-process applications.
+% especially in the finer, per-process granularity.
+Addressing these issues,
+we port \graphene{} to \intel{} \sgx{} enclaves,
 to isolate multi-process applications in a multi-enclave environment.
 The coordination of \graphene{} based on RPC streams
-allows isolated \picoprocs{} to build trusted paths for coordination,
+allows isolated \picoprocs{} to build a trusted path for OS coordination,
 by attesting and encrypting the RPC streams.
 \graphene{} verifies binary integrity using per-binary checksums,
-to remove the requirement of using a remote trusted service,
-and to allow each \picoproc{} to be attested and trusted individually.
+to rid most application behaviors
+of the dependency on remote trusted servers,
+and to allow each \picoprocs{} be attested and provisioned individually.
 
 
 
