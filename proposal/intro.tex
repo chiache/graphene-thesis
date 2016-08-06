@@ -226,15 +226,19 @@ partial support for legacy applications is provided
 by emulating the OS personalities in \picoprocs{}.
 Among the OS abstractions and features needed by legacy applications,
 many are single-process abstractions
-for which emulation can be wrapped in \picoprocs{}, with proper level of translation and bookkeeping.
-For instance, Drawbridge loads legacy Windows applications including Microsoft Word.
+for which emulation can be completely wrapped inside each \picoprocs{}. %, with proper level of translation and bookkeeping.
+For instance, %Drawbridge loads legacy Windows applications including Microsoft Word.
 To provide Windows abstractions and personalities,
-Drawbridge reuses 5.6 million lines of code from Windows 7 in a single \picoproc{},
-and implements in-process legacy services such as the Windows registry.
-However, in contrast to single-process abstractions,
-multi-process abstractions which are especially critical to many Unix applications
-are more challenging to emulate in \picoprocs{},
-due to the assumptions and narrowed interfaces of \picoprocs{}.
+Drawbridge reuses 5.6 million lines of Windows 7 code in a single \picoproc{},
+and a few features such as the registry is implemented
+using in-process services. % such as the Windows registry.
+However, when it comes to multi-process abstractions,
+%in contrast to single-process abstractions,
+%multi-process abstractions 
+which are especially important for Unix applications
+are more challenging, % to emulate in \picoprocs{},
+due to the assumption and
+narrowed interfaces of \picoprocs{}.
 %% dp: Daniela, great suggestion!  We need to make this situation seem more
 %%     like the sky will fall without our help
 %A key drawback of recent library OSes, however,
@@ -246,20 +250,24 @@ due to the assumptions and narrowed interfaces of \picoprocs{}.
 %performance scalability, fault isolation, and programmer convenience.
 %These applications would benefit from the efficiency and security benefits
 %of a library OS.
-In order for the efficiency benefits of \liboses{} to be widely applicable,
-especially for unmodified Unix applications,
+%In order for the efficiency benefits of \liboses{} to be widely applicable,
+%especially for unmodified Unix applications,
 %either applications must be rewritten to implement ad hoc coordination mechanisms, or
-\liboses{} must provide commonly-used multi-process abstractions,
-such as fork, signals, System V IPC, file descriptor sharing, exit notification, etc.
-To support multi-process abstractions, \liboses{} often have to rely on sharing OS states,
-backed by the hosts' memory sharing features.
-For example, Drawbridge and Bascule cannot emulate process forking because copy-on-write memory sharing is not a platform-independent features.
-Furthermore, in Haven, because unmodified applications are isolated
+%\liboses{} must provide commonly-used multi-process abstractions,
+The multi-process abstractions to be emulated by \libos{} includes
+forking, signals, System V IPC, file descriptor sharing, exit notification, and more.
+A possible alternative is
+%To support multi-process abstractions, \liboses{} often have 
+to rely on %sharing OS states,
+the hosts' memory sharing features to share OS states.
+However, memory sharing is not always a plausible features in the host:
+for example, Drawbridge and Bascule cannot emulate process forking because copy-on-write memory sharing is not a platform-independent features.
+Furthermore, when Haven isolates applications
 in Intel SGX enclaves,
 memory sharing is strictly forbidden by the hardware platform,
-to prevent a \picoproc{} leaking application secret to other enclaves.
-In a word, emulating OS abstractions and personalities can be fundamentally challenging
-if when opposing the assumptions of operating systems. 
+to prevent leaking secret to other enclaves.
+In a word, emulating OS abstractions and personalities can fundamentally
+oppose the system assumptions. % of operating systems. 
 
 
 %\begin{figure}[t!]
