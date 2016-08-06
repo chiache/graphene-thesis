@@ -502,21 +502,21 @@ and to allow each \picoprocs{} be attested and provisioned individually.
 
 
 Besides supporting legacy applications,
-one first-order requirement in most systems will be achieving
-optimal performance, either as pursuing low latency or high throughput,
+a first-order requirement in most systems will be achieving
+optimal performance, either low latency or high throughput,
 based on how users define quality of service.
-Nevertheless, there is inevitable trade-off between the emulation of OS personalities
-and the system performance.
+Nevertheless, there is often inevitable trade-off between emulation of OS personalities
+and performance.
 For instance, in \graphene{}, coordinating OS states %for multi-process abstractions
 over PRC streams
 will cause nonnegligible overhead to the latency of IPC,
-compared with coordination by memory sharing in the kernel or in the \picoprocs{}.
-However, in system design,
-there are also opportunities to identify and remove unneeded or redundant
+in comparison with coordination by memory sharing. % in the kernel or in the \picoprocs{}.
+However, when designing a \libos{},
+there are opportunities to identify and remove unneeded or redundant
 overhead or bottleneck,
-especially on the critical path or the common paths of
-frequent operations.
-An example for reducing overhead
+especially on the critical or common paths.
+%frequent operations.
+An example of reducing overhead
 is to remove redundant permission checks in \liboses{},
 because \picoprocs{} rely on the host kernel to enforce security policies.
 Similarly, to compensate the overhead of IPC
