@@ -21,7 +21,7 @@ For instance, library OSes
 ~\citep{porter11drawbridge, baumann13bascule, unikernels}
 split the functionality of kernels into in-process OS instances,
 or so-called \term{\picoprocs{}},
-to isolate mutually distrusting applications.
+to isolate mutually untrusting applications.
 The security isolation enforced by library OSes
 is based on the fact that
 every \picoproc{} have only a narrow attack surface to the kernel,
@@ -144,7 +144,7 @@ The idiosyncratic multi-process abstractions of Linux, such as forking, signals,
 are coordinated across \picoprocs{},
 over simple, pipe-like RPC streams on the host.
 Therefore, \graphene{} can simplified the complexity of isolating shareable abstractions
-by simply forbidding RPC streams across distrusting applications.
+by simply forbidding RPC streams across untrusting applications.
 \graphene{} can expand the support for Linux multi-process applications
 to various platforms, including \term{Intel SGX enclaves}.
 In Intel SGX enclaves, \graphene{} can isolate Linux multi-process applications

@@ -1,19 +1,16 @@
-\chapter{Proposed Works and Future Directions}
+\chapter{Future Works and Proposals}
 \label{chap:future}
 
-\section{Multi-Principle Applications}
-
-\section{Seamless Transition of Security Isolation}
-
-\section{Minimizing The TCB}
-
-\section{Generalization}
-
-\section{Proposed Thesis Schedule}
-
-
-%\section{Future Directions}
-%In our previous works, we explore several models of enforcing security isolation, to restrict vulnerabilities
+In our previous works, we explore several models of
+reusing or resurrecting the development efforts in legacy code
+that occur in diverse scenarios.
+The cases studied include
+partitioned systems such as library OSes,
+conventional components in legacy OSes such as file system directory cache in Linux,
+and partitioning a legacy \java{} application for isolated execution.
+For future works, and the fulfillment of this thesis,
+we will explore improving out solutions in more generalized models,
+and reducing the weaknesses we observe in these solutions.
 %that occur in diverse scenarios.
 %For instance, \graphene{} and \gsgx{} both utilize a highly compatible library OS,
 %but isolate applications with drastically different assumptions.
@@ -21,8 +18,191 @@
 %--- \gsgx{} secures an application as it is, whereas \civet{} benefits from language techniques.
 %As future works, we will focus on improving \graphene{}, \graphenesgx{} and \civet{},
 %to build more generalized models, and minimize the weakness we have observed in these solutions.
+
+
+
+\section{Generalizing Platform Independence}
+
+In library OSes, legacy applications are reused
+by implementing abstractions and personalities of the development platforms.
+Library OSes essentially translate the abstractions or APIs
+to the interfaces and conventions, often reduced or redefined, on the host platforms.
+In particular, a few library OSes~\citep{porter11drawbridge, baumann13bascule, baumann14haven, tsai14graphene}
+relies on a host ABI defined to be \term{platform independent}
+--- the semantics and assumptions of the ABI are supposed to be
+reasonably feasible for implementation
+on most host platforms.
+For instance, most platforms provide the abstractions and features
+of a hierarchical file system,
+with operations for opening,
+accessing and querying the files,
+using similar interfaces.
+
+
+Platform independence in library OSes are demonstrated by the complexity of legacy applications being supported,
+on top of various host platforms.
+The rationale behind the argument of such a proof-of-the-concept is that
+a complex application will exercise a wide range of system features and conventions,
+that mostly overlap with the common footprints of other applications.
+For instance, Drawbridge~\cite{porter11drawbridge} is tested with
+popular Windows applications such as Internet Explorer and Microsoft Powerpoint.
+To demonstrate the platform independence of the host ABI,
+\graphene{} is ported to many platform such as FreeBSD, Windows, OSX and \intel{} \sgx{} enclaves,
+and most applications can be supported on all these platforms
+transparently.
+
+The narrowness of host interfaces used by library OSes can cause limitations to the ability of implementing OS personalities.
+The primary reason is that the definition of host interfaces
+is mostly biased by the specifications that developers choose to implement,
+and the applications preferred for testing.
+For instance, the \drawbridge{} host ABI, which is adopted by many other library OSes,
+is defined for a library OS of Windows personality.
+In \graphene{}, we implement Linux personality over the \drawbridge{} host ABI,
+and observe that many required host abstractions are missing,
+due to the difference between Windows and Host applications.
+For instance, Linux applications heavily rely on exception handling, which is missing in \drawbridge{} but added in both Bascule and \graphene{}.
+
+In this thesis we focus on implement Linux personality:
+\graphene{} supports \syscalls{} Linux system calls,
+based on what developers considered to be the most commonly used.
+However, according to our study of Linux system API usage in a large, representative application sample,
+for any Linux installations,
+there are only 0.4\% of the installed applications whose system API footprint
+are completely supported by \graphene{}.
+Moreover, the study suggests that completeness of \graphene{} can be largely improved by add two scheduling APIs.
+
+
+\begin{table}[t]
+\footnotesize
+\centering
+\begin{tabular}{|p{1.2in}|p{2.4in}|p{2.4in}|}
+\hline
+{\bf Function} & {\bf Functions in the \libos{}} & {\bf Description} \\
+\hline
+Scheduler policies & {\tt sched\_setscheduler}, {\tt sched\_setaffinity} & Specifying scheduler policies such as priority level or CPU affinity.\\
+\hline
+Huge pages & {\tt MAP\_HUGETLB} flags for {\tt mmap} & Specifying virtual memory to be backed by huge pages. \\
+\hline
+Memory sharing & {\tt shmget}, {\tt shmat}, {\tt shmdt} & Sharing memory using RPC. \\
+\hline
+Raw sockets & {\tt SOCK\_RAW} flags for {\tt socket} & Sending RAW packets (e.g., DHCP clients) \\
+\hline
+NUMA & {\tt set\_mempolicy}, {\tt migrate\_page} & Accessing host NUMA features. \\
+\hline
+\end{tabular}
+\caption[List of host ABI functions to be added in \graphene{} as future works]
+{List of host ABI functions that are missing in \graphene{} host ABI.
+We anticipate providing these functions in the future,
+by either providing a platform-independent interface,
+or allowing configuration in manifests.}
+\label{tab:future:abi}
+\end{table}
+
+
+The Linux system calls that are not implemented in \graphene{},
+besides the one we anticipate to be supported in the near future,
+are primarily for two purposes:
+specifying policies for multiplexing host resources;
+and accessing host hardware features.
+An example for the former type of unsupported system calls is scheduling APIs, such as {\tt sched\_setscheduler}.
+The latter type of unsupported system calls includes
+a wide range of {\tt ioctl} opcodes,
+and NUMA-related system calls like {\tt migrate\_pages}.
+These abstractions cannot be implemented in the library OS
+without extension of the host ABI.
+The advance the completeness of \graphene{},
+we will design host ABI to by
+either providing an platform-independent interface
+for \picoprocs{},
+or allowing users to specify the resource multiplexing policy in the manifests.
+Table~\ref{tab:future:abi} lists the top-priority host abstractions
+that should be provided to \picoprocs{}.
+
+
+\begin{table}[t]
+\footnotesize
+\centering
+\begin{tabular}{|p{1.2in}|>{\raggedright\arraybackslash}p{0.8in}|>{\raggedright\arraybackslash}p{1.6in}|>{\raggedright\arraybackslash}p{2.2in}|}
+\hline
+{\bf Function} & {\bf Platform} & {\bf Limitations} & {\bf Strategy} \\
+\hline
+Memory mappings & Windows & No fine-grained deallocation or protection & Redesign ABI functions for platform independence \\
+\hline
+Thread-local storage & Windows, OSX & FS or GS register is not available & Overwrite TLS allocation in libc, or binary translation \\
+\hline
+Position-dependent binaries & Windows, \intel{} \sgx{} & Memory addresses are occupied or restricted & Reserve virtual memory before \picoprocs{} start \\
+\hline
+Special instructions & \intel{} \sgx{} & {\tt CPUID} and {\tt RDTSC} are forbidden & Exception handling or binary translation \\
+\hline
+\end{tabular}
+\caption[List of host ABI limitations on certian platforms]
+{List of host ABI functions affected by the limitations on certain platforms, and the possible strategies to resolve the limitations.}
+\label{tab:future:abi-limit}
+\end{table}
+
+Besides the feasibility of implementing OS personalities,
+we also demonstrate the neutrality of the host ABI,
+as a proof that the host ABI can be smoothly ported to diverse host platforms.
+However, the assumptions made in the definition of the host ABI
+can be violated in a host platform with limited execution environment.
+For instance, although not defined explicitly in the host ABI of \graphene{},
+the \picoprocs{} requires the host platforms
+to reserve address space for loading legacy binaries that are not compiled as position independent.
+The requirement can be a challenge on a platform
+where part of the \picoprocs{}' virtual memory is occupied by the host,
+or processes are only allowed to access a limited range of virtual memory.
+Table~\ref{tab:future:abi-limit}
+list all the limitations of the current host ABI of \graphene{},
+excluding the abstractions that may be added in the future according to table~\ref{tab:future:abi}.
+We also propose strategies to resolve these limitations.
+
+
+The proof-of-the-concept for the platform independence of \graphene{}
+requires porting the host ABI to more platform variants,
+especially ones that does not rely on a monolithic kernels.
+One example is to port \graphene{} to a \term{\microkernel{}}
+such as L4 and SeL4~\citep{l4family, klein09sel4}.
+Porting \picoprocs{} to \microkernel{} will allows running legacy applications
+in a host with restricted resource,
+at a smaller cost than porting a monolithic kernel ported to \microkernel{}
+(e.g., L4Linux~\citep{hartig97mu}).
+Another direction is to port \graphene{} to \term{Barrelfish}~\citep{baumann09barrelfish},
+a host platform designed for multi-core heterogeneous architectures,
+using asynchronous message passing across heterogeneous cores pinned to applications.
+The distributed POSIX implementation of \graphene{}
+can be an advantage for adapting to Barrelfish.
+In addition, the OSX and Windows ports of \graphene{} are still in-progress.
+Because POSIX defines the generic specifications
+adopted by platforms of a wide range,
+porting \graphene{}
+using only \term{POSIX APIs} will
+guarantee the platform independence of \graphene{}
+on any POSIX-compliant platforms.
+
+
+
+
+\section{Partitioning Legacy Application or Systems}
+
+
+
+%Although \graphene{}, \gsgx{} and \civet{} can fundamentally reduce the TCB required for an application,
+%we observe missed opportunities in these solutions to further minimize the risk.
+%In \graphene{}, the \libos{} of untrused applications are evicted from the TCB,
+%but the host kernel must still be trusted. The system call restriction enforced by Seccomp filters is helpful, but it is hard to reason that the vulnerabilities are eliminated in the kernel.
+%For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\citep{l4family}.
 %
-%\paragraph{Security Isolation for Multi-Principle Applications.}
+%In \gsgx{} and \civet{}, we observe more opportunities of reducing TCB with engineering efforts.
+%For instance, \gsgx{}, the size of \libos{} and supporting libraries
+%can be as large as tens to hundreds of megabytes.
+%The supporting classes partitioned by the \civet{} design-time tool
+%may contain more than thousands of \java{} classes.
+%All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.
+
+
+
+\section{Non-Binary Security Policies}
+
 %In \graphene{} or many others like VM or container-based solutions,
 %applications are protected with a trust model of all-or-nothing.
 %In other word, each process or component of an application can only be fully trusted or not trusted at all.
@@ -33,6 +213,17 @@
 %The web server may perform operations that are more security sensitive (e.g., retrieve a secret key)
 %or more vulnerable (e.g., execute privilege-escalating scripts).
 %For components in the same process, we have seen examples, such as the heart-bleed bug~\citep{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
+
+\section{Seamless Transition of Security Isolation}
+
+
+
+
+%\section{Future Directions}
+
+%
+%\paragraph{Security Isolation for Multi-Principle Applications.}
+
 %
 %\paragraph{Seamless Transition of Security Isolation.}
 %Each existing solution of security isolation can protect applications
@@ -80,15 +271,3 @@
 %
 %
 %\paragraph{Minimizing TCB.}
-%Although \graphene{}, \gsgx{} and \civet{} can fundamentally reduce the TCB required for an application,
-%we observe missed opportunities in these solutions to further minimize the risk.
-%In \graphene{}, the \libos{} of untrused applications are evicted from the TCB,
-%but the host kernel must still be trusted. The system call restriction enforced by Seccomp filters is helpful, but it is hard to reason that the vulnerabilities are eliminated in the kernel.
-%For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\citep{l4family}.
-%
-%In \gsgx{} and \civet{}, we observe more opportunities of reducing TCB with engineering efforts.
-%For instance, \gsgx{}, the size of \libos{} and supporting libraries
-%can be as large as tens to hundreds of megabytes.
-%The supporting classes partitioned by the \civet{} design-time tool
-%may contain more than thousands of \java{} classes.
-%All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.
