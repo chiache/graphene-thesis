@@ -85,7 +85,7 @@ Huge pages & {\tt MAP\_HUGETLB} flags for {\tt mmap} & Specifying virtual memory
 \hline
 Memory sharing & {\tt shmget}, {\tt shmat}, {\tt shmdt} & Sharing memory using RPC. \\
 \hline
-Raw sockets & {\tt SOCK\_RAW} flags for {\tt socket} & Sending RAW packets (e.g., DHCP clients) \\
+Raw sockets & {\tt socket} with {\tt SOCK\_RAW}  & Sending RAW packets (e.g., DHCP clients) \\
 \hline
 NUMA & {\tt set\_mempolicy}, {\tt migrate\_page} & Accessing host NUMA features. \\
 \hline
@@ -171,14 +171,14 @@ a host platform designed for multi-core heterogeneous architectures,
 using asynchronous message passing across heterogeneous cores pinned to applications.
 The distributed POSIX implementation of \graphene{}
 can be an advantage for adapting to Barrelfish.
-In addition, the OSX and Windows ports of \graphene{} are still in-progress.
-Because POSIX defines the generic specifications
-adopted by platforms of a wide range,
-porting \graphene{}
-using only \term{POSIX APIs} will
-guarantee the platform independence of \graphene{}
-on any POSIX-compliant platforms.
-
+%In addition, the OSX and Windows ports of \graphene{} are still in-progress.
+Overall, when generalizing the host ABI implementation to more platforms,
+we observe that a large portion of \graphene{} \pal{}
+can be reused for another platform.
+In particular, a wide range of platforms adopt the POSIX specifications.
+By translating the \graphene{} host ABI to standard POSIX APIs,
+the platform independence of \graphene{} can be guaranteed on
+every POSIX-compliant hosts.
 
 
 
