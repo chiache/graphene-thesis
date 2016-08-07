@@ -182,7 +182,7 @@ every POSIX-compliant hosts.
 
 
 
-\section{Partitioning Legacy Applications and Systems}
+\section{Partitioning Legacy Applications}
 
 
 
@@ -278,6 +278,70 @@ can all technically be removed with manageable efforts.
 %The web server may perform operations that are more security sensitive (e.g., retrieve a secret key)
 %or more vulnerable (e.g., execute privilege-escalating scripts).
 %For components in the same process, we have seen examples, such as the heart-bleed bug~\citep{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
+
+
+A partitioned system that sandboxes mutually untrusting applications
+must restrict any interaction or coordination between the sandboxes.
+Take \graphene{} for instance;
+the related \picoprocs{} (created from the same application)
+in a sandbox will trust each other
+and be permitted to coordinate freely over the host RPC streams.
+On the contrary, two unrelated \picoprocs{} from separate sandboxes will be completely detached,
+with the \graphene{} reference monitor enforcing a strict,
+all-or-nothing access control on RPC streams.
+The rationale behind this design is to enforce simple but strong isolation from the host,
+instead of relying on permission checks that are fragile and subtle
+in a complex operating system.
+
+In general, to enforce security isolation between sandboxes,
+\graphene{} must assume
+unrelated applications will never share any resources or states,
+unless completely mediated by the host.
+In other word, if two mutually untrusting applications
+will ever share a resource or state,
+\graphene{} must place the \picoprocs{} of both applications in a sandbox
+and allow any coordination among them.
+No partial isolation can be enforced in \graphene{}.
+The all-or-nothing security isolation will
+cause violation to the \emph{least privilege principle}
+if the involved parties
+require more fine-grained access control.
+In fact, partial isolation is required by many applications,
+when one process untrusts another because of the security vulnerabilities,
+still have to interact in a limited, controlled way.
+For instance,
+a web server (e.g.,Apache) may prefer to be completely detach from a PHP engine (e.g.,FastCGI-PHP),
+due to the much larger attack surface in the PHP engine.
+However, A \picoproc{} that runs the web server
+still needs to maintains minimal coordination with the \picoproc{} running the PHP engine,
+such as connection through pipes,
+or sharing the process ID namespace for signaling.
+In a sense, \graphene{} does provide dynamic sandboxing
+for \picoprocs{} that have dropped privileges,
+but the sandboxed \picoproc{} will be completely detached from the others,
+and appear to them as being destroyed.
+
+A plausible model to allow partial security isolation among \picoprocs{}
+is to enforce \term{namespace} access control.
+The mechanism is similar to the namespace in UNIX system:
+when a process clones a child using a flags for namespace isolation
+(e.g., {\tt CLONE\_NEWNS}, {\tt CLONE\_NEWPID}),
+the kernel data structures related with the namespaces will be strictly separated.
+In \graphene{}, similar policies can be enforced
+by setting up firewall rules on the host RPC streams.
+Assuming a \picoproc{} strictly uses different RPC streams to coordinate different namespaces or abstractions,
+host policies can be assigned to allow another untrusted
+\picoproc{} accessing specific RPC streams.
+A more fail-safe model will be assign firewall rules to filter the contents of RPC streams,
+to prevent \picoprocs{} to make mistakes on separating RPC streams.
+The \picoprocs{} can submit \term{BPF-style} (Berkeley Packet Filter) firewall rules to the reference monitors, to filter the fields in RPC messages.
+Either approaches are platform-independent, and the former one requires no changes to the current host ABI.
+
+
+
+
+
+
 
 \section{Seamless Transition of Partitioned Systems}
 
