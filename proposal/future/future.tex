@@ -206,10 +206,65 @@ to isolate a minimal, security-sensitive component
 in \intel{} \sgx{} enclaves.
 We have a prototype framework to show the proof-of-the-concept.
 For future works,
-the framework can be extended to secure more use cases and corner cases.
+the implementation can be extended to handle more use cases as well as corner cases.
+
+In particular, a primary challenge in \civet{} is
+the effectiveness of the partitioning
+--- in other word, the minimality of the split, security-sensitive components.
+Another aspect of the partitioning is the effort needed from the developers,
+to identify the boundary of the partition.
+We observe that, tracing from
+a few developer-identified interfaces to reach all of the supporting classes
+will find at least xxx classes, xxx methods,
+and xxx lines of code \fixme{Need to evaluate the actual number}
+that needs to be included in a partition,
+even if the partitioned component
+is simply a ``Hello World''.
+The overloaded TCB (trusted computing base) includes
+methods used by the 
+\java{} VM class loader and the \civet{} framework;
+overridden super-class methods;
+and methods that are part of a supporting classes
+but never used.
+We anticipate that the isolated components
+can be further minimized,
+by partitioning applications at the granularity of methods,
+and shredding any methods that will never be called.
+
+Nevertheless, \civet{} requires developers to provide two hints to guide the partitioning:
+the classes that are used as interfaces,
+and the classes that are dynamically loaded by the class loader.
+However, identifying these classes are not always straightforward,
+as we found in our use cases.
+For example, some applications do not have the obvious interfaces
+to interact with the sensitive components,
+or, in the worst case, are not well modularized (e.g., all methods are in one main class).
+On the other hand,
+sometimes the \java{} VM loads classes based on some inputs from the users or developers,
+such as loading cryptography APIs based on hard-coded or inputed strings
+which describe the algorithms and options.
+Even if developers who conduct the partitioning know the algorithms that will be used,
+it is hard to identify the actual classes that will be loaded
+unless the developers have knowledge about the internals of cryptography APIs.
 
 
-A key challenge and effort in \civet{}
+An alternative approach will be to determine the minimal partition ``bottom-up'',
+starting from the secrets or methods that need to be protected.
+Instead of using a \emph{Shredder} for removing unused classes,
+the partitioning can instead rely on a \emph{Collector} that incorporate the classes
+that access any protected classes,
+until it eventually determines a clean,
+minimal partition
+that is self-converging and has the narrowest interface.
+This approach will require static analysis of data flow to conduct proper partitioning.
+
+Besides the partitioned applications itself,
+we also find opportunities in the \civet{} framework, the OpenJDK \java{} VM,
+and the underlying \graphene{} \libos{},
+to further reduce the TCB.
+The unused library functions, \java{} VM features, JNI code, and system calls in \graphene{}
+can all technically removed with manageable efforts.
+
 
 \section{Non-Binary Security Isolation}
 
