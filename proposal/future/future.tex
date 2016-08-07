@@ -124,7 +124,7 @@ that should be provided to \picoprocs{}.
 \centering
 \begin{tabular}{|p{1.2in}|>{\raggedright\arraybackslash}p{0.8in}|>{\raggedright\arraybackslash}p{1.6in}|>{\raggedright\arraybackslash}p{2.2in}|}
 \hline
-{\bf Function} & {\bf Platform} & {\bf Limitations} & {\bf Strategy} \\
+{\bf Feature} & {\bf Platform} & {\bf Limitations} & {\bf Strategy} \\
 \hline
 Memory mappings & Windows & No fine-grained deallocation or protection & Redesign ABI functions for platform independence \\
 \hline
@@ -135,8 +135,9 @@ Position-dependent binaries & Windows, \intel{} \sgx{} & Memory addresses are oc
 Special instructions & \intel{} \sgx{} & {\tt CPUID} and {\tt RDTSC} are forbidden & Exception handling or binary translation \\
 \hline
 \end{tabular}
-\caption[List of host ABI limitations on certian platforms]
-{List of host ABI functions affected by the limitations on certain platforms, and the possible strategies to resolve the limitations.}
+\caption[List of platform limitations affecting host ABI porting]
+{List of limitations on host features that affects porting the host ABI to the target platforms,
+and the coping strategies.}
 \label{tab:future:abi-limit}
 \end{table}
 
@@ -152,9 +153,8 @@ The requirement can be a challenge on a platform
 where part of the \picoprocs{}' virtual memory is occupied by the host,
 or processes are only allowed to access a limited range of virtual memory.
 Table~\ref{tab:future:abi-limit}
-list all the limitations of the current host ABI of \graphene{},
-excluding the abstractions that may be added in the future according to table~\ref{tab:future:abi}.
-We also propose strategies to resolve these limitations.
+list the limitations from the platforms that affects the implementation of host ABI.
+We propose strategies to remove the limitations for the reinforcement of platform independence.
 
 
 The proof-of-the-concept for the platform independence of \graphene{}
@@ -182,7 +182,7 @@ on any POSIX-compliant platforms.
 
 
 
-\section{Partitioning Legacy Application or Systems}
+\section{Partitioning Legacy Application and Systems}
 
 
 
@@ -201,7 +201,7 @@ on any POSIX-compliant platforms.
 
 
 
-\section{Non-Binary Security Policies}
+\section{Non-Binary Security Isolation}
 
 %In \graphene{} or many others like VM or container-based solutions,
 %applications are protected with a trust model of all-or-nothing.
@@ -214,7 +214,7 @@ on any POSIX-compliant platforms.
 %or more vulnerable (e.g., execute privilege-escalating scripts).
 %For components in the same process, we have seen examples, such as the heart-bleed bug~\citep{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
 
-\section{Seamless Transition of Security Isolation}
+\section{Seamless Transition of Partitioned Systems}
 
 
 
