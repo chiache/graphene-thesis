@@ -160,8 +160,8 @@ lists the platform limitations that affects the implementation of host ABI.
 We propose strategies to remove the limitations for the reinforcement of platform independence.
 
 
-The proof-of-the-concept for the platform independence of \graphene{}
-requires porting the host ABI to more platform variants,
+Proving the platform independence of \graphene{} will
+require porting its host ABI to more diverse platforms,
 especially ones that do not rely on monolithic kernels.
 One example is to port \graphene{} to a \term{\microkernel{}}
 such as L4 and SeL4~\citep{l4family, klein09sel4}.
@@ -216,28 +216,30 @@ the effectiveness of the partitioning
 --- in other word, the minimality of the split, security-sensitive components.
 Another aspect of the partitioning is the effort needed from the developers,
 to identify the boundary of the partition.
-We observe that, tracing from
-a few developer-identified interfaces to reach all of the supporting classes
-will find at least xxx classes, xxx methods,
-and xxx lines of code \fixme{Need to evaluate the actual number}
-that needs to be included in a partition,
-even if the partitioned component
+We observe that, 
+after shredding the unused classes based on the dependency analysis from a few developer-identified interface classes,
+effectively
+xxx classes, xxx methods,
+and xxx lines of code in total \fixme{Need to evaluate the actual number}
+are still left in the partition,
+even if the component to isolate
 is simply a ``Hello World''.
 The overloaded TCB (trusted computing base) includes
 methods used by the 
 \java{} VM class loader and the \civet{} framework;
 overridden super-class methods;
-and methods that are part of a supporting classes
+and others that are part of a supporting classes
 but never used.
 We anticipate that the isolated components
 can be further minimized,
-by partitioning applications at the granularity of methods,
-and shredding any methods that will never be called.
+by partitioning applications at a smaller granularity (e.g., methods),
+and shredding as much unused code as possible.
 
-Nevertheless, \civet{} requires developers to provide two hints to guide the partitioning:
-the classes that are used as interfaces,
-and the classes that are dynamically loaded by the class loader.
-However, identifying these classes are not always straightforward,
+Nevertheless, \civet{} still requires developers to provide two hints
+to guide the partitioning:
+one is the classes that are used as interfaces,
+and the other is the classes that are dynamically loaded.
+However, identifying these classes are not necessarily straightforward,
 as we found in our use cases.
 For example, some applications do not have the obvious interfaces
 to interact with the sensitive components,
