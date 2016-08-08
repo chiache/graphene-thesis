@@ -5,26 +5,37 @@ Existing library OSes provide single-process applications
 with the qualitative benefits of virtualization
 at a lower cost~\citep{porter11drawbridge,unikernels,baumann13bascule}.
 These benefits include security isolation of mutually untrusting applications,
-migration, and host platform compatibility.
+migration, and host platform independence.
 %Library OSes move portions of
 %OS kernel functionality into an application library.
 In a library OS, the guest OS is essentially ``collapsed''
 into an application library,
 %% dp: too early for this nomenclature, I think
 % \daniela{(a libraryOS instance)},
-which implements the OS system calls and supporting data structures as library functions---mapping
-high-level APIs onto
-a few paravirtual interfaces to the host kernel.
-Recent library OSes improve efficiency over full guest OSes by eliminating duplicated features
-between the guest and host kernel,
-such as the CPU scheduler, or
+which implements the OS system calls and abstractions required by legacy applications
+and libraries.
+The library maps high-level APIs onto a few narrowed interfaces
+to the host kernel.
+The reduction of host interfaces provides portability to various platforms that can translate the interfaces to host APIs or abstractions,
+%and a narrower attack surface that developers can more likely reason about.
+% and supporting data structures as library functions---mapping
+%high-level APIs onto
+%a few paravirtual interfaces to the host kernel.
+%Recent library OSes improve efficiency over full guest OSes by eliminating duplicated features
+%between the guest and host kernel,
+%such as the CPU scheduler, or
 %eliminating guest-level multiplexing code, as the library OS supports only one application;
-even compiling out unnecessary guest kernel APIs~\citep{unikernels}.
-In total, this can reduce the memory requirements of running a single, isolated application
-by orders of magnitude, and similarly
-increase the number of applications which can run
-on a single system~\citep{porter11drawbridge,unikernels}.
-Library OSes ahve also proved
+%even compiling out unnecessary guest kernel APIs~\citep{unikernels}.
+Compared with visualization, 
+\liboses{} can eliminate duplicated features between the guest to the host kernel
+such as the CPU scheduler or file system drivers.
+Therefore, 
+%In total, this can reduce 
+the memory requirements of running a single, isolated application in \liboses{}
+is  orders-of-magnitude
+less than running it with visualization
+~\citep{porter11drawbridge,unikernels}.
+Library OSes have also been proven
 useful for porting legacy applications
 onto new hardware platforms, such as Intel's SGX enclaves~\citep{baumann14haven}.
 %% dp: This sentence seems a little premature
@@ -46,9 +57,9 @@ onto new hardware platforms, such as Intel's SGX enclaves~\citep{baumann14haven}
 
 %% dp: Daniela, great suggestion!  We need to make this situation seem more
 %%     like the sky will fall without our help
-A key drawback of recent library OSes, however,
-is that they are limited to single-process applications.
-Yet many applications, such as network servers and
+A key drawback for recent \liboses{} to run legacy applications, however,
+is that the support in these \liboses{} are mostly limited to single-process applications.
+Many applications, such as network servers and
 shell scripts,
 create multiple processes
 for
@@ -58,10 +69,12 @@ performance scalability, fault isolation, and programmer convenience.
 In order for the efficiency benefits of library OSes to be widely applicable,
 especially for unmodified Unix applications,
 %either applications must be rewritten to implement ad hoc coordination mechanisms, or
-library OSes must  provide commonly-used multi-process abstractions,
-such as fork,  signals, System V IPC, and exit notification.
-To support multi-process abstractions, library OSes often have to rely on sharing OS states,
-backed by the hosts' memory sharing features.
+library OSes must provide commonly-used multi-process abstractions,
+such as fork,  signals, \sysvipc{} message queues and semaphores, sharing file descriptors, and exit notification.
+Without sharing memory across \picoprocs{},
+\libos{} must coordinate shared OS states to support multi-process abstractions.
+%To support multi-process abstractions, library OSes often have to rely on sharing OS states,
+%backed by the hosts' memory sharing features.
 For example, Drawbridge~\citep{porter11drawbridge} cannot simulate process forking because copy-on-write memory sharing is not a platform-independent features.
 
 

@@ -65,8 +65,9 @@ to affect sensitive application logics.
 %in a way that developers can reasonably justify. %the soundness of design and implementation.
 These systems often have
 reduced or simplified interface between the partitions,
-making legacy code reuse
-in these systems even more challenging.
+intensifying the difficulty of reusing legacy code.
+%making legacy code reuse
+%in these systems even more challenging.
 
 
 %However, in a system that is redesigned and restructured
@@ -165,7 +166,7 @@ in these systems even more challenging.
 %\section{Security Isolation for Linux Multi-Process Applications\\ using a Library OS}
 %\label{sec:intro:graphene}
 
-For instance, \term{\liboses{}} enforce isolation on mutually distrusting process,
+For instance, \term{\liboses{}} enforce isolation on mutually untrusting process,
 by essentially \emph{collapsing} OS components
 into an application library loaded into the user memory of application processes, or \term{\picoprocs{}}.
 The benefits of using \liboses{} to run applications include
@@ -303,7 +304,7 @@ oppose the system assumptions. % of operating systems.
 %and robust, flexible security enforcement.
 
 %The design of \graphene{} ensures security isolation of
-%mutually distrusting, multi-process
+%mutually untrusting, multi-process
 %applications on the same host.
 %Essential to this goal is
 %minimally expanding the host ABI to support multi-processing,
@@ -611,7 +612,8 @@ the significant improvement on legacy application support in \graphene{} is demo
 if we guide the development using this approach.
 
 
-In general, we explore the possibility of legacy code reuse in both
+In general, we explore the possibility of reusing the legacy code for
+either
 partitioning a system
 (i.e., Graphene) and
 optimizing a legacy system
@@ -1192,7 +1194,7 @@ which runs legacy Linux applications in a platform independent environment.
 The platforms where \graphene{} has been ported and tested
 include Linux, FreeBSD, OSX,
 Windows and \intel{} \sgx{} enclaves (also called \term{\graphenesgx{}}).
-Graphene extends the security isolation on distrusting, single-process applications,
+Graphene extends the security isolation on untrusting, single-process applications,
 to ones that use and share UNIX multi-process abstractions,
 such as forking, signaling, sharing file descriptors, \sysvipc{}, etc.
 The shared states across multiple processes of an application
@@ -1289,7 +1291,7 @@ Linux's legacy file system directory cache.
 and the use of study data to prioritize system building.
 {\bf Chapter~\ref{chap:civet}} presents the ongoing work for partitioning security-sensitive
 \java{} applications to gain fine-grained isolation from \intel{} \sgx{} enclaves,
-with optimal legacy code reuse.
+with legacy code optimally reused.
 {\bf Chapter~\ref{chap:future}} lists the proposed tasks for the fulfillment of thesis,
 and possible future directions.
 {\bf Chapter~\ref{chap:related}} describes the former works and publications related to
