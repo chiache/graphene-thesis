@@ -99,13 +99,13 @@ or allowing configuration in manifests.}
 \end{table}
 
 
-The Linux system calls that are not implemented in \graphene{},
-besides the one we anticipate to be supported in the near future,
+The Linux system calls that are not implemented in \graphene{}
+% besides the one we anticipate to be supported in the near future,
 are primarily for two purposes:
-specifying policies for multiplexing host resources;
-and accessing host hardware features.
-An example for the former type of unsupported system calls is scheduling APIs, such as {\tt sched\_setscheduler}.
-The latter type of unsupported system calls includes
+to specify policies of host resources multiplexing;
+and to access host hardware features.
+An example for the former is scheduling APIs, such as {\tt sched\_setscheduler}.
+The latter includes
 a wide range of {\tt ioctl} opcodes,
 and NUMA-related system calls like {\tt migrate\_pages}.
 These abstractions cannot be implemented in the library OS
@@ -143,34 +143,37 @@ and the coping strategies.}
 
 Besides the feasibility of implementing OS personalities,
 we also demonstrate the neutrality of the host ABI,
-to prove that \graphene{} is portable to diverse host platforms.
-However, the assumptions made in the definition of the host ABI
-can be violated in a host platform with limited execution environment.
-For instance, although not defined explicitly in the host ABI of \graphene{},
-the \picoprocs{} requires the host platforms
-to reserve address space for loading legacy binaries that are not compiled as position independent.
-The requirement can be a challenge on a platform
-where part of the \picoprocs{}' virtual memory is occupied by the host,
-or processes are only allowed to access a limited range of virtual memory.
+to prove that \graphene{} is portable to other host platforms.
+However, the assumptions made in our host ABI definitions
+can be violated on specific host platforms
+due to limited platform features.
+For instance, although not defined explicitly in the host ABI,
+a Linux \picoprocs{} requires the host platforms
+to reserve part of the address space, for loading position-dependent binaries.
+% that are not compiled as position independent.
+The requirement is a challenge on platforms
+where part of the \picoprocs{}' virtual memory is always occupied by the host,
+or only allowed in a specific range.
+%processes are only allowed to access a limited range of virtual memory.
 Table~\ref{tab:future:abi-limit}
-list the limitations from the platforms that affects the implementation of host ABI.
+lists the platform limitations that affects the implementation of host ABI.
 We propose strategies to remove the limitations for the reinforcement of platform independence.
 
 
 The proof-of-the-concept for the platform independence of \graphene{}
 requires porting the host ABI to more platform variants,
-especially ones that does not rely on a monolithic kernels.
+especially ones that do not rely on monolithic kernels.
 One example is to port \graphene{} to a \term{\microkernel{}}
 such as L4 and SeL4~\citep{l4family, klein09sel4}.
 Porting \picoprocs{} to \microkernel{} will allows running legacy applications
 in a host with restricted resource,
 at a smaller cost than porting a monolithic kernel ported to \microkernel{}
 (e.g., L4Linux~\citep{hartig97mu}).
-Another direction is to port \graphene{} to \term{Barrelfish}~\citep{baumann09barrelfish},
-a host platform designed for multi-core heterogeneous architectures,
-using asynchronous message passing across heterogeneous cores pinned to applications.
+Another platform that is worth to port \graphene{} is \term{Barrelfish}~\citep{baumann09barrelfish},
+which is designed for multi-core heterogeneous architectures,
+and uses asynchronous message passing across heterogeneous cores pinned to applications.
 The distributed POSIX implementation of \graphene{}
-can be an advantage for adapting to Barrelfish.
+will be an advantage when porting it to Barrelfish.
 %In addition, the OSX and Windows ports of \graphene{} are still in-progress.
 Overall, when generalizing the host ABI implementation to more platforms,
 we observe that a large portion of \graphene{} \pal{}
