@@ -81,15 +81,15 @@ For example, Drawbridge~\citep{porter11drawbridge} cannot simulate process forki
 \begin{figure}[t!]
 \centering
 \includegraphics[width=4in]{graphene/figures/concept.pdf}
-\caption[Multi-process abstraction model of \sysname{} \libos{}]
-{Multi-process abstraction model of \sysname{} \libos{}. For each process of an application, a libOS instance will serve system calls and keep local OS states. States of multi-process abstractions are shared by coordinating over host-provided RPC streams, creating an illusion of running in single OS for the application.}
+\caption[Multi-process support model of \sysname{} \libos{}]
+{Multi-process support model of \sysname{} \libos{}. For each process of an application, a \libos{} instance will serve system calls and keep local OS states. States of multi-process abstractions are shared by coordinating over host-provided RPC streams, creating an illusion of running in single OS for the application.}
 %\vspace{-.1in}
 \label{fig:graphene:concept}
 \end{figure}
 
 {\bf \sysname{}} is a Linux-compatible library OS
 to run legacy, unmodified Linux applications.
-In \sysname{}, multiple libOS instances collaboratively implement
+In \sysname{}, multiple \libos{} instances collaboratively implement
 POSIX abstractions,
 yet appear to the application
 as a single, shared OS.
@@ -99,26 +99,24 @@ In a distributed POSIX implementation, placement of shared state and messaging c
 are first-order performance concerns.
 %We chose to shift implementation complexity into the library OS
 %in order to uphold simple enforcement of security isolation in the host.
-By coordinating shared states across libOS instances,
+By coordinating shared states across \libos{} instances,
 \sysname{} is able to create an illusion 
 of running in a single OS
 for multiple processes in an application (as figure~\ref{fig:graphene:concept}).
-
 %Previous library OS designs ensured security isolation of independent applications,
 %comparable to a VM, by keeping a relatively narrow host ABI.
 %We selected the \sysname{}
 %design because it strikes a unique balance between
 %and robust, flexible security enforcement.
-
 The \sysname{} design ensures security isolation of
 mutually distrusting, multi-process
 applications on the same host system.
 Essential to this goal is
 minimally expanding the host ABI to support multi-processing,
-as well as leveraging RPCs as a natural point to mediate inter-libOS communication.
+as well as leveraging RPCs as a natural point to mediate inter-\picoproc{} communication.
 RPC coordination among \sysname{} instances can be dynamically disconnected, facilitating novel sandboxing
 techniques.  For instance, we develop an Apache web server extension that, upon logging in a given user,
-places the worker process's libOS in a sandbox with access to only that user's data.
+places the worker process's \libos{} in a sandbox with access to only that user's data.
 We expect more nuanced degrees of trust are possible in future work.
 
 \begin{comment}
@@ -142,9 +140,9 @@ smaller than KVM, and several applications perform comparably to a Linux process
 \end{compactitem}
 \end{comment}
 
-\sysname{}'s design gives the user and system administrator a high degree of flexibility
-in isolating arbitrary groups of unmodified application processes,
-while upholding the efficiency and host compatibility benefits of recent library OSes.
+%\sysname{}'s design gives the user and system administrator a high degree of flexibility
+%in isolating arbitrary groups of unmodified application processes,
+%while upholding the efficiency and host compatibility benefits of recent library OSes.
 
 %\fixmedp{After a complete draft is written, coalesce all goals and make sure they are addressed early on.  We are doing some scatter-shot motivation}
 
