@@ -165,18 +165,37 @@ which supports legacy Linux, multi-process applications.
 %into smaller binaries that run in multiple processes,
 %and the decision shall be honored
 %when partitioning the underlying operating systems.
-The idiosyncratic, Linux multi-process abstractions
+In \graphene{},
+the idiosyncratic, Linux multi-process abstractions
 --- including forking, signals, \sysvipc{}, file descritor sharing, exit notification, etc
 --- are coordinated across \picoprocs{}
 over simple, pipe-like RPC streams on the host.
-\graphene{} can simplified the complexity of isolating shareable abstractions
-by simply forbidding RPC streams across untrusting applications.
-\graphene{} can expand the support for Linux multi-process applications
-to various platforms, including \term{Intel SGX enclaves}.
-In Intel SGX enclaves, \graphene{} can isolate Linux multi-process applications
-in a sealed environment,
-fully immune to 
-attacks from host OSes and hardware peripherals.
+The RPC-based, distributed implementation of OS abstractions
+can be isolated by simply sandboxing the RPC streams.
+%\graphene{} can simplified the complexity of isolating shareable abstractions
+%by simply forbidding RPC streams across untrusting applications.
+%\graphene{} can expand the support for Linux multi-process applications
+%to various platforms, including \term{Intel SGX enclaves}.
+%In Intel SGX enclaves, \graphene{} can isolate Linux multi-process applications
+%in a sealed environment,
+%fully immune to 
+%attacks from host OSes and hardware peripherals.
+The beneficial features of \graphene{} are comparable to virtualization,
+such as 
+isolating mutually untrusting applications,
+migration,
+and platform independence
+--- at a lower resource cost.
+Especially, the platform independence of \graphene{}
+can extend
+the legacy support for Linux applications
+onto other platforms,
+such as microkernels like L4, a heterogeneous environment like Barrelfish,
+or isolated execution platforms like \term{\intel{} \sgx{} enclaves}.
+A \graphene{} \picoproc{} isolated in an enclave
+can seal the secrets in applications,
+in an environment immune to attacks from host kernels and hardware peripherals.
+
 
 %As the purpose is to keep the design
 %clean and reasonable,
