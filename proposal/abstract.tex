@@ -5,7 +5,7 @@ in modern applications and operating systems.
 A few solutions, such as \term{\liboses{}},
 are designed to restrain
 the outcome of hidden system pitfalls, %potential vulnerabilities or bottlenecks
-by splitting the complex, hard-to-predict system,
+by partitioning the complex, hard-to-predict system,
 into isolated pieces.
 %Partitioning a complex system into
 %isolated, reasonably simple pieces
@@ -19,31 +19,35 @@ into isolated pieces.
 %that are more valuable to users.
 %instead of demanding arbitrary trust from the users.
 Essentially, a library OS
-will split the partial functionality of a kernel into
+splits the functionality of a kernel into
 the application process,
 or \term{\picoprocs{}},
 to isolate the OS states related with mutually untrusting applications~\citep{porter11drawbridge, baumann13bascule, unikernels}.
 %to isolate mutually untrusting applications.
 %The security isolation enforced by library OSes
 %is based on the fact that
-A \picoproc{} will bound the execution of \libos{}
-in the virtual address apace,
-and narrow the attack surface between a \picoproc{} and its host kernel,
-through a fixed set of paravirtual APIs.
+A \picoproc{} will bound the execution of each\libos{} instance
+in virtual address apace,
+and narrow its attack surface to its host kernel.
+%through a fixed set of paravirtual APIs.
 %The performance benefits
 %from partitioning the host resource and congesting logics
 %are presented in the 90's,
 %solutions like
 Other beneficial features of \liboses{}
-includes
-identifying and evicting the kernel logics causing system congestion~\citep{engler95exokernel, leslie96nemesis, unikernels}.
+include
+identifying and evicting the kernel logics causing system congestion~\citep{engler95exokernel, leslie96nemesis, unikernels},
 such as multiplexing hardware resources or allocating processing buffers.
 A \libos{} can
-dismissed or compiled out
-the unneeded or redundant OS logics
-from the critical paths of specific applications.
+dismiss or compile out
+unneeded or redundant OS logics
+from critical paths of specific applications.
 %can be removed from the critical paths.
-
+These \emph{redesigned} OS solutions are often more secure or efficient options
+than monolithic kernels
+(e.g., Windows and Linux).
+%will perfectly enforce security policies
+%and effectively reduce system bottlenecks.
 
 
 %Furthermore, more recent works such as HiStar~\citep{zeldovich+histar}
@@ -96,39 +100,55 @@ from the critical paths of specific applications.
 %On the other hand, virtualization can provide both compatibility and security isolation for native applications built for monolithic operating systems, but often requires too much resources such as memory, to run each guests in multi-tenant environments.
 
 
-
-A key challenge in a partitioned or optimized system is
-to maximally reuse legacy code, %from prior systems and applications,
-in order to harvest the development efforts made in previous systems.
-Essentially, millions of applications built and deployed
-on mainstream OSes,
-such as Windows and Linux,
-will require porting efforts if users need to adapt them to another platform. 
+On the other hand, developers pay assorted efforts to port applications
+from a system to another,
+in order to gain qualitative benefits.
+%After a system is redesigned structurally,
+%the reuse of legacy applications from the previous systems
+%becomes a primary issue.
+%The purpose is
+%A key challenge in a partitioned or optimized system is
+%to maximally reuse legacy code, %from prior systems and applications,
+The application porting efforts can range from
+recompilation of the binaries
+to fundamentally redesigning the implementation,
+and a system with fully compatible legacy support will require no porting efforts.
+Essentially,
+the difficulty of porting is determined by the distinction between the \emph{personalities} of platforms
+--- either Windows, Linux, \liboses{} or any others.
+%to harvest the development efforts made
+%prior to the redesigning,
+%and to lower the barrier for users to adopt the system.
+%Essentially, millions of applications built and deployed
+%on mainstream OSes,
+%such as Windows and Linux,
+%will require porting efforts if users need to adapt them to another platform. 
 %maximizing the legacy support in a system
 %will lower the barricade for users to adopt it.
-In recent library OSes~\citep{porter11drawbridge, baumann13bascule, tsai14graphene, baumann14haven},
-legacy application support is achieved
-%are designed for isolating or optimizing
-%legacy applications adopted from mainstream operating systems such as Windows or Linux.
-by emulating
-%The key challenge for reusing legacy application code
-%is to emulate 
-the specifications or personalities of the applications' origins,
-on top of the system's building blocks
-that enforces security isolation, platform independence, migration, or other features.
+Existing library OSes~\citep{porter11drawbridge, baumann13bascule, baumann14haven}
+provide the personalities of monolithic kernels, such as Windows or Linux,
+with a single \picoproc{}.
+%%are designed for isolating or optimizing
+%%legacy applications adopted from mainstream operating systems such as Windows or Linux.
+%by emulating
+%%The key challenge for reusing legacy application code
+%%is to emulate 
+%the specifications or personalities of the applications' origins,
+%on top of the system's building blocks
+%that enforces security isolation, platform independence, migration, or other features.
 %--- even when the requirements oppose the system assumptions.
 %Essentially, a system supporting legacy applications
 %must reproduce the abstractions and assumptions that applications depend on,
 %besides translating
 %language slangs and system interfaces.
 %Based on the principle,
-A personality that is especially hard to emulate in \picoprocs{}
-is multi-process abstractions,
-which will require multiple \libos{} instances to work collaboratively. 
+The single-process abstractions,
+such as accessing unshared files or creating in-process threads,
+are relatively easy to emulate in \liboses{}.
+Multi-process abstractions, on the contrast, require
+multiple \picoprocs{} to collaboratively provide a unified OS views.
 We design a library OS called \term{\graphene{}}~\citep{tsai14graphene},
-which support various Linux multi-process abstractions used in legacy applications,
-yet provided comparable security isolation
-as single-process \picoprocs{}.
+which supports various Linux, multi-process abstractions.
 %For instance,
 %\picoprocs{} isolate the OS states for each applications
 %within the process boundaries~\citep{porter11drawbridge, baumann13bascule, baumann14haven}.
@@ -145,10 +165,11 @@ as single-process \picoprocs{}.
 %into smaller binaries that run in multiple processes,
 %and the decision shall be honored
 %when partitioning the underlying operating systems.
-The idiosyncratic multi-process abstractions of Linux, such as forking, signals, \sysvipc{}, etc,
-are coordinated across \picoprocs{},
+The idiosyncratic, Linux multi-process abstractions
+--- including forking, signals, \sysvipc{}, file descritor sharing, exit notification, etc
+--- are coordinated across \picoprocs{}
 over simple, pipe-like RPC streams on the host.
-Therefore, \graphene{} can simplified the complexity of isolating shareable abstractions
+\graphene{} can simplified the complexity of isolating shareable abstractions
 by simply forbidding RPC streams across untrusting applications.
 \graphene{} can expand the support for Linux multi-process applications
 to various platforms, including \term{Intel SGX enclaves}.
