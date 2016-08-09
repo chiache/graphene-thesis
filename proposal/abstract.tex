@@ -1,33 +1,35 @@
 Unknown security vulnerabilities and performance bottlenecks exist
 in modern applications and operating systems,
 %The pitfalls hidden in the legacy code affect users
-and even developers can hardly prevent them.
-A known strategy to restrain
-the outcome of hidden system pitfalls %potential vulnerabilities or bottlenecks
-is to partition a system that is complex and hard to predict,
-into small pieces with reasonably simple logics.
+%and even developers can hardly prevent them.
+Some existing approaches like \liboses{}
+are designed to restrain
+the outcome of hidden system pitfalls, %potential vulnerabilities or bottlenecks
+by splitting the complex, hard-to-predict system,
+into mutually isolated pieces.
 %Partitioning a complex system into
 %isolated, reasonably simple pieces
 %is a method
 %to restrict the aftermath of potential vulnerabilities or
 %performance bottlenecks.
-In a partitioned system, developers
-are more likely to reason about
-the soundness of the design and implementation.
+%In a partitioned system, developers
+%are more likely to reason about
+%the soundness of the design and implementation.
 %in the partitions
 %that are more valuable to users.
 %instead of demanding arbitrary trust from the users.
-For instance, library OSes
+Essentially, library OSes
 ~\citep{porter11drawbridge, baumann13bascule, unikernels}
-split the functionality of kernels into in-process OS instances,
-or so-called \term{\picoprocs{}},
-to isolate mutually untrusting applications.
-The security isolation enforced by library OSes
-is based on the fact that
-every \picoproc{} have only a narrow attack surface to the kernel,
-while execution in the library OSes is
-bounded by the address space.
-In term of performance benefits,
+isolate mutually untrusting applications
+by splitting the functionality of kernels into in-process OS instances,
+or \term{\picoprocs{}}.
+%to isolate mutually untrusting applications.
+%The security isolation enforced by library OSes
+%is based on the fact that
+In library OSes, the execution in each \picoprocs{}
+will be bounded by virtual address apaces,
+and applications run in \picoprocs{} have only a narrow attack surface to the host kernel.
+In term of efficiency benefits,
 %The performance benefits
 %from partitioning the host resource and congesting logics
 %are presented in the 90's,
@@ -35,10 +37,12 @@ In term of performance benefits,
 Exokernel~\citep{engler95exokernel}
 and Nemesis~\citep{leslie96nemesis}
 identify and evict the OS logics causing congestion in the kernel,
-such as multiplexing resources or allocating buffers,
-into applications or library OSes.
-For each applications,
-the unneeded or redundant system logics can be dismissed from the critical path.
+such as multiplexing hardware resources or allocating processing buffers,
+into applications or \liboses{}.
+With development or compiler efforts,
+unneeded or redundant system logics
+can be dismissed
+from the critical paths of frequent system operations.
 %can be removed from the critical paths.
 
 
