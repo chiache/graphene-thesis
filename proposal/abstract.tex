@@ -2,11 +2,11 @@ Unknown security vulnerabilities and performance bottlenecks exist
 in modern applications and operating systems.
 %The pitfalls hidden in the legacy code affect users
 %and even developers can hardly prevent them.
-Some existing approaches like \liboses{}
+A few solutions, such as \term{\liboses{}},
 are designed to restrain
 the outcome of hidden system pitfalls, %potential vulnerabilities or bottlenecks
 by splitting the complex, hard-to-predict system,
-into mutually isolated pieces.
+into isolated pieces.
 %Partitioning a complex system into
 %isolated, reasonably simple pieces
 %is a method
@@ -18,30 +18,31 @@ into mutually isolated pieces.
 %in the partitions
 %that are more valuable to users.
 %instead of demanding arbitrary trust from the users.
-Essentially, library OSes
-~\citep{porter11drawbridge, baumann13bascule, unikernels}
-isolate mutually untrusting applications
-by splitting the functionality of kernels into in-process OS instances,
-or \term{\picoprocs{}}.
+Essentially, a library OS
+will split the partial functionality of a kernel into
+the application process,
+or \term{\picoprocs{}},
+to isolate the OS states related with mutually untrusting applications~\citep{porter11drawbridge, baumann13bascule, unikernels}.
 %to isolate mutually untrusting applications.
 %The security isolation enforced by library OSes
 %is based on the fact that
-In library OSes, the execution in each \picoprocs{}
-will be bounded by virtual address apaces,
-and applications run in \picoprocs{} have only a narrow attack surface to the host kernel.
-In term of efficiency benefits,
+A \picoproc{} will bound the execution of \libos{}
+in the virtual address apace,
+and narrow the attack surface between a \picoproc{} and its host kernel,
+as a fixed set of paravirtual API.
 %The performance benefits
 %from partitioning the host resource and congesting logics
 %are presented in the 90's,
 %solutions like
 Exokernel~\citep{engler95exokernel}
 and Nemesis~\citep{leslie96nemesis}
-identify and evict the OS logics causing congestion in the kernel,
+identify and evict the kernel logics causing congestion,
 such as multiplexing hardware resources or allocating processing buffers,
 into applications or \liboses{}.
-With development or compiler efforts,
+Consequentially,
 unneeded or redundant system logics
 can be dismissed
+or compiled out
 from the critical paths of frequent system operations.
 %can be removed from the critical paths.
 
@@ -95,6 +96,8 @@ from the critical paths of frequent system operations.
 %one of the system features that are especially missing or incomplete for Linux applications is the multi-process support,
 %which are often used in server-type workloads or shell scripts.
 %On the other hand, virtualization can provide both compatibility and security isolation for native applications built for monolithic operating systems, but often requires too much resources such as memory, to run each guests in multi-tenant environments.
+
+
 
 A key challenge in a partitioned or optimized system is
 to maximally reuse legacy code, %from prior systems and applications,
