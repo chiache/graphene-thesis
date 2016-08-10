@@ -26,7 +26,7 @@ to isolate the OS states related with mutually untrusting applications~\citep{po
 %to isolate mutually untrusting applications.
 %The security isolation enforced by library OSes
 %is based on the fact that
-A \picoproc{} will bound the execution of each\libos{} instance
+A \picoproc{} will bound the execution of each \libos{} instance
 in virtual address apace,
 and narrow its attack surface to its host kernel.
 %through a fixed set of paravirtual APIs.
@@ -36,11 +36,12 @@ and narrow its attack surface to its host kernel.
 %solutions like
 Other beneficial features of \liboses{}
 include
-identifying and evicting the kernel logics causing system congestion~\citep{engler95exokernel, leslie96nemesis, unikernels},
+identifying and evicting the kernel components causing system congestion~\citep{engler95exokernel, leslie96nemesis, unikernels},
 such as multiplexing hardware resources or allocating processing buffers.
 A \libos{} can
-dismiss or compile out
-unneeded or redundant OS logics
+dismiss %or compile out
+%unneeded or 
+redundant overheads
 from critical paths of specific applications.
 %can be removed from the critical paths.
 These \emph{redesigned} OS solutions are often more secure or efficient options
@@ -100,7 +101,7 @@ than monolithic kernels
 %On the other hand, virtualization can provide both compatibility and security isolation for native applications built for monolithic operating systems, but often requires too much resources such as memory, to run each guests in multi-tenant environments.
 
 
-On the other hand, developers pay assorted efforts to port applications
+On the other hand, developers pay varying efforts to port applications
 from a system to another,
 in order to gain qualitative benefits.
 %After a system is redesigned structurally,
@@ -109,12 +110,12 @@ in order to gain qualitative benefits.
 %The purpose is
 %A key challenge in a partitioned or optimized system is
 %to maximally reuse legacy code, %from prior systems and applications,
-The porting efforts for an application can range from
+The porting effort for an application can range from
 recompilation of the binaries
 to fundamentally redesigning the implementation.
 Essentially,
 the difficulty of porting is determined by the distinction between the \emph{personalities} of platforms
---- either Windows, Linux, \liboses{} or any others.
+--- Windows, UNIX, \liboses{}, etc.
 Among two systems that are ideally compatible, \emph{no} porting efforts will be needed.
 %to harvest the development efforts made
 %prior to the redesigning,
@@ -186,7 +187,7 @@ isolating mutually untrusting applications,
 migration,
 and platform independence
 --- at a lower resource cost.
-Especially, the platform independence of \graphene{}
+Especially, with platform independence, \graphene{}
 can extend
 the legacy support for Linux applications
 onto other platforms,
@@ -216,26 +217,39 @@ and hardware peripherals.
 %as well as miscellaneous features in the Linux file system hierarchy.
 
 
-The principles for developing legacy support are vastly distinct
+The principles for developing legacy support can be vastly distinct
 for different specifications,
-and entangled with the implementation of
+and often entangled with
+the implementation of
 security mechanisms and performance optimizations.
-Many systems provide legacy support
-in a complex, case-by-case way,
-potentially causing more security glitches and performance suboptimality.
-An insight
-for solving this problem %that affects both partitioned and non-partitioned system
-is to avoid
-emulating specifications and checking security policies
-on the critical path of common cases.
-We demonstrate a case of optimizing a performance-centric, heavily engineered components,
-the file system directory cache in Linux,
-while preserving the legacy file-system features and security models
-~\citep{tsai15dcache}.
-The original Linux kernel interleaves path component searching
-in the directory cache
-with permission checks against security modules,
-and retrieving file attributions.
+The multi-process abstractions in \graphene{}, for instance,
+compose a critical part of Linux personality,
+yet \graphene{} must enforce security isolation comparable to a single \picoproc{},
+with acceptable coordination efficiency.
+Similar challenges can be observed in legacy, monolithic kernels:
+when redesigning a system component for security or efficiency,
+legacy support may become obstruction.
+%Many systems provide legacy support
+%in a complex, case-by-case way,
+%potentially causing more security glitches and performance suboptimality.
+%An insight
+%for solving this problem %that affects both partitioned and non-partitioned system
+%is to avoid
+%emulating specifications and checking security policies
+%on the critical path of common cases.
+We demonstrate a case of an performance-centric, heavily engineered component,
+the \term{file system directory cache} of Linux.
+The directory cache is designed as an optimization for path lookup,
+yet it interleaves searching path components
+with permission checks (e.g., permissions to traverse prefixes)
+and file system features (e.g., resolving symbolic links).
+%while preserving the legacy file-system features and security models
+%.
+%The original Linux kernel interleaves path component searching
+%in the directory cache
+%with permission checks against security modules,
+%and retrieving file attributions.
+~\citep{tsai15dcache}
 The lookup logic can be optimized
 by sparing the hit latency from permission and attribute checks,
 and searching the directory cache in constant time.
