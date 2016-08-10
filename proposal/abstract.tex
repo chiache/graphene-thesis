@@ -224,11 +224,11 @@ the implementation of
 security mechanisms and performance optimizations.
 The multi-process abstractions in \graphene{}, for instance,
 compose a critical part of Linux personality,
-yet \graphene{} must enforce security isolation comparable to a single \picoproc{},
+yet the system must enforce security isolation comparable to a single \picoproc{},
 with acceptable coordination efficiency.
-Similar challenges can be observed in legacy, monolithic kernels:
-when redesigning a system component for security or efficiency,
-legacy support may become obstruction.
+Similar challenges can be observed in legacy, monolithic kernels.
+%when redesigning a system component for security or efficiency,
+%legacy support may become obstruction.
 %Many systems provide legacy support
 %in a complex, case-by-case way,
 %potentially causing more security glitches and performance suboptimality.
@@ -238,18 +238,18 @@ legacy support may become obstruction.
 %emulating specifications and checking security policies
 %on the critical path of common cases.
 We demonstrate a case of an performance-centric, heavily engineered component,
-the \term{file system directory cache} of Linux.
+the Linux \term{file system directory cache}.
 The directory cache is designed as an optimization for path lookup,
 yet it interleaves searching path components
-with permission checks (e.g., permissions to traverse prefixes)
-and file system features (e.g., resolving symbolic links).
+with permission checks (e.g., permissions to search prefixes)
+and file system features (e.g., resolving symbolic links)
 %while preserving the legacy file-system features and security models
 %.
 %The original Linux kernel interleaves path component searching
 %in the directory cache
 %with permission checks against security modules,
 %and retrieving file attributions.
-~\citep{tsai15dcache}
+~\citep{tsai15dcache}.
 The lookup logic can be optimized
 by sparing the hit latency from permission and attribute checks,
 and searching the directory cache in constant time.
