@@ -217,14 +217,14 @@ and hardware peripherals.
 %as well as miscellaneous features in the Linux file system hierarchy.
 
 
-The principles for reassuring legacy applications can be vastly distinct
-for different specifications,
+The principles for developing OS personalities can be vastly distinct
+among different specifications,
 and often entangled with
 the implementation of
 security mechanisms and performance optimizations.
 The multi-process abstractions in \graphene{}, for instance,
 compose a critical part of Linux personality,
-yet the system must enforce security isolation comparable to a single \picoproc{},
+yet must enforce security isolation comparable to a single \picoproc{},
 with acceptable coordination efficiency.
 Similar challenges can be observed in legacy, monolithic kernels.
 %when redesigning a system component for security or efficiency,
@@ -242,14 +242,17 @@ the Linux \term{file system directory cache}.
 The directory cache is designed as an optimization for path lookup,
 yet it interleaves searching path components
 with permission checks (e.g., searching prefixes)
-and file system features (e.g., resolving symbolic links)
+and file system features (e.g., resolving symbolic links),
 %while preserving the legacy file-system features and security models
 %.
 %The original Linux kernel interleaves path component searching
 %in the directory cache
 %with permission checks against security modules,
 %and retrieving file attributions.
+causing suboptimal latency when the cache is warm (no cache misses)
 ~\citep{tsai15dcache}.
+A faster path for looking up in the directory cache
+is to spare searching from permission checks and features,
 The lookup logic can be optimized
 by sparing the hit latency from permission checks and features,
 to search the directory cache in constant time.
