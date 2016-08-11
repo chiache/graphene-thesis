@@ -533,7 +533,7 @@ signed by the hardware-attested measurement
 --- an off-line model without relying on
 remote servers.
 \graphenesgx{} ensures that
-process creation policies in enclaves can be individually configured
+process creation in enclaves can be scalable, and individually configured
 --- a parent enclave can identify and restrict
 the application binaries to be loaded into any child enclaves it creates.
 %to isolate multi-process applications in a multi-enclave environment.
@@ -583,31 +583,36 @@ the application binaries to be loaded into any child enclaves it creates.
 
 
 Besides supporting legacy applications,
-other first-order requirements in systems include
-achieving
-optimal performance
---- as pursuing either low latency or high throughput,
-according how users define quality of service.
-Nevertheless, there is often inevitable trade-off between emulation of OS personalities
-and performance.
-For instance, in \graphene{}, coordinating OS states %for multi-process abstractions
-over PRC streams
-will cause nonnegligible overhead to the latency of IPC,
-in comparison with coordination by memory sharing. % in the kernel or in the \picoprocs{}.
-However, when designing a \libos{},
-there are opportunities to identify and remove unneeded or redundant
-overhead or bottleneck,
-especially on the critical or common paths.
-%frequent operations.
-An example of reducing overhead
-is to remove redundant permission checks in \liboses{},
-because \picoprocs{} rely on the host kernel to enforce security policies.
-Similarly, to compensate the overhead of IPC
-in a distributed implementation, placement of shared OS states and messaging complexity
-will be the first-order performance concerns.
-For \picoprocs{} that most frequently access an abstraction state,
-place the state in this very \picoproc{}
-will optimally avoid the need for coordination over RPC streams.
+another first-order requirement in systems is
+to pursue low latency or high throughput,
+according to how users define quality of service.
+Nevertheless, there is a trade-off between the emulation of OS personalities
+and the efficiency of system operations.
+\graphene{}, for instance, coordinates OS states %for multi-process abstractions
+over PRC streams,
+and requires strategies to mitigate the significant RPC coordination overhead.
+%will cause nonnegligible overhead to the latency of IPC,
+%in comparison with coordination by memory sharing. % in the kernel or in the \picoprocs{}.
+%However, when designing a \libos{},
+We observe, in a distributed UNIX implementation,
+placement of shared OS states and
+messaging complexity
+are essentially the top performance factors.
+%%there are opportunities to identify and remove unneeded or redundant
+%%overhead or bottleneck,
+%%especially on the critical or common paths.
+%%%frequent operations.
+%%An example of reducing overhead
+%%is to remove redundant permission checks in \liboses{},
+%%because \picoprocs{} rely on the host kernel to enforce security policies.
+%%Similarly, to compensate the overhead of IPC
+%%in a distributed implementation, placement of shared OS states and messaging complexity
+%%will be the first-order performance concerns.
+%For \picoprocs{} that most frequently access an abstraction state,
+%place the state in this very \picoproc{}
+%will optimally avoid the need for coordination over RPC streams.
+Improving the coordination overhead will require placing the OS states in the most frequency accessing \picoprocs{},
+and reducing round trips of RPC messages.
 
 
 %
@@ -629,35 +634,49 @@ will optimally avoid the need for coordination over RPC streams.
 %all of which relies on multi-process abstractions
 %such as {\tt fork}, {\tt execve}, signals or System V IPC.
 
-The principle to optimize the critical path of frequent operations
-also applies to legacy systems.
-In an operating system like Linux,
-complex logics are design to simultaneously implement specifications
-and improve performance,
-causing suboptimal results in the system.
-One classic example is the file system directory cache,
-which is designed for
-avoiding the significant latency of looking up paths
+
+%The principle to optimize the critical path of frequent operations
+%also applies to legacy systems.
+The difficulty of simultaneously achieving compatibility, efficiency, and other qualities
+can also be observed in monolithic kernels.
+In the design of a traditional OS such as Windows or Linux,
+the implementation of OS abstractions are
+often entangled with security mechanisms and performance optimized,
+leading to suboptimal efficiency.
+The complexity of the OS design makes any structural changes to the OS logic
+unreasonably hard to adopt.
+%is not only observed in 
+%In an operating system like Linux,
+%complex logics are design to simultaneously implement specifications
+%and improve performance,
+%causing suboptimal results in the system.
+One classic example is the \term{Linux file system directory cache},
+a heavily engineered component designed for
+avoiding the significant latency of looking up duplicated paths
 on physical storage,
-but also used as data structures to maintain file system features
-such as file attributes and symbolic links.
-In our study, even when the directory cache is warm (no cache misses),
+yet also used as data structures
+for file system features,
+such as storing permissions, attributes and symbolic links.
+In our analysis, even when the directory cache is warm (no cache misses),
 the latency of path-searching system calls
 still dominates many lookup-bound applications,
 such as the GIT version control system.
 The culprit of the suboptimal latency is
-the requirement of permission checks that
-interleaves with looking up path components in the directory cache.
-A more plausible design
-shall be decoupling the permission checks
-from the path-based lookup in the directory cache,
-and fully exploiting locality to cache the results of redundant operations
-(i.e., permission checks, retrieving attributes, resolving symboling links, etc)
-that used to be on the critical path of the hit latency.
-Our results show that the optimization can be generalized
-to full Linux file system features,
-different security mechanisms (e.g., AppArmor, SELinux)
-and underlying storage.
+the requirement of permission checks and processing file system features
+that interleaves with
+looking up path components in the directory cache.
+A more optimal design
+shall decouple the looking up cached paths
+from other operations,
+%from the path-based lookup in the directory cache,
+by fully exploiting locality to cache the results of redundant operations
+(i.e., permission checks, retrieving attributes, resolving symboling links, etc).
+The systematic, principled
+redesign of Linux file system directory cache 
+preserves the compatibility to existing Linux file system features,
+as well as
+various security mechanisms (e.g., AppArmor, SELinux)
+and most underlying storage.
 
 
 
