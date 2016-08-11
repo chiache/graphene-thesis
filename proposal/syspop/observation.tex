@@ -90,7 +90,7 @@ that uses these system calls.
 
 Our study also shows the contributors
 to an API's importance. %\usagemetric{}.
-For instance, Table~\ref{tab:wrapped} lists system calls that are
+For instance, Table~\ref{tab:syspop:wrapped} lists system calls that are
 only called by one or two particular libraries
 (e.g., \libc{}).
 These system calls are wrapped by library APIs,
@@ -167,7 +167,7 @@ These utilities still attempt the old calls for backward-compatibility with olde
 
 %On the other end of the spectrum, 
 
-In total, 18 of \syscallnum{} system calls in Linux \kernelversion{} are not used by any application in the \osdist{} repository. We list these system calls in Table~\ref{tab:unused}.
+In total, 18 of \syscallnum{} system calls in Linux \kernelversion{} are not used by any application in the \osdist{} repository. We list these system calls in Table~\ref{tab:syspop:unused}.
 In addition to the issues discussed above,
 Ten of these system calls do not have an entry point, but are still defined in the Linux headers.
 %\fixmedp{Why are they in the count then?  do you mean 320 defined system call numbers}
@@ -413,7 +413,7 @@ as the arguments to each operation are highly variable.
 The main expansion is from {\tt ioctl}.
 Linux defines 635 operation codes, and 
 Linux kernel modules and drivers can define additional operations.
-In the case of {\tt ioctl}, we obverse that there are 52 operations with the 100\% \usagemetric{} (Figure~\ref{fig:ioctl-popularity}),
+In the case of {\tt ioctl}, we obverse that there are 52 operations with the 100\% \usagemetric{} (Figure~\ref{fig:syspop:opcode-popularity}),
 each of which are as important as the 226 most important system calls.
 Of these 52 operations,  47 are frequently used operations for TTY console (e.g., {\tt TCGETS}) or generic operations on IO devices (e.g., {\tt FIONREAD}).
 
@@ -425,7 +425,7 @@ Of these 52 operations,  47 are frequently used operations for TTY console (e.g.
 
 On the narrow end, {\tt fcntl} and {\tt prctl} have 18 and 44 operations, respectively, in Linux kernel \kernelversion{}.
 Unlike {\tt ioctl}, {\tt fcntl} and {\tt prctl} are not extensible by modules or drivers,
-and their operations tend to have higher \usagemetric{} (Figure~\ref{fig:fcntl-prctl-popularity}).
+and their operations tend to have higher \usagemetric{} (Figure~\ref{fig:syspop:opcode-popularity}).
 For {\tt fcntl}, eleven out of eighteen {\tt fcntl} operations in Linux \kernelversion{} have \usagemetric{} at around 100\%.
 For {\tt prctl}, only nine out of 44 operations have \usagemetric{} around 100\%,
 and only eighteen has \usagemetric{} larger than 20\%.
@@ -548,7 +548,7 @@ an important usage pattern.  %is a reasonable sample.
 \label{fig:syspop:dev-proc-popularity}
 \end{figure}
 
-Figure~\ref{fig:dev-proc-popularity} shows the \usagemetric{} of common pseudo-files under {\tt/dev} and {\tt /proc}.  
+Figure~\ref{fig:syspop:dev-proc-popularity} shows the \usagemetric{} of common pseudo-files under {\tt/dev} and {\tt /proc}.  
 These files are ordered from highest \usagemetric{}; the long tail
 of files used rarely or directly by administrators is omitted.
 
@@ -641,7 +641,7 @@ carefully setting directory permissions should be sufficient.
 
 %Second, there are 148 files with an \usagemetric{} score above 90\%---almost as many as there are system calls with a similar \usagemetric{} score.
 
-\fixme{Remove the discussion about performance impact for now. Will resurrect it after I confirm it is true.}
+%\fixme{Remove the discussion about performance impact for now. Will resurrect it after I confirm it is true.}
 %In some cases, libraries or applications can tolerate a missing {\tt /proc} file
 %by falling back to default values or alternate interfaces.
 %For instance, {\tt gcc} will try to read {\tt /proc/cpuinfo} to guide its selection of optimizations and {\tt /proc/meminfo} to avoid
@@ -696,18 +696,18 @@ but instead program to more user-friendly APIs in \libc{} and other libraries.
 For instance, \glibc{}~\citep{glibc} exports APIs for using locks and condition variables, which internally 
 use the subtle {\tt futex} system call~\citep{franke02futex}.
 
-Figure~\ref{fig:libc-popularity} shows the \usagemetric{} of 
+%Figure~\ref{fig:syspop:libc-popularity} 
+Our result shows that among %shows the \usagemetric{} of 
 the global function symbols exported by 
-\libc{}---1,274 in total. % API among all packages. 
+\libc{} --- 1,274 in total % API among all packages. 
 %Here we define \libc{} API as functions that are exported as global function symbols in \libc{}.
 %The definition yields a total of 1,274  APIs,
-Among these APIs, 42.8\% have a \usagemetric{} of 100\%,
+%Among these APIs,
+--- 42.8\% have a \usagemetric{} of 100\%,
 50.6\% have a \usagemetric{} of less than 50\%,
 and 39.7\% have a \usagemetric{} of less than one percent, including some that are not used at all.
 In other words, about 40\% of the APIs inside \libc{}
 are either not used or only used by few applications.
-
-
 This result implies that most processes are loading a significant amount of 
 unnecessary code into their address space.
 By splitting \libc{} into several sub-libraries, based on \usagemetric{}

@@ -6,7 +6,7 @@ multi-process abstractions of any kinds that has been supported so far.
 %either in \haven{} or other systems.
 The main challenge for multi-process support in enclaves
 is that enclaves cannot share pages,
-to support either Linux-style copy-on-write {\tt fork}'ing or
+to support either Linux-style copy-on-write forking or
 sharing abstraction states across processes.
 \graphene{} implements multi-process support
 in zero-sharing fashion.
@@ -39,7 +39,7 @@ to create a clean enclave with the same \libos{} image.
 Then the two enclaves build up the mutual trust by
 exchanging a session key, verifying attestation of each other,
 and migrating the process snapshot from the parent.}
-\label{fig:gsgx:fork}
+\label{fig:graphene:sgx-fork}
 \end{figure}
 
 To securely create process across enclaves,
@@ -80,7 +80,7 @@ further inter-process coordination is secured.
 %through the said channel.
 %The child process will restore the snapshot in its own enclave,
 %making it a clone of its parent.
-The design of process creation in \sysname{} is shown as Figure~\ref{fig:gsgx:fork}.
+The design of process creation in \sysname{} is shown as Figure~\ref{fig:graphene:sgx-fork}.
 
 %Forking in \sysname{} mainly defends against 3 types of attacks
 %from the untrusted host:

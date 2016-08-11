@@ -17,7 +17,7 @@ and state is coordinated across \picoprocs{} via RPC when necessary.
 Within a sandbox, \sysname{} \picoprocs{} 
 coordinate shared state used to implement multi-process
 abstractions, such as process identifiers, thread groups, and 
-System V IPC including message queues and semaphores, shared file system and file descriptor states (Table~\ref{tab:graphene:multiproc}.
+System V IPC including message queues and semaphores, shared file system and file descriptor states (Table~\ref{tab:graphene:multiproc}).
 Similar to previous designs~\citep{porter11drawbridge,baumann13bascule}, 
 \sysname{} uses the host file system; 
 the \libos{} implements file handles and translates between POSIX and the host ABI.
@@ -546,7 +546,7 @@ must figure out whether the process id exists, to which \picoproc{} it maps,
 and establish a point-to-point stream to the \picoproc{}.
 If they exchange a second signal, the mapping is cached and reused, amortizing this 
 setup cost.  For instance, the first signal a process sends to a new processes
-takes \~{}2ms, but subsequent signals take only \~{}55 $\mu$s.
+takes \~{}2ms, but subsequent signals take only \~{}55 \us{}.
 
 \paragraph{Batched allocation of names minimizes leader workload.}
 In order to keep the leader off of the critical path of operations like {\tt fork}, 

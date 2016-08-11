@@ -41,7 +41,7 @@ or whether a checkpoint should be loaded instead.
 Copy-on-write fork presented a particular challenge.
 %when implemented using only a VM-like picoprocess abstraction.
 As with a virtual machine, each new picoprocess 
-is created in a ``clean'' state; fork is implemented in the libOS.
+is created in a ``clean'' state; fork is implemented in the \libos{}.
 %yet applications require common Unix abstractions such as file handle inheritance and copy-on-write fork.
 
 Graphene implements file Unix-style {\tt fork}
@@ -103,8 +103,8 @@ Pipes, however, are not easily recreated without host support.
 %A second option, which we pursue, is to only create anonymous bytes streams,
 \paragraph{Inheriting File Handles.}
 Graphene adds two PAL ABI functions that transfer 
-stream handles out-of-band over {\em previously 
-established byte streams} within a sandbox.  Handle passing facilitates inheritance
+stream handles out-of-band over reviously 
+established byte streams within a sandbox.  Handle passing facilitates inheritance
 and general-purpose RPC.
 This mechanism is similar to Unix Domain Sockets,
 which are commonly used by sandboxing systems. % such as plash~\citep{plash}.
@@ -118,7 +118,7 @@ a guest from sharing a handle with a guest outside of the sandbox.
 A Graphene picoprocess can copy part or all its address space into a child
 picoprocess relatively efficiently.
 Although this mechanism is less efficient than an in-kernel {\tt fork},
-we wanted to maintain the generality benefits of recent libOSes, 
+we wanted to maintain the generality benefits of recent \liboses{},
 and only added the minimal building blocks to the host ABI.
 %we felt this design would bake Unix personality into the host kernel ABI,
 %and  reintroduce security problems caused by accidental inheritance~\citep{close-on-exec}.

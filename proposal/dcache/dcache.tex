@@ -24,7 +24,7 @@ and how we use path signatures to further accelerate lookup.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=5.5in]{dcache/figures/dcache-structure.pdf}
+\includegraphics[width=6.5in]{dcache/figures/dcache-structure.pdf}
 \footnotesize
 \caption[Optimized Linux directory cache structure.]
 {Optimized Linux directory cache structure. \dentries{} are chained in hash buckets. To index the hash bucket for a target \dentry{}, the original lookup routine {\tt d\_lookup} uses a hashing function with key as a combination of the pointer to parent directory and file name ({\em slowpath}).
@@ -223,7 +223,7 @@ our design currently handles wrap-around by invalidating all active PCCs.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=5.5in]{dcache/figures/dcache-data_structure.pdf}
+\includegraphics[width=6.5in]{dcache/figures/dcache-data_structure.pdf}
 \footnotesize
 \caption[Data structures added in Linux for directory cache optimization]
 {Data structures added for fast directory cache lookup. To support {\em fastpath} lookup, we add a 88-byte fast dentry structure to the original \dentry{} and a variable-sized PCC structure into {\tt cred}. 
@@ -637,7 +637,7 @@ risk vanishingly small.
 %% dp: Let's start with the risks
 
 
-\paragraph{Signature collisions.}
+\paragraph{Signature Collisions.}
 When a user looks up a path, our design first calculates a signature
 of the canonicalized path, looks up the hash in the global DLHT,
 and, if there is a hit in the DLHT, 
@@ -823,7 +823,7 @@ A more cautious implementation might favor a PRF to avoid any risk of overlooked
 %% we err on the side of caution and report only results with a PRF-based signature.
 
 
-\paragraph{Probability of a signature collision.}
+\paragraph{Probability of Signature Collision.}
 We selected a 240-bit signature, 
 which is comparable to signature sizes used in data 
 deduplication systems, ranging from 128--256 bits.  Deduplication designs commonly 

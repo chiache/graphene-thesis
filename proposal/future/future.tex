@@ -1,16 +1,25 @@
 \chapter{Future Works and Proposals}
 \label{chap:future}
 
-In our previous works, we explore several models of
-reusing or resurrecting the development efforts in legacy code
-that occur in diverse scenarios.
-The cases studied include
-partitioned systems such as library OSes,
-conventional components in legacy OSes such as file system directory cache in Linux,
-and partitioning a legacy \java{} application for isolated execution.
-For future works, and the fulfillment of this thesis,
-we will explore improving out solutions in more generalized models,
-and reducing the weaknesses we observe in these solutions.
+
+
+In our previous works, we explore several models of enabling
+whole or part of legacy applications
+in different system designs and platforms
+(i.e., \liboses{}, \sgx{} enclaves, optimized directory cache).
+%reusing or resurrecting the development efforts in legacy code
+%that occur in diverse scenarios.
+%The cases studied include
+%partitioned systems such as library OSes,
+%conventional components in legacy OSes such as file system directory cache in Linux,
+%and partitioning a legacy \java{} application for isolated execution.
+For future works and the fulfillment of the thesis,
+we will explore
+opportunities in generalizing the current works to more use cases,
+and mitigating the principal weaknesses.
+
+%improving the solutions in more generalized models,
+%and reducing the weaknesses we observe in these solutions.
 %that occur in diverse scenarios.
 %For instance, \graphene{} and \gsgx{} both utilize a highly compatible library OS,
 %but isolate applications with drastically different assumptions.
@@ -24,53 +33,80 @@ and reducing the weaknesses we observe in these solutions.
 \section{Generalizing Platform Independence}
 \label{sec:future:independence}
 
-In library OSes, legacy applications are reused
-by the \picoprocs{} implementing abstractions and personalities of the development platforms.
-Library OSes essentially translate the abstractions or APIs
-to the interfaces and conventions, often reduced or redefined, on the host platforms.
-In particular, a few library OSes~\citep{porter11drawbridge, baumann13bascule, baumann14haven, tsai14graphene}
-relies on a host ABI defined to be \term{platform independent}
---- the semantics and assumptions of the ABI are supposed to be
-reasonably feasible for implementation
-on most host platforms.
-For instance, most platforms provide the abstractions and features
-of a hierarchical file system,
-with operations for opening,
-accessing and querying the files,
-using similar interfaces.
+Existing \liboses{} support legacy applications
+by implementing the OS abstractions and personalities,
+%that the applications depend on,
+using the interfaces provided on the host platforms.
+The responsibility of \liboses{} % in the process
+is essentially translating the abstractions or APIs to the host interfaces and conventions.
+In addition,
+to provide \term{platform independence},
+\liboses{} rely on the definition of host ABI to be
+generic enough for the underlying platforms~\citep{porter11drawbridge, baumann13bascule, baumann14haven, tsai14graphene}
+--- assuming that porting the host ABI to new platforms
+will be reasonably easy.
+%the semantics and assumptions of the ABI are supposed to be
+%reasonably feasible for implementation
+%on most host platforms.
+The abstractions in the host ABI
+include the commonly shared features of most platforms,
+such as file systems, networks, memory mappings, etc,
+with the semantics defined as translatable as possible.
+%For instance, most platforms provide the abstractions and features
+%of a hierarchical file system,
+%with operations for opening,
+%accessing and querying the files,
+%using similar interfaces.
+%Whether the host ABI can be ported to most platforms
+%and provide host features for high-level APIs that the \liboses{} cannot internally implement,
+%is the key to generalizing the platform independence.
+The key to the platform independence is the portability of the host ABI,
+as well as its completeness to support \liboses{} for implementing all high-level system APIs.
 
 
-Platform independence in library OSes are demonstrated by the complexity of legacy applications being supported,
-on top of various host platforms.
-The rationale behind the argument of such a proof-of-the-concept is that
-a complex application will exercise a wide range of system features and conventions,
-that mostly overlap with the common footprints of other applications.
-For instance, Drawbridge~\cite{porter11drawbridge} is tested with
-popular Windows applications such as Internet Explorer and Microsoft Powerpoint.
-To demonstrate the platform independence of the host ABI,
-\graphene{} is ported to many platform such as FreeBSD, Windows, OSX and \intel{} \sgx{} enclaves,
-and most applications can be supported on all these platforms
-transparently.
 
-The narrowness of host interfaces used by library OSes can cause limitations to the ability of implementing OS personalities.
-The primary reason is that the definition of host interfaces
-is mostly biased by the specifications that developers choose to implement,
-and the applications preferred for testing.
-For instance, the \drawbridge{} host ABI, which is adopted by many other library OSes,
-is defined for a library OS of Windows personality.
+%Platform independence in library OSes are demonstrated by the complexity of legacy applications being supported,
+%on top of various host platforms.
+%The rationale behind the argument of such a proof-of-the-concept is that
+%a complex application will exercise a wide range of system features and conventions,
+%that mostly overlap with the common footprints of other applications.
+%For instance, Drawbridge~\cite{porter11drawbridge} is tested with
+%popular Windows applications such as Internet Explorer and Microsoft Powerpoint.
+%To demonstrate the platform independence of the host ABI,
+%\graphene{} is ported to many platform such as FreeBSD, Windows, OSX and \intel{} \sgx{} enclaves,
+%and most applications can be supported on all these platforms
+%transparently.
+
+The narrowness of host interfaces causes limitations for \liboses{} to implementing OS personalities.
+In existing \liboses{},
+the host ABI is mostly defined for supporting \liboses{} with single OS personality:
+%The primary reason is that the definition of host interfaces
+%is mostly biased by the specifications that developers choose to implement,
+%and the applications preferred for testing.
+For instance, in \drawbridge{}~\citep{porter11drawbridge}, the host ABI
+is defined to support a \libos{} with Windows personality.
+%, which is adopted by many other library OSes,
+%is defined for a library OS of Windows personality.
 In \graphene{}, we implement Linux personality over the \drawbridge{} host ABI,
-and observe that many required host abstractions are missing,
-due to the difference between Windows and Host applications.
-For instance, Linux applications heavily rely on exception handling, which is missing in \drawbridge{} but added in both Bascule and \graphene{}.
+and observe a few necessary, but missing host abstractions,
+due to the difference between the platforms.
+A similar process is taken by another \libos{}, Bascule, that inherits the \drawbridge{} host ABI.
+For instance, Linux applications heavily rely on exception handling,
+but the relative host interface to set up handlers
+is missing in \drawbridge{}, and added in both Bascule and \graphene{} afterward.
 
 In this thesis we focus on implement Linux personality:
 \graphene{} supports \syscalls{} Linux system calls,
-based on what developers considered to be the most commonly used.
+selected by what we considered to be the most commonly used.
 However, according to our study of Linux system API usage in a large, representative application sample,
 for any Linux installations,
 there are only 0.4\% of the installed applications whose system API footprint
 are completely supported by \graphene{}.
-Moreover, the study suggests that completeness of \graphene{} can be largely improved by add two scheduling APIs.
+Moreover, the study suggests that completeness of \graphene{} can be largely boosted (from 0.4\% to 21\%)
+by adding two scheduling system calls,
+{\tt sched\_setscheduler} and {\tt sched\_setparam}.
+In future, we will guide the implementation of system APIs
+using the measurements derived from our study.
 
 
 \begin{table}[t]
@@ -80,7 +116,7 @@ Moreover, the study suggests that completeness of \graphene{} can be largely imp
 \hline
 {\bf Host ABI Function} & {\bf Functions in the \libos{}} & {\bf Description} \\
 \hline
-Scheduler policies & {\tt sched\_setscheduler}, {\tt sched\_setaffinity} & Specifying scheduler policies such as priority level or CPU affinity.\\
+Scheduler policies & {\tt sched\_setscheduler}, {\tt sched\_setparam}, {\tt sched\_setaffinity} & Specifying scheduler policies such as priority level or CPU affinity.\\
 \hline
 Huge pages & {\tt MAP\_HUGETLB} flags for {\tt mmap} & Specifying virtual memory to be backed by huge pages. \\
 \hline
@@ -102,22 +138,29 @@ or allowing configuration in manifests.}
 
 The Linux system calls that are not implemented in \graphene{}
 % besides the one we anticipate to be supported in the near future,
-are primarily for two purposes:
-to specify policies of host resources multiplexing;
-and to access host hardware features.
-An example for the former is scheduling APIs, such as {\tt sched\_setscheduler}.
-The latter includes
-a wide range of {\tt ioctl} opcodes,
-and NUMA-related system calls like {\tt migrate\_pages}.
-These abstractions cannot be implemented in the library OS
-without extension of the host ABI.
-The advance the completeness of \graphene{},
-we will design host ABI to by
-either providing an platform-independent interface
-for \picoprocs{},
-or allowing users to specify the resource multiplexing policy in the manifests.
-Table~\ref{tab:future:abi} lists the top-priority host abstractions
-that should be provided to \picoprocs{}.
+can be primarily categorized into two types.
+One type is the APIs
+to specify policies for scheduling host resources;
+and the other is to provide functionality of host hardware features.
+Examples for the former type are the scheduling system calls mentioned earlier.
+% such as {\tt sched\_setscheduler}.
+The latter type includes
+various {\tt ioctl} operations,
+and \term{NUMA-related APIs} like {\tt migrate\_pages}.
+These abstractions are impossible to implement in \liboses{}
+without extension to the host ABI.
+To complete these system calls,
+we will design \term{new host interface} to expose these host abstractions
+to applications,
+or rely on \term{manifest file}
+to specify the scheduling policy of hardware resource.
+%The advance the completeness of \graphene{},
+%we will design host ABI to by
+%either providing an platform-independent interface
+%for \picoprocs{},
+%or allowing users to specify the resource multiplexing policy in the manifests.
+Table~\ref{tab:future:abi} lists the first-order host abstractions
+that need be provided in the \graphene{} host ABI.
 
 
 \begin{table}[t]
@@ -131,9 +174,9 @@ Memory mappings & Windows & No fine-grained deallocation or protection & Redesig
 \hline
 Thread-local storage & Windows, OSX & FS or GS register is not available & Overwrite TLS allocation in libc, or binary translation \\
 \hline
-Position-dependent binaries & Windows, \intel{} \sgx{} & Memory addresses are occupied or restricted & Reserve virtual memory before \picoprocs{} start \\
+Position-dependent binaries & Windows, \sgx{} & Memory addresses are occupied or restricted & Reserve virtual memory before \picoprocs{} start \\
 \hline
-Special instructions & \intel{} \sgx{} & {\tt CPUID} and {\tt RDTSC} are forbidden & Exception handling or binary translation \\
+Special instructions & \sgx{} & {\tt CPUID} and {\tt RDTSC} are forbidden & Exception handling or binary translation \\
 \hline
 \end{tabular}
 \caption[List of platform limitations affecting host ABI porting]
@@ -142,47 +185,106 @@ and the coping strategies.}
 \label{tab:future:abi-limit}
 \end{table}
 
-Besides the feasibility of implementing OS personalities,
-we also demonstrate the neutrality of the host ABI,
-to prove that \graphene{} is portable to other host platforms.
+%Besides the feasibility of implementing OS personalities,
+We also have to demonstrate the neutrality and portability of the host ABI,
+to justify that \graphene{} is independent to most host platforms.
 However, the assumptions made in our host ABI definitions
 can be violated on specific host platforms
-due to limited platform features.
+due to the platform limitations and characteristics.
 For instance, although not defined explicitly in the host ABI,
 a Linux \picoprocs{} requires the host platforms
-to reserve part of the address space, for loading position-dependent binaries.
+to reserve part of the address space (often near {\tt 0x4000000}), for loading position-dependent binaries.
 % that are not compiled as position independent.
-The requirement is a challenge on platforms
-where part of the \picoprocs{}' virtual memory is always occupied by the host,
-or only allowed in a specific range.
+Such a requirement is a challenge to the platforms
+in which the virtual memory of a process is partially preoccupied by the host,
+or restricted to a specific range.
+We observe the phenomenon in two of the ported platforms:
+in Windows, user stacks and PCBs (process control blocks) can overlap with the demanded address;
+in \sgx{} enclaves, the range of mappable memory is
+restricted to a preset region.
 %processes are only allowed to access a limited range of virtual memory.
 Table~\ref{tab:future:abi-limit}
-lists the platform limitations that affects the implementation of host ABI.
-We propose strategies to remove the limitations for the reinforcement of platform independence.
+lists the platform limitations that affects the implementation of host ABI,
+and the proposed strategies to remove the limitations.
+% for the reinforcement of platform independence.
 
 
-Proving the platform independence of \graphene{} will
+Essentially,
+justifying the platform independence of \graphene{} will
 require porting its host ABI to more diverse platforms,
-especially ones that do not rely on monolithic kernels.
-One example is to port \graphene{} to a \term{\microkernel{}}
-such as L4 and SeL4~\citep{l4family, klein09sel4}.
-Porting \picoprocs{} to \microkernel{} will allows running legacy applications
-in a host with restricted resource,
-at a smaller cost than porting a monolithic kernel ported to \microkernel{}
-(e.g., L4Linux~\citep{hartig97mu}).
-Another platform that is worth to port \graphene{} is \term{Barrelfish}~\citep{baumann09barrelfish},
-which is designed for multi-core heterogeneous architectures,
-and uses asynchronous message passing across heterogeneous cores pinned to applications.
-The distributed POSIX implementation of \graphene{}
-will be an advantage when porting it to Barrelfish.
-%In addition, the OSX and Windows ports of \graphene{} are still in-progress.
-Overall, when generalizing the host ABI implementation to more platforms,
-we observe that a large portion of \graphene{} \pal{}
-can be reused for another platform.
-In particular, a wide range of platforms adopt the POSIX specifications.
-By translating the \graphene{} host ABI to standard POSIX APIs,
-the platform independence of \graphene{} can be guaranteed on
-every POSIX-compliant hosts.
+especially ones that do not rely on a monolithic kernel with abundant APIs.
+One opportunity is to port \graphene{} to a \term{\microkernel{}}
+(e.g., L4~\citep{l4family, klein09sel4}) or a \term{hypervisor} (e.g., Qemu, Xen).
+Instead of relying on host features (e.g., Seccomp filter)
+to restrict the attack surface of \picoprocs{},
+\graphene{} ported to a \microkernel{} or hypervisor will minimize both the attack surface and the shared TCB of the host.
+The functionality of \graphene{} on L4 will be similar as
+L4Linux~\citep{hartig97mu},
+but at a lower cost because \graphene{} does not port the whole Linux kernel to user space.
+On the other hande,
+a \microkernel{} or hypervisor
+may provide a reduced paravirtual APIs,
+without the full host abstractions required by the host ABI.
+A few host abstractions that may be missing
+are file access, network sockets and other single-process, multiplexed resources.
+Implementing the host ABI on these platforms will requires
+extension of the host paravirtual APIs, or reduction of the \graphene{} host ABI
+--- for example, running an in-process file system, or a NFS (networked file system) client in \picoprocs{}.
+
+
+
+%Porting \picoprocs{} to \microkernel{} will allow running legacy applications
+%in a host with restricted resource,
+%at a smaller cost than porting a whole kernel to user space
+
+%Another platform that is worth to port \graphene{} is 
+\term{Barrelfish}~\citep{baumann09barrelfish, zellweger14barrelfishdc} is a \microkernel{}-style
+research OS designed for multi-core, heterogeneous environment.
+Barrelfish runs applications with OS implementation tied to each heterogeneous core,
+to decouple OS coordination from
+architectural characteristics such as instruction sets, cache coherence, and memory hierarchies.
+Not unlike \graphene{} using a
+distributed, collaborative OS implementation,
+Barrelfish duplicates the OS functionality
+(a ``OS node'')
+with independent, unshared state on each core.
+Inter-core message-passing is used among OS nodes and applications
+to coordinate OS state and services.
+Porting \graphene{} to Barrelfish can enable the legacy support on the platform,
+but also extend the host environment for \graphene{} to heterogeneous architecture.
+The implementation of \graphene{} host ABI on Barrelfish
+can rely on its tool chain for the partially supported POSIX APIs,
+including simple file IO, network sockets,
+and user-space RPC.
+To allow \graphene{} to run in a environment with heterogeneous ISAs,
+\graphene{} will have to be ported to different architectures,
+such as x86, x86\_64 and ARM.
+
+
+In general, we observe that many platforms provide \term{POSIX-compliant APIs},
+which is the closest to a platform-independent specification.
+Besides a few limitations on the \graphene{} host ABI,
+such as TLS support and loading position-dependent binaries (both discussed in Table~\ref{tab:future:abi-limit}),
+most of the \pal{} calls can be smoothly ported to POSIX.
+A POSIX port will allow \graphene{} to be easily migrated to any POSIX-compliant platforms,
+with little development effort to deal with
+the rest of host ABI.
+
+
+
+
+
+%and uses asynchronous message passing across heterogeneous cores pinned to applications.
+%The distributed POSIX implementation of \graphene{}
+%will be an advantage when porting it to Barrelfish.
+%%In addition, the OSX and Windows ports of \graphene{} are still in-progress.
+%Overall, when generalizing the host ABI implementation to more platforms,
+%we observe that a large portion of \graphene{} \pal{}
+%can be reused for another platform.
+%In particular, a wide range of platforms adopt the POSIX specifications.
+%By translating the \graphene{} host ABI to standard POSIX APIs,
+%the platform independence of \graphene{} can be guaranteed on
+%every POSIX-compliant hosts.
 
 
 
@@ -272,8 +374,8 @@ The unused library functions, \java{} VM features, JNI code, and system calls in
 can all technically be removed with manageable efforts.
 
 
-\section{Non-Binary Security Isolation}
-\label{sec:future:non-binary}
+\section{Legacy Security Models}
+\label{sec:future:security}
 
 %In \graphene{} or many others like VM or container-based solutions,
 %applications are protected with a trust model of all-or-nothing.
@@ -435,29 +537,24 @@ for the fulfillment of doctoral dissertation:
 \begin{compactenum}[A.]
 
 \item \label{enum:asplos17}
-{\bf August 15th:} \\
-\asplos{} 2017. \\
+{\bf August 15th:}\\
+\asplos{} 2017.
 Topic: Combining Hardware and Language Protections for Partitioned Applications
 
 \item \label{enum:tocs-graphene}
-{\bf Late-September:} \\
-\tocs{}. \\
+{\bf Late-September:}\\
+\tocs{}.
 Topic: Cooperation and Security Isolation of Library OSes for Multi-Process Applications (Journal version). 
 
 \item \label{enum:eurosys17}
-{\bf October 21st:} \\
+{\bf October 21st:}\\
 \eurosys{} 2017.
 Topic: Splitting Multi-Process Applications in Multi-Enclave Library OSes
 
-%\item \label{enum:oakland17}
-%{\bf Mid-November:} \\
-%\oakland{} 2017, alternative to goal \ref{enum:eurosys17}.\\
-%Topic: Non-Binary Security Isolation on Untrusted Hosts
-
-%\item \label{enum:tocs-dcache}
-%{\bf January 2017:} \\
-%\tocs{}.\\
-%Topic: How to Get More Value From Your File System Directory Cache
+\item\label{enum:sosp17}
+{\bf Mid-April:}\\
+\sosp{} 2017.
+Topic: Realizing Security Models on Secure Platforms
 
 
 \end{compactenum}

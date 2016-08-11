@@ -1,4 +1,4 @@
-\section{Enforcing Security Isolation between Untrusting Applications}
+\section{Isolating Mutually Untrusting Applications}
 \label{sec:graphene:security}
 
 \sysname{} ensures that mutually untrusting applications 
@@ -7,7 +7,7 @@ comparable to running in separate VMs.
 \sysname{} reduces the attack surface exposed to applications
 by restricting access to the host kernel ABI 
 and prevents access to unauthorized system calls, files, byte streams,
-and network addresses with a reference monitor.
+and network addresses with a \term{reference monitor}.
 %The host kernel ABI exported by the \pal{} heavily 
 %limits the ability of a \sysname{} application to interact with the rest of the system;
 %any external interactions are further mediated by a reference monitor.
@@ -15,54 +15,52 @@ and network addresses with a reference monitor.
 %system daemons or other shared system resources.
 %As a result, \sysname{} enforces security isolation similar to running applications in separate VMs---even
 %applications that span multiple processes.
-
 \sysname{} contributes a multi-process security model 
-based on the abstraction of a {\em sandbox},
+based on the abstraction of a \term{sandbox},
 or a set of mutually trusting picoprocesses.
 The reference monitor permits picoprocesses within the same sandbox
 to communicate and exchange RPC messages, but disallows cross-sandbox communication.
 The current work focuses on all-or-nothing security isolation, although we expect
 this design could support
-controlled communication among mutually distrusting libOSes
+controlled communication among mutually untrusting \liboses{}
 in future work.
 
-
 The only kernel-level sharing abstractions the reference monitor must mediate
-are files, network sockets and RPC streams---all other allowed kernel ABIs
-modify only local picoprocess state.
-Thus, the reference monitor need only mediate file access, socket and RPC stream creation.
-
-
+are files, network sockets, and RPC streams
+--- all other allowed kernel ABIs
+modify only local \picoproc{} state.
+%Thus, the reference monitor need only mediate file access, socket and RPC stream creation.
 %an unprivileged daemon
 %as well as extensions to the App\-Armor LSM~\citep{apparmor},
 %which checks file and socket policies in the kernel.
 %, reducing context switching overhead
 %and the risk of race conditions~\citep{garfinkel03traps}.
 In order for the reference monitor to restrict file access, socket and RPC stream creation,
-each application includes a {\em manifest} file~\citep{hunt07rethink},
+each application includes a \term{manifest file}~\citep{hunt07rethink},
 which describes a {\tt chroot}-like, restricted view of the local 
 file system (similar to Plan 9's unioned file system views~\citep{pike90plan9}),
 %including read-only shared files,
-as well as iptables-style network restrictions.
+as well as \term{iptables}-style~\citep{iptablesman} network restrictions.
 %%% To facilitate sharing read-only libraries,
 %%% a manifest may specify a file system view which 
 %%% combines several different sub-directories of the local file system,
 %%% and can prevent writing to files or directories.
 
 
-The \sysname{} reference monitor on a Linux host
-is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
-A picoprocess is restricted by seccomp filter~\citep{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
-It must use the \sysname{} special device to open or create streams,
-so the file paths or network addresses can be checked against the sandbox rules.
-The kernel module as the driver of the \sysname{} special device can coexist with any LSM such as AppArmor or SELinux.
+%The \sysname{} reference monitor on a Linux host
+%is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
+%A picoprocess is restricted by seccomp filter~\citep{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
+%It must use the \sysname{} special device to open or create streams,
+%so the file paths or network addresses can be checked against the sandbox rules.
+%The kernel module as the driver of the \sysname{} special device can coexist with any LSM such as \term{AppArmor} or \term{SELinux}.
 
 
+\fixme{Explain with a figure.}
 When a new picoprocess is launched by the reference monitor, it begins execution in 
 a new sandbox.  
 Child picoprocesses may either inherit their parent's sandbox, 
-or can be started in a separate sandbox---specified
-by a flag to the picoprocess creation ABI.
+or can be started in a separate sandbox
+--- specified by a flag to the picoprocess creation ABI.
 A parent may specify a subset of its own file system view 
 when creating a child, but may not request access to new regions of the 
 host file system. 
@@ -73,8 +71,8 @@ across sandboxes.
 %among picoprocesses
 %that are not in the same sandbox.
 %and restricts external connections to remote URIs according to firewall rules in the manifest.
-When a process detaches from a sandbox---effectively splitting the sandbox---the
-reference monitor closes
+When a process detaches from a sandbox --- effectively splitting the sandbox ---
+the reference monitor closes
 any byte streams that could bridge the two sandboxes.
 
 \paragraph{Threat Model.}
@@ -159,7 +157,7 @@ the reference monitor.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=6in]{graphene/figures/syscall-restriction.pdf}
+\includegraphics[width=6.5in]{graphene/figures/syscall-restriction.pdf}
 \footnotesize
 \caption[System call restriction approach in sysname{}]
 {System call restriction approach. The reference monitor loads policies into the LSM at startup.  A \sysname{} application requests OS services in three different ways. 
@@ -271,7 +269,7 @@ because this system call was not issued by the \pal{},
 seccomp will redirect this call back to the \pal{},
 which then calls the {\tt libLinux} implementation.
 
-\paragraph{Process-Specific Isolation.} 
+\paragraph{Process-specific Isolation.} 
 Sandbox creation in \sysname{} can provide
 more options than virtualization, to reflect the security policy of applications at any timing,
 in the granularity of picoprocess. 
@@ -280,7 +278,7 @@ after finishing security-sensitive operations.
 If a picoprocess decides one of its children is not trustworthy, it may also start the child under a restricted manifest,
 or promptly shut down RPC streams to stop sharing OS states.
 The picoprocess that moves to a separate sandbox will have a restrictive view of the filesystem, and no coordination with the previous sandboxes.
-In section~\ref{sec:eval}, we describe an experiment that improves security isolation of Apache web server without sacrificing functionality.
+In section~\ref{sec:graphene:eval}, we describe an experiment that improves security isolation of Apache web server without sacrificing functionality.
 
 \subsection{Reference Monitor}
 \label{sec:graphene:security:monitor}
@@ -309,7 +307,7 @@ in the sandbox.
 % PTRACE\_EVENT\_CLONE whenever a clone is done by a child on which
 % PTRACE\_O\_TRACECLONE option was set.
 
-Each application includes a {\em manifest}, which specifies restrictions,
+Each application includes a \term{manifest file}, which specifies restrictions,
 including network firewall rules and subsets of the host file system sandboxed
 applications are permitted to access.  The reference monitor enforces these
 rules by interposing on all system calls involving file paths or remote network addresses.
@@ -342,84 +340,84 @@ and create a new broadcast stream for multi-process
 
 To securely apply seccomp filtering we leveraged the fact that all
 \sysname{} processes have the same parent and also the new
-NO\_NEW\_PRIVS bit introduced for Linux processes starting kernel
+{\tt NO\_NEW\_PRIVS} bit introduced for Linux processes starting kernel
 version 3.5. This bit can be set by any process, is inherited across
 {\tt fork}, {\tt clone}, and {\tt execve}, and cannot be unset by
-children processes. Thus, we set the NO\_NEW\_PRIVS bit in the initial
+children processes. Thus, we set the {\tt NO\_NEW\_PRIVS} bit in the initial
 \sysname{} process and apply seccomp filters allowing only system calls
 with corresponding functions in the \pal{}. As a result all \sysname{}
 processes will inherit the filters and cannot relax or bypass it.
 
 
 
-which reduces the kernel
-system call API surface to user-level processes. This mechanism allows
-a process to specify a whitelist filter for system calls, which is
-implemented as a Berkeley Packet Filter (BPF) program. The invocation
-of a disallowed system call causes the application to throw a SIGSYS
-signal, which can be caught by a registered handler provided by the
-application. In \sysname{} we registered this handler at the \pal{}.
+%which reduces the kernel
+%system call API surface to user-level processes. This mechanism allows
+%a process to specify a whitelist filter for system calls, which is
+%implemented as a Berkeley Packet Filter (BPF) program. The invocation
+%of a disallowed system call causes the application to throw a {\tt SIGSYS}
+%signal, which can be caught by a registered handler provided by the
+%application. In \sysname{} we registered this handler at the \pal{}.
 
 
-\sysname{} applications rely on an OS loaded as a library to request
-system services. As most of traditional applications, \sysname{}
-processes do not normally issue system calls directly: they invoke
-wrapper functions from a \sysname{}-compliant version of libc, which
-allows for portability, security (parameters are limited and checked)
-and easiness of programming. However, while standard libc functions
-directly invoke the kernel system call themselves, our modified
-version of libc wrappers invoke functions from another library which
-represents the OS, libLinux (Figure \ref{fig:graphene:syscall-restriction}). A
-\sysname{} application can access all necessary system functionality
-through libLinux, which invokes corresponding system call functions at
-the platform adaptation layer (\pal{}), also loaded as a library with a
-\sysname{} process. The \pal{} is the layer responsible for directly
-invoking system calls at the kernel. As discussed in \S\ref{sec:graphene:impl} the \pal{} provides \sysname{} applications with a
-subset of the kernel system call interface.\sysname{} applications rely
-on an OS loaded as a library to request system services.
+%\sysname{} applications rely on an OS loaded as a library to request
+%system services. As most of traditional applications, \sysname{}
+%processes do not normally issue system calls directly: they invoke
+%wrapper functions from a \sysname{}-compliant version of libc, which
+%allows for portability, security (parameters are limited and checked)
+%and easiness of programming. However, while standard libc functions
+%directly invoke the kernel system call themselves, our modified
+%version of libc wrappers invoke functions from another library which
+%represents the OS, libLinux (Figure \ref{fig:graphene:syscall-restriction}). A
+%\sysname{} application can access all necessary system functionality
+%through libLinux, which invokes corresponding system call functions at
+%the \pal{}, also loaded as a library with a
+%\sysname{} process. The \pal{} is the layer responsible for directly
+%invoking system calls at the kernel. As discussed in \S\ref{sec:graphene:impl} the \pal{} provides \sysname{} applications with a
+%subset of the kernel system call interface.\sysname{} applications rely
+%on an OS loaded as a library to request system services.
+%
+%Even though we expect most of \sysname{} applications to leverage libc
+%wrappers, we need to address applications that need to invoke system
+%calls directly. Applications might need to bypass a library such as
+%libc because some needed wrappers are not provided (there are no
+%wrappers in libc for module and NUMA related system calls), or the
+%wrapper does not meet the programmer’s needs. \sysname{} applications
+%that need to perform direct invocation of system calls run unmodified
+%as long as the system calls invoked are provided by the libos{l{}. We
+%do not consider this a security violation; even though the application
+%would be risking not functioning according to the libosaradigm for
+%bypassing the \pal{}, all potential damage would be confined in the
+%misbehaving application itself.  However, we do not allow the direct
+%invocation of a system call that does not have a corresponding
+%function in the libosnd \pal{}. In Figure \ref{fig:graphene:syscall-restriction}
+%we illustrate these three situations. We have a \sysname{} application
+%loaded with three libraries: a \sysname{}-compliant libc, libLinux
+%representing the library OS with functions for a selected number of
+%system calls, and the \pal{} which actually invokes host kernel system
+%calls. The illustrated application requests three different types of
+%OS functionality. It first invokes a function from libc, then it
+%directly invokes a system call whose functionality is provided by the
+%\pal{}, and third it attempts to directly invoke a system call not
+%present in the \pal{}, which is not allowed by \sysname{}.
 
-Even though we expect most of \sysname{} applications to leverage libc
-wrappers, we need to address applications that need to invoke system
-calls directly. Applications might need to bypass a library such as
-libc because some needed wrappers are not provided (there are no
-wrappers in libc for module and NUMA related system calls), or the
-wrapper does not meet the programmer’s needs. \sysname{} applications
-that need to perform direct invocation of system calls run unmodified
-as long as the system calls invoked are provided by the libOS/\pal{}. We
-do not consider this a security violation; even though the application
-would be risking not functioning according to the libOS paradigm for
-bypassing the \pal{}, all potential damage would be confined in the
-misbehaving application itself.  However, we do not allow the direct
-invocation of a system call that does not have a corresponding
-function in the libOS and \pal{}. In Figure \ref{fig:graphene:syscall-restriction}
-we illustrate these three situations. We have a \sysname{} application
-loaded with three libraries: a \sysname{}-compliant libc, libLinux
-representing the library OS with functions for a selected number of
-system calls, and the \pal{} which actually invokes host kernel system
-calls. The illustrated application requests three different types of
-OS functionality. It first invokes a function from libc, then it
-directly invokes a system call whose functionality is provided by the
-\pal{}, and third it attempts to directly invoke a system call not
-present in the \pal{}, which is not allowed by \sysname{}.
-
-We enforce system call restriction by leveraging seccomp Linux system
-call filtering mechanism~\citep{seccomp}, which reduces the kernel
-system call API surface to user-level processes. This mechanism allows
-a process to specify a whitelist filter for system calls, which is
-implemented as a Berkeley Packet Filter (BPF) program. The invocation
-of a disallowed system call causes the application to throw a SIGSYS
-signal, which can be caught by a registered handler provided by the
-application. In \sysname{} we registered this handler at the \pal{}.
-
-To securely apply seccomp filtering we leveraged the fact that all
-\sysname{} processes have the same parent and also the new
-NO\_NEW\_PRIVS bit introduced for Linux processes starting kernel
-version 3.5. This bit can be set by any process, is inherited across
-{\tt fork}, {\tt clone}, and {\tt execve}, and cannot be unset by
-children processes. Thus, we set the NO\_NEW\_PRIVS bit in the initial
-\sysname{} process and apply seccomp filters allowing only system calls
-with corresponding functions in the \pal{}. As a result all \sysname{}
-processes will inherit the filters and cannot relax or bypass it.
+%We enforce system call restriction by leveraging seccomp Linux system
+%call filtering mechanism~\citep{seccomp}, which reduces the kernel
+%system call API surface to user-level processes. This mechanism allows
+%a process to specify a whitelist filter for system calls, which is
+%implemented as a Berkeley Packet Filter (BPF) program. The invocation
+%of a disallowed system call causes the application to throw a {\tt SIGSYS}
+%signal, which can be caught by a registered handler provided by the
+%application. In \sysname{} we registered this handler at the \pal{}.
+%
+%To securely apply seccomp filtering we leveraged the fact that all
+%\sysname{} processes have the same parent and also the new
+%{\tt NO\_NEW\_PRIVS} bit introduced for Linux processes starting kernel
+%version 3.5. This bit can be set by any process, is inherited across
+%{\tt fork}, {\tt clone}, and {\tt execve}, and cannot be unset by
+%children processes. Thus, we set the {\tt NO\_NEW\_PRIVS} bit in the initial
+%\sysname{} process and apply seccomp filters allowing only system calls
+%with corresponding functions in the \pal{}. As a result all \sysname{}
+%processes will inherit the filters and cannot relax or bypass it.
 
 
 %\begin{figure}

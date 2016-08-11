@@ -1,5 +1,5 @@
 
-\section{Evaluation of \sysname{} \libos{}}
+\section{Evaluation of \sysname{}}
 \label{sec:graphene:eval}
 
 %\fixmedp{Missing back-of-the envelope for fork overheads, fraction of system calls using ipc}
@@ -38,10 +38,10 @@ Unless otherwise noted, \sysname{} measurements include the reference monitor.
 %In order to assess the relative overhead of the monitor (\S\ref{sec:eval:micro}), 
 %we include some microbenchmark measurements with and without the monitor.
 
-\paragraph{Seccomp filter optimization.~}
-Our benchmark shows that applying a seccomp filter can cause \fixme{xxx}\% overhead on {\tt getppid} syscall latency. We use a seccomp optimization patch, which just-in-time compiles filter code into machine code~\citep{seccomp-jit}.
-The result shows that the patch can improve xxx\% of {\tt getppid} latency.
-This patch is not officially adopted by Linux kernel, but it can be confirmed secure at least for x86-64 architecture.
+%\paragraph{Seccomp filter optimization.~}
+%Our benchmark shows that applying a seccomp filter can cause \fixme{xxx}\% overhead on {\tt getppid} syscall latency. We use a seccomp optimization patch, which just-in-time compiles filter code into machine code~\citep{seccomp-jit}.
+%The result shows that the patch can improve xxx\% of {\tt getppid} latency.
+%This patch is not officially adopted by Linux kernel, but it can be confirmed secure at least for x86-64 architecture.
 
 
 \begin{table}[t!b!]
@@ -54,11 +54,11 @@ This patch is not officially adopted by Linux kernel, but it can be confirmed se
 \hline
 
 %Start-up time& 88.40& 3293296.77 & 3725349\% & 125350.73 & 1417\%& 622.00 & 604\% \\
-Start-up   & 208 {\bf $\mu$s} & 3.3 {\bf s} & 15K$\times$ & 641 {\bf $\mu$s} & 3.1$\times$ & 641 {\bf $\mu$s} & 3.1$\times$ \\
+Start-up   & 208 \us{} & 3.3 s & 15K\x{} & 641 \us{} & 3.1\x{} & xxxx \us{} & xx\x{} \\
 \hline
-Checkpoint & N/A   & 0.987 {\bf s}  &  &   416 {\bf $\mu$s} & & & N/A \\
+Checkpoint & N/A   & 0.987 s  &  &   416 \us{} & & & N/A \\
 \hline
-Resume     & N/A   & 1.146 {\bf s}  &  &  1387 {\bf $\mu$s} & & & N/A \\
+Resume     & N/A   & 1.146 s  &  &  1387 \us{} & & & N/A \\
 \hline\hline
 Checkpoint size & N/A & \multicolumn{2}{l|}{105 MB} & \multicolumn{2}{l|}{376 KB}  &  & N/A  \\
 \hline
@@ -67,7 +67,7 @@ Checkpoint size & N/A & \multicolumn{2}{l|}{105 MB} & \multicolumn{2}{l|}{376 KB
 {Startup, checkpoint, and resume times for a native Linux process,
 a KVM virtual machine,
 and a \sysname{} \picoproc{}, where appropriate. Lower is better.  
-Overheads are relative to Linux.} 
+Overheads are relative to Linux. \fixme{Update \sysname{} and \graphenesgx{} numbers}} 
 \label{tab:graphene:startup}
 \end{table}
 
@@ -133,14 +133,14 @@ size of the source base, even on Linux; we select compile of {\tt libLinux} as a
 %every compilation we measured on \sysname{} had less than 10\% memory overhead.
 
 Unixbench on \sysname{} uses substantially more memory at a given time than native Linux---more than double.
-In these samples, however, \sysname{} also had 3--4$\times$ as many processes
+In these samples, however, \sysname{} also had 3--4\x{} as many processes
 running; this is because Unixbench simply spawns all of the tasks in the background, rather than
 executing them sequentially.   Because \sysname{} processes execute more slowly (attributable to a slower {\tt fork}---\S\ref{sec:graphene:eval:perf}),
 a given sample will include more \picoprocs{}, pushing total memory usage higher.
 Thus, we expect that further tuning {\tt fork} performance will lower sampled memory usage.
 
 
-Across all workloads, \sysname{}'s memory footprint is 3--20 times  
+Across all workloads, \sysname{}'s memory footprint is 3--20\x{}  
 smaller than KVM.  
 For all tests, we used a minimal KVM disk image, 
 %formatted as a 30GB\fixmewkj{this can be changed to be smaller, but I don't know if disk size would impact memory} raw disk image with ext4. The root image was 
@@ -171,11 +171,11 @@ one could run anywhere from 12--188 libOSes within the same footprint.
 %\multicolumn{2}{|l|}{helloworld} & .02 & .02 & 0 \% & .03 & 100 \% \\ 
 %\hline
 %oggenc & 1.42 & .01 & 1.51 & .00 & 6 \% & 1.43 & .00 & 1 \% \\\hline
-bzip2        &  2.57 & .00 &  2.70 & .00 & 5 \% &  2.70 & .00 &  5 \% &  2.70 & .00 &  5 \%  \\\hline
-bzip2 -j4    &  1.00 & .00 &  1.09 & .00 & 9 \% &  1.08 & .02 &  8 \% &  1.08 & .02 &  8 \%  \\\hline
-libLinux     &  7.23 & .00 &  7.55 & .00 & 4 \% &  8.64 & .00 & 20 \% &  8.64 & .00 & 20 \%  \\\hline
-libLinux -j4 &  1.95 & .00 &  2.03 & .00 & 4 \% &  2.54 & .00 & 30 \% &  2.54 & .00 & 30 \%  \\\hline
-gcc          & 24.74 & .02 & 26.80 & .02 & 8 \% & 31.84 & .00 & 29 \% & 31.84 & .00 & 29 \%  \\\hline
+bzip2        &  2.57 & .00 &  2.70 & .00 & 5 \% &  2.70 & .00 &  5 \% & xx.xx & .xx & xxx \%  \\\hline
+bzip2 -j4    &  1.00 & .00 &  1.09 & .00 & 9 \% &  1.08 & .02 &  8 \% & xx.xx & .xx & xxx \%  \\\hline
+libLinux     &  7.23 & .00 &  7.55 & .00 & 4 \% &  8.64 & .00 & 20 \% & xx.xx & .xx & xxx \%  \\\hline
+libLinux -j4 &  1.95 & .00 &  2.03 & .00 & 4 \% &  2.54 & .00 & 30 \% & xx.xx & .xx & xxx \%  \\\hline
+gcc          & 24.74 & .02 & 26.80 & .02 & 8 \% & 31.84 & .00 & 29 \% & xx.xx & .xx & xxx \%  \\\hline
 
 
 \hline\hline
@@ -183,16 +183,16 @@ Ap. Bnch  & \multicolumn{11}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% O
 \hline
 {\bf Apache} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
 \hline
-25 conc  &5.73&.25&4.84 &.03 &18 \% &4.02 &.00 &43 \% &4.02 &.00 &43 \% \\\hline
-50 conc  &5.57&.28&4.80 &.06 &16 \% &4.01 &.00 &39 \% &4.01 &.00 &39 \% \\\hline
-100 conc &5.87&.20&4.80 &.03 &22 \% &3.98 &.00 &47 \% &3.98 &.00 &47 \% \\\hline
+25 conc  &5.73&.25&4.84 &.03 &18 \% &4.02 &.00 &43 \% &xx.xx &.xx &xx \% \\\hline
+50 conc  &5.57&.28&4.80 &.06 &16 \% &4.01 &.00 &39 \% &xx.xx &.xx &xx \% \\\hline
+100 conc &5.87&.20&4.80 &.03 &22 \% &3.98 &.00 &47 \% &xx.xx &.xx &xx \% \\\hline
 
 {\bf \light{}} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{|c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{|c|}{{\bf \graphenesgx{}}} \\
 \hline
 
-25 conc  &6.66 &.01 &6.46 &.03 &3 \% &5.65 &.00 &18 \% &5.65 &.00 &18 \% \\\hline
-50 conc  &6.65 &.13 &6.41 &.02 &4 \% &4.79 &.00 &39 \% &4.79 &.00 &39 \% \\\hline
-100 conc &6.69 &.01 &6.39 &.03 &5 \% &4.56 &.01 &47 \% &4.56 &.01 &47 \% \\\hline
+25 conc  &6.66 &.01 &6.46 &.03 &3 \% &5.65 &.00 &18 \% &xx.xx &.xx &xx \% \\\hline
+50 conc  &6.65 &.13 &6.41 &.02 &4 \% &4.79 &.00 &39 \% &xx.xx &.xx &xx \% \\\hline
+100 conc &6.69 &.01 &6.39 &.03 &5 \% &4.56 &.01 &47 \% &xx.xx &.xx &xx \% \\\hline
 
 \hline\hline
 %%%%% UnixBench
@@ -205,12 +205,11 @@ Ap. Bnch  & \multicolumn{11}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% O
 %graphene 10.06s
 
 %bash
-Unix utils & 0.87 & .00 & 1.10 & .01 & 26 \% & 2.01 & .00 & 134 \% & 2.01 & .00 & 134 \% \\\hline
-Unixbench  & 0.55 & .00 & 0.55 & .00 &  0 \% & 1.49 & .00 & 192 \% & 1.49 & .00 & 192 \%
-\\\hline
+Unix utils & 0.87 & .00 & 1.10 & .01 & 26 \% & 2.01 & .00 & 134 \% & xx.xx & .xx & xxx \% \\\hline
+Unixbench  & 0.55 & .00 & 0.55 & .00 &  0 \% & 1.49 & .00 & 192 \% & xx.xx & .xx & xxx \% \\\hline
 \end{tabular}
 \caption[Application benchmark results in Linux, KVM and \sysname{}]
-{Application benchmark execution times in a native Linux process, a process inside a KVM virtual machine, and a \sysname{} \picoproc{} with reference monitoring (+RM). }
+{Application benchmark execution times in a native Linux process, a process inside a KVM virtual machine, and a \sysname{} \picoproc{} with reference monitoring (+RM). \fixme{Update \sysname{} and \graphenesgx{} numbers} }
 \label{tab:graphene:apps}
 \end{table}
 
@@ -248,7 +247,7 @@ Compilation workloads incur overheads ranging from 5--30\%.
 %All compilation workloads have minimal overheads compared to native when executed sequentially;
 Parallel compilation on both \sysname{} and Linux yields comparable  speedups  over sequential,
 but the percent overhead increases for parallel \sysname{}.
-For instance, {\tt make -j4 libLinux} speeds up 3.7$\times$ on Linux and 3.4$\times$ on \sysname{}.
+For instance, {\tt make -j4 libLinux} speeds up 3.7\x{} on Linux and 3.4$\times$ on \sysname{}.
 The compilation overheads are primarily from the reference monitor---nearly all for bzip2 and gcc, and half for {\tt libLinux}.
 %Nearly all of the overhead from the bzip2 and gcc compilations are from the reference monitor; about half of the overheads of {\tt libLinux} compile 
 %are the reference monitor and half are \sysname{} itself.
@@ -311,29 +310,30 @@ as the Linux kernel implementation.
 {\bf Test } & \multicolumn{2}{c|}{{\bf Linux}} & \multicolumn{3}{c|}{{\bf \sysname{}
 }} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
 
-& {\footnotesize $\mu$s} & {\footnotesize +/-} & 
-{\footnotesize $\mu$s} & {\footnotesize +/-} & \%O &
-{\footnotesize $\mu$s} & {\footnotesize +/-} & \%O & 
-{\footnotesize $\mu$s} & {\footnotesize +/-} & \%O \\
+&
+{\footnotesize \us{}} & {\footnotesize +/-} & 
+{\footnotesize \us{}} & {\footnotesize +/-} & \%O &
+{\footnotesize \us{}} & {\footnotesize +/-} & \%O & 
+{\footnotesize \us{}} & {\footnotesize +/-} & \%O \\
 
 \hline
 
-syscall       &  0.04 & .0 &  0.01 & .0 & -75 &  0.01 & .0 & -75 &  0.01 & .0 & -75 \\\hline
-read          &  0.09 & .0 &  0.12 & .0 &  33 &  0.12 & .0 &  33 &  0.12 & .0 &  33 \\\hline
-write         &  0.11 & .0 &  0.11 & .0 &   0 &  0.11 & .0 &   0 &  0.11 & .0 &   0 \\\hline
-%stat         &  0.35 & .0 &  0.50 & .0 &  43 &  0.77 & .0 & 120 &  0.77 & .0 & 120 \\\hline
-%fstat        &  0.08 & .0 &  0.20 & .0 & 150 &  0.19 & .0 & 138 &  0.19 & .0 & 138 \\\hline
-open/close    &  0.85 & .1 &  3.53 & .2 & 315 &  5.09 & .0 & 499 &  5.09 & .0 & 499 \\\hline
-%select file  &  3.93 & .0 & 15.12 & .0 & 315 & 15.00 & .0 & 411 & 15.00 & .0 & 411 \\\hline
-select tcp    & 10.87 & .0 & 17.02 & .0 &  56 & 17.44 & .0 &  60 & 17.44 & .0 &  60 \\\hline
-sig install   &  0.11 & .0 &  0.20 & .0 &  82 &  0.20 & .0 &  82 &  0.20 & .0 &  82 \\\hline
-sigusr1       &  0.79 & .0 &  0.33 & .0 & -58 &  0.33 & .0 & -58 &  0.33 & .0 & -58 \\\hline
-%sigsegv      &  0.20 & .0 &  0.58 & .0 & 190 &  1.05 & .0 & 425 &  1.05 & .0 & 425 \\\hline
-AF\_UNIX      &  4.71 & .1 &  5.71 & .0 &  19 &  6.37 & .1 &  32 &  6.37 & .1 &  32 \\\hline
+syscall       &  0.04 & .0 &  0.01 & .0 & -75 &  0.01 & .0 & -75 & xx.xx & .xx & xxx \\\hline
+read          &  0.09 & .0 &  0.12 & .0 &  33 &  0.12 & .0 &  33 & xx.xx & .xx & xxx \\\hline
+write         &  0.11 & .0 &  0.11 & .0 &   0 &  0.11 & .0 &   0 & xx.xx & .xx & xxx \\\hline
+%stat         &  0.35 & .0 &  0.50 & .0 &  43 &  0.77 & .0 & 120 & xx.xx & .xx & xxx \\\hline
+%fstat        &  0.08 & .0 &  0.20 & .0 & 150 &  0.19 & .0 & 138 & xx.xx & .xx & xxx \\\hline
+open/close    &  0.85 & .1 &  3.53 & .2 & 315 &  5.09 & .0 & 499 & xx.xx & .xx & xxx \\\hline
+%select file  &  3.93 & .0 & 15.12 & .0 & 315 & 15.00 & .0 & 411 & xx.xx & .xx & xxx \\\hline
+select tcp    & 10.87 & .0 & 17.02 & .0 &  56 & 17.44 & .0 &  60 & xx.xx & .xx & xxx \\\hline
+sig install   &  0.11 & .0 &  0.20 & .0 &  82 &  0.20 & .0 &  82 & xx.xx & .xx & xxx \\\hline
+sigusr1       &  0.79 & .0 &  0.33 & .0 & -58 &  0.33 & .0 & -58 & xx.xx & .xx & xxx \\\hline
+%sigsegv      &  0.20 & .0 &  0.58 & .0 & 190 &  1.05 & .0 & 425 & xx.xx & .xx & xxx \\\hline
+AF\_UNIX      &  4.71 & .1 &  5.71 & .0 &  19 &  6.37 & .1 &  32 & xx.xx & .xx & xxx \\\hline
 \hline
-fork+exit     &   67 &   0 &   463 &  4 & 587 &   490 &  3 & 626 &   490 &  3 & 626  \\\hline
-fork+exec     &  231 &   1 &   764 &  5 & 237 &   800 &  6 & 253 &   800 &  6 & 253 \\\hline
-fork+sh       &  576 &   8 & 1,720 & 10 & 199 & 1,775 & 11 & 208 & 1,775 & 11 & 208 \\\hline
+fork+exit     &   67 &   0 &   463 &  4 & 587 &   490 &  3 & 626 & xx.xx & .xx & xxx \\\hline
+fork+exec     &  231 &   1 &   764 &  5 & 237 &   800 &  6 & 253 & xx.xx & .xx & xxx \\\hline
+fork+sh       &  576 &   8 & 1,720 & 10 & 199 & 1,775 & 11 & 208 & xx.xx & .xx & xxx \\\hline
 %\hline
 %UDP lat.&7.26&0.0&10.35&0.1&43&11.63&0.1&60 \\\hline
 %TCP lat.&8.70&0.0&9.84&0.1&13&11.48&0.1&32 \\\hline
@@ -352,7 +352,7 @@ fork+sh       &  576 &   8 & 1,720 & 10 & 199 & 1,775 & 11 & 208 & 1,775 & 11 & 
 and \sysname{} \picoprocs{}, both without and with the reference monitor (+RM).
 Execution time is in microseconds, and lower is better. 
 %The file system is measured in thousands operations per second, and higher is better.
-Overheads are relative to Linux; negative overheads indicate improved performance.} 
+Overheads are relative to Linux; negative overheads indicate improved performance. \fixme{Update \sysname{} and \graphenesgx{} numbers}} 
 \label{tab:graphene:lmbench}
 \end{table}
 
@@ -360,9 +360,9 @@ Overheads are relative to Linux; negative overheads indicate improved performanc
 The most expensive system calls occur when {\tt libLinux} inadvertently duplicates work
 with the host kernel.  
 For instance, many of the file path and handle management calls duplicate some of the effort of the host file system,
-leading to a 1--3$\times$ slower implementation than native.
+leading to a 1--3\x{} slower implementation than native.
 As the worst example,
-{\tt fork+exit} is \~{}5.9$\times$ slower than Linux.
+{\tt fork+exit} is 5.9\x{} slower than Linux.
 Profiling indicates that about one sixth of this overhead is in process creation, which 
 takes additional work to create a clean \picoproc{} on Linux; we expect this overhead could be reduced
 with a kernel-level implementation of the process creation ABI, rather than emulating this behavior on {\tt clone}.
@@ -398,29 +398,29 @@ would make all reference monitoring overheads negligible.
 \multicolumn{2}{c|}{{\bf Linux}} &
 \multicolumn{3}{c|}{{\bf \sysname{}}} &
 \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
- & & $\mu$s & +/- & $\mu$s & +/- & & $\mu$s & +/- & \\
+ & & \us{} & +/- & \us{} & +/- & & \us{} & +/- & \\
 \hline
-msgget   & in-process    & 3320	& 0.7 &  2823 & 0.3 &	-15	\%	&  2823 & 0.3 &	-15	\%	\\
-(create) & inter-process & 3336	& 0.5 &  2879 & 3.6 &	-14	\%	&  2879 & 3.6 &	-14	\%	\\
+msgget   & in-process    & 3320	& 0.7 &  2823 & 0.3 &	-15	\%	&  xxxx & x.x &	xxx	\%	\\
+(create) & inter-process & 3336	& 0.5 &  2879 & 3.6 &	-14	\%	&  xxxx & x.x &	xxx	\%	\\
          & persistent    &  N/A	&     & 10015 & 0.7 &	202	\%	&   N/A &     &         \\
 \hline								
-msgget   & in-process    & 3245	& 0.5 &   137 & 0.0 &	-96	\%	&   137 & 0.0 &	-96	\%	\\
-         & inter-process & 3272	& 3.4 &  8362 & 2.4 &	156	\%	&  8362 & 2.4 &	156	\%	\\
+msgget   & in-process    & 3245	& 0.5 &   137 & 0.0 &	-96	\%	&  xxxx & x.x &	xxx	\%	\\
+         & inter-process & 3272	& 3.4 &  8362 & 2.4 &	156	\%	&  xxxx & x.x & xxx	\%	\\
          & persistent    &  N/A	&     &  9386 & 0.4 &	189	\%	&   N/A &     &         \\
 \hline								
-msgsnd   & in-process    &  149	& 0.2 &   443 & 0.2 &	191	\%	&   443 & 0.2 &	191	\%	\\
-         & inter-process &  153	& 0.3 &   761 & 1.1 &	397	\%	&   761 & 1.1 &	397	\%	\\
+msgsnd   & in-process    &  149	& 0.2 &   443 & 0.2 &	191	\%	&  xxxx & x.x &	xxx	\%	\\
+         & inter-process &  153	& 0.3 &   761 & 1.1 &	397	\%	&  xxxx & x.x & xxx	\%	\\
          & persistent    &  N/A	&     &   471 & 0.8 &	216	\%	&   N/A &     &         \\
 \hline								
-msgrcv   & in-process    &  149	& 0.1 &   237 & 0.2 &	60	\%	&   237 & 0.2 &	60	\%	\\
-         & inter-process &  153	& 0.1 &   779 & 2.2 &	409	\%  &   779 & 2.2 &	409	\%	\\
+msgrcv   & in-process    &  149	& 0.1 &   237 & 0.2 &	60	\%	&  xxxx & x.x & xxx	\%	\\
+         & inter-process &  153	& 0.1 &   779 & 2.2 &	409	\%  &  xxxx & x.x & xxx	\%	\\
          & persistent    &  N/A	&     &   979 & 0.6 &	561	\%	&   N/A &     &         \\ \hline
 \end{tabular}
 \caption[The \microbench{} results for System V message queues in Linux, KVM, and \sysname{}]
 {Micro-benchmark comparison for System V message queues
 between a native Linux process and \sysname{} \picoprocs{}.
 Execution time is in microseconds, and lower is better.
-overheads are relative to Linux, and negative overheads indicate improved performance.}
+overheads are relative to Linux, and negative overheads indicate improved performance. \fixme{Update \sysname{} and \graphenesgx{} numbers}}
 %We measure the cost of sending and receiving from the same process (in process),
 %across two processes (inter process), and non-concurrently (persistent).
 \label{tab:graphene:msgq}
@@ -536,7 +536,8 @@ Demonstrating security is always challenging, as it requires exploring all possi
 We instead offer statistics that indicate an overall reduction in attack surface,
 and qualitative validation where appropriate.
 \sysname{} runs substantial Linux applications using less than 15\% of the
-Linux system call table---reducing this attack surface.
+Linux system call table
+--- reducing this attack surface.
 We wrote several tests that attempt to issue illegal system calls with inline assembly;
 we validate that all system calls are redirected to {\tt libLinux},
 and that signals and other IPC cannot cross sandbox boundaries.
@@ -672,10 +673,10 @@ Apache {\tt mod\_\-auth\_\-basic.so} module to call the new library OS function
 {\tt sandbox\_create} after user authentication.
 The work\-er process that services the user request executes in a separate sandbox 
 with file system access restricted to only data required for that user.
-Similarly, this worker's libOS cannot coordinate shared OS abstractions with other worker processes,
+Similarly, this worker's libosannot coordinate shared OS abstractions with other worker processes,
 limiting the risk to other users if this process is exploited.
 We see interesting opportunities to expand this model in future work.
-\fixme{Describe this more.}
+\fixme{Describe in details.}
 
 %The module detaches a child process that serves the request, put it in a more
 %restrictive sandbox with limited access to the filesystem, without downgrading functionality.

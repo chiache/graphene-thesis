@@ -47,18 +47,18 @@ of probability of installation.
 %\label{fig:unweighted-syscall-popularity-trend}
 %\end{figure}
 
-We begin by looking at the \unwusagemetric{} of each system call. Figure~\ref{fig:unweighted-syscall-popularity-trend} shows the 
-distribution of system calls across packages. 
-Recall that using \usagemetric{},
-over two-thirds of system calls on Linux are required by 
-at least one application on every installation.
-Using \unwusagemetric{},
-Figure~\ref{fig:unweighted-syscall-popularity-trend} suggests that only 40 system calls are used by all packages,
-and 130 system calls
-are used by at least 10\% of packages.
-%In terms of a prototype maximizing its coverage of potential applications with no concern for overall usability, 130 system calls is the optimal 
-%balance of effort and reward.
-Over half of Linux system calls are used by less than 10\% of packages.  
+%We begin by looking at the \unwusagemetric{} of each system call. Figure~\ref{fig:unweighted-syscall-popularity-trend} shows the 
+%distribution of system calls across packages. 
+%Recall that using \usagemetric{},
+%over two-thirds of system calls on Linux are required by 
+%at least one application on every installation.
+%Using \unwusagemetric{},
+%Figure~\ref{fig:unweighted-syscall-popularity-trend} suggests that only 40 system calls are used by all packages,
+%and 130 system calls
+%are used by at least 10\% of packages.
+%%In terms of a prototype maximizing its coverage of potential applications with no concern for overall usability, 130 system calls is the optimal 
+%%balance of effort and reward.
+%Over half of Linux system calls are used by less than 10\% of packages.  
 
 %%% Thus, changing the security guarantees for just 130 system calls can ensure that 90\% of the packages
 %%% are secured. However, we should keep in mind that this does not mean 90\% of the systems are secured as there may be some API used by 
@@ -75,7 +75,7 @@ Chen et al.~\citep{chen02setuid} conclude that
 across all Unix flavors. 
 %BSD, System V and Linux have different interpretation of 
 %other uid-setting system calls such as setuid, setreuid and seteuid. 
-Table~\ref{tab:security_api} shows the \unwusagemetric{} 
+Table~\ref{tab:syspop:secure-api} shows the \unwusagemetric{} 
 of {\tt set*id} and {\tt get*id} system calls.
 Most packages have 
 adopted the more clear and secure interface. 
@@ -115,7 +115,7 @@ and similar variants.
 %The atomic version of these system calls, such as
 %{\tt faccessat}, avoids this attack by interpreting the path relative to
 %an already open file descriptor~\citep{tsafrir08tr}.
-Table~\ref{tab:security_api} shows the current \unwusagemetric{} of
+Table~\ref{tab:syspop:secure-api} shows the current \unwusagemetric{} of
 {\tt *at} system call variants and their older counterparts.
 We observed that the \unwusagemetric{} of
 the race-prone {\tt access} is still high (74.24\%), whereas {\tt faccessat} is only 0.63\%.
@@ -180,7 +180,7 @@ packages use the more vulnerable {\tt access} system call instead of the more se
 \end{tabular}
 \caption[\Unwusagemetric{} of secure and insecure API variations]
 {\Unwusagemetric{} of secure and insecure API variations. Higher is more important.}
-\label{tab:security_api}
+\label{tab:syspop:secure-api}
 \end{table}
 
 
@@ -193,7 +193,7 @@ and the alternative {\tt waitid} is preferred, as it more precisely specifies wh
 However, \unwusagemetric{} of {\tt wait4} and {\tt waitid} is 60.56\% and 0.24\%, respectively.
 This indicates that 60\% of the packages are still using the older {\tt wait4} system call.
 %This is another area of concern that needs to be notified to the maintainers of these packages.
-Table~\ref{tab:old} shows similar trend for some other system calls.
+Table~\ref{tab:syspop:new-api} shows similar trend for some other system calls.
 Our dataset provides more opportunity for system developers
 to actively communicate with application developers,
 in order to speed up the process of retiring problematic APIs. 
@@ -205,7 +205,7 @@ in order to speed up the process of retiring problematic APIs.
 Some APIs are specific to a particular OS,
 such as Linux,
 and often have more portable variants.
-Table~\ref{tab:linux-specific} shows the comparison between
+Table~\ref{tab:syspop:linux-specific} shows the comparison between
 Linux-specific APIs and their generic variants.
 The results show most developers prefer portable or generic APIs
 more than Linux-specific APIs.
@@ -224,7 +224,7 @@ where one version has increased functionality.
 %The existence of these API variants is caused by arbitrary choices
 %made by the OS developers.
 %In addition to some system call variants being Linux specific, in some cases, that is not the factor for developer preference of one API variant over the other.
-Table~\ref{tab:preference} shows the difference %of \unwusagemetric{}
+Table~\ref{tab:syspop:prefer-api} shows the difference %of \unwusagemetric{}
 between these system calls.
 %which are either alternative to each other,
 %or one is simply a more powerful version (more functionality; accepting more arguments) of the other.
@@ -258,7 +258,7 @@ unless a task demands the functionality of a more powerful API variant.
 \end{tabular}%
 \caption[\Unwusagemetric{} of old and new API variations.]
 {\Unwusagemetric{} of old (generally deprecated) and new (preferred) API variations. Higher is more important.}
-\label{tab:old}%
+\label{tab:syspop:new-api}
 \end{table}%
 
 
@@ -287,7 +287,7 @@ unless a task demands the functionality of a more powerful API variant.
 \caption[\Unwusagemetric{} of other API variants]
 {\Unwusagemetric{} of other API variants,
 and comparison between Linux-specific versions and more portable or generic versions. Higher is more important.}
-\label{tab:linux-specific}%
+\label{tab:syspop:linux-specific}%
 \end{table}%
 
 
@@ -312,7 +312,7 @@ and comparison between Linux-specific versions and more portable or generic vers
 \end{tabular}%
 \caption[\Unwusagemetric{} among similar API variants]
 {\Unwusagemetric{} among similar API variants. Higher is more important.}
-\label{tab:preference}%
+\label{tab:syspop:prefer-api}%
 \end{table}%
 
  
