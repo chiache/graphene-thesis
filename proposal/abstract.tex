@@ -259,25 +259,30 @@ caching the results of prefix checking, symbolic links, etc.
 With the fast path,
 the latency of Git version control system
 can be reduced by up to 25\%.
-Generally, when adopting a new system design, developers struggle to
-implement or preserve legacy support
-with prefect backward-compatibility.
-The reality is, developers often prioritize the development
-based on what they believe to be more \emph{important},
-so the decisions become skewed toward the applications they prefer.
-We suggest a new approach to guide and evaluate the implementation
-of legacy OS abstractions~\citep{tsai16apistudy}.
-The approach
-uses a representative study
-on how system APIs (e.g., system calls in Linux)
+Summarizing the similar cases,
+developers constantly struggle to
+implement or preserve whole legacy support
+when adopting new system designs. 
+In practice,
+developers often prioritize
+what they believe to be more \emph{important},
+which can be heavily skewed toward their preferred workloads.
+%We suggest a new approach to guide and evaluate the implementation
+%of legacy support~\citep{tsai16apistudy}.
+Alternatively,
+we suggest a more fractal measurement
+for how system APIs
+(e.g., Linux system calls)
 are used in applications,
-weighted by the application popularity
-among the users,
-to estimate the fractal completeness of a built system.
-According to the study, in a random installation, the applications
-supported in the \graphene{} prototype
-will be improved from 0.42\% to 21.1\%
-by merely adding two scheduling APIs that are not foreseen by the developers.
+weighted by the application popularity.
+According to the measurement,
+the percentage of applications
+supported by \graphene{},
+in a random installation,
+can be boosted
+from 0.42\% to 21.1\%,
+by merely adding two scheduling APIs
+that we did not foresee.
 %On the other hand,
 %the process of building up legacy application support
 %can be more principled,
