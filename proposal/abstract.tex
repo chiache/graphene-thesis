@@ -112,7 +112,7 @@ in order to gain qualitative benefits.
 %to maximally reuse legacy code, %from prior systems and applications,
 The porting effort for an application can range from
 recompilation of the binaries
-to fundamentally redesigning the implementation.
+to fundamental re-implementation.
 Essentially,
 the difficulty of porting is determined by the distinction between the \emph{personalities} of platforms
 --- Windows, UNIX, \liboses{}, etc.
@@ -182,8 +182,8 @@ can be isolated by simply sandboxing the RPC streams.
 %fully immune to 
 %attacks from host OSes and hardware peripherals.
 The beneficial features of \graphene{}, %are comparable to virtualization
-isolating mutually untrusting applications
-migration,
+including isolation among mutually untrusting applications,
+migration of system state,
 and platform independence,
 are comparable to virtualization,
 but at a lower resource cost.
@@ -217,18 +217,18 @@ and hardware peripherals.
 %as well as miscellaneous features in the Linux file system hierarchy.
 
 
-The principles for developing legacy support can be vastly distinct
-for different specifications,
+The principles for developing OS personalities can be vastly distinct
+among different specifications,
 and often entangled with
 the implementation of
 security mechanisms and performance optimizations.
-The multi-process abstractions in \graphene{}, for instance,
-compose a critical part of Linux personality,
-yet \graphene{} must enforce security isolation comparable to a single \picoproc{},
-with acceptable coordination efficiency.
-Similar challenges can be observed in legacy, monolithic kernels:
-when redesigning a system component for security or efficiency,
-legacy support may become obstruction.
+%The multi-process abstractions in \graphene{}, for instance,
+%compose a critical part of Linux personality,
+%yet must enforce security isolation comparable to a single \picoproc{},
+%with acceptable coordination efficiency.
+Similar challenges can be observed in legacy, monolithic kernels.
+%when redesigning a system component for security or efficiency,
+%legacy support may become obstruction.
 %Many systems provide legacy support
 %in a complex, case-by-case way,
 %potentially causing more security glitches and performance suboptimality.
@@ -238,38 +238,62 @@ legacy support may become obstruction.
 %emulating specifications and checking security policies
 %on the critical path of common cases.
 We demonstrate a case of an performance-centric, heavily engineered component,
-the \term{file system directory cache} of Linux.
+the Linux \term{file system directory cache}.
 The directory cache is designed as an optimization for path lookup,
 yet it interleaves searching path components
-with permission checks (e.g., permissions to traverse prefixes)
-and file system features (e.g., resolving symbolic links).
+with permission checks (e.g., searching prefixes)
+and file system features (e.g., resolving symbolic links),
 %while preserving the legacy file-system features and security models
 %.
 %The original Linux kernel interleaves path component searching
 %in the directory cache
 %with permission checks against security modules,
 %and retrieving file attributions.
-~\citep{tsai15dcache}
-The lookup logic can be optimized
-by sparing the hit latency from permission and attribute checks,
-and searching the directory cache in constant time.
-The optimized Linux
-can improve the latency of git version control system on Linux by up to 25\%.
-On the other hand,
-the process of building up legacy application support
-can be more principled,
-using a fractal measurement to evaluate the completeness of emulation,
-instead of the traditional binary measurement.
-%
-% a representative measurement of the completeness of emulating specifications.
-%To address the concern,
-We conduct a study on Linux system API usage
-~\citep{tsai16apistudy}
-to reveal the impact of API implementation on users
-and suggest an optimal path for maximizing the completeness in a system prototype.
-%The study reveals that all system APIs are not equally important for emulating,
-%and by prioritizing API emulation
-%developers can plan a optimal path to support a wide range of applications.
+causing suboptimal latency when the cache is warm (no cache misses)
+~\citep{tsai15dcache}.
+A fast path to improve the hit latency
+will decouple searching in the directory cache
+from other operations,
+by %full exploiting the locality and
+caching the results of prefix checking, symbolic links, etc.
+With the fast path,
+the latency of Git version control system
+can be reduced by up to 25\%.
+Summarizing the similar cases,
+developers constantly struggle to
+implement or preserve whole legacy support
+when adopting new system designs. 
+In practice,
+developers often prioritize
+what they believe to be more \emph{important},
+which can be heavily skewed toward their preferred workloads.
+%We suggest a new approach to guide and evaluate the implementation
+%of legacy support~\citep{tsai16apistudy}.
+Alternatively,
+we suggest a more fractal measurement
+for how system APIs
+(e.g., Linux system calls)
+are used in applications,
+weighted by the application popularity.
+According to the measurement,
+by merely adding two system calls to \graphene{},
+the fraction of legacy applications that can plausibly use the system
+will grow from 0.42\% to 21.1\%.
+%On the other hand,
+%the process of building up legacy application support
+%can be more principled,
+%using a fractal measurement to evaluate the completeness of emulation,
+%instead of the traditional binary measurement.
+%%
+%% a representative measurement of the completeness of emulating specifications.
+%%To address the concern,
+%We conduct a study on \term{Linux system API usage}
+%~\citep{tsai16apistudy}
+%to reveal the impact of API implementation on users
+%and suggest an optimal path for maximizing the completeness in a system prototype.
+%%The study reveals that all system APIs are not equally important for emulating,
+%%and by prioritizing API emulation
+%%developers can plan a optimal path to support a wide range of applications.
 
 
 %We present \term{\graphene{} library OS}, to enforce security isolation for native Linux applications,
