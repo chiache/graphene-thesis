@@ -271,13 +271,13 @@ which can be heavily skewed toward their preferred workloads.
 %of legacy support~\citep{tsai16apistudy}.
 Alternatively,
 we suggest a more fractal measurement
-for how system APIs
+for estimating how system APIs
 (e.g., Linux system calls)
 are used in applications,
 weighted by the application popularity.
 According to the measurement,
-by merely adding two system calls to \graphene{},
-the fraction of legacy applications that can plausibly use the system
+by merely adding two important but missing system calls to \graphene{},
+the fraction of applications that can plausibly use the system
 will grow from 0.42\% to 21.1\%.
 %On the other hand,
 %the process of building up legacy application support
@@ -308,12 +308,24 @@ will grow from 0.42\% to 21.1\%.
 %By restricting coordination over RPC streams,
 %\graphene{} effectively enforce security isolation on various of multi-process abstractions whose mechanisms can be complicated and idiosyncratic.
 
-As in-progress and proposed works,
-we explore possibility of reusing legacy code when partitioning an application,
-to purse fine-grained isolation.
-The improvement of granularity is critical for protecting highly sensitive components,
-to reduce the execution paths
-potentially exploitable.
+In conclusion, this thesis seeks systematic and generalizable solutions,
+for mitigating the limitations on
+fulfilling legacy application requirements
+in innovative system designs. % (e.g., \liboses{}).
+Besides supporting applications as a whole,
+we explore opportunity for porting legacy applications
+to a more fine-grained, partitioned model
+(e.g., enclaves),
+where an application is
+split into isolated, selectively trusted components.
+In particular,
+applications developed in managed languages, such as \java{},
+will encounter obstacles
+when being partitioned into enclaves
+due to limitations of \intel{} \sgx{}.
+%The improvement of granularity is critical for protecting highly sensitive components,
+%to reduce the execution paths
+%potentially exploitable.
 %If the subject of partitioning is a legacy system or application
 %in which code reuse is desired,
 %the challenge falls on
@@ -324,21 +336,22 @@ potentially exploitable.
 %is a technique adopted from
 %programming languages and code analysis.
 %However, 
-From the OS perspective,
-there are system design efforts that
-can fundamentally improve the amount of legacy code being reused,
-based on other techniques from programming languages and code analysis.
-These efforts include
-lifting the limitations imposed on more sophisticated languages
-and creating clean, smooth transition of system states
-which the partitioning is based on.
-We demonstrates an example
-in which applications can be painlessly partitioned
-into Intel SGX enclaves~\citep{intelsgx},
-by leveraging advantages from the \java{} language,
-on a system designed to transparently load and interface legacy \java{} classes in enclaves.
-
-
+%From the OS perspective,
+%there are system design efforts that
+%can fundamentally improve the amount of legacy code being reused,
+%based on other techniques from programming languages and code analysis.
+%These efforts include
+%lifting the limitations imposed on more sophisticated languages
+%and creating clean, smooth transition of system states
+%which the partitioning is based on.
+%We demonstrates an example
+%in which applications can be painlessly partitioned
+%into Intel SGX enclaves~\citep{intelsgx},
+%by leveraging advantages from the \java{} language,
+%on a system designed to transparently load and interface legacy \java{} classes in enclaves.
+We propose a framework that automatically split a \java{} application
+into cleanly partitioned enclaves,
+to isolate particularly sensitive execution from untrusted hosts and components.
 %Regardlessly, creating an adaptable design
 %in any partitioned system,
 %in order to resurrect as much legacy system or application code as possible,
@@ -352,7 +365,10 @@ on a system designed to transparently load and interface legacy \java{} classes 
 %The measurement provides a methodology
 %for system developers to reason about the
 %preservation of specifications and personalities.
-
+More future works target on justifying the generalizability of the compatible solutions,
+including porting \graphene{} to diverse platforms,
+and implementing major OS personality, such as resource scheduling APIs,
+hardware feature support, and security models.
 
 
 
