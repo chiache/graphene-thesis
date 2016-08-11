@@ -222,10 +222,10 @@ among different specifications,
 and often entangled with
 the implementation of
 security mechanisms and performance optimizations.
-The multi-process abstractions in \graphene{}, for instance,
-compose a critical part of Linux personality,
-yet must enforce security isolation comparable to a single \picoproc{},
-with acceptable coordination efficiency.
+%The multi-process abstractions in \graphene{}, for instance,
+%compose a critical part of Linux personality,
+%yet must enforce security isolation comparable to a single \picoproc{},
+%with acceptable coordination efficiency.
 Similar challenges can be observed in legacy, monolithic kernels.
 %when redesigning a system component for security or efficiency,
 %legacy support may become obstruction.
@@ -251,28 +251,48 @@ and file system features (e.g., resolving symbolic links),
 %and retrieving file attributions.
 causing suboptimal latency when the cache is warm (no cache misses)
 ~\citep{tsai15dcache}.
-A faster path for looking up in the directory cache
-is to spare searching from permission checks and features,
-The lookup logic can be optimized
-by sparing the hit latency from permission checks and features,
-to search the directory cache in constant time.
-The optimized Linux
-can improve the latency of git version control system on Linux by up to 25\%.
-On the other hand,
-the process of building up legacy application support
-can be more principled,
-using a fractal measurement to evaluate the completeness of emulation,
-instead of the traditional binary measurement.
-%
-% a representative measurement of the completeness of emulating specifications.
-%To address the concern,
-We conduct a study on \term{Linux system API usage}
-~\citep{tsai16apistudy}
-to reveal the impact of API implementation on users
-and suggest an optimal path for maximizing the completeness in a system prototype.
-%The study reveals that all system APIs are not equally important for emulating,
-%and by prioritizing API emulation
-%developers can plan a optimal path to support a wide range of applications.
+A fast path to improve the hit latency
+will decouple searching in the directory cache
+from other operations,
+by %full exploiting the locality and
+caching the results of prefix checking, symbolic links, etc.
+With the fast path,
+the latency of Git version control system
+can be reduced by up to 25\%.
+Generally, when adopting a new system design, developers struggle to
+implement or preserve legacy support
+with prefect backward-compatibility.
+The reality is, developers often prioritize the development
+based on what they believe to be more \emph{important},
+so the decisions become skewed toward the applications they prefer.
+We suggest a new approach to guide and evaluate the implementation
+of legacy OS abstractions~\citep{tsai16apistudy}.
+The approach
+uses a representative study
+on how system APIs (e.g., system calls in Linux)
+are used in applications,
+weighted by the application popularity
+among the users,
+to estimate the fractal completeness of a built system.
+According to the study, in a random installation, the applications
+supported in the \graphene{} prototype
+will be improved from 0.42\% to 21.1\%
+by merely adding two scheduling APIs that are not foreseen by the developers.
+%On the other hand,
+%the process of building up legacy application support
+%can be more principled,
+%using a fractal measurement to evaluate the completeness of emulation,
+%instead of the traditional binary measurement.
+%%
+%% a representative measurement of the completeness of emulating specifications.
+%%To address the concern,
+%We conduct a study on \term{Linux system API usage}
+%~\citep{tsai16apistudy}
+%to reveal the impact of API implementation on users
+%and suggest an optimal path for maximizing the completeness in a system prototype.
+%%The study reveals that all system APIs are not equally important for emulating,
+%%and by prioritizing API emulation
+%%developers can plan a optimal path to support a wide range of applications.
 
 
 %We present \term{\graphene{} library OS}, to enforce security isolation for native Linux applications,
