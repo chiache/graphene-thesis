@@ -260,25 +260,35 @@ without expanded attack surface and porting effort on the applications~\citep{ba
 %Because library OSes execute within a VM \daniela{this phrase does not read good to me because (i) it might imply the picoprocesses need hypervisor support, as misunderstood by reviewer 1 and (ii) you already emphasized the drawbacks of leveraging a VM} or lightweight process ({\em picoprocess}~\citep{xax}),
 %library OSes execute with
 
-
-In some \liboses{} such as Drawbridge~\citep{porter11drawbridge}, Bascule~\citep{baumann13bascule} and Haven~\citep{baumann14haven},
-partial support for legacy applications is provided
-by emulating the OS personalities in \picoprocs{}.
-Among the OS abstractions and features needed by legacy applications,
-many are single-process abstractions
-for which emulation can be completely wrapped inside each \picoprocs{}. %, with proper level of translation and bookkeeping.
+Plausible support for legacy applications is provided
+in some \liboses{}~\citep{porter11drawbridge, baumann13bascule, baumann14haven},
+%, such as Drawbridge~\citep{porter11drawbridge}, Bascule~\citep{baumann13bascule} and Haven~\citep{baumann14haven},
+%partial support for legacy applications is provided
+by emulating the OS personalities in individual \picoprocs{}.
+Among the OS abstractions and features that need to be emulated,
+the emulation of
+single-process abstractions,
+such as accessing unshared files, or creating multiple threads in a process,
+can be wrapped inside
+a \picoproc{}, %, with proper level of translation and bookkeeping.
+thus often relatively straightforward.
 For instance, %Drawbridge loads legacy Windows applications including Microsoft Word.
-To provide Windows abstractions and personalities,
-Drawbridge reuses 5.6 million lines of Windows 7 code in a single \picoproc{},
-and a few features such as the registry is implemented
-using in-process services. % such as the Windows registry.
-However, when it comes to multi-process abstractions,
+Drawbridge~\citep{porter11drawbridge} provides Windows abstractions and personalities,
+with 5.6 million lines of code reused from Windows 7
+to emulate the complete OS personality in a single \picoproc{},
+except a few features such as the Windows registry that has to be implemented
+separately as in-process libraries or services.
+%using in-process services. % such as the Windows registry.
+However, when it comes to emulating multi-process abstractions,
 %in contrast to single-process abstractions,
 %multi-process abstractions 
-which are especially important for Unix applications
-are more challenging, % to emulate in \picoprocs{},
-due to the assumption and
-narrowed interfaces of \picoprocs{}.
+which are commonly used by Unix applications,
+%are more challenging, % to emulate in \picoprocs{},
+%due to the assumption and
+%narrowed interfaces of \picoprocs{}.
+\picoprocs{} serving multiple processes of an application
+will need to collaboratively provide shareable OS abstractions,
+and more importantly, a unified OS view to the application.
 %% dp: Daniela, great suggestion!  We need to make this situation seem more
 %%     like the sky will fall without our help
 %A key drawback of recent library OSes, however,
@@ -294,20 +304,21 @@ narrowed interfaces of \picoprocs{}.
 %especially for unmodified Unix applications,
 %either applications must be rewritten to implement ad hoc coordination mechanisms, or
 %\liboses{} must provide commonly-used multi-process abstractions,
-The multi-process abstractions to be emulated by \libos{} includes
-forking, signals, System V IPC, file descriptor sharing, exit notification, and more.
+The multi-process abstractions to be emulated include
+forking, signals, System V IPC, file descriptor sharing, exit notification, etc.
 A possible alternative is
 %To support multi-process abstractions, \liboses{} often have 
 to rely on %sharing OS states,
 the hosts' memory sharing features to share OS states.
-However, memory sharing is not always a plausible features in the host:
-for example, Drawbridge and Bascule cannot emulate process forking because copy-on-write memory sharing is not a platform-independent features.
+However, memory sharing is not always an available features in the host:
+for example, Drawbridge and Bascule~\citep{baumann13bascule} cannot emulate process forking because copy-on-write memory sharing is not a platform-independent features.
 Furthermore, when Haven isolates applications
 in Intel SGX enclaves,
 memory sharing is strictly forbidden by the hardware platform,
 to prevent leaking secret to other enclaves.
 In a word, emulating OS abstractions and personalities can fundamentally
-oppose the system assumptions. % of operating systems. 
+oppose the assumptions or limitations of the system,
+causing obstacles to supporting legacy applications.
 
 
 %\begin{figure}[t!]
