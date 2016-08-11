@@ -10,15 +10,15 @@ legacy applications and systems represent the accumulated development effort eve
 %and can be
 %reused,
 %which can be further reused, re-factored and re-purposed in future development.
-Up to millions of legacy applications
+Up to millions of applications
 are available
 in the mainstream App stores~\citep{google-play, apple-store, ubuntu-packages};
-a large fraction of the existing applications
+Among them, a large fraction
 are restricted to specific operating system specifications (e.g., Windows or Linux)
 or programming languages (e.g., C/C++, Python, Java).
 In many occasions,
 developers attempt to
-port legacy applications from one platform, OS or language runtime to another,
+port legacy applications from one platform, OS or language to another,
 in order to harvest the past design and implementation.
 %(operating systems or language runtimes).
 The effort required for porting an application varies among different environments.
@@ -33,7 +33,8 @@ The effort required for porting an application varies among different environmen
 %without much helps from systems or programming languages.
 For instance, porting an application between Windows and Linux requires
 translating the system APIs between the OSes.
-Some of the APIs are vastly different and difficult to translate
+The primary challenge is that
+system APIs can be vastly different and difficult to translate
 --- Take the memory mapping APIs,
 {\tt VirtualAlloc} in Windows and {\tt mmap} in Linux,
 for example.
@@ -44,7 +45,9 @@ allocation granularity, security policies
 and the logic handling edge cases like unaligned addresses.
 %As the result, porting an legacy application embedded with the assumptions of its development platform
 %requires more efforts than simply translating language slangs or system APIs.
-
+As a result, porting applications often requires
+reimplementation effort
+more than simply swapping system APIs and programming language phrases.
 
 %In traditional systems, the security of an application is built upon
 %trusting the whole system stack to enforce its security policies.
@@ -55,28 +58,35 @@ and the logic handling edge cases like unaligned addresses.
 %attackers can exploit the vulnerability to bypass the security mechanisms the application rely on,
 %compromising any security policies that application enforces.
 
+Between different systems, the complexity for porting applications
+is essentially a result of design decisions made by the system developers.
+%The cause for the complexity of porting
+%falls on the design decisions made in platforms,
+These decisions can be based on
+idiosyncratic abstractions, security mechanisms, resource usage,
+quality of service, etc,
+fundamentally and structurally affecting
+the design of the systems and correspondent applications.
+Some systems, in particular, are targeting
+isolation of the applications,
+to restrain the effect of system vulnerabilities, performance bottlenecks,
+or other system pitfalls,
+as more secure or efficient options than monolithic kernels
+(e.g., Windows, Linux).
 
-The cause for the complexity of porting
-falls on the design decisions made in platforms,
-in consideration of various requirements
-such as security mechanisms, quality of service and resource consumption.
-Particularly,
-in some systems, 
-to reduce security vulnerabilities or isolate performance bottlenecks,
-developers partition the system into
-small, simpler pieces.
-In partitioned systems,
-developers can systematically prevent
-security vulnerabilities or performance bottlenecks
-to affect sensitive application logics.
-%in a way that developers can reasonably justify. %the soundness of design and implementation.
-These systems often have
-reduced or simplified interface between the partitions,
-intensifying the difficulty of reusing legacy code.
-%making legacy code reuse
-%in these systems even more challenging.
-
-
+%to reduce security vulnerabilities or isolate performance bottlenecks,
+%developers partition the system into
+%small, simpler pieces.
+%In partitioned systems,
+%developers can systematically prevent
+%security vulnerabilities or performance bottlenecks
+%to affect sensitive execution.
+%%in a way that developers can reasonably justify. %the soundness of design and implementation.
+%These systems often have
+%reduced or simplified interface between the partitions,
+%intensifying the difficulty of reusing legacy code.
+%%making legacy code reuse
+%%in these systems even more challenging.
 %However, in a system that is redesigned and restructured
 %for the sake of reducing security vulnerabilities and performance pitfalls,
 %reusing legacy code
@@ -97,9 +107,6 @@ intensifying the difficulty of reusing legacy code.
 %to assist or verify the elimination of vulnerabilities.
 %However, the former technique cannot be proven perfect, and the latter requires tremendous effort to ensure its correctness
 %when the whole system stack is huge.
-
-
-
 
 %A plausible reason for developers to
 %redesign a system
@@ -129,7 +136,6 @@ intensifying the difficulty of reusing legacy code.
 %whereas other applications are isolated.
 %Because the complexity of the host kernel is significantly reduced,
 %it is easier to eliminate its vulnerabilities.
-
 
 %Another common approach of enforcing security isolation against malicious application to use virtualization.
 %With virtualization, the shared TCB among all the guests (or tenants)
@@ -173,28 +179,46 @@ intensifying the difficulty of reusing legacy code.
 %\section{Security Isolation for Linux Multi-Process Applications\\ using a Library OS}
 %\label{sec:intro:graphene}
 
-For instance, \term{\liboses{}} enforce isolation on mutually untrusting process,
-by essentially \emph{collapsing} OS components
-into an application library loaded into the user memory of application processes, or \term{\picoprocs{}}.
-The benefits of using \liboses{} to run applications include
-isolating %the consequences of having
-security vulnerabilities in guest OSes,
-and reducing unnecessary %unneeded or redundant logics causing
-%performance bottlenecks 
-overhead for specific \picoprocs{}
---- comparable to the benefits of using \term{virtualization},
-but at a significantly lower cost~\citep{porter11drawbridge,unikernels,baumann13bascule}.
-%More recent \liboses{}
-%provide several qualitative benefits of virtualization,
-%such as migration and host platform compatibility.
-%Library OSes move portions of
-%OS kernel functionality into an application library.
-%In a \libos{}, the guest OS is 
-%% dp: too early for this nomenclature, I think
-% \daniela{(a libraryOS instance)},
-A \libos{} implements the OS system calls and supporting data structures as library functions---mapping
-high-level APIs onto
-a narrow paravirtual interface to the host kernel.
+For instance, a \term{\libos{}} splits the OS functionality from a kernel
+into the application processes,
+to isolate the applications that distrust each other
+and demand a more impenetrable barrier~\citep{porter11drawbridge,unikernels,baumann13bascule}.
+%enforce isolation on mutually untrusting process,
+%by essentially \emph{collapsing} OS components
+%into an application library loaded into the user memory of application processes, or \term{\picoprocs{}}.
+Compared with monolithic kernels,
+\liboses{} minimize the reliance on the correctness or effectiveness of kernels
+to enforce isolation.
+The isolation of \liboses{}
+%The qualitative benefits of \liboses{},
+%including isolating mutually untrusting applications,
+%migrations,
+%and platform independence,
+is based on partitioning the OS instances
+between the mutually untrusting applications,
+and leaving the \liboses{} only a
+narrow, restrictively defined interface to the host kernel.
+%The benefits of using \liboses{} to run applications include
+%isolating %the consequences of having
+%security vulnerabilities in guest OSes,
+%and reducing unnecessary %unneeded or redundant logics causing
+%%performance bottlenecks 
+%overhead for specific \picoprocs{}
+%--- comparable to the benefits of using \term{virtualization},
+%but at a significantly lower cost.
+%%More recent \liboses{}
+%%provide several qualitative benefits of virtualization,
+%%such as migration and host platform compatibility.
+%%Library OSes move portions of
+%%OS kernel functionality into an application library.
+%%In a \libos{}, the guest OS is 
+%%% dp: too early for this nomenclature, I think
+%% \daniela{(a libraryOS instance)},
+Within a process with a \libos{}, or a \term{\picoproc{}},
+the \libos{} implements the system APIs (e.g., system calls) and supporting data structures as library functions
+--- mapping the system abstractions and semantics
+to the narrow host interface.
+%a narrow paravirtual interface to the host kernel.
 Recent library OSes improve efficiency over full guest OSes by eliminating duplicated features
 between the guest and host kernel,
 such as the CPU scheduler, or
@@ -203,15 +227,22 @@ even compiling out unnecessary guest kernel APIs~\citep{unikernels}.
 Sometimes, on top of a minimized \term{\microkernel{}} that often has the size and functionality of a hypervisor,
 library OSes or applications can bypass the multiplexing of hardware resource
 to improve the performance~\citep{engler95exokernel},
-or separating operating system logics that will cause pollution of slowdowns,
+or separating system components
+that are intensively shared and bottlenecking the applications,
 such as bulk allocation of processing buffers~\citep{leslie96nemesis}.
 In total, this can reduce the memory requirements of running a single, isolated application
 by orders of magnitude, and similarly
 increase the number of applications which can run
 on a single system~\citep{porter11drawbridge,unikernels}.
-In addition, \liboses{} have been proven
-useful for porting legacy applications
-onto new hardware platforms, such as \term{\intel{} \sgx{} enclaves}~\citep{baumann14haven}.
+In addition,
+because a narrow host interface is much easier to implement on various platforms
+than the high-level system APIs,
+the library OSes are more likely to maintain \term{platform independence},
+given more opportunity to port to an innovative, vastly distinct platform. 
+A typical example is in \term{\intel{} \sgx{} enclaves},
+where applications are isolated in a restricted environment that is immune to attacks from untrusted host kernel and hardware peripherals.
+A \libos{} can support whole applications in enclaves,
+without expanded attack surface and porting effort on the applications~\citep{baumann14haven}.
 %% dp: This sentence seems a little premature
 %In recent works, library OSes provide rich OS features for isolated contexts while the host OSes are untrusted
 
