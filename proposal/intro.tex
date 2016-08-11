@@ -482,7 +482,7 @@ and functionalities than monolithic kernels,
 such as \intel{} \sgx{} enclaves.
 The essence of isolating applications using \liboses{} in enclaves
 is to ensure
-the security benefits promised by the \intel{} \sgx{} platform,
+the security benefits promised by the platform,
 %in an system enforcing stronger security isolation
 %on legacy applications,
 %such as Haven~\citep{baumann14haven},
@@ -529,11 +529,12 @@ The application integrity in \graphenesgx{}
 is validated on unencrypted,
 regularly distributed binaries,
 using checksums
-signed by the hardware-attested measurement,
-instead of relying on remote servers.
-The off-line launching model of \graphenesgx{}
-ensures that process creation policies in enclaves can be individually configured
---- a parent enclave can always identify and restrict
+signed by the hardware-attested measurement
+--- an off-line model without relying on
+remote servers.
+\graphenesgx{} ensures that
+process creation policies in enclaves can be individually configured
+--- a parent enclave can identify and restrict
 the application binaries to be loaded into any child enclaves it creates.
 %to isolate multi-process applications in a multi-enclave environment.
 %The coordination of \graphene{} based on RPC streams
@@ -582,9 +583,11 @@ the application binaries to be loaded into any child enclaves it creates.
 
 
 Besides supporting legacy applications,
-a first-order requirement in most systems will be achieving
-optimal performance, either low latency or high throughput,
-based on how users define quality of service.
+other first-order requirements in systems include
+achieving
+optimal performance
+--- as pursuing either low latency or high throughput,
+according how users define quality of service.
 Nevertheless, there is often inevitable trade-off between emulation of OS personalities
 and performance.
 For instance, in \graphene{}, coordinating OS states %for multi-process abstractions
