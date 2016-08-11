@@ -2,41 +2,48 @@
 \label{chap:intro}
 
 
-\emph{Legacy code is everywhere.}
-As an immense resource for developers,
-legacy code represents the accumulated development efforts ever made in the prior applications or systems,
+%\emph{Legacy code is everywhere.}
+As an immense resource, % for developers,
+legacy applications and systems represent the accumulated development effort ever made by developers.
 %Once any code is written,
 %it becomes part of the existing legacy code,
 %and can be
 %reused,
-which can be further reused, re-factored and re-purposed in future development.
+%which can be further reused, re-factored and re-purposed in future development.
 Up to millions of legacy applications
 are available
-in the mainstream App stores~\citep{google-play, apple-store, ubuntu-packages},
-and a large fraction of these existing applications
-are dependent to specific operating system specifications (e.g., Windows or Linux)
-and/or programming languages (e.g., C/C++, Python, Java).
+in the mainstream App stores~\citep{google-play, apple-store, ubuntu-packages};
+a large fraction of the existing applications
+are restricted to specific operating system specifications (e.g., Windows or Linux)
+or programming languages (e.g., C/C++, Python, Java).
 In many occasions,
-developers attempt to harvest the design and implementation effort of a legacy application
-and port the application to other platforms
-(operating systems or language runtimes).
-However, many of them will face the nonnegligible cost of
-rewriting and adapting the legacy code,
-on porting applications to a platform vastly different from the original one.
+developers attempt to
+port legacy applications from one platform, OS or language runtime to another,
+in order to harvest the past design and implementation.
+%(operating systems or language runtimes).
+The effort required for porting an application varies among different environments.
+%However, many of them will face the nonnegligible cost of
+%rewriting and adapting the legacy code,
+%on porting applications to a platform vastly different from the original one.
 %To reuse the design and implementation of legacy applications,
 %developers constantly attempt to port one application
 %from a specification or programming language to another.
 %Based on the complexity of applications,
 %the development efforts needed for porting can become enormous,
 %without much helps from systems or programming languages.
-For instance, the memory mapping APIs in different operating systems,
-such as {\tt VirtualAlloc} in Windows and {\tt mmap} in Linux,
-not only differ in their semantics, but also in the assumptions behind their definitions.
-The differences in the assumptions
-include allocation granularity, security policies
-and the logics of handing edge cases like having unaligned addresses and sizes.
-As the result, porting an legacy application embedded with the assumptions of its development platform
-requires more efforts than simply translating language slangs or system APIs.
+For instance, porting an application between Windows and Linux requires
+translating the system APIs between the OSes.
+Some of the APIs are vastly different and difficult to translate
+--- Take the memory mapping APIs,
+{\tt VirtualAlloc} in Windows and {\tt mmap} in Linux,
+for example.
+These APIs not only differ in the semantic,
+but also %in the assumptions behind their definitions.
+%The differences in the assumptions
+allocation granularity, security policies
+and the logic handling edge cases like unaligned addresses.
+%As the result, porting an legacy application embedded with the assumptions of its development platform
+%requires more efforts than simply translating language slangs or system APIs.
 
 
 %In traditional systems, the security of an application is built upon
