@@ -1,19 +1,38 @@
 \section{Summary}
 \label{sec:civet:summary}
 
+Partitioning an application into trusted and untrusted components
+provides more plausibility for the soundness of the sensitive execution in enclaves,
+than isolating the whole application.
+Similar to the use cases demonstrated in this chapter,
+in many applications,
+developers can identify a large fraction of execution to be irrelevant to
+the target of isolation.
+\term{\sysname{}} allows legacy applications written in high-level,
+managed languages such as \java{},
+to isolate a piece of the execution in the \sgx{} enclave.
+Unlike the non-partition model,
+in which the system is only responsible for translating system APIs to untrusted interface,
+partitioning a \java{} applications requires generate a clean separation
+of trusted and untrusted classes and object,
+and a framework to dynamically load and interface objects in enclaves.
+\sysname{} essentially enables developers to painlessly partition legacy \java{} applications into enclave,
+allowing more flexible use cases of the hardware protection.
 
-
-%Language-level analyses and hardware memory protection are both valuable
-%building blocks for secure applications.
-%\sysname{} shows a constructive synthesis of both technologies---combining their strengths
-%and mitigating downsides of either when used in isolation.
-%Although this paper focused on Java and Intel SGX as a specific case study,
-%we believe the techniques in this paper are generic enough to apply to
-%other managed languages and hardware isolation platforms.
+At a high level,
+Language-based and hardware protection are both valuable
+building blocks for secure applications.
+\sysname{} shows a constructive synthesis of both technologies
+--- combining their strengths
+and mitigating downsides of either when used in isolation.
+Although this work focuses on Java and Intel SGX as a specific case study,
+we believe the technique is more generic
+and can apply to
+other managed languages and hardware isolation platforms.
 %In future work, we plan to incorporate additional analyses
 %to further reduce the TCB size within an enclave, and to provide
 %stronger integrity protections against adversarial input.
-
+\term{This work is still in progress, and will be completed for the fulfillment of the thesis.}
 
 %% With \systemname{}, we demonstrate how hardware and language-level protection
 %% can be integrated,
@@ -28,3 +47,5 @@
 %% We show several use cases of the framework, for protecting
 %% both class implementation and output data,
 %% and keeping the development and deployment cost minimal.
+
+
