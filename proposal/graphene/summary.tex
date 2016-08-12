@@ -51,3 +51,53 @@
 %%% eliminating storage management in the host kernel, and 
 %%% investigating the impact of frequent migration among devices.
 
+Enabling legacy applications in a restricted environment,
+such as \picoprocs{} or enclaves,
+requires extra effort for mitigating the limitations of platforms,
+in order to support typical OS personalities.
+\term{\graphene{}}, as described in this chapter, extends the existing \libos{} designs
+from isolating single-process or unshared abstractions
+to include multi-process APIs required by many UNIX applications,
+such as servers or shell scripts.
+The challenge that \graphene{} primarily overcomes
+is the requirement for coordinating shared states across multiple \picoprocs{},
+to provides a collaborative, unified OS view.
+Essentially, \graphene{} implements all shared, multi-process abstractions
+and OS states
+based on coordination over host-provided, pipe-like RPC streams.
+The RPC-based, distributed OS implementation enables multi-process support in \graphene{}, with minimal extension to the host interface,
+and a sweet-spot for enforcing inter-application security isolation,
+by simply sandboxing the RPC streams.
+Such a model largely reduces the complexity of
+enforcing security isolation
+on idiosyncratic multi-process abstractions
+and shared states.
+Because the corporative nature of \picoprocs{} in \graphene{},
+an application can even dynamically impose sandboxing on one of its processes,
+to reflect per-process, variable security policies.
+
+
+In principle, we attempt to use \graphene{} to justify the platform independence
+of the \libos{} design,
+without sacrificing its qualitative benefits,
+such as isolating mutually-untrusting applications
+and a narrow attack surface to kernels.
+\graphene{} implements a considerable number of common Linux system calls,
+to support popular, modern applications
+such as Apache web server, GNU Make, OpenJDK \java{} VM and the Python runtime.
+\graphene{} translates the high-level system APIs used by applications
+to a host ABI
+inherited and extended from a previous Windows-compatible \libos{}~\citep{porter11drawbridge}.
+In addition, we port the \pal{} (Platform Adaption Layer) of \graphene{}
+to various platforms,
+including FreeBSD, OSX, Windows, and even a more restricted environment, the \intel{} \sgx{} enclaves.
+In particular, \graphene{} being ported to \intel{} \sgx{}
+(\term{\graphenesgx{}})
+can isolates applications, either single-process or multi-process,
+on a host where neither the operating system or the hardware (except the CPU package)
+is not trusted by the applications. 
+Overall, \graphene{} shows that,
+by simply porting the reasonably sized host ABI
+to a new platform,
+a whole large spectrum of legacy applications tested on the previous platforms
+can be activated all together.
