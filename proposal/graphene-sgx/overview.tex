@@ -1,4 +1,4 @@
-\section{Isolating Applications on Untrusted Hosts}
+\section{Isolating Applications from Untrusted Hosts}
 \label{sec:graphene:sgx}
 
 %\sysname{} is a port of \graphene{} \libos{} to \sgx{},
@@ -19,7 +19,7 @@
 
 \input{graphene-sgx/background}
 
-The building blocks are shown as figure~\ref{fig:gsgx:arch}.
+The building blocks are shown as figure~\ref{fig:graphene:sgx-arch}.
 \graphenesgx{} is partitioned into two parts:
 an untrusted \pal{} to initialize the enclave and provide the untrusted interface;
 and the trusted \libos{} including the host ABI, {\tt libLinux}, and core {\tt libc} libraries.
@@ -48,7 +48,7 @@ to interact with the host.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=5in]{graphene-sgx/figures/architecture.pdf}
+\includegraphics[width=5.5in]{graphene-sgx/figures/architecture.pdf}
 \footnotesize
 \caption[The \graphenesgx{} building blocks]
 {The \graphenesgx{} building blocks.
@@ -61,7 +61,7 @@ a manifest and application measurements
 are verified by \sgx{} during bootstrap. Applications and other libraries
 are verified by \graphenesgx{}. The enclave interacts with the host kernel,
 through untrusted PAL, on a narrowed untrusted interfaces with 41 functions.}
-\label{fig:gsgx:arch}
+\label{fig:graphene:sgx-arch}
 \end{figure}
 
 \paragraph{Applications Integrity.}
@@ -89,7 +89,7 @@ users may simply deploy the manifest and the signature to the untrusted host,
 and all the binaries, including the \libos{}, can be loaded from the local file system.
 
 \paragraph{Untrusted Interface.}
-The untrusted interface is defined as Table~\ref{tab:gsgx:interface}.
+The untrusted interface is defined as Table~\ref{tab:graphene:sgx-interface}.
 \graphenesgx{} draws the untrusted interface right above the calling
 of the host APIs (Linux system calls) in \pal{}.
 Most code inherited from the \graphene{} Linux \pal{} stays in
@@ -127,7 +127,7 @@ the worst scenario a malicious host can cause is \term{denial-of-the-service}.
 Most of the interface is derived from the host system call footprint of
 \graphene{} \libos{}. Enclave must not trust the hosts to
 always return right responses or faithfully perform operations.}
-\label{tab:gsgx:interface}
+\label{tab:graphene:sgx-interface}
 \end{table}
 
 %\paragraph{The Signing Tool.}
