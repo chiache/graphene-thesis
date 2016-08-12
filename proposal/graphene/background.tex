@@ -3,12 +3,12 @@
 
 %Recent library OSes~\citep{porter11drawbridge,unikernels,baumann13bascule,osv}
 %are designed for security and efficiency, but are limited to single-process applications.
-%The security isolation of libOSes derives from 
+%The security isolation of \liboses{} derives from 
 %limited, explicit data sharing and 
 %a narrow host interface.  
 A \libos{} typically executes in either a paravirtual VM~\citep{unikernels,osv}
 % \daniela{I would have the use of a VM as a discussion topic in the end of the paper.}, 
-or an OS process, called a {\em \picoproc{}}~\citep{porter11drawbridge,baumann13bascule},
+or an OS process, called a \term{\picoproc{}}~\citep{porter11drawbridge,baumann13bascule},
 with an interface restricted to a narrowed set of host kernel ABIs.
 These host ABIs heavily restrict effects outside of the application's address space;
 as a result, applications in a \picoproc{} have very little opportunity to interfere with each other,
@@ -18,9 +18,9 @@ in a VM these features typically appear in both the guest and host kernels.
 
 
 \sysname{} executes within a \picoproc{} (Figure~\ref{fig:graphene:arch}),
-which includes an {\em unmodified} application binary and supporting libraries, 
-running on a libOS instance.
-The libOS is implemented over a host kernel ABI
+which includes an \term{unmodified} application binary and supporting libraries, 
+running on a \libos{} instance.
+The \libos{} is implemented over a host kernel ABI
 designed to expose very generic abstractions that can be easily 
 implemented on any host OS, including virtual memory, threads, synchronization, byte streams (similar to pipes),
 a file system, and networking.
@@ -29,7 +29,7 @@ we adapt a host ABI from Drawbridge/Bascule,
 which has been previously implemented on Windows, Hyper-V, and Barrelfish~\citep{porter11drawbridge,baumann13bascule,baumann09barrelfish}.
 %The \sysname{} host ABI is
 % summarized in Table~\ref{tab:abi} and discussed in more detail in \S\ref{sec:linux:pal}\fixmedp{if not cut...}.  
-%which exposes only tens of simple host calls. \daniela{briefly define \picoproc{}: A \picoproc{} is unmodified application code running with a libOS.}
+%which exposes only tens of simple host calls. \daniela{briefly define \picoproc{}: A \picoproc{} is unmodified application code running with a \libos{}.}
 
 
 \begin{figure}[t]
@@ -37,17 +37,17 @@ which has been previously implemented on Windows, Hyper-V, and Barrelfish~\citep
 \includegraphics[width=6.5in]{graphene/figures/arch.pdf}
 \caption[The \sysname{} building blocks]
 {Building blocks of \sysname{}.  Black components are unmodified.
-We modify the four lowest application libraries:
+We modify the four lowest application libraries on Linux:
 {\tt ld.so} (the ELF linker and loader),
 {\tt libdl.so} (the dynamic library linker),
 {\tt libc.so} (standard library C),
 and {\tt libpthread.so} (standard threading library),
 that issue Linux system calls as function calls directly to {\tt libLinux.so}.
-Our Linux library implements the Linux system calls
+Graphene implements the Linux system calls
 using a variant of the Drawbridge ABI,
 which is provided by the Platform Adaptation Layer (\pal{}),
 implemented using calls to the kernel.
-A trusted reference monitor that ensures libOS isolation
+A trusted reference monitor that ensures \libos{} isolation
 is implemented as a kernel module.
 Another small module is added for fast bulk IPC.}
 \label{fig:graphene:arch}
@@ -56,10 +56,10 @@ Another small module is added for fast bulk IPC.}
 
 \sysname{} exports \palcalls{} host ABIs through a 
 Platform Adaptation Layer (\pal{}) (Table~\ref{tab:graphene:abi}).
-\pal{} is a binary injected into the \picoproc{} by the host, 
+The \pal{} is a binary injected into the \picoproc{} by the host, 
 and translates the generic \picoproc{} ABI into host system APIs.
 Most of these calls only affect the application-internal state;
-any calls with external effects are mediated by a trusted {\em reference monitor}.  
+any calls with external effects are mediated by a trusted \term{reference monitor} on the host.
 %The reference monitor is a trusted non-\sysname{} process running on the system.
 All \sysname{} applications are launched by the reference monitor,
 which installs a system call filter and interposes on permitted kernel calls to ensure isolation
@@ -67,7 +67,7 @@ which installs a system call filter and interposes on permitted kernel calls to 
 
 
 These \pal{} ABIs should be a sufficient substrate upon which to
-implement guest-specific semantics, or guest OS {\em personality}.
+implement guest-specific semantics, or guest \term{OS personality}.
 As an example of this layering, consider the heap memory management abstraction.
 Linux provides applications with a data segment---a 
 legacy abstraction dating back to original Unix and the era 
@@ -115,7 +115,7 @@ A \picoproc{} may not modify another \picoproc{}'s OS state.
 \begin{table}[t]
 \footnotesize
 \centering
-\begin{tabular}{|l|r|p{4.4in}|}
+\begin{tabular}{|l|r|p{4.8in}|}
 \hline
 \multicolumn{3}{|c|}{\bf Adopted from Drawbridge} \\
 \hline
@@ -148,23 +148,25 @@ Sandboxes & 1 & Move into a new sandbox, with a new manifest applied. Pipes and 
 \end{tabular}
 \caption[List of host ABI functions defined in \sysname{}]
 {Classes of  host ABI functions adopted from \drawbridge{}~\citep{porter11drawbridge}, 
-followed by ABIs added by \sysname{}.}
+followed by ABIs added by \sysname{}. \fixme{highlight difference with Bascule ABI}}
 \label{tab:graphene:abi}
 \end{table}
 
 
+\fixme{Need transition to next section.}
 
 \subsection{Multi-Process Support in Library OSes}
 
 A key design feature of Unix is that users compose simple utilities to create
 larger applications.  Thus, it is unsurprising that many popular applications for Unix or Linux
-require multiple processes---an essential feature missing from current libOS designs.
-%This gap is filled by the \sysname{} libOS, which
-%extends recent libOSes to support multi-process applications.
+require multiple processes
+--- an essential feature missing from current \libos{} designs.
+%This gap is filled by the \sysname{} \libos{}, which
+%extends recent \liboses{} to support multi-process applications.
 The underlying design challenge is minimally expanding 
 a tightly-drawn isolation boundary
 without also exposing idiosyncratic kernel abstractions or
-re-duplicating mechanisms in both the kernel and the libOS.
+re-duplicating mechanisms \fixme{Discuss deduplicating features upfront} in both the kernel and the \libos{}.
 
 %requires a careful balance among the competing goals of 
 %efficiency, host independence, and security isolation.
@@ -182,7 +184,7 @@ PID-based APIs.
 
 \vspace{5pt}
 \noindent{\bf Design Options.~}
-Multi-process  support requires extensions to the \pal{} ABI of recent libOS designs.
+Multi-process  support requires extensions to the \pal{} ABI of recent, single-process \libos{} designs.
 Because multi-process abstractions, 
 such as signals or System V IPC, 
 tend to be idiosyncratic,
@@ -192,8 +194,8 @@ to implement OS-specific abstractions.
 
 We see two primary design options:
 (1) implement processes and scheduling in 
-the library OS, and (2) treat each libOS instance as a process, and distribute the 
-shared POSIX implementation across a collection of libOSes.
+the library OS, and (2) treat each \libos{} instance as a process, and distribute the 
+shared POSIX implementation across a collection of \liboses{}.
 We selected the second option, primarily because we expected this would impose fewer
 requirements on the host, maximize flexibility in mapping processes 
 to physical resources, and facilitate inter-process security policy enforcement. % as enforcing security policies on related processes.
@@ -211,15 +213,15 @@ work to compare both options.
 %\daniela{Because Approach and Motivating Example are on the same level, its seems that
 %you are starting a new topic under Approach, when the discussion is actually a continuation of
 %Motivating Example}
-In \sysname{}, multiple libOS instances in multiple \picoprocs{} collaborate to 
+In \sysname{}, multiple \libos{} instances in multiple \picoprocs{} collaborate to 
 implement shared abstractions, such as 
  copy-on-write fork, signals, exit notification,
 and System V IPC.
-For instance, when process A signals process B on \sysname{}, A's libOS issues
-a remote procedure call (RPC) to B's libOS over a host-provided byte stream (similar to a Unix pipe),
-and B's libOS then calls the appropriate signal handler.
+For instance, when process A signals process B on \sysname{}, A's \libos{} issues
+a remote procedure call (RPC) to B's \libos{} over a host-provided byte stream (similar to a Unix pipe),
+and B's \libos{} then calls the appropriate signal handler.
 
-%%% All collaborating libOS instances exchange messages as needed 
+%%% All collaborating \libos{} instances exchange messages as needed 
 %%% to provide the application with a consistent view of 
 %%% shared abstractions,
 %%% such as
@@ -237,26 +239,26 @@ and B's libOS then calls the appropriate signal handler.
 %outside of the host kernel.
 %Shared abstractions are implemented outside of the host.
 %From the host kernel's perspective, 
-\sysname{} implements all shared abstractions in the libOS, and libOSes cooperatively manage these abstractions
+\sysname{} implements all shared abstractions in the \libos{}, and \liboses{} cooperatively manage these abstractions
 over RPC streams.
 Single-process applications still service system calls from local state, and \sysname{} 
 includes optimizations to place state where it is most likely to be used,
 minimizing RPC overheads.
-The host reference monitor can easily isolate libOSes
+The host reference monitor can easily isolate \liboses{}
 by 
-% \sysname{} design isolates libOSes by 
+% \sysname{} design isolates \liboses{} by 
 %requiring all coordination to use 
 %explicit bytes streams \daniela{, pipe-like abstractions provided by the kernel. (suggestion: Reviewer  3)}.
 %Security isolation is enforced
 %by a kernel-level {\em reference monitor}, which can 
 %disconnect or prevent creation of a
 blocking all
-RPC messages, % between libOSes that should be isolated,
-without the need to understand the libOS-level details or semantics of these abstractions.
-In our PID example, only mutually trusting libOSes can signal each other.
+RPC messages, % between \liboses{} that should be isolated,
+without the need to understand the \libos{} details or semantics of these abstractions.
+In our PID example, only mutually-trusting \liboses{} can signal each other.
 %if the reference monitor prevents creation of RPC streams
 %across mutually untrusting \picoprocs{},
-%the libOSes cannot exchange signals.
+%the \liboses{} cannot exchange signals.
 
 %%% \sysname{} is designed to 
 %%% The \sysname{} design leverages a number of optimizations to service application system calls 
@@ -267,21 +269,21 @@ In our PID example, only mutually trusting libOSes can signal each other.
 
 
 The \sysname{} library OS is designed
-to gracefully handle disconnection from other libOSes, 
+to gracefully handle disconnection from other \liboses{}, 
 facilitating dynamic application sandboxing.
 RPC streams may be disconnected at any time by 
-either the reference monitor or at the request of a libOS.
+either the reference monitor or at the request of a \libos{}.
 %Message streams may be severed externally, by the reference monitor, or 
 %one guest may simply disconnect from others to isolate itself.
 %An application may disconnect itself from the 
 %Any \sysname{} application may dynamically detach from the confederation, 
 %or a host-level sandbox may dynamically separate two guests by severing their communication channels.
-When \sysname{} libOSes are disconnected, each instance will handle the subsequent
+When \sysname{} \liboses{} are disconnected, each instance will handle the subsequent
 divergence 
 %and the library OS will will fork these abstractions
 {\em transparently} to the application.
 For instance, if a child process is disconnected from the parent by the reference monitor,
-each libOS will interpret the event as if the other process terminated---closing any open pipes,
+each \libos{} will interpret the event as if the other process terminated---closing any open pipes,
 delivering exit notifications, etc.
 % \daniela{(applications run unmodified) - Reviewer 1 asked clarification on transparently}.
 
@@ -294,19 +296,31 @@ delivering exit notifications, etc.
 \paragraph{Changes to \pal{} ABI.}
 When implementing \sysname{},
 we found that the Drawbridge ABI lacked 12 \pal{} calls
-essential to running a Linux libOS with multi-process support, and 
+essential to running a Linux \libos{} with multi-process support, and 
 \sysname{} did not require 3 \pal{} calls to support checkpoint and resume.
-Of the 12 new calls, 4 are required for single-process Linux and similar ABI have also been added by Bascule:
+Of the 12 new calls, 4 are required for single-process Linux and similar ABI have also been added by \term{Bascule}~\citep{baumann13bascule}:
 rename a file, manage segmentation hardware, and 2 for exception upcalls;
 5 are required for stream inheritance, attribute configuration, and sandboxing;
 and 3 new calls are used to utilize Bulk IPC channel, for optimizing copy-on-write fork (\S\ref{sec:graphene:impl}).
 %Our design requires only 11 additional \pal{} calls, which we believe are fundamental to executing 
 %Unix-style multi-process applications.
-Our design deliberately provides options where these new \pal{} calls are missing, to preserve the platform compatibility proven by {\em Drawbridge}. For example, copy-on-write fork can still be supported without Bulk IPC, by simply exchanging data through a regular pipe.
+We design these new \pal{} calls in consideration of the platform independence
+among different hosts;
+If a \pal{} call is added for optimizations (e.g., Bulk IPC),
+it is optional if the implementation is difficult or infeasible on a host.
+%in case that the new \pal{} calls are not possible to implement on a host,
+%the 
+%Our design deliberately provides options where these new \pal{} calls are missing, to preserve the platform importance proven by \term{Drawbridge}~\citep{porter11drawbridge}.
+For example, copy-on-write forking can still be supported
+without Bulk IPC supported on the host.
+Instead, the inheritance of process state for
+copy-on-write forking will be completely over regular pipes.
 
 \paragraph{Comparison with \microkernel{}s.}
 The building blocks of \sysname{} are very similar to the system abstractions of a 
-\microkernel{}~\citep{liedtke95sosp,klein09sel4,elphinstone13microkernels,liedtke93sosp,chen93memory,Baron:1985:MOE,Accetta:1986:MNK}.
+\microkernel{}~\citep{liedtke95sosp,klein09sel4,elphinstone13microkernels,liedtke93sosp,chen93memory,Baron:1985:MOE,Accetta:1986:MNK},
+except a \microkernel{} often has a even narrower, more restricted interface
+than the \pal{} ABI.
 %such as the port and
 %message abstractions of Mach~\citep{
 Unlike a multi-server \microkernel{} system, such as GNU Hurd~\citep{hurd} or Mach-US~\citep{stevenson95mach-us},
@@ -314,7 +328,7 @@ which implements Unix abstractions across a set of daemons that are shared by al
 \sysname{} implements system abstractions as a library in the application's address space,
 and can coordinate library state among \picoprocs{} to implement shared abstractions.
 \sysname{} guarantees isolation equivalent to running 
-an application on a dedicated VM; this isolation could be simulated on a multi-server micro-kernel
+an application on a dedicated VM; this isolation could be implemented on a multi-server \microkernel{}
 by running a dedicated set of service daemons for each application.
 
 %%% \sysname{}'s differences are motivated by two considerations: efficient support of both stand-alone, 
@@ -329,22 +343,22 @@ Similarly, we assume that \picoprocs{} are provided by a legacy OS kernel, like 
 or by a Type 2 hypervisor.  We expect that a bare metal hypervisor could export a \pal{},
 but would probably require services from a trusted VM, such as Xen's dom0~\citep{barham03xen}.
 %or the \pal{} would implement more thread scheduling, networking, and file system code;
-%or the \pal{} ABI would change to push this code into the libOS.
-Arguably, recent libOS designs might be improved by rethinking the division of labor in
-the network and file system stacks, but this is beyond the scope of this paper.
+%or the \pal{} ABI would change to push this code into the \libos{}.
+Arguably, recent \libos{} designs might be improved by rethinking the division of labor in
+the network and file system stacks, but this is beyond the scope of this thesis.
 
 \paragraph{Alternatives.}
-Another approach to support multi-process applications in a libOS 
+Another approach to support multi-process applications in a \libos{} 
 would be to use hardware MMU virtualization such as nested paging
 used by a system like Dune~\citep{belay12dune}
-in order to implement a second process abstraction, memory manager, and scheduler in the libOS.
+in order to implement a second process abstraction, memory manager, and scheduler in the \libos{}.
 This approach threatens the efficiency benefits of deduplicating these features.
 A final option is exposing additional kernel interfaces, such as signals, 
 by adding more system calls to a \picoproc{}.
 This approach undermines host independence, as many of these coordination abstractions 
 tend to be very OS-specific.
 %Unix signals vs.\ Windows events, {\tt waitpid()} vs.\ blocking on a process handle, etc.
-This approach also harms security isolation, as the libOS now has access to generally 
+This approach also harms security isolation, as the \libos{} now has access to generally 
 porous host kernel interfaces.  
 %Although legacy OSes do enforce some access control rules on coordination abstractions,
 %kernel developers must audit and add hooks to millions of lines of code.
@@ -369,7 +383,7 @@ System designs generally only meet one goal:
 traditional OSes have a rich but porous coordination interface, 
 while sandboxing systems and virtual machines (VMs) 
 are strictly isolated.
-This paper demonstrates that this unfortunate trade-off is not
+This thesis demonstrates that this unfortunate trade-off is not
 fundamental.
 %coordination or isolation.  
 
@@ -386,12 +400,12 @@ that
 users have lost confidence that an OS can comprehensively enforce 
 security isolation on these abstractions.
 
-In order to achieve strong security isolation properties for applications,
+For achieving strong security isolation on applications,
 %generally lost confidence that legacy OSes can robustly enforce security isolation, and 
 users have turned to virtual machines (VMs).
 For instance, if two customers host their websites in the same cloud service,
 the customers will insist on running their web servers in separate VMs for security.
-VMs take a heavy-handed approach to security isolation---ensuring 
+VMs take a heavy-handed approach to security isolation --- ensuring 
 that every application has a dedicated OS kernel in a hardware-isolated address space.
 Although virtual machines isolate
 applications and provide legacy OS abstractions within a VM, 

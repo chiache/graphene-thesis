@@ -1,5 +1,5 @@
 
-\section{Evaluation of \sysname{} \libos{}}
+\section{Evaluation of \sysname{}}
 \label{sec:graphene:eval}
 
 %\fixmedp{Missing back-of-the envelope for fork overheads, fraction of system calls using ipc}
@@ -38,10 +38,10 @@ Unless otherwise noted, \sysname{} measurements include the reference monitor.
 %In order to assess the relative overhead of the monitor (\S\ref{sec:eval:micro}), 
 %we include some microbenchmark measurements with and without the monitor.
 
-\paragraph{Seccomp filter optimization.~}
-Our benchmark shows that applying a seccomp filter can cause \fixme{xxx}\% overhead on {\tt getppid} syscall latency. We use a seccomp optimization patch, which just-in-time compiles filter code into machine code~\citep{seccomp-jit}.
-The result shows that the patch can improve xxx\% of {\tt getppid} latency.
-This patch is not officially adopted by Linux kernel, but it can be confirmed secure at least for x86-64 architecture.
+%\paragraph{Seccomp filter optimization.~}
+%Our benchmark shows that applying a seccomp filter can cause \fixme{xxx}\% overhead on {\tt getppid} syscall latency. We use a seccomp optimization patch, which just-in-time compiles filter code into machine code~\citep{seccomp-jit}.
+%The result shows that the patch can improve xxx\% of {\tt getppid} latency.
+%This patch is not officially adopted by Linux kernel, but it can be confirmed secure at least for x86-64 architecture.
 
 
 \begin{table}[t!b!]
@@ -536,7 +536,8 @@ Demonstrating security is always challenging, as it requires exploring all possi
 We instead offer statistics that indicate an overall reduction in attack surface,
 and qualitative validation where appropriate.
 \sysname{} runs substantial Linux applications using less than 15\% of the
-Linux system call table---reducing this attack surface.
+Linux system call table
+--- reducing this attack surface.
 We wrote several tests that attempt to issue illegal system calls with inline assembly;
 we validate that all system calls are redirected to {\tt libLinux},
 and that signals and other IPC cannot cross sandbox boundaries.
@@ -672,7 +673,7 @@ Apache {\tt mod\_\-auth\_\-basic.so} module to call the new library OS function
 {\tt sandbox\_create} after user authentication.
 The work\-er process that services the user request executes in a separate sandbox 
 with file system access restricted to only data required for that user.
-Similarly, this worker's libOS cannot coordinate shared OS abstractions with other worker processes,
+Similarly, this worker's libosannot coordinate shared OS abstractions with other worker processes,
 limiting the risk to other users if this process is exploited.
 We see interesting opportunities to expand this model in future work.
 \fixme{Describe this more.}

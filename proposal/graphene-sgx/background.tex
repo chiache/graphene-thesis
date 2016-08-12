@@ -1,8 +1,8 @@
 %\section{Background and Overview}
 %\label{sec:gsgx:background}
 
-\subsection{\intel{} \sgx{} Enclaves}
-\label{sec:graphene:background:sgx}
+%\subsection{\intel{} \sgx{} Enclaves}
+%\label{sec:graphene:background:sgx}
 
 %\begin{figure}[t!]
 %\centering
@@ -19,11 +19,11 @@
 %\label{fig:libosvssdk}
 %\end{figure}
 
-\intel{} \sgx{} ({\it Software Guard Extension})
-is a set of new x86/x64 instructions
+\intel{} \sgx{} (Software Guard Extension)
+is a set of new x86/x86\_64 instructions
 introduced in the latest \intel{} \skylake{} processors,
 to create, interface and attest
-an isolated memory region (enclave) inside applications' virtual memory.
+an isolated memory region (\term{enclave}) inside applications' virtual memory.
 \sgx{} guarantee any data in an enclave
 stay encrypted in the DRAMs, using a secret key derived from
 the application's cryptographic measurements.
@@ -38,7 +38,7 @@ expanding the execution from remote servers
 to untrusted hosts,
 to securely harness resources such as CPU cycles and DRAMs.
 
-\sgx{} is an appealing tool to protect small-scale, highly sensitive execution, 
+\sgx{} is an appealing tool for protecting small, highly sensitive execution, 
 against malicious or compromised OSes, hypervisors, or even hardware peripheral.
 For instance, \cite{hoekstra13sgx} show how SGX can be used
 to build a trusted path from a video chat application to a GPU and network card, which maintains confidentiality and integrity of the
@@ -54,8 +54,8 @@ while the untrusted code will load and interact with the trusted code.
 Even if the trusted code only contains the simplest the logic,
 the untrusted code is still needed to pass the input and output of the execution.
 
-The interaction between the trusted and untrusted code is through an {\em untrusted interface}.
-An {\em untrusted interface} is often defined by the developers, and contains a set of logical entry and exit points of the enclave.
+The interaction between the trusted and untrusted code is through an \term{untrusted interface}.
+An untrusted interface is often defined by the developers, and contains a set of logical entry and exit points of the enclave.
 However, an enclave will only have exactly one hardware entry point and one hardware exit point.
 The control transfer from the hardware entry point to the logical entry points
 is based on the operation code passed as an argument at enclave entry.
@@ -128,9 +128,9 @@ and always bear the security of the isolated execution in mind.
 For developers that are not expert to architecture and security issues,
 pursuing the partitioned model may need significant efforts.   
 
-\cite{baumann14haven} is the first to show a non-partitioned usage model,
+\term{Haven}\citep{baumann14haven} is the first to show a non-partitioned usage model,
 to load a native application with its supporting library
-into the enclave (as {\em \haven{}}).
+into the enclave.
 The non-partitioned model allows application to be run in the enclave as it is, with minimal or no porting effort.
 To support the non-partitioned model, the primary requirement is to support the system APIs called by the native application.
 \haven{} uses \drawbridge{} \libos{}~\citep{porter11drawbridge}
