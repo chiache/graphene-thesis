@@ -664,7 +664,7 @@ such as the GIT version control system.
 The culprit of the suboptimal latency is
 the requirement of permission checks and processing file system features
 that interleaves with
-looking up path components in the directory cache.
+looking up path prefixes in the directory cache.
 A more optimal design
 shall decouple the looking up cached paths
 from other operations,
@@ -1353,67 +1353,75 @@ from a technical view:
 
 \item A Linux-compatible \libos{} called \term{\graphene{}}~\citep{tsai14graphene},
 which runs legacy Linux applications in a platform independent environment.
-The platforms where \graphene{} has been ported and tested
+The platforms where \graphene{} has been ported
 include Linux, FreeBSD, OSX,
 Windows and \intel{} \sgx{} enclaves (also called \term{\graphenesgx{}}).
-Graphene extends the security isolation on untrusting, single-process applications,
-to ones that use and share UNIX multi-process abstractions,
+\graphene{} extends the security isolation on single-process applications,
+to processes that share UNIX multi-process abstractions,
 such as forking, signaling, sharing file descriptors, \sysvipc{}, etc.
 The shared states across multiple processes of an application
-is coordinated by the distributed POSIX implementation in \graphene{},
+is coordinated by the distributed implementation of OS states in \graphene{},
 over the host-provided RPC streams.
-Besides using a optional host abstraction of bulk IPC for optimizing copy-on-write forking,
-all multi-process abstractions can be
+Besides an optional host abstraction ---
+bulk IPC for optimizing copy-on-write forking ---
+all multi-process abstractions are
 implemented and coordinated completely over PRC streams,
-a feature generically provided on most platforms.
-Graphene can even support multi-process applications in \intel{} \sgx{} enclaves,
-and isolate each \picoproc{} in individual enclave.
-When Graphene isolates multiple processes in enclaves,
-the RPC streams can be trusted using \intel{} \sgx{}'s attestation feature,
-instead of relying on sandboxing by the host.
+a feature generally provided by most platforms.
+%\graphene{} further supports multi-process applications in \intel{} \sgx{} enclaves,
+%using attestation over RPC streams
+%for secure process creation.
+%and isolate each \picoproc{} in individual enclave.
+%When Graphene isolates multiple processes in enclaves,
+%the RPC streams can be trusted using \intel{} \sgx{}'s attestation feature,
+%instead of relying on sandboxing by the host.
 
 
 \item
-We identify a performance suboptimality issue in \term{Linux file system directory cache}
+We identify the suboptimal lookup latency in \term{Linux file system directory cache}
 ~\citep{tsai15dcache}.
-The root cause is
-interleaving the operation of looking up cached path components
-with implementation of specifications,
-including permission checks against distinct security models,
-file attribute retrieval,
-and resolving symbolic links.
-We optimize the lookup procedure by decoupling searching the directory cache
-from checking permissions and attributes,
-when the searched path is already cached (cache hit).
-Using the locality,
-we cache the permission check result on path prefixes in an added data structure
+This heavily engineered OS component
+optimizes looking up paths in file systems,
+yet the searching in the directory cache is closely interleaved
+with permission checks against security models,
+and file system features such as resolving symbolic links.
+%The cause is
+%interleaving the operation of looking up cached path components
+%with implementation of specifications,
+%including permission checks against distinct security models,
+%file attribute retrieval,
+%and resolving symbolic links.
+We optimize the lookup hit latency by decoupling cache searching
+from other operations.
+%from checking permissions and attributes,
+%when the searched path is already cached (cache hit).
+%Using the locality,
+We cache the result of permission checks on path prefixes in a data structure
 called prefix check cache,
-which must be invalidates when permission changes.
-The optimization assume hit latency is far more critical for applications
-than renaming or permission update latency.
-In the updated Linux kernel,
-the hit latency of {\tt stat} system calls on a long path
+which will be invalidated when permission changes.
+%The optimization assume hit latency is far more critical for applications
+%than renaming or permission update latency.
+The hit latency of {\tt stat} system calls on a long path
 can be optimized to up to 27\%,
-improving the latency of
-the Dovecot IMAP serveer by up to 12\%
-and the GIT version control system by up to 25\%
+improving the execution time
+for Dovecot IMAP server by up to 12\%
+and GIT version control system by up to 25\%.
 
 
 \item
 A study of \term{Linux API usage and compatibility}~\citep{tsai16apistudy}, to provide the information missing in
-the decision-making of system developers.
+the decision-making process of system developers.
 The study uses
-a new approach to measure platform compatibility, suitable for evaluating the relative completeness of prototype systems.
+a approach to measure platform compatibility as the relative completeness of prototype systems.
 Rather than considering compatibility a binary property % (``will something break?''),
 %yet for prototypes, which are necessarily in-progress,
 we use a fractional metric
 %(``how many programs will not break?'')
-which is better suited to measuring  the progress of a prototype.
+which is better suited to measuring the progress of a prototype.
 Based on the study,
 we provides a range of insights into current API usage patterns.
 For instance, we identify an efficient path to implementing a new Linux compatibility layer, maximizing the additional applications per system call.
 We also identify
-that usage of many APIs is similarily distributed:
+that usage of many APIs is similarly distributed:
 some are widely used, and there is a sharp drop with a very long tail
 of rarely or never-used APIs.
 
@@ -1421,7 +1429,7 @@ of rarely or never-used APIs.
 \item
 A framework called \term{Civet},
 that combines the isolated execution of \intel{} \sgx{} and
-language protections of \java{},
+\java{} language protections,
 for partitioning legacy \java{} applications.
 \civet{} includes
 a tool that automates code compartmentalization,
@@ -1445,11 +1453,11 @@ and a web application deployed over HTTP.
 
 
 \paragraph{Organization.}
-The organization of this thesis proposal is as follows:
+The organization of this thesis is presented as follows:
 \begin{compactitem}
 \item \S\ref{chap:graphene}
-describes \graphene{} and the approach for supporting multi-process, Linux applications in sandboxed \picoprocs{},
-or hardware-isolated enclaves.
+describes the \graphene{} approach for supporting multi-process, Linux applications in mutually isolated \picoprocs{},
+or enclaves.
 \item \S\ref{chap:dcache}
 explains a fast-path design for optimizing the hit latency for looking up in Linux's egacy file system directory cache.
 \item \S\ref{chap:syspop}
