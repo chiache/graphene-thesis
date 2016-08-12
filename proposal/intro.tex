@@ -582,6 +582,7 @@ the application binaries to be loaded into any child enclaves it creates.
 %with the benefit of minimizing the porting effort from using the non-partitioned model.
 
 
+\paragraph{Improving Efficiency with Legacy Support.}
 Besides supporting legacy applications,
 another first-order requirement in systems is
 to pursue low latency or high throughput,
@@ -679,9 +680,11 @@ various security mechanisms (e.g., AppArmor, SELinux)
 and most underlying storage (e.g., Ext4, Pseudo file systems).
 
 
-In general, due to the complexity of building or preserving complete legacy support,
-developers often prioritize the implementation
-based on what they believe to be more important
+\paragraph{Measurements for System Completeness.}
+In general, due to the complexity of implementation or preserving
+the complete specifications,
+developers must prioritize the development based on
+what they believe to be more important
 --- what will impact or satisfy more applications or more users.
 Especially for innovative systems like \liboses{},
 developers struggle to evaluate the progress in a partial prototype.
@@ -744,7 +747,7 @@ by simply adding two missing system calls, {\tt sched\_setcheduler} and {\tt sch
 
 
 
-
+\paragraph{Partitioning Legacy Applications.}
 %and derive principles to improve the result of implementation.
 We observe that in order to partition a system or application
 in finer granularity,
@@ -1309,6 +1312,7 @@ is safe to be released from the enclave.
 %may contain more than thousands of \java{} classes.
 %All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.
 
+\paragraph{Contributions.}
 This thesis proposal studies the challenges and principles,
 in designing a partitioned or optimized system that can optimally reuse legacy code.
 The following list describes the contributions,
@@ -1409,17 +1413,19 @@ and a web application deployed over HTTP.
 
 
 
-
+\paragraph{Organization.}
 The organization of this thesis proposal is as follows:
-{\bf Chapter~\ref{chap:graphene}} describes the implementation of \graphene{}\libos{} for isolating legacy Linux, multi-process applications.
-{\bf Chapter~\ref{chap:dcache}} explains the optimizations on the lookup latency of
+\begin{compactitem}
+\item \S\ref{chap:graphene} describes the implementation of \graphene{}\libos{} for isolating legacy Linux, multi-process applications.
+\item \S\ref{chap:dcache} explains the optimizations on the lookup latency of
 Linux's legacy file system directory cache.
-{\bf Chapter~\ref{chap:syspop}} discusses the study of system API usage and compatibility,
+\item \S\ref{chap:syspop} discusses the study of system API usage and compatibility,
 and the use of study data to prioritize system building.
-{\bf Chapter~\ref{chap:civet}} presents the ongoing work for partitioning security-sensitive
+\item \S\ref{chap:civet} presents the ongoing work for partitioning security-sensitive
 \java{} applications to gain fine-grained isolation from \intel{} \sgx{} enclaves,
 with legacy code optimally reused.
-{\bf Chapter~\ref{chap:future}} lists the proposed tasks for the fulfillment of thesis,
+\item \S\ref{chap:future} lists the proposed tasks for the fulfillment of thesis,
 and possible future directions.
-{\bf Chapter~\ref{chap:related}} describes the former works and publications related to
+\item \S\ref{chap:related} describes the former works and publications related to
 the topics covered in this thesis proposal.
+\end{compactitem}
