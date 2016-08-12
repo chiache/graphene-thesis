@@ -1,9 +1,21 @@
 %\section{Introduction}
 %\label{sec:dcache:introduction}
 
-Operating System kernels commonly cache file system data and metadata in 
-a virtual file system (VFS) layer, which abstracts low-level file systems into a common API, 
-such as POSIX.  
+Legacy operating systems, such as Linux, are full of sophisticated logics,
+designed for fulfilling
+requirements and properties that are
+diverse but comparably important.
+These requirements and properties often include
+efficiency of system operations (either latency or throughput),
+implementation of security mechanisms,
+and preserving OS specifications.
+This chapter particularly focuses on
+an OS feature that commonly exists in many systems, and has cost significant development effort for its improvement
+--- the \term{file system directory cache}.
+The file system directory cache is a component of the virtual file system (VFS) layer in many operating system kernels.
+%Operating System kernels commonly cache file system data and metadata in 
+%a virtual file system (VFS) layer, which abstracts low-level file systems into a common API, 
+%such as POSIX.  
 This caching layer has become a ubiquitous optimization
 to hide access latency for 
 persistent storage technologies, such as a local disk.
@@ -20,7 +32,7 @@ persistent storage technologies, such as a local disk.
 %% on the file and its parent directories;
 %% a directory cache can commonly avoid these reads.
 The directory cache is not exclusively a performance optimization; it also simplifies 
-the implementation of {\tt mount}-ing multiple file systems, 
+the implementation of mounting multiple file systems, 
 consistent file handle behavior,
 and advanced security 
 models, such as SELinux~\citep{selinux}.
@@ -116,7 +128,7 @@ further reduces {\tt stat} system call latency by \statspeedup{}\%.}
 
 
 %\fixmedp{Add more evidence of lookup importance here: For instance, fraction of lookup time in file-related syscalls, or total lookup time in applications bound on file lookup latency.  }
-Unfortunately, even directory cache hits are costly---0.3--1.1 \us{} for a {\tt stat} on our test Linux system, compared to only .04 \us{} for a {\tt getppid} and 0.3 \us{} for a 4 KB {\tt pread}. 
+Unfortunately, even directory cache hits are costly --- 0.3--1.1 \us{} for a {\tt stat} on our test Linux system, compared to only .04 \us{} for a {\tt getppid} and 0.3 \us{} for a 4 KB {\tt pread}. 
 %\fixmetsai{Don, check this, I think read will be a better example, getppid is too trivial.}
 This issue is taken particularly seriously in the Linux kernel community, which has 
 made substantial revisions and increasingly elaborate optimizations to reduce the hit cost
