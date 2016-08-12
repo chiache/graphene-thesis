@@ -133,14 +133,14 @@ size of the source base, even on Linux; we select compile of {\tt libLinux} as a
 %every compilation we measured on \sysname{} had less than 10\% memory overhead.
 
 Unixbench on \sysname{} uses substantially more memory at a given time than native Linux---more than double.
-In these samples, however, \sysname{} also had 3--4$\times$ as many processes
+In these samples, however, \sysname{} also had 3--4\x{} as many processes
 running; this is because Unixbench simply spawns all of the tasks in the background, rather than
 executing them sequentially.   Because \sysname{} processes execute more slowly (attributable to a slower {\tt fork}---\S\ref{sec:graphene:eval:perf}),
 a given sample will include more \picoprocs{}, pushing total memory usage higher.
 Thus, we expect that further tuning {\tt fork} performance will lower sampled memory usage.
 
 
-Across all workloads, \sysname{}'s memory footprint is 3--20 times  
+Across all workloads, \sysname{}'s memory footprint is 3--20\x{}  
 smaller than KVM.  
 For all tests, we used a minimal KVM disk image, 
 %formatted as a 30GB\fixmewkj{this can be changed to be smaller, but I don't know if disk size would impact memory} raw disk image with ext4. The root image was 
@@ -247,7 +247,7 @@ Compilation workloads incur overheads ranging from 5--30\%.
 %All compilation workloads have minimal overheads compared to native when executed sequentially;
 Parallel compilation on both \sysname{} and Linux yields comparable  speedups  over sequential,
 but the percent overhead increases for parallel \sysname{}.
-For instance, {\tt make -j4 libLinux} speeds up 3.7$\times$ on Linux and 3.4$\times$ on \sysname{}.
+For instance, {\tt make -j4 libLinux} speeds up 3.7\x{} on Linux and 3.4$\times$ on \sysname{}.
 The compilation overheads are primarily from the reference monitor---nearly all for bzip2 and gcc, and half for {\tt libLinux}.
 %Nearly all of the overhead from the bzip2 and gcc compilations are from the reference monitor; about half of the overheads of {\tt libLinux} compile 
 %are the reference monitor and half are \sysname{} itself.
@@ -360,9 +360,9 @@ Overheads are relative to Linux; negative overheads indicate improved performanc
 The most expensive system calls occur when {\tt libLinux} inadvertently duplicates work
 with the host kernel.  
 For instance, many of the file path and handle management calls duplicate some of the effort of the host file system,
-leading to a 1--3$\times$ slower implementation than native.
+leading to a 1--3\x{} slower implementation than native.
 As the worst example,
-{\tt fork+exit} is \~{}5.9$\times$ slower than Linux.
+{\tt fork+exit} is 5.9\x{} slower than Linux.
 Profiling indicates that about one sixth of this overhead is in process creation, which 
 takes additional work to create a clean \picoproc{} on Linux; we expect this overhead could be reduced
 with a kernel-level implementation of the process creation ABI, rather than emulating this behavior on {\tt clone}.
@@ -398,7 +398,7 @@ would make all reference monitoring overheads negligible.
 \multicolumn{2}{c|}{{\bf Linux}} &
 \multicolumn{3}{c|}{{\bf \sysname{}}} &
 \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
- & & $\mu$s & +/- & $\mu$s & +/- & & $\mu$s & +/- & \\
+ & & \us{} & +/- & \us{} & +/- & & \us{} & +/- & \\
 \hline
 msgget   & in-process    & 3320	& 0.7 &  2823 & 0.3 &	-15	\%	&  xxxx & x.x &	xxx	\%	\\
 (create) & inter-process & 3336	& 0.5 &  2879 & 3.6 &	-14	\%	&  xxxx & x.x &	xxx	\%	\\
@@ -676,7 +676,7 @@ with file system access restricted to only data required for that user.
 Similarly, this worker's libosannot coordinate shared OS abstractions with other worker processes,
 limiting the risk to other users if this process is exploited.
 We see interesting opportunities to expand this model in future work.
-\fixme{Describe this more.}
+\fixme{Describe in details.}
 
 %The module detaches a child process that serves the request, put it in a more
 %restrictive sandbox with limited access to the filesystem, without downgrading functionality.
