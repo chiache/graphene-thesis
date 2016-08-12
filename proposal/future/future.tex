@@ -2,8 +2,6 @@
 \label{chap:future}
 
 
-\fixme{rewriting the future works}
-
 
 In our previous works, we explore several models of enabling
 whole or part of legacy applications
@@ -99,7 +97,7 @@ is missing in \drawbridge{}, and added in both Bascule and \graphene{} afterward
 
 In this thesis we focus on implement Linux personality:
 \graphene{} supports \syscalls{} Linux system calls,
-based on what we considered to be the most commonly used.
+selected by what we considered to be the most commonly used.
 However, according to our study of Linux system API usage in a large, representative application sample,
 for any Linux installations,
 there are only 0.4\% of the installed applications whose system API footprint
@@ -107,6 +105,8 @@ are completely supported by \graphene{}.
 Moreover, the study suggests that completeness of \graphene{} can be largely boosted (from 0.4\% to 21\%)
 by adding two scheduling system calls,
 {\tt sched\_setscheduler} and {\tt sched\_setparam}.
+In future, we will guide the implementation of system APIs
+using the measurements derived from our study.
 
 
 \begin{table}[t]
@@ -138,22 +138,29 @@ or allowing configuration in manifests.}
 
 The Linux system calls that are not implemented in \graphene{}
 % besides the one we anticipate to be supported in the near future,
-are primarily for two purposes:
-to specify policies of host resources multiplexing;
-and to access host hardware features.
-An example for the former is scheduling APIs, such as {\tt sched\_setscheduler}.
-The latter includes
-a wide range of {\tt ioctl} opcodes,
-and NUMA-related system calls like {\tt migrate\_pages}.
-These abstractions cannot be implemented in the library OS
-without extension of the host ABI.
-The advance the completeness of \graphene{},
-we will design host ABI to by
-either providing an platform-independent interface
-for \picoprocs{},
-or allowing users to specify the resource multiplexing policy in the manifests.
-Table~\ref{tab:future:abi} lists the top-priority host abstractions
-that should be provided to \picoprocs{}.
+can be primarily categorized into two types.
+One type is the APIs
+to specify policies for scheduling host resources;
+and the other is to provide functionality of host hardware features.
+Examples for the former type are the scheduling system calls mentioned earlier.
+% such as {\tt sched\_setscheduler}.
+The latter type includes
+various \term{{\tt ioctl} opcodes},
+and \term{NUMA-related APIs} like {\tt migrate\_pages}.
+These abstractions are impossible to implement in \liboses{}
+without extension to the host ABI.
+To complete these system calls,
+we will design \term{new host interface} to expose these host abstractions
+to applications,
+or rely on \term{manifest file}
+to specify the scheduling policy of hardware resource.
+%The advance the completeness of \graphene{},
+%we will design host ABI to by
+%either providing an platform-independent interface
+%for \picoprocs{},
+%or allowing users to specify the resource multiplexing policy in the manifests.
+Table~\ref{tab:future:abi} lists the first-order host abstractions
+that need be provided in the \graphene{} host ABI.
 
 
 \begin{table}[t]
@@ -178,31 +185,37 @@ and the coping strategies.}
 \label{tab:future:abi-limit}
 \end{table}
 
-Besides the feasibility of implementing OS personalities,
-we also demonstrate the neutrality of the host ABI,
-to prove that \graphene{} is portable to other host platforms.
+%Besides the feasibility of implementing OS personalities,
+We also have to demonstrate the neutrality and portability of the host ABI,
+to justify that \graphene{} is independent to most host platforms.
 However, the assumptions made in our host ABI definitions
 can be violated on specific host platforms
-due to limited platform features.
+due to the platform limitations and characteristics.
 For instance, although not defined explicitly in the host ABI,
 a Linux \picoprocs{} requires the host platforms
-to reserve part of the address space, for loading position-dependent binaries.
+to reserve part of the address space (often near {\tt 0x4000000}), for loading position-dependent binaries.
 % that are not compiled as position independent.
-The requirement is a challenge on platforms
-where part of the \picoprocs{}' virtual memory is always occupied by the host,
-or only allowed in a specific range.
+Such a requirement is a challenge to the platforms
+in which the virtual memory of a process is partially preoccupied by the host,
+or restricted to a specific range.
+We observe the phenomenon in two of the ported platforms:
+in Windows, user stacks and PCBs (process control blocks) can overlap with the demanded address;
+in \sgx{} enclaves, the range of mappable memory is
+restricted to a preset region.
 %processes are only allowed to access a limited range of virtual memory.
 Table~\ref{tab:future:abi-limit}
-lists the platform limitations that affects the implementation of host ABI.
-We propose strategies to remove the limitations for the reinforcement of platform independence.
+lists the platform limitations that affects the implementation of host ABI,
+and the proposed strategies to remove the limitations.
+% for the reinforcement of platform independence.
 
 
-Proving the platform independence of \graphene{} will
+Essentially,
+justifying the platform independence of \graphene{} will
 require porting its host ABI to more diverse platforms,
-especially ones that do not rely on monolithic kernels.
-One example is to port \graphene{} to a \term{\microkernel{}}
-such as L4 and SeL4~\citep{l4family, klein09sel4}.
-Porting \picoprocs{} to \microkernel{} will allows running legacy applications
+especially ones that do not rely on monolithic kernels with abundant APIs.
+One opportunity is to port \graphene{} to a \term{\microkernel{}}
+such as L4~\citep{l4family, klein09sel4}.
+Porting \picoprocs{} to \microkernel{} will allow running legacy applications
 in a host with restricted resource,
 at a smaller cost than porting a monolithic kernel ported to \microkernel{}
 (e.g., L4Linux~\citep{hartig97mu}).
