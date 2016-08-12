@@ -1,5 +1,35 @@
+\newpage
 \section{Summary}
 \label{sec:dcache:summary}
+
+The \term{file system directory cache} is a sophisticated subsystem
+of the Linux virtual file system (VFS),
+which is designed for caching the file paths and metadata
+retrieved from the storage
+in the main memory.
+We observe missed opportunities in the design of the directory cache,
+primarily in removing the redundant operations
+that contribute to the lookup latency at cache hits.
+These operations include checking prefix permissions against security models,
+detecting mount points,
+and resolving symbolic links, etc.
+A fast path for looking up already cached information
+will fully exploit the locality of path access in the file system,
+to cache the results of permission checks and other redundant operations.
+The optimized design not only
+minimizes the hit latency in favor of frequently accessed paths,
+but also improves the hit rate,
+by capturing other missed information (e.g., nonexistent paths) that
+can be cached in the memory.
+%For instance, for the paths confirmed to be nonexistent in the storage,
+%especially when the path is recently deleted,
+%or one of its prefix is a nonexistent directory,
+%a \emph{negative entry} can be stored in the directory cache.
+Essentially, we optimize the hit latency by penalizing the infrequent operations
+of updating path attributes and permissions,
+as an acceptable trade-off in most scenarios.
+
+
 
 %This paper presents a directory cache design
 %that efficiently 
@@ -21,3 +51,5 @@
 %making them suitable for practical deployment.
 
 %\tsai{14 pages, not including references}
+
+
