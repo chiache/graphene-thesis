@@ -1,16 +1,27 @@
 \chapter{Future Works and Proposals}
 \label{chap:future}
 
-In our previous works, we explore several models of
-reusing or resurrecting the development efforts in legacy code
-that occur in diverse scenarios.
-The cases studied include
-partitioned systems such as library OSes,
-conventional components in legacy OSes such as file system directory cache in Linux,
-and partitioning a legacy \java{} application for isolated execution.
-For future works, and the fulfillment of this thesis,
-we will explore improving out solutions in more generalized models,
-and reducing the weaknesses we observe in these solutions.
+
+\fixme{rewriting the future works}
+
+
+In our previous works, we explore several models of enabling
+whole or part of legacy applications
+in different system designs and platforms
+(i.e., \liboses{}, \sgx{} enclaves, optimized directory cache).
+%reusing or resurrecting the development efforts in legacy code
+%that occur in diverse scenarios.
+%The cases studied include
+%partitioned systems such as library OSes,
+%conventional components in legacy OSes such as file system directory cache in Linux,
+%and partitioning a legacy \java{} application for isolated execution.
+For future works and the fulfillment of the thesis,
+we will explore
+opportunities in generalizing the current works to more use cases,
+and mitigating the principal weaknesses.
+
+%improving the solutions in more generalized models,
+%and reducing the weaknesses we observe in these solutions.
 %that occur in diverse scenarios.
 %For instance, \graphene{} and \gsgx{} both utilize a highly compatible library OS,
 %but isolate applications with drastically different assumptions.
@@ -24,20 +35,29 @@ and reducing the weaknesses we observe in these solutions.
 \section{Generalizing Platform Independence}
 \label{sec:future:independence}
 
-In library OSes, legacy applications are reused
-by the \picoprocs{} implementing abstractions and personalities of the development platforms.
-Library OSes essentially translate the abstractions or APIs
-to the interfaces and conventions, often reduced or redefined, on the host platforms.
-In particular, a few library OSes~\citep{porter11drawbridge, baumann13bascule, baumann14haven, tsai14graphene}
-relies on a host ABI defined to be \term{platform independent}
---- the semantics and assumptions of the ABI are supposed to be
-reasonably feasible for implementation
-on most host platforms.
-For instance, most platforms provide the abstractions and features
-of a hierarchical file system,
-with operations for opening,
-accessing and querying the files,
-using similar interfaces.
+Existing \liboses{} enable legacy applications
+by implementing the OS abstractions and personalities,
+%that the applications depend on,
+using the interfaces provided on the host platforms.
+The responsibility of \liboses{} % in the process
+is essentially translating the abstractions or APIs to the host interfaces and conventions.
+To provide \term{platform independent},
+\liboses{} rely on the definition of host ABI to be
+generic to underlying platforms~\citep{porter11drawbridge, baumann13bascule, baumann14haven, tsai14graphene}
+--- assuming porting the host ABI to different platforms
+shall be reasonably feasible.
+%the semantics and assumptions of the ABI are supposed to be
+%reasonably feasible for implementation
+%on most host platforms.
+The abstractions in the host ABI
+include the commonly shared features of most platforms,
+such as file systems, networks, memory mappings, etc,
+with the semantics defined as translatable as possible.
+%For instance, most platforms provide the abstractions and features
+%of a hierarchical file system,
+%with operations for opening,
+%accessing and querying the files,
+%using similar interfaces.
 
 
 Platform independence in library OSes are demonstrated by the complexity of legacy applications being supported,
