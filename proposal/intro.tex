@@ -583,11 +583,10 @@ the application binaries to be loaded into any child enclaves it creates.
 
 
 \paragraph{Improving Efficiency with Legacy Support.}
-Besides supporting legacy applications,
-another first-order requirement in systems is
-to pursue low latency or high throughput,
+One of the other first-order requirements in systems, besides legacy support,
+is to pursue low latency or high throughput,
 according to how users define quality of service.
-Nevertheless, there is a trade-off between the emulation of OS personalities
+Nevertheless, there is a trade-off between the emulation of OS personality
 and the efficiency of system operations.
 \graphene{}, for instance, coordinates OS states %for multi-process abstractions
 over PRC streams,
@@ -748,41 +747,73 @@ by simply adding two missing system calls, {\tt sched\_setcheduler} and {\tt sch
 
 
 \paragraph{Partitioning Legacy Applications.}
+Beside supporting whole applications,
 %and derive principles to improve the result of implementation.
-We observe that in order to partition a system or application
-in finer granularity,
-%such as an extremely sensitive component,
-%legacy code reuse will become even more challenging.
-%In this case,
-%inevitably,
-applying techniques from programming languages %and code analysis
-will become necessary.
-Specifically, one technique that developers will need is automated compartmentalization of legacy code.
-%The reason is, 
-Unless the partitioned component code is compact and simple,
-the effort required
-for cleanly and minimally partitioning the code
-will be too high.
-For an application developed in a managed or object-oriented language (e.g., \java{}),
-code compartmentalization can be effective enough to create close-to-optimal partitioning.
+we also explore the opportunity of partitioning a legacy application,
+in a model where it is split into
+trusted and untrusted components that are isolated by platforms like enclaves.
+The partitioned model for porting to enclaves
+is commonly used for quarantining the extremely sensitive execution
+in an application.
+The purpose of partitioning is to
+defend against the whole, untrusted host systems (except the CPUs)
+as well as other less sensitive components,
+in order to minimize the trusted computing base.
+The weakness of the model is,
+partitioning an application requires additional effort to identify and separate
+the execution that needs to be protected,
+and the effort becomes unacceptably expensive when the application is considerably sophisticated.
+In particular, we are targeting applications implemented
+in a managed language such as \java{},
+which are more likely to be automatically compartmentalized
+using programming language techniques.
 
-The reason for pursuing \java{} application partitioning
+
+%We observe that in order to partition a system or application
+%in finer granularity,
+%%such as an extremely sensitive component,
+%%legacy code reuse will become even more challenging.
+%%In this case,
+%%inevitably,
+%applying techniques from programming languages %and code analysis
+%will become necessary.
+%Specifically, one technique that developers will need is automated compartmentalization of legacy code.
+%%The reason is, 
+%Unless the partitioned component code is compact and simple,
+%the effort required
+%for cleanly and minimally partitioning the code
+%will be too high.
+%For an application developed in a managed or object-oriented language (e.g., \java{}),
+%code compartmentalization can be effective enough to create close-to-optimal partitioning.
+
+The motivation for pursuing \java{} application partitioning
 is two-folded.
-On the one hand, legacy applications developed in \java{} or other managed languages
-are supported by
-isolated environments such as \intel{} \sgx{} enclaves.
-To load an application into an enclave,
-both the execution and interface of the application code
-have to be static
-ever since the enclave starts.
-Because \java{} classes are dynamically loaded and managed by \java{} VMs,
-extra support from the system will be necessary.
+On one hand,
+many enterprise or cross-platform applications
+are developed in \java{},
+but so far no enclave support for whole or partial \java{} applications
+is ever provided.
+%To load an application into an enclave,
+%both the execution and interface of the application code
+%have to be static
+%ever since the enclave starts.
+%Because \java{} classes are dynamically loaded and managed by \java{} VMs,
+%extra support from the system will be necessary.
 On the other hand,
-an application or component isolated in an enclave must be %verified to
-immune to security vulnerabilities,
-otherwise there will be risks of leaking the enclave secrets.
-By allowing developers to reuse \java{} code in enclaves,
-more advantages and tools from the programming language can further ensure the soundness of isolated components.
+execution isolated in an enclave must be unconditionally trusted;
+if any vulnerabilities exist in the execution,
+the attack can infiltrate from the untrusted host to compromise the isolation.
+However,
+just as the whole application,
+the isolated part is also hard to completely eliminate vulnerabilities.
+%an application or component isolated in an enclave must be %verified to
+%immune to security vulnerabilities,
+%otherwise there will be risks of leaking the enclave secrets.
+By allowing developers to port \java{} applications into enclaves,
+protection mechanisms based on
+the characteristics of \java{} language,
+such as type checking, information flow tracking among objects,
+can further ensure the soundness of isolated execution.
 The automated partitioning of \java{} applications into enclaves
 is an ongoing work.
 
@@ -1313,9 +1344,9 @@ is safe to be released from the enclave.
 %All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.
 
 \paragraph{Contributions.}
-This thesis proposal studies the challenges and principles,
-in designing a partitioned or optimized system that can optimally reuse legacy code.
-The following list describes the contributions,
+This thesis proposes the challenges, solutions and principles,
+to mitigate limitations from innovative system designs on enabling the execution of legacy applications.
+The following list describes the contributions of the thesis,
 from a technical view:
 
 \begin{compactitem}
@@ -1416,16 +1447,22 @@ and a web application deployed over HTTP.
 \paragraph{Organization.}
 The organization of this thesis proposal is as follows:
 \begin{compactitem}
-\item \S\ref{chap:graphene} describes the implementation of \graphene{}\libos{} for isolating legacy Linux, multi-process applications.
-\item \S\ref{chap:dcache} explains the optimizations on the lookup latency of
-Linux's legacy file system directory cache.
-\item \S\ref{chap:syspop} discusses the study of system API usage and compatibility,
-and the use of study data to prioritize system building.
-\item \S\ref{chap:civet} presents the ongoing work for partitioning security-sensitive
-\java{} applications to gain fine-grained isolation from \intel{} \sgx{} enclaves,
-with legacy code optimally reused.
-\item \S\ref{chap:future} lists the proposed tasks for the fulfillment of thesis,
-and possible future directions.
-\item \S\ref{chap:related} describes the former works and publications related to
-the topics covered in this thesis proposal.
+\item \S\ref{chap:graphene}
+describes \graphene{} and the approach for supporting multi-process, Linux applications in sandboxed \picoprocs{},
+or hardware-isolated enclaves.
+\item \S\ref{chap:dcache}
+explains a fast-path design for optimizing the hit latency for looking up in Linux's egacy file system directory cache.
+\item \S\ref{chap:syspop}
+discusses new, fractal measurements for evaluating importance of system APIs and completeness of prototype systems,
+based on a study of Linux API usage and compatibility.
+\item \S\ref{chap:civet}
+presents the ongoing work of partitioning
+\java{} applications to isolate the most sensitive execution
+in \intel{} \sgx{} enclaves.
+\item \S\ref{chap:future}
+lists the proposed tasks for the fulfillment of thesis,
+and other future directions.
+\item \S\ref{chap:related}
+describes the former works and publications related to
+the topics covered in this thesis.
 \end{compactitem}
