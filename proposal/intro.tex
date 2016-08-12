@@ -313,7 +313,7 @@ the hosts' memory sharing features to share OS states.
 However, memory sharing is not always an available features in the host:
 for example, Drawbridge and Bascule~\citep{baumann13bascule} cannot emulate process forking because copy-on-write memory sharing is not a platform-independent features.
 Furthermore, when Haven isolates applications
-in Intel SGX enclaves,
+in enclaves,
 memory sharing is strictly forbidden by the hardware platform,
 to prevent leaking secret to other enclaves.
 In a word, emulating OS abstractions and personalities can fundamentally
@@ -489,7 +489,7 @@ the security benefits promised by the platform,
 %it is necessary
 %%the system must not only emulate the personalities,
 %to provide the security benefits promised by the platform
-%(i.e., \intel{} \sgx{} enclaves).
+%(i.e., enclaves).
 %%instead of simply emulating the personalities.
 %For instance,
 %the security benefits of enclaves
@@ -522,7 +522,7 @@ and being overly reliant on the remote server.
 % and being incapable of isolating multi-process applications.
 % especially in the finer, per-process granularity.
 Addressing these issues,
-by porting \graphene{} to \intel{} \sgx{} enclaves
+by porting \graphene{} to enclaves
 (\term{\graphenesgx{}}),
 we reassure multi-process, UNIX applications in a multi-enclave environment.
 The application integrity in \graphenesgx{} 
@@ -740,7 +740,7 @@ by simply adding two missing system calls, {\tt sched\_setcheduler} and {\tt sch
 %we explore the solutions and principles,
 %to implement OS support for legacy applications in either 
 %isolated systems
-%(i.e., \graphene{} \libos{}, \intel{} \sgx{} enclaves) 
+%(i.e., \graphene{} \libos{}, enclaves) 
 %or optimized legacy OS components
 %(i.e., Linux file system directory cache).
 
@@ -865,7 +865,7 @@ is an ongoing work.
 %\label{sec:intro:civet}
 
 %% \fixme{Chia-Che Tsai's opening}
-%% Modern security hardwares such as TPM or \intel{} SGX
+%% Modern security hardwares such as TPM or \sgx{}
 %% provide hardware enforced guarantees of security properties
 %% even upon %untrustworthy hosts with
 %% compromised operating systems or tampered hardwares.
@@ -1355,7 +1355,7 @@ from a technical view:
 which runs legacy Linux applications in a platform independent environment.
 The platforms where \graphene{} has been ported
 include Linux, FreeBSD, OSX,
-Windows and \intel{} \sgx{} enclaves (also called \term{\graphenesgx{}}).
+Windows and \sgx{} enclaves (also called \term{\graphenesgx{}}).
 \graphene{} extends the security isolation on single-process applications,
 to processes that share UNIX multi-process abstractions,
 such as forking, signaling, sharing file descriptors, \sysvipc{}, etc.
@@ -1367,12 +1367,12 @@ bulk IPC for optimizing copy-on-write forking ---
 all multi-process abstractions are
 implemented and coordinated completely over PRC streams,
 a feature generally provided by most platforms.
-%\graphene{} further supports multi-process applications in \intel{} \sgx{} enclaves,
+%\graphene{} further supports multi-process applications in \sgx{} enclaves,
 %using attestation over RPC streams
 %for secure process creation.
 %and isolate each \picoproc{} in individual enclave.
 %When Graphene isolates multiple processes in enclaves,
-%the RPC streams can be trusted using \intel{} \sgx{}'s attestation feature,
+%the RPC streams can be trusted using \sgx{}'s attestation feature,
 %instead of relying on sandboxing by the host.
 
 
@@ -1428,7 +1428,7 @@ of rarely or never-used APIs.
 
 \item
 A framework called \term{Civet},
-that combines the isolated execution of \intel{} \sgx{} and
+that combines the isolated execution of \sgx{} and
 \java{} language protections,
 for partitioning legacy \java{} applications.
 \civet{} includes
@@ -1466,7 +1466,7 @@ based on a study of Linux API usage and compatibility.
 \item \S\ref{chap:civet}
 presents the ongoing work of partitioning
 \java{} applications to isolate the most sensitive execution
-in \intel{} \sgx{} enclaves.
+in enclaves.
 \item \S\ref{chap:future}
 lists the proposed tasks for the fulfillment of thesis,
 and other future directions.

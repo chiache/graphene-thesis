@@ -40,13 +40,13 @@ new CPUs are offering features to protect application-level code and data
 from a  compromised or malicious system software stack,
 including the OS or hypervisor, or simply isolating portions of the 
 application address space from the rest of the application.
-Examples include \intel{} \sgx{}~\citep{sgx-manual}, 
+Examples include \intel{} \sgx{}~\citep{intelsgx}, 
 %\fixmedp{Can we mention/cite others? IBM and ARM?}
 IBM SecureBlue++~\citep{secureblue++}, and ARM TrustZone~\citep{trustzone}.
 %are offering models of mutual distrust, which facilitate protecting
 %an application from a
 \sgx{} offers %One feature of \sgx{} is restricted
-entry points to an encrypted region of memory, called an {\em enclave}.
+entry points to an encrypted region of memory, called an \term{enclave}.
 Encryption and remote attestation 
 prevent the hypervisor or OS from reading or modifying the enclave's contents,
 and validate that the enclave was correctly initialized.
@@ -66,7 +66,7 @@ to a few programmer-defined entry points, the programmer must still
 reason about what those entry points should be, protect against 
 malicious inputs, and verify that code paths within the enclave that cannot
 inadvertently leak sensitive data.
-Iago attacks~\citep{iago}, where an OS offers malicious system call return values,
+Iago attacks~\citep{checkoway13iago}, where an OS offers malicious system call return values,
  are notoriously difficult to defend against;
 although limited countermeasures exist for the OS API (typically with the cooperation of a 
 trusted hypervisor)~\citep{kwon2016sego},%\fixmedp{cite the asplos 16 inktag paper},
@@ -95,7 +95,7 @@ language like C dramatically increases the risk of exploitable pointer or contro
 %components of an application---
 
 %For instance, \sgx{} creates a encrypted memory region 
-%called {\em enclave} within the memory space of an application,
+%called enclave within the memory space of an application,
 %which can only be accessed by verified code from the users.
 %\fixme{I rather not emphasize partitioning so early, it's not the only way of using enclave.}
 %\sgx{} lets the developer partition the application into two parts --- 
@@ -288,7 +288,7 @@ is safe to be released from the enclave.
 %that can shield the developer from the complexity of determining whether security sensitive information 
 %is leaked outside the enclave.
 
-This paper presents {\em \sysname{}},
+We present \term{\sysname{}},
 a system that combines the benefits of
  \sgx{} enclave isolation with \java{} language security features to protect security-sensitive applications.
 \sysname{} avoids the downsides of taking either approach in isolation.
@@ -359,7 +359,7 @@ except via explicit declassification by the developer.
 %Finally, we use the enclave to protect security critical data of a Java Web Start (JavaWS) application.
 
 %As a proof-of-the-concept, 
-This paper presents three use cases for \sysname{}.
+This work presents three use cases for \sysname{}.
 First we partition and isolate the 
 cryptography library and keys from the rest of an SSH client and  server.
 %in which the  used for encrypting the connection

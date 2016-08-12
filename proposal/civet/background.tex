@@ -78,7 +78,7 @@
 %can more easily reason about the thoroughness of securing the execution.
 
 %%% The key strength of \sgx{} enclaves over other software-based isolation framework such as
-%%% {\em Flicker}, {\em Inktag} or {\em Virtual Ghost} is
+%%% Flicker, Inktag or Virtual Ghost is
 %%% the ability to defend against attacks at the hardware level.
 %%% These software-based solution often
 %%% rely on a hypervisor below the OS to isolate the applications.
@@ -461,7 +461,7 @@ dynamically loaded code, including encrypted class files.
 %% an enclave will always leak page fault addresses, except the lower 12 bits (offsets in pages).
 %% Such a leakage gives the untrusted OS to amplify the side channels,
 %% by forcing page faults on every instruction or memory access.
-%% This so-called {\em Controlled Channel Attack} is common to all applications who use \sgx{} protection, regardless of the programming models.
+%% This so-called \term{Controlled Channel Attack} is common to all applications who use \sgx{} protection, regardless of the programming models.
 %% \sysname{} does not specifically defend against side channel attacks.
 
 %% \paragraph{Denial-Of-Service Attacks}
@@ -557,9 +557,9 @@ or to utilize its features.
 \includegraphics[width=\linewidth]{civet/figures/alternatives.pdf}
 \footnotesize
 \caption{Alternative approaches to access \sgx{} hardware protection from \java{} applications.
-The {\em libOS-based} approach runs the whole \java{} applications in the enclaves. 
-The {\em JNI-based} approach uses JNI to run the security sensitive operations inside the enclaves.
-The {\em JVM-based} approach requires the \java{} VM to provide APIs to support common use cases of the enclaves.
+The \term{libOS-based} approach runs the whole \java{} applications in the enclaves. 
+The \term{JNI-based} approach uses JNI to run the security sensitive operations inside the enclaves.
+The \term{JVM-based} approach requires the \java{} VM to provide APIs to support common use cases of the enclaves.
 Green (light) boxes are trusted components and red (dark) boxes are untrusted.
 }
 \label{fig:civet:alternatives}
@@ -569,11 +569,11 @@ Green (light) boxes are trusted components and red (dark) boxes are untrusted.
 Figure~\ref{fig:civet:alternatives} illustrates the alternative approaches
 to access SGX hardware from \java{} applications:
 The first approach is to run the whole \java{} applications with the \java{} VM inside the enclaves,
-using a library OS ({\em libOS-based}).
+using a library OS (\term{libOS-based}).
 This approach can secure applications as a whole,
 but won't support any partitioned model for programming.
 Another approach is to implement a JNI that create and interface with the enclaves
-to run the security-sensitive operations ({\em JNI-based}).
+to run the security-sensitive operations (\term{JNI-based}).
 The JNI-based approach is flexible enough for application developers
 to implement the isolated components as well as the untrusted interface,
 but requires developers to have the knowledge of
@@ -582,7 +582,7 @@ More importantly, the isolated components can only be developed in C or C++
 language, so the applications lose the language protection of \java{} inside the enclaves.
 A more plausible approach is to provide enclave-backed APIs
 from the \java{} VM,
-to support common use cases ({\em JVM-based})), such as a secure key-value store~\citep{vc3}.
+to support common use cases (\term{JVM-based})), such as a secure key-value store~\citep{vc3}.
 Although the JVM-based approach can save the application developers' effort
 of implementing isolated components,
 the use cases is limited to the pre-defined operations provided by the \java{} VM or the companion frameworks.
