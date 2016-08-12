@@ -715,13 +715,13 @@ In search of better methods for
 evaluating the legacy support,
 we conduct a study of Linux system APIs usage among a large sample of Debian/Ubuntu x86\_64 applications,
 weighted by the application popularity
-collected in the Popularity Contests~\citep{debian-popularity, ubuntu-popularity}.
+collected by the Popularity Contests~\citep{debian-popularity, ubuntu-popularity}.
 Based on the study,
-we create a fractal measurement,
-for estimating the fraction of applications installed by a random user
+we create a measurement
+for estimating the fraction of applications installed by a user
 that can plausibly use the system.
-For instance, in the current prototype of \graphene{},
-in which we choose Linux system calls by the target applications for experimenting,
+For instance, the current \graphene{} prototype,
+in which we hand-pick Linux system calls according to the applications for experiment,
 can support the complete API footprint
 in 0.42\% of applications installed by a user.
 The data-driven, principled strategy shows than \graphene{} can be improved to
@@ -734,14 +734,18 @@ by simply adding two missing system calls, {\tt sched\_setcheduler} and {\tt sch
 %the significant improvement on legacy application support in \graphene{} is demonstrated
 %if we guide the development using this approach.
 
+%Summarizing all contributions of the thesis,
+%we explore the solutions and principles,
+%to implement OS support for legacy applications in either 
+%isolated systems
+%(i.e., \graphene{} \libos{}, \intel{} \sgx{} enclaves) 
+%or optimized legacy OS components
+%(i.e., Linux file system directory cache).
 
-In general, we explore the possibility of reusing the legacy code for
-either
-partitioning a system
-(i.e., Graphene) and
-optimizing a legacy system
-(i.e., Linux file system directory cache),
-and derive principles to improve the result of implementation.
+
+
+
+%and derive principles to improve the result of implementation.
 We observe that in order to partition a system or application
 in finer granularity,
 %such as an extremely sensitive component,
