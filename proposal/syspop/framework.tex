@@ -10,7 +10,7 @@ This approach eliminates the need for source or recompilation, and can handle cl
 We implement a simple call-graph analysis to detect system calls reachable from the binary entry point ({\tt e\_entry} in ELF headers). 
 %\fixmedp{You do actually parse the elf header for e\_entry, right?}
 %In our study, we only count executables during measuring both \usagemetric{} and \compatmetric{}.
-We search all binaries, including libraries, for system call instructions ({\tt int \$0x80}, {\tt syscall} or {\tt sysenter}) or calling the {\tt syscall} API of \libc{}.
+We search all binaries, including libraries, for system call instructions ({\tt int 0x80}, {\tt syscall} or {\tt sysenter}) or calling the {\tt syscall} API of \libc{}.
 We find that the majority of binaries --- either shared libraries or executables --- do not directly choose system calls, but 
 rather use the GNU C library APIs.
 Among 66,275 studied binaries, only 7,259 executables and 2,752 shared libraries issue system calls.
