@@ -482,21 +482,27 @@ The design of \picoprocs{} disallows any management of credentials or access con
 because all OS states and data structures are
 vulnerable to local, in-process attackers. % inside the same \picoproc{}.
 In \graphene{}, every process is granted with the local \emph{root} permissions
---- being allowed to access any OS resources and abstractions
+--- allowed to access any OS resources and abstractions
 in its sandbox.
+Alternatively, we present new opportunity in \graphene{},
+to allow \emph{expelling} a \picoproc{} from its current sandbox (\S\ref{sec:graphene:security});
+however, once a \picoproc{} is detached from a sandbox,
+it is forbidden by the reference monitor to coordinate with other \picoprocs{}.
 
-A partitioned system that sandboxes mutually untrusting applications
-must restrict any interaction or coordination between the sandboxes.
-Take \graphene{} for instance;
-the related \picoprocs{} (created from the same application)
-in a sandbox will trust each other
-and be permitted to coordinate freely over the host RPC streams.
-On the contrary, two unrelated \picoprocs{} from separate sandboxes will be completely detached,
-with the \graphene{} reference monitor enforcing a strict,
-all-or-nothing access control on RPC streams.
-The rationale behind this design is to enforce simple but strong isolation from the host,
-instead of relying on permission checks that are fragile and subtle
-in a complex operating system.
+
+%A partitioned system that sandboxes mutually untrusting applications
+%must restrict any interaction or coordination between the sandboxes.
+%Take \graphene{} for instance;
+%the related \picoprocs{} (created from the same application)
+%in a sandbox will trust each other
+%and be permitted to coordinate freely over the host RPC streams.
+%On the contrary, two unrelated \picoprocs{} from separate sandboxes will be completely detached,
+%with the \graphene{} reference monitor enforcing a strict,
+%all-or-nothing access control on RPC streams.
+%The rationale behind this design is to enforce simple but strong isolation from the host,
+%instead of relying on permission checks that are fragile and subtle
+%in a complex operating system.
+
 
 In general, to enforce security isolation between sandboxes,
 \graphene{} must assume
