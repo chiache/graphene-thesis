@@ -471,8 +471,31 @@ allowing applications to isolate a part of the OS views for processes.
 The isolation of namespaces is often used in the concept known as \term{containers}.
 Overall, the usage of these security models consists in
 part of the existing development effort,
-and defines the least privileges each subject in the models requires
+and defines the least privileges each subject requires
 to fulfill its tasks.
+
+
+Supporting the security models is important for \liboses{}:
+they are not only designed to restraint unrelated applications,
+but also to ensure the safe behaviors of cooperating components.
+In \liboses{}, applications need a model that,
+when a \picoproc{} creates or interacts with other \picoprocs{},
+one can put partial trust into another.
+For instance,
+an Apache web server with privilege-escalating PHP scripts (e.g., suPHP)
+can isolate the scope of
+the PHP scripts
+with a more restricted security policy.
+When running in \graphene{},
+the \picoprocs{} will coordinate OS states such as process ID namespaces or signaling,
+but restrict access for specific OS abstractions. 
+
+
+%due to the much larger attack surface in the PHP engine.
+%However, A \picoproc{} that runs the web server
+%still needs to maintains minimal coordination with the \picoproc{} running the PHP engine,
+%such as connection through pipes,
+%or sharing the process ID namespace for signaling.
 
 
 At the center of these problems is the fact that existing \liboses{} including \graphene{}
@@ -515,7 +538,7 @@ In HiStar, processes are assigned with labels, which will taint the components o
 based on the \term{information flow control} by the kernel.
 Applying this model to \graphene{} will require
 massive changes to the design;
-all multi-process abstractions coordinated over RPC will have to mediated by the kernel, with inevitable extension of the host interface.
+all multi-process abstractions coordinated over RPC will have to be mediated by the kernel, with inevitable extension of the host interface.
 Another limitation is the prerequisite of
 trusting the host kernel,
 which may be impractical on some platforms such as \sgx{} enclaves.
