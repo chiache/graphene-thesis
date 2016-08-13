@@ -476,11 +476,11 @@ to fulfill its tasks, more or less.
 
 
 Security models can be critical for application:
-a model can enforce policies that not only restraint unrelated applications,
+a security model can enforce policies that not only restraint unrelated applications,
 but also ensure the safe behaviors of cooperating components.
 In \liboses{}, applications need a model that,
-when a \picoproc{} creates or interacts with other \picoprocs{},
-one can put partial trust into another.
+when a \picoproc{} creates or interacts with others,
+one can choose to put only partial trust in another.
 For instance,
 an Apache web server with privilege-escalating PHP scripts (e.g., suPHP)
 can isolate the scope of
@@ -521,11 +521,11 @@ by all means.
 \toprule
 {\bf Security Model} & {\bf In-application example} & {\bf Proposed strategy} \\
 \midrule
-UID-based & Processes escalating or dropping privileges by setting effective UID & Isolating unprivileged processes in a sandbox \\
+UID-based & Process calls {\tt seteuid()} system call for escalating or dropping privilege & Mapping UIDs/GIDs to sandboxes \\
 \midrule
-Namespaces & Cloning child process with isolated namespaces & Isolating RPC streams and IPC helper threads for different namespaces \\
+Namespaces & Clone child process with isolated namespaces & Isolating RPC streams and IPC helper threads for different namespaces \\
 \midrule
-AppArmor & Specifying white-list of allowed files and network address & Translating AppArmor profiles to sandbox rules \\
+AppArmor & Specify white-list of allowed files and network address & Translating AppArmor profiles to sandbox rules \\
 \midrule
 Multi-level security &  &  \\
 \bottomrule
@@ -653,8 +653,30 @@ The \libos{} will have to isolate the RPC streams and the responding IPC helper 
 
 
 We propose strategies for emulating different security models in \liboses{}  (discussed in table~\ref{tab:future:security}).
+\term{Credential IDs}, such as user IDs or group IDs,
+are commonly used to specify the owner of objects in operating systems,
+primarily for
+isolating users that share the same  host.
+In other use cases, however, credentials can matter even in a single application
+--- when a process uses system calls like {\tt seteuid()} and {\tt setegid()}
+to temporarily change its privileges for accessing resources.
+We can emulate credential IDs by mapping the credentials to host sandboxes.
+When a process changes its credential,
+the host can migrate the \picoproc{} from a sandbox to another,
+as long as the migration
+does not compromise either of them.
+Another common security model used in Linux, \term{AppArmor}, 
+allows developers to specify a profile for an application,
+to white-list
+all the files, network addresses, and other resources
+permitted in the application.
+In fact, the policies specified in AppArmor are conceptually similar
+to sandboxing in \graphene{}.
+We can simply emulate AppArmor model in \graphene{} by translating the AppArmor profiles into sandbox rules.
+\fixme{Rethink about MLS and SELinux}
 
-
+Speaking from the high level,
+emulating security models in a platform-independent way is fundamentally a research problem. 
 
 
 
