@@ -430,7 +430,7 @@ to fundamentally shrink the size of enclave code.
 %can all technically be removed with manageable efforts.
 
 
-\section{Emulating Legacy Security Models}
+\section{Emulating Legacy Security Models in Applications}
 \label{sec:future:security}
 
 %In \graphene{} or many others like VM or container-based solutions,
@@ -456,8 +456,8 @@ can be assigned with \term{credential IDs} or \term{POSIX capabilities},
 to specify the privilege of accessing abstractions or resources.
 In Linux, more sophisticated, fine-grained security models
 such as \term{AppArmor}~\citep{apparmor} and \term{SELinux}~\citep{selinux}
-can further specify the objects (i.e., ``what can I access?'')
-and the actions (i.e., ``how can I access it?'') of access control.
+can further specify the objects (i.e., \emph{``what can I access?''})
+and the actions (i.e., \emph{``how can I access it?''}) of access control.
 Specifically, SELinux can enforce a \term{multi-level security} model, or \term{DAC (Discretionary Access Control)},
 to control the propagation of information contamination.
 Both AppArmor and SELinux require configuration efforts,
@@ -675,8 +675,20 @@ to sandboxing in \graphene{}.
 We can simply emulate AppArmor model in \graphene{} by translating the AppArmor profiles into sandbox rules.
 \fixme{Rethink about MLS and SELinux}
 
-Speaking from the high level,
-emulating security models in a platform-independent way is fundamentally a research problem. 
+Speaking at the high level,
+emulating security models in a platform-independent way
+is fundamentally a research problem. 
+From the perspective of developers and users,
+they choose security models---among the available options of their preferred systems---based on what they see suitable for
+the applications.
+The secure platforms (e.g., \liboses{}, \microkernel{}, \sgx{} enclaves), on the other hand,
+determine the architectures and mechanisms for
+enforcing certain security principles.
+As a future direction,
+decoupling security models (\emph{``what to secure?''}) and secure platforms (\emph{``how to secure?''})
+will provide more options
+for developers and users to define their desired policies.
+
 
 
 
