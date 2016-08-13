@@ -112,20 +112,20 @@ using the measurements derived from our study.
 \begin{table}[t]
 \footnotesize
 \centering
-\begin{tabular}{|p{1.2in}|p{2.4in}|p{2.4in}|}
-\hline
+\begin{tabular}{>{\bf}p{1.2in}>{\raggedright\arraybackslash}p{2.4in}>{\raggedright\arraybackslash}p{2.4in}}
+\toprule
 {\bf Host ABI Function} & {\bf Functions in the \libos{}} & {\bf Description} \\
-\hline
+\midrule
 Scheduler policies & {\tt sched\_setscheduler}, {\tt sched\_setparam}, {\tt sched\_setaffinity} & Specifying scheduler policies such as priority level or CPU affinity in the manifests.\\
-\hline
+\midrule
 Huge pages & {\tt MAP\_HUGETLB} flags for {\tt mmap} & Specifying virtual memory to be backed by huge pages. \\
-\hline
+\midrule
 Memory sharing & {\tt shmget}, {\tt shmat}, {\tt shmdt} & Sharing memory using RPC. \\
-\hline
+\midrule
 Raw sockets & {\tt socket} with {\tt SOCK\_RAW}  & Sending RAW packets (e.g., DHCP clients) \\
-\hline
+\midrule
 NUMA & {\tt set\_mempolicy}, {\tt migrate\_page} & Accessing host NUMA features. \\
-\hline
+\bottomrule
 \end{tabular}
 \caption[List of host ABI functions to be added in \graphene{} as future works]
 {List of host ABI functions that are missing in \graphene{} host ABI.
@@ -165,18 +165,18 @@ that need be provided in the \graphene{} host ABI.
 \begin{table}[t]
 \footnotesize
 \centering
-\begin{tabular}{|p{1.2in}|>{\raggedright\arraybackslash}p{0.8in}|>{\raggedright\arraybackslash}p{1.6in}|>{\raggedright\arraybackslash}p{2.2in}|}
-\hline
+\begin{tabular}{>{\bf}p{1.2in}>{\raggedright\arraybackslash}p{0.8in}>{\raggedright\arraybackslash}p{1.6in}>{\raggedright\arraybackslash}p{2.2in}}
+\toprule
 {\bf Feature} & {\bf Platform} & {\bf Limitations} & {\bf Strategy} \\
-\hline
+\midrule
 Memory mappings & Windows & No fine-grained deallocation or protection & Redesign ABI functions for platform independence \\
-\hline
+\midrule
 Thread-local storage & Windows, OSX & FS or GS register is not available & Overwrite TLS allocation in libc, or binary translation \\
-\hline
+\midrule
 Position-dependent binaries & Windows, \sgx{} & Memory addresses are occupied or restricted & Reserve virtual memory before \picoprocs{} start \\
-\hline
+\midrule
 Special instructions & \sgx{} & {\tt CPUID} and {\tt RDTSC} are forbidden & Exception handling or binary translation \\
-\hline
+\bottomrule
 \end{tabular}
 \caption[List of platform limitations affecting host ABI porting]
 {List of limitations on host features that affects porting the host ABI to the target platforms,
@@ -430,7 +430,7 @@ to fundamentally shrink the size of enclave code.
 %can all technically be removed with manageable efforts.
 
 
-\section{Legacy Security Models}
+\section{Supporting Legacy Security Models}
 \label{sec:future:security}
 
 %In \graphene{} or many others like VM or container-based solutions,
@@ -452,26 +452,27 @@ On the other hand, many legacy applications are already
 configured with security policies,
 based on existing security models adopted in commodity operating systems.
 For instance, in UNIX systems, applications or processes
-can be assigned with \term{credential IDs} or \term{capabilities},
-to specify the privilege for accessing any resource.
+can be assigned with \term{credential IDs} or \term{POSIX capabilities},
+to specify the privilege of accessing abstractions or resources.
 In Linux, more sophisticated, fine-grained security models
 such as \term{AppArmor}~\citep{apparmor} and \term{SELinux}~\citep{selinux}
-can further specify the objects (``what can I access?'')
-and the actions (``how can I access it?'') of access control.
-SELinux can enforce a \term{multi-level security} model, or \term{DAC (Discretionary Access Control)},
+can further specify the objects (i.e., ``what can I access?'')
+and the actions (i.e., ``how can I access it?'') of access control.
+Specifically, SELinux can enforce a \term{multi-level security} model, or \term{DAC (Discretionary Access Control)},
 to control the propagation of information contamination.
 Both AppArmor and SELinux require configuration efforts,
 and generally, the developers are responsible for
 providing the profiles
 that reflect the appropriate security policies.
 In addition,
-Linux supports sandboxing of certain \term{namespaces},
-allowing applications to isolate a part of the OS views for processes.
+Linux supports isolation of various \term{namespaces},
+such as PID, mount points, and \sysvipc{} keys, 
+to allow applications to isolate a part of the OS views in selected processes.
 The isolation of namespaces is often used in the concept known as \term{containers}.
 Overall, the usage of these security models consists in
 part of the existing development effort,
 and defines the least privileges each subject requires
-to fulfill its tasks.
+to fulfill its tasks, more or less.
 
 
 Legacy security models is of the essence:
@@ -516,20 +517,20 @@ by all means.
 \begin{table}[t]
 \footnotesize
 \centering
-\begin{tabular}{|p{1.2in}|p{2.4in}|p{2.4in}|}
-\hline
+\begin{tabular}{>{\bf}p{1.2in}>{\raggedright\arraybackslash}p{2.4in}>{\raggedright\arraybackslash}p{2.4in}}
+\toprule
 {\bf Security Model} & {\bf In-application example} & {\bf Strategy} \\
-\hline
+\midrule
 UID-based &  &  \\
-\hline
+\midrule
 POSIX capabilities & &  \\
-\hline
+\midrule
 Namespaces & &  \\
-\hline
+\midrule
 AppArmor &  &  \\
-\hline
+\midrule
 Multi-level security &  &  \\
-\hline
+\bottomrule
 \end{tabular}
 \caption[List of security models to be added in \graphene{} as future works]
 {List of security models that are missing in \graphene{}.
