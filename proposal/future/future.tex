@@ -232,25 +232,59 @@ extension of the host paravirtual APIs, or reduction of the \graphene{} host ABI
 --- for example, running an in-process file system, or a NFS (networked file system) client in \picoprocs{}.
 
 
-\fixme{rewritten until here}
 
 %Porting \picoprocs{} to \microkernel{} will allow running legacy applications
 %in a host with restricted resource,
 %at a smaller cost than porting a whole kernel to user space
 
-Another platform that is worth to port \graphene{} is \term{Barrelfish}~\citep{baumann09barrelfish},
-which is designed for multi-core heterogeneous architectures,
-and uses asynchronous message passing across heterogeneous cores pinned to applications.
-The distributed POSIX implementation of \graphene{}
-will be an advantage when porting it to Barrelfish.
-%In addition, the OSX and Windows ports of \graphene{} are still in-progress.
-Overall, when generalizing the host ABI implementation to more platforms,
-we observe that a large portion of \graphene{} \pal{}
-can be reused for another platform.
-In particular, a wide range of platforms adopt the POSIX specifications.
-By translating the \graphene{} host ABI to standard POSIX APIs,
-the platform independence of \graphene{} can be guaranteed on
-every POSIX-compliant hosts.
+%Another platform that is worth to port \graphene{} is 
+\term{Barrelfish}~\citep{baumann09barrelfish, zellweger14barrelfishdc} is a \microkernel{}-style
+research OS designed for multi-core, heterogeneous environment.
+Barrelfish runs applications with OS implementation tied to each heterogeneous core,
+to decouple OS coordination from
+architectural characteristics such as instruction sets, cache coherence, and memory hierarchies.
+Not unlike \graphene{} using a
+distributed, collaborative OS implementation,
+Barrelfish duplicates the OS functionality
+(a ``OS node'')
+with independent, unshared state on each core.
+Inter-core message-passing is used among OS nodes and applications
+to coordinate OS state and services.
+Porting \graphene{} to Barrelfish can enable the legacy support on the platform,
+but also extend the host environment for \graphene{} to heterogeneous architecture.
+The implementation of \graphene{} host ABI on Barrelfish
+can rely on its tool chain for the partially supported POSIX APIs,
+including simple file IO, network sockets,
+and user-space RPC.
+To allow \graphene{} to run in a environment with heterogeneous ISAs,
+\graphene{} will have to be ported to different architectures,
+such as x86, x86\_64 and ARM.
+
+
+In general, we observe that many platforms provide \term{POSIX-compliant APIs},
+which is the closest to a platform-independent specification.
+Besides a few limitations on the \graphene{} host ABI,
+such as TLS support and loading position-dependent binaries (both discussed in Table~\ref{tab:future:abi-limit}),
+most of the \pal{} calls can be smoothly ported to POSIX.
+A POSIX port will allow \graphene{} to be easily migrated to any POSIX-compliant platforms,
+with little development effort to deal with
+the rest of host ABI.
+
+
+
+
+
+%and uses asynchronous message passing across heterogeneous cores pinned to applications.
+%The distributed POSIX implementation of \graphene{}
+%will be an advantage when porting it to Barrelfish.
+%%In addition, the OSX and Windows ports of \graphene{} are still in-progress.
+%Overall, when generalizing the host ABI implementation to more platforms,
+%we observe that a large portion of \graphene{} \pal{}
+%can be reused for another platform.
+%In particular, a wide range of platforms adopt the POSIX specifications.
+%By translating the \graphene{} host ABI to standard POSIX APIs,
+%the platform independence of \graphene{} can be guaranteed on
+%every POSIX-compliant hosts.
 
 
 
