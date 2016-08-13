@@ -212,13 +212,30 @@ and the proposed strategies to remove the limitations.
 Essentially,
 justifying the platform independence of \graphene{} will
 require porting its host ABI to more diverse platforms,
-especially ones that do not rely on monolithic kernels with abundant APIs.
+especially ones that do not rely on a monolithic kernel with abundant APIs.
 One opportunity is to port \graphene{} to a \term{\microkernel{}}
-such as L4~\citep{l4family, klein09sel4}.
-Porting \picoprocs{} to \microkernel{} will allow running legacy applications
-in a host with restricted resource,
-at a smaller cost than porting a monolithic kernel ported to \microkernel{}
-(e.g., L4Linux~\citep{hartig97mu}).
+(e.g., L4~\citep{l4family, klein09sel4}) or a \term{hypervisor} (e.g., Qemu, Xen).
+Instead of relying on host features (e.g., Seccomp filter)
+to restrict the attack surface of \picoprocs{},
+\graphene{} ported to a \microkernel{} or hypervisor will minimize both the attack surface and the shared TCB.
+The functionality of \graphene{} ported to L4 will be similar as
+L4Linux~\citep{hartig97mu},
+but at a lower cost because \graphene{} does not port the whole Linux kernel to user space.
+On the other hande,
+a \microkernel{} or hypervisor
+may provide a reduced paravirtual APIs,
+without the full host abstractions required by the host ABI.
+A few host abstractions that may be missing
+are file access, network sockets and other single-process, multiplexed resources.
+Implementing the host ABI on these platforms will requires
+extension of the host paravirtual APIs, or reduction of the \graphene{} host ABI
+--- for example, running an in-process file system, or a NFS (networked file system) client in \picoprocs{}.
+
+
+%Porting \picoprocs{} to \microkernel{} will allow running legacy applications
+%in a host with restricted resource,
+%at a smaller cost than porting a whole kernel to user space
+
 Another platform that is worth to port \graphene{} is \term{Barrelfish}~\citep{baumann09barrelfish},
 which is designed for multi-core heterogeneous architectures,
 and uses asynchronous message passing across heterogeneous cores pinned to applications.
