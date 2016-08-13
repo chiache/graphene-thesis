@@ -116,7 +116,7 @@ using the measurements derived from our study.
 \hline
 {\bf Host ABI Function} & {\bf Functions in the \libos{}} & {\bf Description} \\
 \hline
-Scheduler policies & {\tt sched\_setscheduler}, {\tt sched\_setparam}, {\tt sched\_setaffinity} & Specifying scheduler policies such as priority level or CPU affinity.\\
+Scheduler policies & {\tt sched\_setscheduler}, {\tt sched\_setparam}, {\tt sched\_setaffinity} & Specifying scheduler policies such as priority level or CPU affinity in the manifests.\\
 \hline
 Huge pages & {\tt MAP\_HUGETLB} flags for {\tt mmap} & Specifying virtual memory to be backed by huge pages. \\
 \hline
@@ -129,9 +129,8 @@ NUMA & {\tt set\_mempolicy}, {\tt migrate\_page} & Accessing host NUMA features.
 \end{tabular}
 \caption[List of host ABI functions to be added in \graphene{} as future works]
 {List of host ABI functions that are missing in \graphene{} host ABI.
-We anticipate providing these functions in the future,
-by either providing a platform-independent interface,
-or allowing configuration in manifests.}
+We expect supporting these functions in the future,
+by either extending the host interfaces or configuration in manifest files.}
 \label{tab:future:abi}
 \end{table}
 
@@ -475,9 +474,9 @@ and defines the least privileges each subject requires
 to fulfill its tasks.
 
 
-Supporting the security models is important for \liboses{}:
-they are not only designed to restraint unrelated applications,
-but also to ensure the safe behaviors of cooperating components.
+Legacy security models is of the essence:
+they enforces policies that not only restraint unrelated applications,
+but also ensure the safe behaviors of cooperating components.
 In \liboses{}, applications need a model that,
 when a \picoproc{} creates or interacts with other \picoprocs{},
 one can put partial trust into another.
@@ -502,17 +501,41 @@ At the center of these problems is the fact that existing \liboses{} including \
 cannot reflect \term{non-binary},
 precisely-defined security policies in applications.
 The design of \picoprocs{} disallows any management of credentials and access control inside \liboses{},
-because all OS states and data structures are
-vulnerable to local, in-process attackers. % inside the same \picoproc{}.
+because OS states and data structures are always
+vulnerable to in-process attackers. % inside the same \picoproc{}.
 In \graphene{}, every process is granted with the local \emph{root} permissions
 --- allowed to access any OS resources and abstractions
 in its sandbox.
-Alternatively, we present new opportunity in \graphene{},
-to allow \emph{expelling} a \picoproc{} from its current sandbox (Apache server process sandboxing described in \S\ref{sec:graphene:security});
+Alternatively, we present a new opportunity in \graphene{},
+to allow \emph{expelling} a \picoproc{} from its current sandbox (\S\ref{sec:graphene:security});
 however, once a \picoproc{} is detached from a sandbox,
 it is forbidden by the reference monitor to coordinate with other \picoprocs{}
 by all means.
 
+
+\begin{table}[t]
+\footnotesize
+\centering
+\begin{tabular}{|p{1.2in}|p{2.4in}|p{2.4in}|}
+\hline
+{\bf Security Model} & {\bf In-application example} & {\bf Strategy} \\
+\hline
+UID-based &  &  \\
+\hline
+POSIX capabilities & &  \\
+\hline
+Namespaces & &  \\
+\hline
+AppArmor &  &  \\
+\hline
+Multi-level security &  &  \\
+\hline
+\end{tabular}
+\caption[List of security models to be added in \graphene{} as future works]
+{List of security models that are missing in \graphene{}.
+We expect implementing in-application security policies based on these security models in the future, and propose possible strategies for implementation.}
+\label{tab:future:security}
+\end{table}
 
 %A partitioned system that sandboxes mutually untrusting applications
 %must restrict any interaction or coordination between the sandboxes.
@@ -535,10 +558,10 @@ and rely on centralized entities---often the kernels----to mediate all
 access control.
 The design is similar to the method adopted in the building blocks of \term{HiStar}~\citep{zeldovich+histar}.
 In HiStar, processes are assigned with labels, which will taint the components or resources that the processes ever interact with or access,
-based on the \term{information flow control} by the kernel.
+based on the \term{information flow control} of the kernel.
 Applying this model to \graphene{} will require
 massive changes to the design;
-all multi-process abstractions coordinated over RPC will have to be mediated by the kernel, with inevitable extension of the host interface.
+all multi-process abstractions coordinated over RPC will have to be mediated by the kernel, with inevitable extension to the host interface.
 Another limitation is the prerequisite of
 trusting the host kernel,
 which may be impractical on some platforms such as \sgx{} enclaves.
@@ -571,36 +594,66 @@ which may be impractical on some platforms such as \sgx{} enclaves.
 %but the sandboxed \picoproc{} will be completely detached from the others,
 %and appear to them as being destroyed.
 
-A plausible model to allow partial security isolation among \picoprocs{}
-is to enforce \term{namespace} access control.
-The mechanism is similar to the namespace in UNIX system:
-when a process clones a child using a flags for namespace isolation
-(e.g., {\tt CLONE\_NEWNS}, {\tt CLONE\_NEWPID}),
-the kernel data structures related with the namespaces will be strictly separated.
-In \graphene{}, similar policies can be enforced
-by setting up firewall rules on the host RPC streams.
-Assuming a \picoproc{} strictly uses different RPC streams to coordinate different namespaces or abstractions,
-host policies can be assigned to allow another untrusted
-\picoproc{} accessing specific RPC streams.
-A more fail-safe model will be assign firewall rules to filter the contents of RPC streams,
-to prevent \picoprocs{} to make mistakes on separating RPC streams.
-The \picoprocs{} can submit \term{BPF-style} (Berkeley Packet Filter) firewall rules to the reference monitors, to filter the fields in RPC messages.
-Either approaches are platform-independent, and the former one requires no changes to the current host ABI.
+The key to enforcing abstraction-specific policies in \liboses{}
+is the placement of abstraction states
+in \picoprocs{}.
+In \graphene{}, each \picoproc{} can receive a state replica
+from the owners of abstractions,
+while the security policies are completely ignored.
+However, based on the policies,
+a \picoproc{} shall be permitted or rejected for
+replicating the abstraction state according to whether the process is allowed to share the abstraction.
+If we ensure all abstraction states to be placed in the permitted \picoprocs{},
+\liboses{} can approve RPC messaging for coordination,
+by either permission checks
+or access control by the host.
+
+For instance,
+%A plausible model to allow partial security isolation among \picoprocs{}
+%is to enforce \term{namespace} access control.
+%The mechanism is similar to the namespace in UNIX system:
+if a process clones a child with namespace isolation
+(e.g., using {\tt CLONE\_NEWPID} flag),
+the \libos{} can set up iptables-like firewall rules---a host feature
+already provided by the reference monitor of \graphene{} (\S\ref{sec:graphene:security})---on the coordinating RPC streams
+to restrict the access of namespace state.
+The assignment of the rules on the host must happen
+prior to the process creation.
+%the kernel data structures related with the namespaces will be strictly separated.
+%In \graphene{}, similar policies can be enforced
+%by setting up firewall rules on the host RPC streams.
+%Assuming a \picoproc{} strictly uses different RPC streams to coordinate different namespaces or abstractions,
+%host policies can be assigned to allow another untrusted
+%\picoproc{} accessing specific RPC streams.
+The \libos{} will have to isolate the RPC streams and the responding IPC helper threads that manage separate namespaces.
+A even more fail-safe approach will be to assign 
+\term{BPF (Berkeley Packet Filter)} rules to filter RPC streams on the host,
+by comparing the sources or specific fields of RPC messages.
+
+%firewall rules to filter the contents of RPC streams,
+%to prevent \picoprocs{} to make mistakes on separating RPC streams.
+%The \picoprocs{} can submit \term{BPF-style} (Berkeley Packet Filter) firewall rules to the reference monitors, to filter the fields in RPC messages.
+%Either approaches are platform-independent, and the former one requires no changes to the current host ABI.
 
 
-Another model of non-binary security isolation
-is to enforce \term{multi-level security} (MLS) among \picoprocs{},
-so applications can be protected
-with the ``no read up, no write down'' rule.
-This model is similar to security isolation model of HiStar~\citep{zeldovich+histar}.
-The \liboses{} will enforce DAC-type (Discretionary Access Control) policies,
-by labeling \picoprocs{} based on the level of secrecy or integrity.
-Among the \picoprocs{}, \term{information flow} can be implied to
-determine whether a \picoproc{} is allowed to send or receive RPC messages
-on the host streams connected with other \picoprocs{}.
-The directional access control on host RPC streams is
-a reasonable extension to the host ABI.
+%Another model of non-binary security isolation
+%is to enforce \term{multi-level security} (MLS) among \picoprocs{},
+%so applications can be protected
+%with the ``no read up, no write down'' rule.
+%This model is similar to security isolation model of HiStar~\citep{zeldovich+histar}.
+%The \liboses{} will enforce DAC-type (Discretionary Access Control) policies,
+%by labeling \picoprocs{} based on the level of secrecy or integrity.
+%Among the \picoprocs{}, \term{information flow} can be implied to
+%determine whether a \picoproc{} is allowed to send or receive RPC messages
+%on the host streams connected with other \picoprocs{}.
+%The directional access control on host RPC streams is
+%a reasonable extension to the host ABI.
 
+
+
+
+We propose strategies for implementing different security models in \liboses{}  (discussed in table~\ref{tab:future:security}).
+In particular, \term{multi-level security (MLS)}
 
 
 
