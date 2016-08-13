@@ -436,18 +436,18 @@ to fundamentally shrink the size of enclave code.
 %In \graphene{} or many others like VM or container-based solutions,
 %applications are protected with a trust model of all-or-nothing.
 %In other word, each process or component of an application can only be fully trusted or not trusted at all.
-%The key reason of such a restriction is that the applied security isolation cannot reflect the complexity of privilege model in the application.
-%In reality, multiple security principles can co-exist in an application.
+%The key reason of such a restriction is that the applied isolation cannot reflect the complexity of privilege model in the application.
+%In reality, multiple principles can co-exist in an application.
 %For instance, a web server that serves requests from clients identified as different clearance
 %will need to maintain the correspondent confidentiality levels.
-%The web server may perform operations that are more security sensitive (e.g., retrieve a secret key)
+%The web server may perform operations that are more sensitive (e.g., retrieve a secret key)
 %or more vulnerable (e.g., execute privilege-escalating scripts).
 %For components in the same process, we have seen examples, such as the heart-bleed bug~\citep{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
 
 In \liboses{}, security isolation is enforced on mutually untrusting applications,
 to disallow OS-level interaction,
 or sharing any OS and application state.
-Such a security model is fail-safe, but inflexible.
+Such a model is fail-safe, but inflexible.
 On the other hand, many legacy applications are already
 configured with security policies,
 based on existing security models adopted in commodity operating systems.
@@ -463,20 +463,20 @@ to control the propagation of information contamination.
 Both AppArmor and SELinux require configuration efforts,
 and generally, the developers are responsible for
 providing the profiles
-that reflect the appropriate security policies.
+that reflect the appropriate policies.
 In addition,
 Linux supports isolation of various \term{namespaces},
 such as PID, mount points, and \sysvipc{} keys, 
 to allow applications to isolate a part of the OS views in selected processes.
 The isolation of namespaces is often used in the concept known as \term{containers}.
-Overall, the usage of these security models consists in
+Overall, the usage of these models consists in
 part of the existing development effort,
 and defines the least privileges each subject requires
 to fulfill its tasks, more or less.
 
 
 Security models can be critical for application:
-a security model can enforce policies that not only restraint unrelated applications,
+a model can enforce policies that not only restraint unrelated applications,
 but also ensure the safe behaviors of cooperating components.
 In \liboses{}, applications need a model that,
 when a \picoproc{} creates or interacts with other \picoprocs{},
@@ -484,8 +484,8 @@ one can put partial trust into another.
 For instance,
 an Apache web server with privilege-escalating PHP scripts (e.g., suPHP)
 can isolate the scope of
-the PHP scripts
-with a more restricted security policy.
+the script execution
+with restricted policies.
 When running in \graphene{},
 the \picoprocs{} will coordinate OS states such as process ID namespaces or signaling,
 but restrict access for specific OS abstractions. 
@@ -500,7 +500,7 @@ but restrict access for specific OS abstractions.
 
 At the center of these problems is the fact that existing \liboses{} including \graphene{}
 cannot reflect \term{non-binary},
-precisely-defined security policies in applications.
+precisely-defined policies in applications.
 The design of \picoprocs{} disallows any management of credentials and access control inside \liboses{},
 because OS states and data structures are always
 vulnerable to in-process attackers. % inside the same \picoproc{}.
@@ -532,7 +532,7 @@ Multi-level security &  &  \\
 \end{tabular}
 \caption[List of security models to be added in \graphene{} as future works]
 {List of security models that are missing in \graphene{}.
-We expect emulating in-application security policies based on different security models in the future, and propose possible strategies for emulation.
+We expect emulating in-application policies based on different security models in the future, and propose possible strategies for emulation.
 \fixme{Propose strategy for MLS}}
 \label{tab:future:security}
 \end{table}
@@ -686,9 +686,9 @@ We propose strategies for emulating different security models in \liboses{}  (di
 %
 %%Security isolation for applications mostly requires users to run applications in a container-like environment, consciously and explicitly.
 %%Simply put, a user must always launch an application in \graphene{} or \gsgx{} by executing their loaders, {\tt pal} or {\tt pal-sgx}.
-%%In practice, however, users often have insufficient knowledge of the security requirement of applications
+%%In practice, however, users often have insufficient knowledge of the requirement of applications
 %%to decide whether to enforce stronger security isolation.
-%%The common result of the problem is that security isolation solutions becomes mutually exclusive for an operating system to choose.
+%%The common result of the problem is that isolation solutions becomes mutually exclusive for an operating system to choose.
 %
 %While operating systems have sufficient information to determine the security principles of an application,
 %the existing solutions of security isolation
@@ -698,10 +698,7 @@ We propose strategies for emulating different security models in \liboses{}  (di
 %%so that applications can run seamlessly in these environments.
 %The Linux personality of \graphene{} and \gsgx{}
 %make it feasible to dynamically migrate applications from Linux to a \picoproc{}
-%or an enclave according to the security principles.
-%%Operating system can determine the appropriate security isolation for applications, based on the security principles.
 %%For instance, operating systems can determine how to isolate an application based on its origin
-%A security-sensitive application
 %that is signed by the developers to always run in an enclave,
 %can demand a regular process to be migrated into another enclave
 %if the the process is requesting any interaction
