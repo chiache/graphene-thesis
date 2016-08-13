@@ -167,7 +167,7 @@ that need be provided in the \graphene{} host ABI.
 \centering
 \begin{tabular}{>{\bf}p{1.2in}>{\raggedright\arraybackslash}p{0.8in}>{\raggedright\arraybackslash}p{1.6in}>{\raggedright\arraybackslash}p{2.2in}}
 \toprule
-{\bf Feature} & {\bf Platform} & {\bf Limitations} & {\bf Strategy} \\
+{\bf Feature} & {\bf Platform} & {\bf Limitations} & {\bf Proposed strategy} \\
 \midrule
 Memory mappings & Windows & No fine-grained deallocation or protection & Redesign ABI functions for platform independence \\
 \midrule
@@ -430,7 +430,7 @@ to fundamentally shrink the size of enclave code.
 %can all technically be removed with manageable efforts.
 
 
-\section{Supporting Legacy Security Models}
+\section{Emulating Legacy Security Models}
 \label{sec:future:security}
 
 %In \graphene{} or many others like VM or container-based solutions,
@@ -475,8 +475,8 @@ and defines the least privileges each subject requires
 to fulfill its tasks, more or less.
 
 
-Legacy security models is of the essence:
-they enforces policies that not only restraint unrelated applications,
+Security models can be critical for application:
+a security model can enforce policies that not only restraint unrelated applications,
 but also ensure the safe behaviors of cooperating components.
 In \liboses{}, applications need a model that,
 when a \picoproc{} creates or interacts with other \picoprocs{},
@@ -519,22 +519,21 @@ by all means.
 \centering
 \begin{tabular}{>{\bf}p{1.2in}>{\raggedright\arraybackslash}p{2.4in}>{\raggedright\arraybackslash}p{2.4in}}
 \toprule
-{\bf Security Model} & {\bf In-application example} & {\bf Strategy} \\
+{\bf Security Model} & {\bf In-application example} & {\bf Proposed strategy} \\
 \midrule
-UID-based &  &  \\
+UID-based & Processes escalating or dropping privileges by setting effective UID & Isolating unprivileged processes in a sandbox \\
 \midrule
-POSIX capabilities & &  \\
+Namespaces & Cloning child process with isolated namespaces & Isolating RPC streams and IPC helper threads for different namespaces \\
 \midrule
-Namespaces & &  \\
-\midrule
-AppArmor &  &  \\
+AppArmor & Specifying white-list of allowed files and network address & Translating AppArmor profiles to sandbox rules \\
 \midrule
 Multi-level security &  &  \\
 \bottomrule
 \end{tabular}
 \caption[List of security models to be added in \graphene{} as future works]
 {List of security models that are missing in \graphene{}.
-We expect implementing in-application security policies based on these security models in the future, and propose possible strategies for implementation.}
+We expect emulating in-application security policies based on different security models in the future, and propose possible strategies for emulation.
+\fixme{Propose strategy for MLS}}
 \label{tab:future:security}
 \end{table}
 
@@ -613,7 +612,7 @@ For instance,
 %A plausible model to allow partial security isolation among \picoprocs{}
 %is to enforce \term{namespace} access control.
 %The mechanism is similar to the namespace in UNIX system:
-if a process clones a child with namespace isolation
+when a process clones a child with namespace isolation
 (e.g., using {\tt CLONE\_NEWPID} flag),
 the \libos{} can set up iptables-like firewall rules---a host feature
 already provided by the reference monitor of \graphene{} (\S\ref{sec:graphene:security})---on the coordinating RPC streams
@@ -627,9 +626,9 @@ prior to the process creation.
 %host policies can be assigned to allow another untrusted
 %\picoproc{} accessing specific RPC streams.
 The \libos{} will have to isolate the RPC streams and the responding IPC helper threads that manage separate namespaces.
-A even more fail-safe approach will be to assign 
-\term{BPF (Berkeley Packet Filter)} rules to filter RPC streams on the host,
-by comparing the sources or specific fields of RPC messages.
+%A even more fail-safe approach will be to assign 
+%\term{BPF (Berkeley Packet Filter)} rules to filter RPC streams on the host,
+%by comparing the sources or specific fields of RPC messages.
 
 %firewall rules to filter the contents of RPC streams,
 %to prevent \picoprocs{} to make mistakes on separating RPC streams.
@@ -653,8 +652,7 @@ by comparing the sources or specific fields of RPC messages.
 
 
 
-We propose strategies for implementing different security models in \liboses{}  (discussed in table~\ref{tab:future:security}).
-In particular, \term{multi-level security (MLS)}
+We propose strategies for emulating different security models in \liboses{}  (discussed in table~\ref{tab:future:security}).
 
 
 
@@ -781,10 +779,10 @@ for implementing the missing \libos{} features (Table~\ref{tab:future:abi}).
 Deliver and experiment a total port of \graphene{} \libos{} on OSX, Windows, Barrelfish and L4.
 
 \item {\bf December:}\\
-Explore the feasibility and challenges for achieving non-binary security isolation in \picoprocs{} and enclaves.
-Several use cases need to be shown to
-demonstrate the practicality of non-binary security isolation.
-Based on the preliminary concepts of non-binary security isolation, analyze the potential threat in such a model.
+Explore the feasibility and challenges for implementing security models in \picoprocs{} and enclaves.
+Present use cases
+for demonstrating the practicality of emulating security models in \liboses{}.
+Based on the proposed designs, analyze the potential threat in the emulation model.
 
 
 \end{compactitem}
@@ -794,10 +792,11 @@ Based on the preliminary concepts of non-binary security isolation, analyze the 
 \begin{compactitem}
 
 \item {\bf January:}\\
-Deliver a preliminary design of non-binary security isolation for \graphene{} \libos{} in both \picoprocs{} and enclaves.
-Proof-of-the-concepts must be provided to demonstrate the prevention of vulnerabilities in the model.
-Consider possible research contributions
-and determine the publication plan.
+Deliver preliminary result of emulating security models in \graphene{}
+(in both \picoprocs{} and enclaves).
+Demonstrate proof-of-concepts for the practicality and prevention of vulnerabilities in the security models.
+Consider research contributions
+and determine a publication plan.
 
 \item {\bf February:}\\
 Finish a complete draft of doctoral dissertation,
