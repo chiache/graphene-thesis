@@ -1,0 +1,73 @@
+\newpage
+\section{Summary}
+\label{sec:dcache:summary}
+
+The \term{file system directory cache} is a sophisticated subsystem
+of the Linux virtual file system (VFS),
+which is designed for caching the file paths and metadata
+retrieved from the storage.
+%in the main memory.
+We observe missed opportunities in the design of the directory cache,
+primarily in removing the redundant operations
+that contribute to the lookup latency at cache hits.
+These operations include checking prefix permissions against security models,
+detecting mount points,
+and resolving symbolic links, etc.
+A fast path for looking up already cached information
+will fully exploit the locality of path access in the file system,
+to cache the results of permission checks and other redundant operations.
+The optimized design not only
+minimizes the hit latency in favor of frequently accessed paths,
+but also improves the hit rate,
+by capturing other missed information (e.g., nonexistent paths) that
+shall be cached. % in the memory.
+%For instance, for the paths confirmed to be nonexistent in the storage,
+%especially when the path is recently deleted,
+%or one of its prefix is a nonexistent directory,
+%a \emph{negative entry} can be stored in the directory cache.
+Essentially, we optimize the hit latency by penalizing the infrequent operations
+of updating path attributes and permissions,
+as an acceptable trade-off in most scenarios.
+
+The optimization on the directory cache
+shows an example for introducing performance improvement
+into a legacy system,
+while preserving the existing
+system abstractions and security mechanisms.
+We start by investigating the opportunity of
+rewriting the component-by-component lookup algorithm
+in the directory cache,
+and identify the culprit of the suboptimality
+as the interleaving of looking up data structures and processing file attributes.
+The principle behind this optimization
+is to decouple the implementation of
+an efficient, frequently occuring operation
+from addressing security concerns and fulfilling system features
+--- a principle we also use
+in implementing an efficient \libos{}.
+
+
+
+
+%This paper presents a directory cache design
+%that efficiently 
+%maps file paths to in-memory data structures
+%in an OS kernel.
+%Our design decomposes the directory cache into separate caches
+%for permission checks and path indices, enabling single-step path lookup,
+%as well as facilitating new optimizations based
+%on signatures and caching symbolic link resolution.
+%For applications that frequently 
+%interact with the file system directory tree, these optimizations 
+%can improve performance by up to \updatedbspeedup\%.
+%% is an important task for 
+%%modern OS kernels. \fixmedp{more justification?}
+%%This paper demonstrates how this space used to cache the directory hierarcy can be put to even more effective use,
+%%improving application performance by up to 30\%.
+%Our optimizations
+%maintain compatibility with a range of applications and kernel extensions,
+%making them suitable for practical deployment.
+
+%\tsai{14 pages, not including references}
+
+
