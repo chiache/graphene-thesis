@@ -13,15 +13,25 @@ legacy applications and systems represent the accumulated development effort eve
 Up to millions of applications
 are available
 in the mainstream App stores~\citep{google-play, apple-store, ubuntu-packages};
-Among them, a large fraction
-are restricted to specific operating system specifications (e.g., Windows or Linux)
-or programming languages (e.g., C/C++, Python, Java).
+%Among them, a large fraction
+%are restricted to specific operating system specifications (e.g., Windows or Linux)
+%or programming languages (e.g., C/C++, Python, Java).
 In many occasions,
 developers attempt to
-port legacy applications from one platform, OS or language to another,
+port legacy applications from one operating system, platform, or language to another,
 in order to harvest the past design and implementation.
+For applications that are not yet ported,
+users who desire to utilize them are restricted to the operating systems
+or programming languages that the applications are designed upon.
+Therefore, users and developers seek systematic approaches such as virtualization,
+for painless methods to port any legacy applications.
+
+
+%Among them, a large fraction
+%are restricted to specific operating system specifications (e.g., Windows or Linux)
+%or programming languages (e.g., C/C++, Python, Java).
 %(operating systems or language runtimes).
-The effort required for porting an application varies among different environments.
+%The effort required for porting an application varies among different environments.
 %However, many of them will face the nonnegligible cost of
 %rewriting and adapting the legacy code,
 %on porting applications to a platform vastly different from the original one.
@@ -31,6 +41,24 @@ The effort required for porting an application varies among different environmen
 %Based on the complexity of applications,
 %the development efforts needed for porting can become enormous,
 %without much helps from systems or programming languages.
+
+
+%In traditional systems, the security of an application is built upon
+%trusting the whole system stack to enforce its security policies.
+%The system stack needed to be trusted
+%--- as part of the application's {\em trusted computing base (TCB)}
+%--- includes the hardware (from CPUs to devices), operating systems, system libraries, and language runtimes (a languge runtime can be considered an application or part of the system stack).
+%If a vulnerability exists anywhere in the system stack,
+%attackers can exploit the vulnerability to bypass the security mechanisms the application rely on,
+%compromising any security policies that application enforces.
+
+Between different systems, the complexity of porting %or emulating
+is primarily caused by the design decisions made by the system developers.
+%The cause for the complexity of porting
+%falls on the design decisions made in platforms,
+The developers' decisions can be based on
+idiosyncratic abstractions, security mechanisms, resource usage,
+quality of service, and other countless concerns.
 For instance, porting an application between Windows and Linux requires
 translating the system APIs between the OSes.
 The primary challenge is that
@@ -48,31 +76,12 @@ and the logic handling edge cases like unaligned addresses.
 As a result, porting applications often requires
 reimplementation effort
 more than simply swapping system APIs and programming language phrases.
-
-%In traditional systems, the security of an application is built upon
-%trusting the whole system stack to enforce its security policies.
-%The system stack needed to be trusted
-%--- as part of the application's {\em trusted computing base (TCB)}
-%--- includes the hardware (from CPUs to devices), operating systems, system libraries, and language runtimes (a languge runtime can be considered an application or part of the system stack).
-%If a vulnerability exists anywhere in the system stack,
-%attackers can exploit the vulnerability to bypass the security mechanisms the application rely on,
-%compromising any security policies that application enforces.
-
-Between different systems, the complexity for porting applications
-is essentially a result of design decisions made by the system developers.
-%The cause for the complexity of porting
-%falls on the design decisions made in platforms,
-These decisions can be based on
-idiosyncratic abstractions, security mechanisms, resource usage,
-quality of service, etc,
-fundamentally and structurally affecting
-the design of the systems and correspondent applications.
-Some systems, in particular, are targeting
-isolation of the applications,
-to restrain the effect of system vulnerabilities, performance bottlenecks,
-or other system pitfalls,
-as more secure or efficient options than monolithic kernels
-(e.g., Windows, Linux).
+%Some systems, in particular, are targeting
+%isolation of the applications,
+%to restrain the effect of system vulnerabilities, performance bottlenecks,
+%or other system pitfalls,
+%as more secure or efficient options than monolithic kernels
+%(e.g., Windows, Linux).
 
 %to reduce security vulnerabilities or isolate performance bottlenecks,
 %developers partition the system into
@@ -179,16 +188,18 @@ as more secure or efficient options than monolithic kernels
 %\section{Security Isolation for Linux Multi-Process Applications\\ using a Library OS}
 %\label{sec:intro:graphene}
 
-A \term{\libos{}} splits the OS functionality from a kernel
-into the application processes,
-to isolate the applications that distrust each other
-and demand a more impenetrable barrier~\citep{porter11drawbridge,unikernels,baumann13bascule}.
+As alternatives to virtualization,
+\term{\liboses{}} provides a highly portable, \term{platform independent} platform,
+by splitting the OS functionality from a kernel
+into the application processes~\citep{porter11drawbridge,unikernels,baumann13bascule}.
 %enforce isolation on mutually untrusting process,
 %by essentially \emph{collapsing} OS components
 %into an application library loaded into the user memory of application processes, or \term{\picoprocs{}}.
 Compared with monolithic kernels,
-\liboses{} minimize the reliance on the correctness or effectiveness of kernels
-to enforce isolation.
+\liboses{} minimize the reliance on the correctness or effectiveness of kernels,
+to enforce isolation
+on applications that distrust each other and
+demand a more impenetrable barrier.
 The isolation of \liboses{}
 %The qualitative benefits of \liboses{},
 %including isolating mutually untrusting applications,
@@ -235,10 +246,9 @@ by orders of magnitude, and similarly
 increase the number of applications which can run
 on a single system~\citep{porter11drawbridge,unikernels}.
 In addition,
-because a narrow host interface is much easier to implement on various platforms
-than the high-level system APIs,
-the library OSes are more likely to maintain \term{platform independence},
-given more opportunity to port to an innovative, vastly distinct platform. 
+because of the narrowness of host interfaces, % is easier to implement on various platforms
+%than the high-level system APIs,
+the library OSes can be easily ported to an innovative, vastly distinct platform. 
 A typical example is in \term{\intel{} \sgx{} enclaves},
 where applications are isolated in a restricted environment that is immune to attacks from untrusted host kernel and hardware peripherals.
 A \libos{} can support whole applications in enclaves,
@@ -260,8 +270,8 @@ without expanded attack surface and porting effort on the applications~\citep{ba
 %Because library OSes execute within a VM \daniela{this phrase does not read good to me because (i) it might imply the picoprocesses need hypervisor support, as misunderstood by reviewer 1 and (ii) you already emphasized the drawbacks of leveraging a VM} or lightweight process ({\em picoprocess}~\citep{xax}),
 %library OSes execute with
 
-Plausible support for legacy applications is provided
-in some \liboses{}~\citep{porter11drawbridge, baumann13bascule, baumann14haven},
+Legacy application support is provided
+in recent \liboses{}~\citep{porter11drawbridge, baumann13bascule, baumann14haven},
 %, such as Drawbridge~\citep{porter11drawbridge}, Bascule~\citep{baumann13bascule} and Haven~\citep{baumann14haven},
 %partial support for legacy applications is provided
 by emulating the OS personalities in individual \picoprocs{}.
