@@ -1,57 +1,57 @@
 \chapter{Conclusion}
 \label{chap:conclusion}
 
-Unknown security vulnerabilities and performance bottlenecks exist
-in modern applications and operating systems.
-%The pitfalls hidden in the legacy code affect users
-%and even developers can hardly prevent them.
-A few solutions, such as \term{\liboses{}},
-are designed to restrain
-the outcome of hidden system pitfalls, %potential vulnerabilities or bottlenecks
-by partitioning the complex, hard-to-predict system,
-into isolated pieces.
-%Partitioning a complex system into
-%isolated, reasonably simple pieces
-%is a method
-%to restrict the aftermath of potential vulnerabilities or
-%performance bottlenecks.
-%In a partitioned system, developers
-%are more likely to reason about
-%the soundness of the design and implementation.
-%in the partitions
-%that are more valuable to users.
-%instead of demanding arbitrary trust from the users.
-Essentially, a library OS
-splits the functionality of a kernel into
-the application process,
-or \term{\picoprocs{}},
-to isolate the OS states related with mutually untrusting applications~\citep{porter11drawbridge, baumann13bascule, unikernels}.
-%to isolate mutually untrusting applications.
-%The security isolation enforced by library OSes
-%is based on the fact that
-A \picoproc{} will bound the execution of each \libos{} instance
-in virtual address apace,
-and narrow its attack surface to its host kernel.
-%through a fixed set of paravirtual APIs.
-%The performance benefits
-%from partitioning the host resource and congesting logics
-%are presented in the 90's,
-%solutions like
-Other beneficial features of \liboses{}
-include
-identifying and evicting the kernel components causing system congestion~\citep{engler95exokernel, leslie96nemesis, unikernels},
-such as multiplexing hardware resources or allocating processing buffers.
-A \libos{} can
-dismiss %or compile out
-%unneeded or 
-redundant overheads
-from critical paths of specific applications.
-%can be removed from the critical paths.
-These solutions provide more secure or more efficient options
-than monolithic kernels
-(e.g., Windows, Linux).
-%will perfectly enforce security policies
-%and effectively reduce system bottlenecks.
+%Unknown security vulnerabilities and performance bottlenecks exist
+%in modern applications and operating systems.
+%%The pitfalls hidden in the legacy code affect users
+%%and even developers can hardly prevent them.
+%The systems like \term{\liboses{}}, in particular,
+%are designed to restrain
+%the outcome of hidden system pitfalls, %potential vulnerabilities or bottlenecks
+%by partitioning the complex, hard-to-predict system,
+%into isolated pieces.
+%%Partitioning a complex system into
+%%isolated, reasonably simple pieces
+%%is a method
+%%to restrict the aftermath of potential vulnerabilities or
+%%performance bottlenecks.
+%%In a partitioned system, developers
+%%are more likely to reason about
+%%the soundness of the design and implementation.
+%%in the partitions
+%%that are more valuable to users.
+%%instead of demanding arbitrary trust from the users.
+%Essentially, a library OS
+%splits the functionality of a kernel into
+%the application process,
+%or \term{\picoprocs{}},
+%to isolate the OS states related with mutually untrusting applications~\citep{porter11drawbridge, baumann13bascule, unikernels}.
+%%to isolate mutually untrusting applications.
+%%The security isolation enforced by library OSes
+%%is based on the fact that
+%A \picoproc{} will bound the execution of each \libos{} instance
+%in virtual address apace,
+%and narrow its attack surface to its host kernel.
+%%through a fixed set of paravirtual APIs.
+%%The performance benefits
+%%from partitioning the host resource and congesting logics
+%%are presented in the 90's,
+%%solutions like
+%Other beneficial features of \liboses{}
+%include
+%identifying and evicting the kernel components causing system congestion~\citep{engler95exokernel, leslie96nemesis, unikernels},
+%such as multiplexing hardware resources or allocating processing buffers.
+%A \libos{} can
+%dismiss %or compile out
+%%unneeded or 
+%redundant overheads
+%from critical paths of specific applications.
+%%can be removed from the critical paths.
+%These solutions provide more secure or more efficient options
+%than monolithic kernels
+%(e.g., Windows, Linux).
+%%will perfectly enforce security policies
+%%and effectively reduce system bottlenecks.
 
 
 %Furthermore, more recent works such as HiStar~\citep{zeldovich+histar}
@@ -104,7 +104,8 @@ than monolithic kernels
 %On the other hand, virtualization can provide both compatibility and security isolation for native applications built for monolithic operating systems, but often requires too much resources such as memory, to run each guests in multi-tenant environments.
 
 
-On the other hand, developers pay varying efforts to port applications
+Due to the diversity of system platforms,
+developers pay varied efforts to port applications
 from a system to another,
 in order to gain qualitative benefits.
 %After a system is redesigned structurally,
@@ -118,8 +119,8 @@ recompilation of the binaries
 to fundamental re-implementation.
 Essentially,
 the difficulty of porting is determined by the distinction between the \emph{personalities} of platforms
---- Windows, UNIX, \liboses{}, etc.
-Among two systems that are ideally compatible, \emph{no} porting efforts will be needed.
+--- either they are Windows, UNIX, \liboses{}, etc.
+%Among two systems that are ideally compatible, \emph{no} porting efforts will be needed.
 %to harvest the development efforts made
 %prior to the redesigning,
 %and to lower the barrier for users to adopt the system.
@@ -148,9 +149,12 @@ within a single \picoproc{}.
 %Based on the principle,
 The single-process abstractions,
 such as accessing unshared files or creating in-process threads,
-can be wrapped inside a \libos{}.
-Multi-process abstractions, on the contrast, require
+can be wrapped inside a \libos{};
+however, multi-process abstractions, on the contrast, require
 multiple \picoprocs{} to collaboratively provide a unified OS views.
+
+
+
 We design a library OS called \term{\graphene{}}~\citep{tsai14graphene},
 which supports legacy Linux, multi-process applications.
 %For instance,
@@ -220,101 +224,6 @@ and hardware peripherals.
 %as well as miscellaneous features in the Linux file system hierarchy.
 
 
-The principles for developing OS personalities can be vastly distinct
-among different specifications,
-and often entangled with
-the implementation of
-security mechanisms and performance optimizations.
-%The multi-process abstractions in \graphene{}, for instance,
-%compose a critical part of Linux personality,
-%yet must enforce security isolation comparable to a single \picoproc{},
-%with acceptable coordination efficiency.
-Similar challenges can be observed in legacy, monolithic kernels.
-%when redesigning a system component for security or efficiency,
-%legacy support may become obstruction.
-%Many systems provide legacy support
-%in a complex, case-by-case way,
-%potentially causing more security glitches and performance suboptimality.
-%An insight
-%for solving this problem %that affects both partitioned and non-partitioned system
-%is to avoid
-%emulating specifications and checking security policies
-%on the critical path of common cases.
-We demonstrate a case of an performance-centric, heavily engineered component,
-the Linux \term{file system directory cache}.
-The directory cache is designed as an optimization for path lookup,
-yet it interleaves searching path components
-with permission checks (e.g., searching prefixes)
-and file system features (e.g., resolving symbolic links),
-%while preserving the legacy file-system features and security models
-%.
-%The original Linux kernel interleaves path component searching
-%in the directory cache
-%with permission checks against security modules,
-%and retrieving file attributions.
-causing suboptimal latency when the cache is warm (no cache misses)
-~\citep{tsai15dcache}.
-A fast path to improve the hit latency
-will decouple searching in the directory cache
-from other operations,
-by %full exploiting the locality and
-caching the results of prefix checking, symbolic links, etc.
-With the fast path,
-the latency of Git version control system
-can be reduced by up to 25\%.
-Summarizing the similar cases,
-developers constantly struggle to
-implement or preserve whole legacy support
-when adopting new system designs. 
-In practice,
-developers often prioritize
-what they believe to be more \emph{important},
-which can be heavily skewed toward their preferred workloads.
-%We suggest a new approach to guide and evaluate the implementation
-%of legacy support~\citep{tsai16apistudy}.
-Alternatively,
-we suggest a more fractal measurement
-for estimating how system APIs
-(e.g., Linux system calls)
-are used in applications,
-weighted by the application popularity.
-According to the measurement,
-by merely adding two important but missing system calls to \graphene{},
-the fraction of applications that can plausibly use the system
-will grow from 0.42\% to 21.1\%.
-%On the other hand,
-%the process of building up legacy application support
-%can be more principled,
-%using a fractal measurement to evaluate the completeness of emulation,
-%instead of the traditional binary measurement.
-%%
-%% a representative measurement of the completeness of emulating specifications.
-%%To address the concern,
-%We conduct a study on \term{Linux system API usage}
-%~\citep{tsai16apistudy}
-%to reveal the impact of API implementation on users
-%and suggest an optimal path for maximizing the completeness in a system prototype.
-%%The study reveals that all system APIs are not equally important for emulating,
-%%and by prioritizing API emulation
-%%developers can plan a optimal path to support a wide range of applications.
-
-
-%We present \term{\graphene{} library OS}, to enforce security isolation for native Linux applications,
-%with reasonable compatibility, performance and resource cost.
-%\graphene{} library OS supports and secures many multi-process abstractions that are native to Linux, such as forking, signaling, and system V IPC (message queues and semaphores), etc.
-%For multi-process applications, \graphene{} run each process in separate pico-processes loaded with a library OS,
-%yet each pico-processes can coordinate to provide a unified view of the operating system.
-%Within each pico-process, \graphene{} implements a large portion of Linux system calls, using a much narrower, platform-independent host ABI.
-%To enforce security isolation on multi-process abstractions,
-%\graphene{} coordinate all the namespaces and operations
-%over a simple pipe-like RPC streams, with can be easily sandboxed from the hosts.
-%By restricting coordination over RPC streams,
-%\graphene{} effectively enforce security isolation on various of multi-process abstractions whose mechanisms can be complicated and idiosyncratic.
-
-In conclusion, this thesis seeks systematic and generalizable solutions,
-for mitigating the limitations on
-fulfilling legacy application requirements
-in innovative system designs (e.g., \liboses{}, enclaves, file system fast paths).
 Besides supporting whole applications,
 we explore opportunity for porting applications
 to a more fine-grained, partitioned model
@@ -368,11 +277,115 @@ to isolate sensitive execution from untrusted components and hosts.
 %The measurement provides a methodology
 %for system developers to reason about the
 %preservation of specifications and personalities.
-More future works target on justifying the generalizability of the compatible solutions,
-including porting \graphene{} to diverse platforms,
-and implementing major OS personality that are currently missing,
-such as resource scheduling APIs,
-hardware feature support, and in-application security models (capabilities, mandatory access control, etc).
+%More future works target on justifying the generalizability of the compatible solutions,
+%including porting \graphene{} to diverse platforms,
+%and implementing major OS personality that are currently missing,
+%such as resource scheduling APIs,
+%hardware feature support, and in-application security models (capabilities, mandatory access control, etc).
+
+
+
+In practice,
+developers, including us, struggle to prioritize the implementation of system APIs and abstraction,
+because what they believe to be more \emph{important}
+is inevitably skewed toward their preferred workloads.
+%We suggest a new approach to guide and evaluate the implementation
+%of legacy support~\citep{tsai16apistudy}.
+Alternatively,
+we suggest a more fractal measurement
+for estimating how system APIs
+(e.g., Linux system calls)
+are used in applications,
+weighted by the application popularity.
+The study reveals that all system APIs are not equally important for emulating,
+and by prioritizing API emulation
+developers can plan an optimal path to maintain the broadest application support.
+According to the measurement,
+by merely adding two important but missing system calls to \graphene{},
+the fraction of applications that can plausibly use the system
+will grow from 0.42\% to 21.1\%.
+%On the other hand,
+%the process of building up legacy application support
+%can be more principled,
+%using a fractal measurement to evaluate the completeness of emulation,
+%instead of the traditional binary measurement.
+%%
+%% a representative measurement of the completeness of emulating specifications.
+%%To address the concern,
+%We conduct a study on \term{Linux system API usage}
+%~\citep{tsai16apistudy}
+%to reveal the impact of API implementation on users
+%and suggest an optimal path for maximizing the completeness in a system prototype.
+
+
+
+At the high level,
+the principles for developing OS personalities can be vastly distinct
+among different specifications,
+and often entangled with
+the implementation of
+security mechanisms and performance optimizations.
+%The multi-process abstractions in \graphene{}, for instance,
+%compose a critical part of Linux personality,
+%yet must enforce security isolation comparable to a single \picoproc{},
+%with acceptable coordination efficiency.
+Similar challenges can be observed in legacy, monolithic kernels.
+%when redesigning a system component for security or efficiency,
+%legacy support may become obstruction.
+%Many systems provide legacy support
+%in a complex, case-by-case way,
+%potentially causing more security glitches and performance suboptimality.
+%An insight
+%for solving this problem %that affects both partitioned and non-partitioned system
+%is to avoid
+%emulating specifications and checking security policies
+%on the critical path of common cases.
+We demonstrate a case of an performance-centric, heavily engineered component,
+the Linux \term{file system directory cache}.
+The directory cache is designed as an optimization for path lookup,
+yet it interleaves searching path components
+with permission checks (e.g., searching prefixes)
+and file system features (e.g., resolving symbolic links),
+%while preserving the legacy file-system features and security models
+%.
+%The original Linux kernel interleaves path component searching
+%in the directory cache
+%with permission checks against security modules,
+%and retrieving file attributions.
+causing suboptimal latency when the cache is warm (no cache misses)
+~\citep{tsai15dcache}.
+A fast path to improve the hit latency
+will decouple searching in the directory cache
+from other operations,
+by %full exploiting the locality and
+caching the results of prefix checking, symbolic links, etc, in the kernel data structures.
+%With the fast path,
+%the latency of Git version control system
+%can be reduced by up to 25\%.
+%Summarizing the similar cases,
+%developers constantly struggle to
+%implement or preserve whole legacy support
+%when adopting new system designs. 
+In conclusion, this thesis seeks systematic and generalizable solutions,
+for mitigating the limitations on
+fulfilling legacy application requirements
+in innovative system designs (e.g., \liboses{}, enclaves, file system fast paths).
+
+
+
+%We present \term{\graphene{} library OS}, to enforce security isolation for native Linux applications,
+%with reasonable compatibility, performance and resource cost.
+%\graphene{} library OS supports and secures many multi-process abstractions that are native to Linux, such as forking, signaling, and system V IPC (message queues and semaphores), etc.
+%For multi-process applications, \graphene{} run each process in separate pico-processes loaded with a library OS,
+%yet each pico-processes can coordinate to provide a unified view of the operating system.
+%Within each pico-process, \graphene{} implements a large portion of Linux system calls, using a much narrower, platform-independent host ABI.
+%To enforce security isolation on multi-process abstractions,
+%\graphene{} coordinate all the namespaces and operations
+%over a simple pipe-like RPC streams, with can be easily sandboxed from the hosts.
+%By restricting coordination over RPC streams,
+%\graphene{} effectively enforce security isolation on various of multi-process abstractions whose mechanisms can be complicated and idiosyncratic.
+
+
 
 
 
