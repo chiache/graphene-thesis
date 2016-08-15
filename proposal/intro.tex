@@ -179,7 +179,7 @@ as more secure or efficient options than monolithic kernels
 %\section{Security Isolation for Linux Multi-Process Applications\\ using a Library OS}
 %\label{sec:intro:graphene}
 
-For instance, a \term{\libos{}} splits the OS functionality from a kernel
+A \term{\libos{}} splits the OS functionality from a kernel
 into the application processes,
 to isolate the applications that distrust each other
 and demand a more impenetrable barrier~\citep{porter11drawbridge,unikernels,baumann13bascule}.
@@ -614,138 +614,6 @@ are essentially the top performance factors.
 Improving the coordination overhead will require placing the OS states in the most frequency accessing \picoprocs{},
 and reducing round trips of RPC messages.
 
-
-%
-%Haven effectively migrates native Windows applications to enclaves,
-%providing a shortcut for developers
-%to easily boost the security of their products.
-%However, there are several limitations in Haven, including
-%excessive trusted computing base (TCB),
-%a restrictive model of adapting applications,
-%and missing support for Linux or multi-process applications.
-
-%We present \gsgx{}, a \libos{}-based shielding system
-%targeting Linux multi-process applications,
-%as improvement to the Haven model of migrating native application to SGX.
-%\gsgx{} is derived of \graphene{}~\citep{tsai14graphene},
-%which supports 139 out of 300 Linux system calls.
-%\graphene{} runs numbers of popular applications
-%such as Apache web server, OpenJDK virtual machine, or shell scripts,
-%all of which relies on multi-process abstractions
-%such as {\tt fork}, {\tt execve}, signals or System V IPC.
-
-
-%The principle to optimize the critical path of frequent operations
-%also applies to legacy systems.
-The difficulty of simultaneously achieving compatibility, efficiency, and other qualities
-can also be observed in commodity operating systems.
-In the design of a traditional OS such as Windows or Linux,
-the implementation of OS abstractions are
-often entangled with security mechanisms and performance optimizations,
-leading to suboptimal efficiency.
-The complexity of the OS design makes any structural changes to the OS logic
-unreasonably hard to adopt.
-%is not only observed in 
-%In an operating system like Linux,
-%complex logics are design to simultaneously implement specifications
-%and improve performance,
-%causing suboptimal results in the system.
-One classic example is the \term{Linux file system directory cache},
-a heavily engineered component designed for
-avoiding the significant latency of looking up duplicated paths
-on physical storage,
-yet also used as data structures
-for file system features,
-such as storing permissions, attributes and symbolic links.
-In our analysis, even when the directory cache is warm (no cache misses),
-the latency of path-searching system calls
-still dominates many lookup-bound applications,
-such as the GIT version control system.
-The culprit of the suboptimal latency is
-the requirement of permission checks and processing file system features
-that interleaves with
-looking up path prefixes in the directory cache.
-A more optimal design
-shall decouple the looking up cached paths
-from other operations,
-%from the path-based lookup in the directory cache,
-by fully exploiting locality to cache the results of redundant operations
-(i.e., permission checks, retrieving attributes, resolving symboling links, etc).
-The systematic, principled
-redesign of Linux file system directory cache 
-preserves the compatibility to existing Linux file system features,
-as well as
-various security mechanisms (e.g., AppArmor, SELinux)
-and most underlying storage (e.g., Ext4, Pseudo file systems).
-
-
-\paragraph{Measurements for System Completeness.}
-In general, due to the complexity of implementation or preserving
-the complete specifications,
-developers must prioritize the development based on
-what they believe to be more important
---- what will impact or satisfy more applications or more users.
-Especially for innovative systems like \liboses{},
-developers struggle to evaluate the progress in a partial prototype.
-%From improving legacy code compatibility in different systems
-%(Linux to \graphene{}),
-%we observe that system developers including us
-%routinely make design choices based on 
-%what they believe to be the common and uncommon behaviors of a system.
-%For instance, in \graphene{}, we start with handpicking the abstractions and specifications
-%that we believe to be more important to the applications.
-%When optimizing Linux file system directory cache,
-%we shorten the latency of {\tt stat} and {\tt open} system calls
-%at the expense of {\tt rename} and {\tt chmod},
-%assuming that {\tt stat} and {\tt open} are the more commonly used operations in majority of applications.
-%%In the case of a general-purpose OS, determining
-%%exactly what the common case is can be challenging.
-%In general,
-%a developer's view of what system APIs are important is skewed towards
-%the developer's preferred workloads.
-%%the choice of what features matter skews heavily towards
-%%workloads particular developers use.
-%Similarly, developers who struggle to evaluate the impact of a 
-%change on compatibility
-%must implement every abstractions and specifications,
-%and then be able to reason about the completeness of legacy support.
-%support of legacy application in the product system.
-At the center of these problems is the missing of information about how system abstractions or APIs are used in the run-time.
-%and a metric to estimate the completeness of legacy applications that can be supported
-%for any random users.
-In search of better methods for
-evaluating the legacy support,
-we conduct a study of Linux system APIs usage among a large sample of Debian/Ubuntu x86\_64 applications,
-weighted by the application popularity
-collected by the Popularity Contests~\citep{debian-popularity, ubuntu-popularity}.
-Based on the study,
-we create a measurement
-for estimating the fraction of applications installed by a user
-that can plausibly use the system.
-For instance, the current \graphene{} prototype,
-in which we hand-pick Linux system calls according to the applications for experiment,
-can support the complete API footprint
-in 0.42\% of applications installed by a user.
-The data-driven, principled strategy shows than \graphene{} can be improved to
-supporting 21.1\% of applications,
-by simply adding two missing system calls, {\tt sched\_setcheduler} and {\tt sched\_setparam}.
-
-%We create sensible, representative metrics,
-%which measure the effects of both applications and users.
-%Using the metrics and insights from the study,
-%the significant improvement on legacy application support in \graphene{} is demonstrated
-%if we guide the development using this approach.
-
-%Summarizing all contributions of the thesis,
-%we explore the solutions and principles,
-%to implement OS support for legacy applications in either 
-%isolated systems
-%(i.e., \graphene{} \libos{}, enclaves) 
-%or optimized legacy OS components
-%(i.e., Linux file system directory cache).
-
-
-
 \paragraph{Partitioning Legacy Applications.}
 Beside supporting whole applications,
 %and derive principles to improve the result of implementation.
@@ -816,6 +684,98 @@ such as type checking, information flow tracking among objects,
 can further ensure the soundness of isolated execution.
 The automated partitioning of \java{} applications into enclaves
 is an ongoing work.
+
+
+%
+%Haven effectively migrates native Windows applications to enclaves,
+%providing a shortcut for developers
+%to easily boost the security of their products.
+%However, there are several limitations in Haven, including
+%excessive trusted computing base (TCB),
+%a restrictive model of adapting applications,
+%and missing support for Linux or multi-process applications.
+
+%We present \gsgx{}, a \libos{}-based shielding system
+%targeting Linux multi-process applications,
+%as improvement to the Haven model of migrating native application to SGX.
+%\gsgx{} is derived of \graphene{}~\citep{tsai14graphene},
+%which supports 139 out of 300 Linux system calls.
+%\graphene{} runs numbers of popular applications
+%such as Apache web server, OpenJDK virtual machine, or shell scripts,
+%all of which relies on multi-process abstractions
+%such as {\tt fork}, {\tt execve}, signals or System V IPC.
+
+
+
+
+\paragraph{Measurements for System Completeness.}
+In general, due to the complexity of implementation or preserving
+the complete specifications,
+developers must prioritize the development based on
+what they believe to be more important
+--- what will impact or satisfy more applications or more users.
+Especially for innovative systems like \liboses{},
+developers struggle to evaluate the progress in a partial prototype.
+%From improving legacy code compatibility in different systems
+%(Linux to \graphene{}),
+%we observe that system developers including us
+%routinely make design choices based on 
+%what they believe to be the common and uncommon behaviors of a system.
+%For instance, in \graphene{}, we start with handpicking the abstractions and specifications
+%that we believe to be more important to the applications.
+%When optimizing Linux file system directory cache,
+%we shorten the latency of {\tt stat} and {\tt open} system calls
+%at the expense of {\tt rename} and {\tt chmod},
+%assuming that {\tt stat} and {\tt open} are the more commonly used operations in majority of applications.
+%%In the case of a general-purpose OS, determining
+%%exactly what the common case is can be challenging.
+%In general,
+%a developer's view of what system APIs are important is skewed towards
+%the developer's preferred workloads.
+%%the choice of what features matter skews heavily towards
+%%workloads particular developers use.
+%Similarly, developers who struggle to evaluate the impact of a 
+%change on compatibility
+%must implement every abstractions and specifications,
+%and then be able to reason about the completeness of legacy support.
+%support of legacy application in the product system.
+At the center of these problems is the missing of information about how system abstractions or APIs are used in the run-time.
+%and a metric to estimate the completeness of legacy applications that can be supported
+%for any random users.
+In search of better methods for
+evaluating the legacy support,
+we conduct a study of Linux system APIs usage among a large sample of Debian/Ubuntu x86\_64 applications,
+weighted by the application popularity
+collected by the Popularity Contests~\citep{debian-popularity, ubuntu-popularity}.
+Based on the study,
+we create a measurement
+for estimating the fraction of applications installed by a user
+that can plausibly use the system.
+For instance, the current \graphene{} prototype,
+in which we hand-pick Linux system calls according to the applications for experiment,
+can support the complete API footprint
+in 0.42\% of applications installed by a user.
+The data-driven, principled strategy shows than \graphene{} can be improved to
+supporting 21.1\% of applications,
+by simply adding two missing system calls, {\tt sched\_setcheduler} and {\tt sched\_setparam}.
+
+%We create sensible, representative metrics,
+%which measure the effects of both applications and users.
+%Using the metrics and insights from the study,
+%the significant improvement on legacy application support in \graphene{} is demonstrated
+%if we guide the development using this approach.
+
+%Summarizing all contributions of the thesis,
+%we explore the solutions and principles,
+%to implement OS support for legacy applications in either 
+%isolated systems
+%(i.e., \graphene{} \libos{}, enclaves) 
+%or optimized legacy OS components
+%(i.e., Linux file system directory cache).
+
+
+
+
 
 
 %By supporting Linux multi-process applications,
@@ -1343,6 +1303,52 @@ is safe to be released from the enclave.
 %may contain more than thousands of \java{} classes.
 %All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.
 
+
+\paragraph{Optimizing Linux File System Directory Cache.}
+%The principle to optimize the critical path of frequent operations
+%also applies to legacy systems.
+The difficulty of simultaneously achieving compatibility, efficiency, and other qualities
+can also be observed in commodity operating systems.
+In the design of a traditional OS such as Windows or Linux,
+the implementation of OS abstractions are
+often entangled with security mechanisms and performance optimizations,
+leading to suboptimal efficiency.
+The complexity of the OS design makes any structural changes to the OS logic
+unreasonably hard to adopt.
+%is not only observed in 
+%In an operating system like Linux,
+%complex logics are design to simultaneously implement specifications
+%and improve performance,
+%causing suboptimal results in the system.
+One classic example is the \term{Linux file system directory cache},
+a heavily engineered component designed for
+avoiding the significant latency of looking up duplicated paths
+on physical storage,
+yet also used as data structures
+for file system features,
+such as storing permissions, attributes and symbolic links.
+In our analysis, even when the directory cache is warm (no cache misses),
+the latency of path-searching system calls
+still dominates many lookup-bound applications,
+such as the GIT version control system.
+The culprit of the suboptimal latency is
+the requirement of permission checks and processing file system features
+that interleaves with
+looking up path prefixes in the directory cache.
+A more optimal design
+shall decouple the looking up cached paths
+from other operations,
+%from the path-based lookup in the directory cache,
+by fully exploiting locality to cache the results of redundant operations
+(i.e., permission checks, retrieving attributes, resolving symboling links, etc).
+The systematic, principled
+redesign of Linux file system directory cache 
+preserves the compatibility to existing Linux file system features,
+as well as
+various security mechanisms (e.g., AppArmor, SELinux)
+and most underlying storage (e.g., Ext4, Pseudo file systems).
+
+
 \paragraph{Contributions.}
 This thesis proposes the challenges, solutions and principles,
 to mitigate limitations from innovative system designs on enabling the execution of legacy applications.
@@ -1374,6 +1380,48 @@ a feature generally provided by most platforms.
 %When Graphene isolates multiple processes in enclaves,
 %the RPC streams can be trusted using \sgx{}'s attestation feature,
 %instead of relying on sandboxing by the host.
+
+\item
+A framework called \term{Civet},
+that combines the isolated execution of \sgx{} and
+\java{} language protections,
+for partitioning legacy \java{} applications.
+\civet{} includes
+a tool that automates code compartmentalization,
+generating an enclave with minimal supporting \java{} classes;
+a runtime framework that loads signed classes into an enclave,
+with language protection such as information flow control at the enclave boundary;
+and \java{} APIs to seamless access the \sgx{} features such
+as attestation and secure provisioning.
+The use cases of \civet{} includes
+isolating session keys and supporting cryptography library for a SSH connection,
+%in which the  used for encrypting the connection
+%is partitioned and isolated from the rest of the application, %in the enclave,
+%protecting the generated session key while still
+%using it for encryption and decryption.
+protecting Hadoop workloads that run proprietary algorithms,
+and a web application deployed over HTTP.
+\term{This work is still in progress.}
+
+
+
+\item
+A study of \term{Linux API usage and compatibility}~\citep{tsai16apistudy}, to provide the information missing in
+the decision-making process of system developers.
+The study uses
+a approach to measure platform compatibility as the relative completeness of prototype systems.
+Rather than considering compatibility a binary property % (``will something break?''),
+%yet for prototypes, which are necessarily in-progress,
+we use a fractional metric
+%(``how many programs will not break?'')
+which is better suited to measuring the progress of a prototype.
+Based on the study,
+we provides a range of insights into current API usage patterns.
+For instance, we identify an efficient path to implementing a new Linux compatibility layer, maximizing the additional applications per system call.
+We also identify
+that usage of many APIs is similarly distributed:
+some are widely used, and there is a sharp drop with a very long tail
+of rarely or never-used APIs.
 
 
 \item
@@ -1407,47 +1455,6 @@ for Dovecot IMAP server by up to 12\%
 and GIT version control system by up to 25\%.
 
 
-\item
-A study of \term{Linux API usage and compatibility}~\citep{tsai16apistudy}, to provide the information missing in
-the decision-making process of system developers.
-The study uses
-a approach to measure platform compatibility as the relative completeness of prototype systems.
-Rather than considering compatibility a binary property % (``will something break?''),
-%yet for prototypes, which are necessarily in-progress,
-we use a fractional metric
-%(``how many programs will not break?'')
-which is better suited to measuring the progress of a prototype.
-Based on the study,
-we provides a range of insights into current API usage patterns.
-For instance, we identify an efficient path to implementing a new Linux compatibility layer, maximizing the additional applications per system call.
-We also identify
-that usage of many APIs is similarly distributed:
-some are widely used, and there is a sharp drop with a very long tail
-of rarely or never-used APIs.
-
-
-\item
-A framework called \term{Civet},
-that combines the isolated execution of \sgx{} and
-\java{} language protections,
-for partitioning legacy \java{} applications.
-\civet{} includes
-a tool that automates code compartmentalization,
-generating an enclave with minimal supporting \java{} classes;
-a runtime framework that loads signed classes into an enclave,
-with language protection such as information flow control at the enclave boundary;
-and \java{} APIs to seamless access the \sgx{} features such
-as attestation and secure provisioning.
-The use cases of \civet{} includes
-isolating session keys and supporting cryptography library for a SSH connection,
-%in which the  used for encrypting the connection
-%is partitioned and isolated from the rest of the application, %in the enclave,
-%protecting the generated session key while still
-%using it for encryption and decryption.
-protecting Hadoop workloads that run proprietary algorithms,
-and a web application deployed over HTTP.
-\term{This work is still in progress.}
-
 \end{compactitem}
 
 
@@ -1458,19 +1465,18 @@ The organization of this thesis is presented as follows:
 \item \S\ref{chap:graphene}
 describes the \graphene{} approach for supporting multi-process, Linux applications in mutually isolated \picoprocs{},
 or enclaves.
-\item \S\ref{chap:dcache}
-explains a fast-path design for optimizing the hit latency for looking up in Linux's egacy file system directory cache.
-\item \S\ref{chap:syspop}
-discusses new, fractal measurements for evaluating importance of system APIs and completeness of prototype systems,
-based on a study of Linux API usage and compatibility.
 \item \S\ref{chap:civet}
 presents the ongoing work of partitioning
 \java{} applications to isolate the most sensitive execution
 in enclaves.
-\item \S\ref{chap:future}
-lists the proposed tasks for the fulfillment of thesis,
-and other future directions.
+\item \S\ref{chap:syspop}
+discusses new, fractal measurements for evaluating importance of system APIs and completeness of prototype systems,
+based on a study of Linux API usage and compatibility.
+\item \S\ref{chap:dcache}
+explains a fast-path design for optimizing the hit latency for looking up in Linux's egacy file system directory cache.
+\item \S\ref{chap:proposal}
+lists the proposed tasks for the fulfillment of thesis.
 \item \S\ref{chap:related}
 describes the former works and publications related to
-the topics covered in this thesis.
+this thesis.
 \end{compactitem}
