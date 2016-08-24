@@ -308,32 +308,38 @@ as the Linux kernel implementation.
 \begin{tabular}{|l|rr|rrr|rrr|rrr|}
 \hline
 {\bf Test } & \multicolumn{2}{c|}{{\bf Linux}} & \multicolumn{3}{c|}{{\bf \sysname{}
-}} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
-
+}} & \multicolumn{3}{c|}{{\bf \sysname{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \sysname{} + \sgx{}}} \\
 &
-{\footnotesize \us{}} & {\footnotesize +/-} & 
-{\footnotesize \us{}} & {\footnotesize +/-} & \%O &
-{\footnotesize \us{}} & {\footnotesize +/-} & \%O & 
-{\footnotesize \us{}} & {\footnotesize +/-} & \%O \\
+\usec{} & +/- & 
+\usec{} & +/- & \%O &
+\usec{} & +/- & \%O & 
+\usec{} & +/- & \%O \\
 
 \hline
 
-syscall       &  0.04 & .0 &  0.01 & .0 & -75 &  0.01 & .0 & -75 & xx.xx & .xx & xxx \\\hline
-read          &  0.09 & .0 &  0.12 & .0 &  33 &  0.12 & .0 &  33 & xx.xx & .xx & xxx \\\hline
-write         &  0.11 & .0 &  0.11 & .0 &   0 &  0.11 & .0 &   0 & xx.xx & .xx & xxx \\\hline
-%stat         &  0.35 & .0 &  0.50 & .0 &  43 &  0.77 & .0 & 120 & xx.xx & .xx & xxx \\\hline
-%fstat        &  0.08 & .0 &  0.20 & .0 & 150 &  0.19 & .0 & 138 & xx.xx & .xx & xxx \\\hline
-open/close    &  0.85 & .1 &  3.53 & .2 & 315 &  5.09 & .0 & 499 & xx.xx & .xx & xxx \\\hline
-%select file  &  3.93 & .0 & 15.12 & .0 & 315 & 15.00 & .0 & 411 & xx.xx & .xx & xxx \\\hline
-select tcp    & 10.87 & .0 & 17.02 & .0 &  56 & 17.44 & .0 &  60 & xx.xx & .xx & xxx \\\hline
-sig install   &  0.11 & .0 &  0.20 & .0 &  82 &  0.20 & .0 &  82 & xx.xx & .xx & xxx \\\hline
-sigusr1       &  0.79 & .0 &  0.33 & .0 & -58 &  0.33 & .0 & -58 & xx.xx & .xx & xxx \\\hline
-%sigsegv      &  0.20 & .0 &  0.58 & .0 & 190 &  1.05 & .0 & 425 & xx.xx & .xx & xxx \\\hline
-AF\_UNIX      &  4.71 & .1 &  5.71 & .0 &  19 &  6.37 & .1 &  32 & xx.xx & .xx & xxx \\\hline
-\hline
-fork+exit     &   67 &   0 &   463 &  4 & 587 &   490 &  3 & 626 & xx.xx & .xx & xxx \\\hline
-fork+exec     &  231 &   1 &   764 &  5 & 237 &   800 &  6 & 253 & xx.xx & .xx & xxx \\\hline
-fork+sh       &  576 &   8 & 1,720 & 10 & 199 & 1,775 & 11 & 208 & xx.xx & .xx & xxx \\\hline
+syscall        &  0.045 & .000 &  0.014 & .000 & -68.9 &    0.014 & .000 & -68.9 &  0.014 & .000 &   -68.9 \\\hline
+read           &  0.115 & .000 &  0.118 & .000 &   2.6 &    0.118 & .000 &   2.6 &  0.119 & .000 &     3.5 \\\hline
+write          &  0.115 & .000 &  0.115 & .000 &   0.0 &    0.115 & .000 &   0.0 &  0.115 & .000 &     0.0 \\\hline
+stat           &  0.332 & .000 &  1.154 & .000 & 247.6 &    1.161 & .000 & 249.7 &  1.167 & .000 &   251.2 \\\hline
+fstat          &  0.107 & .000 &  0.189 & .000 &  76.6 &    0.189 & .003 &  76.6 &  0.189 & .000 &    76.6 \\\hline
+open/close     &  0.880 & .003 &  2.552 & .005 & 190.0 &    2.816 & .002 & 330.0 & 17.189 & .031 & 1,853.3 \\\hline
+select file    &  3.360 & .001 & 11.536 & .003 & 243.3 &   11.647 & .004 & 246.6 & 11.567 & .003 &   244.3 \\\hline
+select tcp     & 10.590 & .002 & 11.679 & .002 &  10.3 &   12.050 & .000 &  13.8 & 14.594 & .239 &    37.8 \\\hline
+sig install    &  0.126 & .000 &  0.126 & .000 &   0.0 &    0.126 & .000 &   0.0 &  0.122 & .000 &    -3.2 \\\hline
+sigusr1        &  0.951 & .000 &  0.184 & .000 & -80.7 &    0.188 & .000 & -80.2 &  0.184 & .000 &   -80.6 \\\hline
+sigsegv        &  0.263 & .000 &  1.467 & .000 & 457.8 &    1.681 & .000 & 539.2 &        &      &         \\\hline\hline
+TCP            &  8.354 & .001 &  9.121 & .002 &   1.8 &    9.699 & .002 &  16.1 & 15.921 & .002 &  91 
+\\\hline
+UDP            &  7.222 & .002 &  9.450 & .002 &  30.8 &    9.995 & .001 &  38.4 & 15.671 & .003 & 116 
+\\\hline
+AF\_UNIX       &  4.937 & .011 &  5.024 & .001 &   1.8 &    6.155 & .010 &  24.7 & 12.567 & .003 & 152 
+\\\hline\hline
+fork+exit      &  66.86 & 0.09 &   380.47 & 3.55 & 469 &   442.83 & 1.39 &   562 & 1.22 \asec{} & .11 & 18k $\times$ \\\hline
+fork+fork+exit & 148.32 & 0.55 &   778.00 & 6.87 & 424 &   915.67 & 3.35 &   517 & 2.66 \asec{} & .11 & 18k $\times$ \\\hline
+vfork+exec     & 141.53 & 0.18 &   487.67 & 5.05 & 245 &   547.30 & 5.22 &   286 &    &  &  \\\hline
+fork+exec      & 194.93 & 0.20 &   810.00 & 3.27 & 315 &   878.50 & 1.89 &   350 &    &  &  \\\hline
+fork+fork+exec & 266.89 & 0.36 & 1,200.60 & 5.20 & 349 & 1,387.75 & 6.21 &   420 &    &  &  \\\hline
+fork+sh        & 499.64 & 0.67 & 1,726.75 & 6.14 & 245 & 1,912.00 & 3.83 &   283 &    &  &  \\\hline
 %\hline
 %UDP lat.&7.26&0.0&10.35&0.1&43&11.63&0.1&60 \\\hline
 %TCP lat.&8.70&0.0&9.84&0.1&13&11.48&0.1&32 \\\hline
@@ -348,8 +354,7 @@ fork+sh       &  576 &   8 & 1,720 & 10 & 199 & 1,775 & 11 & 208 & xx.xx & .xx &
 %%% 10K del & 149 & 0.3  & 94 & 0.1 & 58 & 88 & 0.2 & 69 \\\hline
 \end{tabular}
 \caption[\lmbench{} benchmarking results in Linux, KVM and \sysname{}]
-{\lmbench{} comparison among native Linux processes
-and \sysname{} \picoprocs{}, both without and with the reference monitor (+RM).
+{\lmbench{} comparison among (1) native Linux processes, (2) \sysname{} \picoprocs{} on Linux host, both without and with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \sysname{} in \sgx{} enclaves.
 Execution time is in microseconds, and lower is better. 
 %The file system is measured in thousands operations per second, and higher is better.
 Overheads are relative to Linux; negative overheads indicate improved performance. \fixme{Update \sysname{} and \graphenesgx{} numbers}} 
