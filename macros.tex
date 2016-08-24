@@ -1,0 +1,32 @@
+\usepackage{xstring}
+
+% marking the important text (choose wisely: bold or italic?)
+\newcommand{\important}[1]{{\bf #1}}
+
+% different kinds of seconds
+\newcommand{\asec}{S}
+\newcommand{\usec}{$\mu$S}
+\newcommand{\msec}{mS}
+\newcommand{\nsec}{nS}
+
+% tunable symbols
+\newcommand{\roughly}{$\sim$}
+
+\newcommand{\palign}[2][]{%
+    \IfEqCase{#2}{%
+        {l}{\def\@@align{\raggedright}}%
+        {r}{\def\@@align{\raggedleft}}%
+        {c}{\def\@@align{\centering}}%
+    }[\PackageError{palign}{Undefined option to palign: #2}{}%
+          \def\@@align{}]%
+    \@@align \arraybackslash #1%
+}
+
+% slangs
+
+\newcommand{\libos}{libOS}
+\newcommand{\liboses}{libOSes}
+\newcommand{\Libos}{LibOS}
+\newcommand{\Liboses}{LibOSes}
+
+\newcommand{\loc}{LoC}
