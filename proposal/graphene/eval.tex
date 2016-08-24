@@ -47,26 +47,27 @@ Unless otherwise noted, \sysname{} measurements include the reference monitor.
 \begin{table}[t!b!]
 \footnotesize
 \centering
-\begin{tabular}{|l|r|rr|rr|rr|rr|}
+\begin{tabular}{|l|r|rr|rr|rr|}
 \hline
 {\bf Test } & {\bf Linux } & \multicolumn{2}{c|}{{\bf KVM}}
-& \multicolumn{2}{c|}{{\bf \sysname{}}} & \multicolumn{2}{c|}{{\bf \graphenesgx{}}}\\
-\hline
+& \multicolumn{2}{c|}{{\bf \sysname{}}} \\\hline
 
 %Start-up time& 88.40& 3293296.77 & 3725349\% & 125350.73 & 1417\%& 622.00 & 604\% \\
-Start-up   & 208 \us{} & 3.3 s & 15K\x{} & 641 \us{} & 3.1\x{} & xxxx \us{} & xx\x{} \\
+Start-up   & 208 \us{} & 3.3 s & 15K\x{} & 641 \us{} & 3.1\x{}  \\
 \hline
-Checkpoint & N/A   & 0.987 s  &  &   416 \us{} & & & N/A \\
+Checkpoint & N/A   & 0.987 s  &  &   416 \us{} &  \\
 \hline
-Resume     & N/A   & 1.146 s  &  &  1387 \us{} & & & N/A \\
+Resume     & N/A   & 1.146 s  &  &  1387 \us{} & \\
 \hline\hline
-Checkpoint size & N/A & \multicolumn{2}{l|}{105 MB} & \multicolumn{2}{l|}{376 KB}  &  & N/A  \\
+Checkpoint size & N/A & \multicolumn{2}{l|}{105 MB} & \multicolumn{2}{l|}{376 KB}   \\
 \hline
 \end{tabular}
-\caption[Startup, checkpoint, and resume times in Linux, KVM and \sysname{}]
-{Startup, checkpoint, and resume times for a native Linux process,
-a KVM virtual machine,
-and a \sysname{} \picoproc{}, where appropriate. Lower is better.  
+\caption[Startup, checkpoint, and resume times in Linux, KVM, and \sysname{}]
+{Startup, checkpoint, and resume times for (1) a native Linux process,
+(2) a KVM virtual machine,
+(3) a \sysname{} \picoproc{},
+(4) a \sysname{} \picoproc{} in a \sgx{} enclave,
+ where appropriate. Lower is better.  
 Overheads are relative to Linux. \fixme{Update \sysname{} and \graphenesgx{} numbers}} 
 \label{tab:graphene:startup}
 \end{table}
@@ -165,51 +166,53 @@ one could run anywhere from 12--188 libOSes within the same footprint.
 \hline
 &\multicolumn{11}{c|}{Execution time (s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf \gcc/make} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
+{\bf \gcc/make} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \sysname{} + \sgx{}}} \\
 \hline
 % gcc
 %\multicolumn{2}{|l|}{helloworld} & .02 & .02 & 0 \% & .03 & 100 \% \\ 
 %\hline
 %oggenc & 1.42 & .01 & 1.51 & .00 & 6 \% & 1.43 & .00 & 1 \% \\\hline
-bzip2        &  2.57 & .00 &  2.70 & .00 & 5 \% &  2.70 & .00 &  5 \% & xx.xx & .xx & xxx \%  \\\hline
-bzip2 -j4    &  1.00 & .00 &  1.09 & .00 & 9 \% &  1.08 & .02 &  8 \% & xx.xx & .xx & xxx \%  \\\hline
-libLinux     &  7.23 & .00 &  7.55 & .00 & 4 \% &  8.64 & .00 & 20 \% & xx.xx & .xx & xxx \%  \\\hline
-libLinux -j4 &  1.95 & .00 &  2.03 & .00 & 4 \% &  2.54 & .00 & 30 \% & xx.xx & .xx & xxx \%  \\\hline
-gcc          & 24.74 & .02 & 26.80 & .02 & 8 \% & 31.84 & .00 & 29 \% & xx.xx & .xx & xxx \%  \\\hline
+gcc (helloworld)  & 0.020 & .000 &  0.022 & .000 & 7 \% &  0.023 & .000 &  12 \% & 6.097 & .012 & 298 $\times$  \\\hline
+gcc (.7M\loc{})   & 21.64 &  .00 &  23.37 &  .02 & 8 \% &  21.88 &  .00 &   1 \% & 75.41 & .03 & 248 \%  \\\hline
+make bzip2        & 2.332 & .000 &  2.448 & .000 & 5 \% &  2.407 & .000 &   3 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+make -j4 bzip2    & 0.888 & .000 &  0.967 & .000 & 9 \% &  0.923 & .004 &   4 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+make libLinux     & 4.832 & .000 &  5.037 & .000 & 4 \% &  5.112 & .001 &   6 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+make -j4 libLinux & 1.361 & .000 &  1.413 & .000 & 4 \% &  1.459 & .000 &   7 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+
 
 
 \hline\hline
-Ap. Bnch  & \multicolumn{11}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% Overhead} \\
+Ap. Bnch     & \multicolumn{11}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf Apache} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
+{\bf Apache} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in in KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + SC + RM}}  & \multicolumn{3}{c|}{{\bf \sysname{} + \sgx{}}} \\
 \hline
-25 conc  &5.73&.25&4.84 &.03 &18 \% &4.02 &.00 &43 \% &xx.xx &.xx &xx \% \\\hline
-50 conc  &5.57&.28&4.80 &.06 &16 \% &4.01 &.00 &39 \% &xx.xx &.xx &xx \% \\\hline
-100 conc &5.87&.20&4.80 &.03 &22 \% &3.98 &.00 &47 \% &xx.xx &.xx &xx \% \\\hline
+25 conc     & 6.282 & .005 & 5.327 & .031 & 18 \% & 4.586 & .002 & 36 \% & 2.312 & .192 & 171 \%    \\\hline
+50 conc     & 6.305 & .002 & 5.420 & .060 & 16 \% & 4.555 & .012 & 38 \% & 2.752 & .463 & 129 \%  \\\hline
+100 conc    & 6.347 & .010 & 5.152 & .036 & 22 \% & 4.572 & .009 & 39 \% & 2.488 & .781 & 155 \%   \\\hline
 
-{\bf \light{}} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{|c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{|c|}{{\bf \graphenesgx{}}} \\
+{\bf \light{}} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \sysname{} + \sgx{}}} \\
 \hline
 
-25 conc  &6.66 &.01 &6.46 &.03 &3 \% &5.65 &.00 &18 \% &xx.xx &.xx &xx \% \\\hline
-50 conc  &6.65 &.13 &6.41 &.02 &4 \% &4.79 &.00 &39 \% &xx.xx &.xx &xx \% \\\hline
-100 conc &6.69 &.01 &6.39 &.03 &5 \% &4.56 &.01 &47 \% &xx.xx &.xx &xx \% \\\hline
+25 conc    & 6.66 &.01 &6.46 &.03 &3 \% &5.65 &.00 &18 \% & 2.124 & .072 & 171 \%    \\\hline
+50 conc    & 6.65 &.13 &6.41 &.02 &4 \% &4.79 &.00 &39 \% & 2.437 & .107 & 171 \%    \\\hline
+100 conc   & 6.69 &.01 &6.39 &.03 &5 \% &4.56 &.01 &47 \% & 2.417 & .235 & 171 \%    \\\hline
 
 \hline\hline
 %%%%% UnixBench
 
   & \multicolumn{11}{c|}{Execution Time (s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf bash } & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
+{\bf bash } & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
 \hline
 %2.1 s linux
 %graphene 10.06s
 
 %bash
-Unix utils & 0.87 & .00 & 1.10 & .01 & 26 \% & 2.01 & .00 & 134 \% & xx.xx & .xx & xxx \% \\\hline
-Unixbench  & 0.55 & .00 & 0.55 & .00 &  0 \% & 1.49 & .00 & 192 \% & xx.xx & .xx & xxx \% \\\hline
+Unix utils & 0.87 & .00 & 1.10 & .01 & 26 \% & 2.01 & .00 & 134 \% & \multicolumn{3}{c|}{not supported yet} \\\hline
+Unixbench  & 0.55 & .00 & 0.55 & .00 &  0 \% & 1.49 & .00 & 192 \% & \multicolumn{3}{c|}{not supported yet} \\\hline
 \end{tabular}
 \caption[Application benchmark results in Linux, KVM and \sysname{}]
-{Application benchmark execution times in a native Linux process, a process inside a KVM virtual machine, and a \sysname{} \picoproc{} with reference monitoring (+RM). \fixme{Update \sysname{} and \graphenesgx{} numbers} }
+{Application benchmark execution times in a (1) native Linux process, (2) a process inside a KVM virtual machine, (3) a \sysname{} \picoproc{} with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \sysname{} in \sgx{} enclaves. }
 \label{tab:graphene:apps}
 \end{table}
 
@@ -327,7 +330,7 @@ select file    &  3.360 & .001 & 11.536 & .003 & 243.3 &   11.647 & .004 & 246.6
 select tcp     & 10.590 & .002 & 11.679 & .002 &  10.3 &   12.050 & .000 &  13.8 & 14.594 & .239 &    37.8 \\\hline
 sig install    &  0.126 & .000 &  0.126 & .000 &   0.0 &    0.126 & .000 &   0.0 &  0.122 & .000 &    -3.2 \\\hline
 sigusr1        &  0.951 & .000 &  0.184 & .000 & -80.7 &    0.188 & .000 & -80.2 &  0.184 & .000 &   -80.6 \\\hline
-sigsegv        &  0.263 & .000 &  1.467 & .000 & 457.8 &    1.681 & .000 & 539.2 &        &      &         \\\hline\hline
+sigsegv        &  0.263 & .000 &  1.467 & .000 & 457.8 &    1.681 & .000 & 539.2 &  \multicolumn{3}{c|}{not supported yet}  \\\hline\hline
 TCP            &  8.354 & .001 &  9.121 & .002 &   1.8 &    9.699 & .002 &  16.1 & 15.921 & .002 &  91 
 \\\hline
 UDP            &  7.222 & .002 &  9.450 & .002 &  30.8 &    9.995 & .001 &  38.4 & 15.671 & .003 & 116 
@@ -336,10 +339,10 @@ AF\_UNIX       &  4.937 & .011 &  5.024 & .001 &   1.8 &    6.155 & .010 &  24.7
 \\\hline\hline
 fork+exit      &  66.86 & 0.09 &   380.47 & 3.55 & 469 &   442.83 & 1.39 &   562 & 1.22 \asec{} & .11 & 18k $\times$ \\\hline
 fork+fork+exit & 148.32 & 0.55 &   778.00 & 6.87 & 424 &   915.67 & 3.35 &   517 & 2.66 \asec{} & .11 & 18k $\times$ \\\hline
-vfork+exec     & 141.53 & 0.18 &   487.67 & 5.05 & 245 &   547.30 & 5.22 &   286 &    &  &  \\\hline
-fork+exec      & 194.93 & 0.20 &   810.00 & 3.27 & 315 &   878.50 & 1.89 &   350 &    &  &  \\\hline
-fork+fork+exec & 266.89 & 0.36 & 1,200.60 & 5.20 & 349 & 1,387.75 & 6.21 &   420 &    &  &  \\\hline
-fork+sh        & 499.64 & 0.67 & 1,726.75 & 6.14 & 245 & 1,912.00 & 3.83 &   283 &    &  &  \\\hline
+vfork+exec     & 141.53 & 0.18 &   487.67 & 5.05 & 245 &   547.30 & 5.22 &   286 & 1.11 \asec{} & .06 &  8k $\times$ \\\hline
+fork+exec      & 194.93 & 0.20 &   810.00 & 3.27 & 315 &   878.50 & 1.89 &   350 & 2.94 \asec{} & .21 & 15k $\times$ \\\hline
+fork+fork+exec & 266.89 & 0.36 & 1,200.60 & 5.20 & 349 & 1,387.75 & 6.21 &   420 & 3.98 \asec{} & .50 & 15k $\times$ \\\hline
+fork+sh        & 499.64 & 0.67 & 1,726.75 & 6.14 & 245 & 1,912.00 & 3.83 &   283 & \multicolumn{3}{c|}{not supported yet} \\\hline
 %\hline
 %UDP lat.&7.26&0.0&10.35&0.1&43&11.63&0.1&60 \\\hline
 %TCP lat.&8.70&0.0&9.84&0.1&13&11.48&0.1&32 \\\hline
@@ -397,29 +400,29 @@ would make all reference monitoring overheads negligible.
 \begin{table}[t!b!]
 \footnotesize
 \centering
-\begin{tabular}{|ll|rr|rrr|rrr|}
+\begin{tabular}{|ll|rr|rrr|}
 \hline
 \multicolumn{2}{|c|}{{\bf Test}} &
 \multicolumn{2}{c|}{{\bf Linux}} &
-\multicolumn{3}{c|}{{\bf \sysname{}}} &
-\multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
- & & \us{} & +/- & \us{} & +/- & & \us{} & +/- & \\
+\multicolumn{3}{c|}{{\bf \sysname{}}} \\
+ & & \us{} & +/- & \us{} & +/- & \\
 \hline
-msgget   & in-process    & 3320	& 0.7 &  2823 & 0.3 &	-15	\%	&  xxxx & x.x &	xxx	\%	\\
-(create) & inter-process & 3336	& 0.5 &  2879 & 3.6 &	-14	\%	&  xxxx & x.x &	xxx	\%	\\
-         & persistent    &  N/A	&     & 10015 & 0.7 &	202	\%	&   N/A &     &         \\
+msgget   & in-process    & 3320	& 0.7 &  2823 & 0.3 &	-15	\%		\\
+(create) & inter-process & 3336	& 0.5 &  2879 & 3.6 &	-14	\%		\\
+         & persistent    &  N/A	&     & 10015 & 0.7 &	202	\%      \\
 \hline								
-msgget   & in-process    & 3245	& 0.5 &   137 & 0.0 &	-96	\%	&  xxxx & x.x &	xxx	\%	\\
-         & inter-process & 3272	& 3.4 &  8362 & 2.4 &	156	\%	&  xxxx & x.x & xxx	\%	\\
-         & persistent    &  N/A	&     &  9386 & 0.4 &	189	\%	&   N/A &     &         \\
+msgget   & in-process    & 3245	& 0.5 &   137 & 0.0 &	-96	\%		\\
+         & inter-process & 3272	& 3.4 &  8362 & 2.4 &	156	\%		\\
+         & persistent    &  N/A	&     &  9386 & 0.4 &	189	\%      \\
 \hline								
-msgsnd   & in-process    &  149	& 0.2 &   443 & 0.2 &	191	\%	&  xxxx & x.x &	xxx	\%	\\
-         & inter-process &  153	& 0.3 &   761 & 1.1 &	397	\%	&  xxxx & x.x & xxx	\%	\\
-         & persistent    &  N/A	&     &   471 & 0.8 &	216	\%	&   N/A &     &         \\
+msgsnd   & in-process    &  149	& 0.2 &   443 & 0.2 &	191	\%		\\
+         & inter-process &  153	& 0.3 &   761 & 1.1 &	397	\%		\\
+         & persistent    &  N/A	&     &   471 & 0.8 &	216	\%	    \\
 \hline								
-msgrcv   & in-process    &  149	& 0.1 &   237 & 0.2 &	60	\%	&  xxxx & x.x & xxx	\%	\\
-         & inter-process &  153	& 0.1 &   779 & 2.2 &	409	\%  &  xxxx & x.x & xxx	\%	\\
-         & persistent    &  N/A	&     &   979 & 0.6 &	561	\%	&   N/A &     &         \\ \hline
+msgrcv   & in-process    &  149	& 0.1 &   237 & 0.2 &	60	\%		\\
+         & inter-process &  153	& 0.1 &   779 & 2.2 &	409	\%  	\\
+         & persistent    &  N/A	&     &   979 & 0.6 &	561	\%	    \\
+         \hline
 \end{tabular}
 \caption[The \microbench{} results for System V message queues in Linux, KVM, and \sysname{}]
 {Micro-benchmark comparison for System V message queues
