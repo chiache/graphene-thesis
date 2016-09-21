@@ -387,41 +387,41 @@ can be improved from 0.42\% to 21.1\%.
 
 
 
-The trade-off between reusing legacy applications
-and designing a secure, efficiency system
-exists in both \liboses{} and kernels.
-An performance-centric, heavily-engineered subsystem of Linux,
-the \term{file system directory cache},
-shows suboptimal lookup latency
---- causing the execution time of {\tt git-diff} be dominated by {\tt stat} system calls, even when all paths are cached~\citep{tsai15dcache}.
-%The directory cache is designed as an optimization for path lookup,
-%yet it interleaves searching path components
-%with permission checks (e.g., searching prefixes)
-%and file system features (e.g., resolving symbolic links),
-%%while preserving the legacy file-system features and security models
-%%.
-%%The original Linux kernel interleaves path component searching
-%%in the directory cache
-%%with permission checks against security modules,
-%%and retrieving file attributions.
-%causing suboptimal latency when the cache is warm (no cache misses)
-We build a fast path to improve the hit latency of directory cache,
-by decoupling path searching
-from other redundant operations like permission checks and symbolic-link resolution.
+%The trade-off between reusing legacy applications
+%and designing a secure, efficiency system
+%exists in both \liboses{} and kernels.
+%An performance-centric, heavily-engineered subsystem of Linux,
+%the \term{file system directory cache},
+%shows suboptimal lookup latency
+%--- causing the execution time of {\tt git-diff} be dominated by {\tt stat} system calls, even when all paths are cached~\citep{tsai15dcache}.
+%%The directory cache is designed as an optimization for path lookup,
+%%yet it interleaves searching path components
+%%with permission checks (e.g., searching prefixes)
+%%and file system features (e.g., resolving symbolic links),
+%%%while preserving the legacy file-system features and security models
+%%%.
+%%%The original Linux kernel interleaves path component searching
+%%%in the directory cache
+%%%with permission checks against security modules,
+%%%and retrieving file attributions.
+%%causing suboptimal latency when the cache is warm (no cache misses)
+%We build a fast path to improve the hit latency of directory cache,
+%by decoupling path searching
+%from other redundant operations like permission checks and symbolic-link resolution.
 %
-%by %full exploiting the locality and
-%caching the results of prefix checking, symbolic links, etc.
-With the fast path,
-the hit latency of {\tt stat} system call can be improved for up to 26\%,
-and the execution time of {\tt git-diff} on the whole Linux source is reduced by one-quarter.
-%the hit latency of {}Git version control system
-%can be reduced by up to 25\%.
-%Summarizing the similar cases,
-%developers constantly struggle to
-%implement or preserve whole legacy support
-%when adopting new system designs. 
-The design is applied to both Linux 3.19 and \graphene{},
-and generalized to support all OS features, security modules, and most underlying file systems.
+%%by %full exploiting the locality and
+%%caching the results of prefix checking, symbolic links, etc.
+%With the fast path,
+%the hit latency of {\tt stat} system call can be improved for up to 26\%,
+%and the execution time of {\tt git-diff} on the whole Linux source is reduced by one-quarter.
+%%the hit latency of {}Git version control system
+%%can be reduced by up to 25\%.
+%%Summarizing the similar cases,
+%%developers constantly struggle to
+%%implement or preserve whole legacy support
+%%when adopting new system designs. 
+%The design is applied to both Linux 3.19 and \graphene{},
+%and generalized to support all OS features, security modules, and most underlying file systems.
 
 %On the other hand,
 %the process of building up legacy application support
