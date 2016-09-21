@@ -369,7 +369,7 @@ As platform-specific and delicate these abstraction can be,
 \graphene{} simplifies the emulation to a general model of distributed OS implementation,
 using generic, pipe-like RPC streams
 to coordinate OS states across \libos{} instances.
-The multi-process abstractions to emulated by \graphene{} include
+The multi-process abstractions emulated by \graphene{} include
 forking, {\tt execve}, signals, System V IPC, file descriptor sharing, exit notification, etc.
 \graphene{} emulates these abstractions without introducing any platform-specific host features, including memory sharing,
 except an optional bulk IPC feature purely for optimization.
@@ -436,18 +436,18 @@ except an optional bulk IPC feature purely for optimization.
 
 
 
-The \graphene{} \libos{} provides not only free OS emulation on the platforms
-where the host interface can be ported,
-but a way to estimate and reason about the completeness of emulation
-when certain host features are unavailable.
+The purpose of \graphene{} is more than benefiting the platforms where the host interfaces are fully ported.
+Even when the host interface is only partially implemented,
+\graphene{} provides a way for system developers to estimate and reason about the completeness of emulation.
 For example, allocation and assignment of thread-local storage based on x86 segment registers ({\tt FS}/{\tt GS})
-is required in numerous applications.
-We observe that, as the host platform may confiscate the segment registers for its own purpose,
-implementing this host interface ({\tt DkSegmentRegisterSet}) can be infeasible on many platforms, such as Win32 or OSX.
-Fortunately, \graphene{} allows the host interfaces to be partially ported,
-while the developers can determine or even measure the consequence of missing the interfaces---such as acknowledging that applications statically accessing segment registers will be broken.
+is natively required in most Linux applications.
+We observe that, as some host platforms (e.g., Win32 and OSX) may confiscate the segment registers for their own reasons,
+implementing this host interface ({\tt DkSegmentRegisterSet}) is not necessary feasible on every platforms.
+Instead of obligating full compatibility,
+\graphene{} allows the host platforms to skip host interfaces,
+while the developers can determine or even measure the consequence (the measurement model is described in \S\ref{chap:syspop})---such as asserting the applications that are not supported.
 Moreover, for specific interfaces,
-the \libos{} can provide generalizable, platform-independent workarounds to address the portability,
+the \libos{} can even provide generalizable, platform-independent workarounds to address the portability problem,
 with acceptable penalty on performance.
 
 
