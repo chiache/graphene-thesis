@@ -1,31 +1,83 @@
 \chapter{Introduction}
 \label{chap:intro}
 
+The functionability of applications counts on the hosting platforms
+to provide the necessary abstractions,
+such as starting a standard executable, or accessing a regular file.
+A platform, as either an OS, language runtime, or architecture, is expected to provision applications
+based on the specifications---a ``contract'' agreed between the system and application developers---which can be vastly distinct among platforms.
+For example, running a POSIX application
+requires an OS that provides all the necessary APIs from the POSIX standard,
+thus the application will not function
+on an OS, like Win32, that has no POSIX support.
+In general, the ability of providing compatible, functioning abstractions for existing applications
+is a first-order requirement for most platforms,
+in order to maintain the user base.
 
-%\emph{Legacy code is everywhere.}
-As an immense resource, % for developers,
-legacy applications and systems represent the accumulated development effort ever made by developers.
-%Once any code is written,
-%it becomes part of the existing legacy code,
-%and can be
-%reused,
-%which can be further reused, re-factored and re-purposed in future development.
-Up to millions of applications
-are available
-in the mainstream App stores~\citep{google-play, apple-store, ubuntu-packages};
-%Among them, a large fraction
-%are restricted to specific operating system specifications (e.g., Windows or Linux)
-%or programming languages (e.g., C/C++, Python, Java).
-In many occasions,
-developers attempt to
-port legacy applications from one operating system, platform, or language to another,
-in order to harvest the past design and implementation.
-For applications that are not yet ported,
-users who desire to utilize them are restricted to the operating systems
-or programming languages that the applications are designed upon.
-Therefore, users and developers seek systematic approaches such as virtualization,
-for painless methods to port any legacy applications.
+The platform dependence of applications is also an major issue for new OSes.
+System developers who build new OSes often struggle to reuse existing applications,
+due to the incompatibility to the prior OSes.
+Specifically, some OSes introduce groundbreaking, structural changes, such as
+bypassing hardware multiplexing (e.g., Exokernel~\citep{engler95exokernel}),
+tailoring OSes to architectural assumptions (e.g., Barrelfish~\citep{baumann09barrelfish}),
+or isolation against untrustworthy components (e.g., OSes with SGX enclaves~\citep{intelsgx}).
+The functionality of these OSes are either redefined, or reimplemented from the ground up.
+As a result, reusing applications on these OSes
+calls for extra porting effort:
+either applications have to be rewritten to match to the new specifications,
+or the old ones have to be \term{emulated} in the new OSes.
 
+
+We observe that, the primary culprit that obstructs reusing applications
+is the complexity and idiosyncrasy of OS abstractions needed by every applications.
+The design of OS functionality is up to the decision made by the system developers,
+based on what they believe to be ideal and most appropriate.
+However, if the same abstractions are emulated in a different OS,
+the rationale behind the developers' decisions may become irrelevant or unreasonable,
+making the emulation obsolete or difficult.
+For example, multi-process UNIX applications often use copy-on-writing forking,
+creating processes that share a snapshot of memory state with the forking process.
+However, for an OS that launches applications into isolated environments (e.g., SGX enclaves),
+cloning memory across isolation boundary
+may be strictly forbidden by the execution platform.
+Emulating copy-on-write forking on these platforms will require considerable emulation effort.
+
+
+
+%%\emph{Legacy code is everywhere.}
+%As an immense resource, % for developers,
+%legacy applications and systems represent the accumulated development effort ever made by developers.
+%%Once any code is written,
+%%it becomes part of the existing legacy code,
+%%and can be
+%%reused,
+%%which can be further reused, re-factored and re-purposed in future development.
+%Up to millions of applications
+%are available
+%in the mainstream App stores~\citep{google-play, apple-store, ubuntu-packages};
+%%Among them, a large fraction
+%%are restricted to specific operating system specifications (e.g., Windows or Linux)
+%%or programming languages (e.g., C/C++, Python, Java).
+%In many occasions,
+%developers attempt to
+%port legacy applications from one operating system, platform, or language to another,
+%in order to harvest the past design and implementation.
+%For applications that are not yet ported,
+%users who desire to utilize them are restricted to the operating systems
+%or programming languages that the applications are designed upon.
+%Therefore, users and developers seek systematic approaches such as virtualization,
+%for painless methods to port any legacy applications.
+
+
+As a systematic approach to facilitate emulation,
+\term{virtualization} allows running existing OSes as a guest,
+by emulating hardware in the host hypervisor.
+The main advantage of using virtualization for OS emulation is to keep the host interface generic to different guest OSes,
+so a successfully hardware emulation
+can apply to numerous guest OSes of the same hardware architecture.
+However, a modern architecture can be still too subtle to emulate---the hardware capability for virtualizing a guest OS
+can be restricted in certain architecture platforms,
+such as previously mentioned SGX enclaves.
 
 %Among them, a large fraction
 %are restricted to specific operating system specifications (e.g., Windows or Linux)
@@ -52,36 +104,36 @@ for painless methods to port any legacy applications.
 %attackers can exploit the vulnerability to bypass the security mechanisms the application rely on,
 %compromising any security policies that application enforces.
 
-Between different systems, the complexity of porting %or emulating
-is primarily caused by the design decisions made by the system developers.
-%The cause for the complexity of porting
-%falls on the design decisions made in platforms,
-The developers' decisions can be based on
-idiosyncratic abstractions, security mechanisms, resource usage,
-quality of service, and other countless concerns.
-For instance, porting an application between Windows and Linux requires
-translating the system APIs between the OSes.
-The primary challenge is that
-system APIs can be vastly different and difficult to translate
---- Take the memory mapping APIs,
-{\tt VirtualAlloc} in Windows and {\tt mmap} in Linux,
-for example.
-These APIs not only differ in the semantic,
-but also %in the assumptions behind their definitions.
-%The differences in the assumptions
-allocation granularity, security policies
-and the logic handling edge cases like unaligned addresses.
-%As the result, porting an legacy application embedded with the assumptions of its development platform
-%requires more efforts than simply translating language slangs or system APIs.
-As a result, porting applications often requires
-reimplementation effort
-more than simply swapping system APIs and programming language phrases.
-%Some systems, in particular, are targeting
-%isolation of the applications,
-%to restrain the effect of system vulnerabilities, performance bottlenecks,
-%or other system pitfalls,
-%as more secure or efficient options than monolithic kernels
-%(e.g., Windows, Linux).
+%Between different systems, the complexity of porting %or emulating
+%is primarily caused by the design decisions made by the system developers.
+%%The cause for the complexity of porting
+%%falls on the design decisions made in platforms,
+%The developers' decisions can be based on
+%idiosyncratic abstractions, security mechanisms, resource usage,
+%quality of service, and other countless concerns.
+%For instance, porting an application between Windows and Linux requires
+%translating the system APIs between the OSes.
+%The primary challenge is that
+%system APIs can be vastly different and difficult to translate
+%--- Take the memory mapping APIs,
+%{\tt VirtualAlloc} in Windows and {\tt mmap} in Linux,
+%for example.
+%These APIs not only differ in the semantic,
+%but also %in the assumptions behind their definitions.
+%%The differences in the assumptions
+%allocation granularity, security policies
+%and the logic handling edge cases like unaligned addresses.
+%%As the result, porting an legacy application embedded with the assumptions of its development platform
+%%requires more efforts than simply translating language slangs or system APIs.
+%As a result, porting applications often requires
+%reimplementation effort
+%more than simply swapping system APIs and programming language phrases.
+%%Some systems, in particular, are targeting
+%%isolation of the applications,
+%%to restrain the effect of system vulnerabilities, performance bottlenecks,
+%%or other system pitfalls,
+%%as more secure or efficient options than monolithic kernels
+%%(e.g., Windows, Linux).
 
 %to reduce security vulnerabilities or isolate performance bottlenecks,
 %developers partition the system into
@@ -188,147 +240,215 @@ more than simply swapping system APIs and programming language phrases.
 %\section{Security Isolation for Linux Multi-Process Applications\\ using a Library OS}
 %\label{sec:intro:graphene}
 
-As alternatives to virtualization,
-\term{\liboses{}} provides a highly portable, \term{platform independent} platform,
-by splitting the OS functionality from a kernel
-into the application processes~\citep{porter11drawbridge,unikernels,baumann13bascule}.
-%enforce isolation on mutually untrusting process,
-%by essentially \emph{collapsing} OS components
-%into an application library loaded into the user memory of application processes, or \term{\picoprocs{}}.
-Compared with monolithic kernels,
-\liboses{} minimize the reliance on the correctness or effectiveness of kernels,
-to enforce isolation
-on applications that distrust each other and
-demand a more impenetrable barrier.
-The isolation of \liboses{}
-%The qualitative benefits of \liboses{},
-%including isolating mutually untrusting applications,
-%migrations,
-%and platform independence,
-is based on partitioning the OS instances
-between the mutually untrusting applications,
-and leaving the \liboses{} only a
-narrow, restrictively defined interface to the host kernel.
-%The benefits of using \liboses{} to run applications include
-%isolating %the consequences of having
-%security vulnerabilities in guest OSes,
-%and reducing unnecessary %unneeded or redundant logics causing
-%%performance bottlenecks 
-%overhead for specific \picoprocs{}
-%--- comparable to the benefits of using \term{virtualization},
-%but at a significantly lower cost.
-%%More recent \liboses{}
-%%provide several qualitative benefits of virtualization,
-%%such as migration and host platform compatibility.
-%%Library OSes move portions of
-%%OS kernel functionality into an application library.
-%%In a \libos{}, the guest OS is 
-%%% dp: too early for this nomenclature, I think
-%% \daniela{(a libraryOS instance)},
-Within a process with a \libos{}, or a \term{\picoproc{}},
-the \libos{} implements the system APIs (e.g., system calls) and supporting data structures as library functions
---- mapping the system abstractions and semantics
-to the narrow host interface.
-%a narrow paravirtual interface to the host kernel.
-Recent library OSes improve efficiency over full guest OSes by eliminating duplicated features
-between the guest and host kernel,
-such as the CPU scheduler, or
-%eliminating guest-level multiplexing code, as the library OS supports only one application;
-even compiling out unnecessary guest kernel APIs~\citep{unikernels}.
-Sometimes, on top of a minimized \term{\microkernel{}} that often has the size and functionality of a hypervisor,
-library OSes or applications can bypass the multiplexing of hardware resource
-to improve the performance~\citep{engler95exokernel},
-or separating system components
-that are intensively shared and bottlenecking the applications,
-such as bulk allocation of processing buffers~\citep{leslie96nemesis}.
-In total, this can reduce the memory requirements of running a single, isolated application
-by orders of magnitude, and similarly
-increase the number of applications which can run
-on a single system~\citep{porter11drawbridge,unikernels}.
-In addition,
-because of the narrowness of host interfaces, % is easier to implement on various platforms
-%than the high-level system APIs,
-the library OSes can be easily ported to an innovative, vastly distinct platform. 
-A typical example is in \term{\intel{} \sgx{} enclaves},
-where applications are isolated in a restricted environment that is immune to attacks from untrusted host kernel and hardware peripherals.
-A \libos{} can support whole applications in enclaves,
-without expanded attack surface and porting effort on the applications~\citep{baumann14haven}.
-%% dp: This sentence seems a little premature
-%In recent works, library OSes provide rich OS features for isolated contexts while the host OSes are untrusted
+An alternative to virtualization,
+\term{\liboses{}}~\citep{porter11drawbridge,unikernels,baumann13bascule},
+also emulate OS abstractions in guest-like environments,
+but have the ability of adjusting the host-guest boundaries, to define suitable host interfaces.
+A \libos{} moves the OS functionality
+(API components, or \emph{system call tales} in UNIX systems)
+from a kernel into the application processes,
+either statically or dynamically linked into a standalone executable.
+Emulation by \liboses{}
+provides an undisruptive way of provisioning OS abstraction for applications,
+on a restricted host platform~\citep{baumann14haven}.
+%Using a \libos{} to adopt applications on any operating systems only depends on three prerequisites:
+%(1) environment for executing the application,
+%(2) minimal host abstractions,
+%and (3) emulation of guest OS abstractions.
 
-%% Library OSes reduce the memory requirements of running a self-contained,
-%% isolated application process
-%% %guest \daniela{I would replaced guest by "isolated process or group of processes (a libOS instance)''}
-%% by orders of magnitude
-%% In a cloud computing environment,
-%% increasing the number of applications per server has enormous
-%% economic benefits.
-%% Even on a desktop or portable system, \libos{}es can reduce the overheads
-%% of sandboxing untrusted code and running applications
-%% designed for another OS.
+
+This thesis focuses on the \term{\graphene{} \libos{}}~\citep{tsai14graphene}, for justifying the effectiveness of using \liboses{} for OS emulation.
+The justification of \graphene{} is split into two stages:
+first, defining a host interface portable to many platforms (\term{Platform Independence});
+and, second, building OS emulation that satisfy majority of applications.
+Using \graphene{}, we show the evidence of running unmodified Linux applications, from the simplest (e.g., a ``Hello World'') to sophisticated ones (e.g., multi-process, server applications).
+The host interface is ported to many platforms, from the most monolithic (e.g., Linux)
+to the most restricted (e.g., SGX enclaves).
+The \graphene{} \libos{} provides a more reasonable, incremental path of building application support,
+compared to the open-ended effort needed for emulating OS functionality on individual platforms.
+On every new host platform,
+\graphene{} simplifies the emulation of a complex modern OS like Linux
+to a few generic host interfaces
+such as opening files or creating a clean instance.
+The rest of emulation effort can be simply inherited from the other host platforms,
+where \graphene{} is already ported.
+
+
+
+%provides a highly portable, \term{platform independent} platform,
+%by splitting the OS functionality from a kernel
+%into the application processes.
+%%enforce isolation on mutually untrusting process,
+%%by essentially \emph{collapsing} OS components
+%%into an application library loaded into the user memory of application processes, or \term{\picoprocs{}}.
+%Compared with monolithic kernels,
+%\liboses{} minimize the reliance on the correctness or effectiveness of kernels,
+%to enforce isolation
+%on applications that distrust each other and
+%demand a more impenetrable barrier.
+%The isolation of \liboses{}
+%%The qualitative benefits of \liboses{},
+%%including isolating mutually untrusting applications,
+%%migrations,
+%%and platform independence,
+%is based on partitioning the OS instances
+%between the mutually untrusting applications,
+%and leaving the \liboses{} only a
+%narrow, restrictively defined interface to the host kernel.
+%%The benefits of using \liboses{} to run applications include
+%%isolating %the consequences of having
+%%security vulnerabilities in guest OSes,
+%%and reducing unnecessary %unneeded or redundant logics causing
+%%%performance bottlenecks 
+%%overhead for specific \picoprocs{}
+%%--- comparable to the benefits of using \term{virtualization},
+%%but at a significantly lower cost.
+%%%More recent \liboses{}
+%%%provide several qualitative benefits of virtualization,
+%%%such as migration and host platform compatibility.
+%%%Library OSes move portions of
+%%%OS kernel functionality into an application library.
+%%%In a \libos{}, the guest OS is 
+%%%% dp: too early for this nomenclature, I think
+%%% \daniela{(a libraryOS instance)},
+%Within a process with a \libos{}, or a \term{\picoproc{}},
+%the \libos{} implements the system APIs (e.g., system calls) and supporting data structures as library functions
+%--- mapping the system abstractions and semantics
+%to the narrow host interface.
+%%a narrow paravirtual interface to the host kernel.
+%Recent library OSes improve efficiency over full guest OSes by eliminating duplicated features
+%between the guest and host kernel,
+%such as the CPU scheduler, or
+%%eliminating guest-level multiplexing code, as the library OS supports only one application;
+%even compiling out unnecessary guest kernel APIs~\citep{unikernels}.
+%Sometimes, on top of a minimized \term{\microkernel{}} that often has the size and functionality of a hypervisor,
+%library OSes or applications can bypass the multiplexing of hardware resource
+%to improve the performance~\citep{engler95exokernel},
+%or separating system components
+%that are intensively shared and bottlenecking the applications,
+%such as bulk allocation of processing buffers~\citep{leslie96nemesis}.
+%In total, this can reduce the memory requirements of running a single, isolated application
+%by orders of magnitude, and similarly
+%increase the number of applications which can run
+%on a single system~\citep{porter11drawbridge,unikernels}.
+%In addition,
+%because of the narrowness of host interfaces, % is easier to implement on various platforms
+%%than the high-level system APIs,
+%the library OSes can be easily ported to an innovative, vastly distinct platform. 
+%A typical example is in \term{\intel{} \sgx{} enclaves},
+%where applications are isolated in a restricted environment that is immune to attacks from untrusted host kernel and hardware peripherals.
+%A \libos{} can support whole applications in enclaves,
+%without expanded attack surface and porting effort on the applications~\citep{baumann14haven}.
+%%% dp: This sentence seems a little premature
+%%In recent works, library OSes provide rich OS features for isolated contexts while the host OSes are untrusted
+%
+%%% Library OSes reduce the memory requirements of running a self-contained,
+%%% isolated application process
+%%% %guest \daniela{I would replaced guest by "isolated process or group of processes (a libOS instance)''}
+%%% by orders of magnitude
+%%% In a cloud computing environment,
+%%% increasing the number of applications per server has enormous
+%%% economic benefits.
+%%% Even on a desktop or portable system, \libos{}es can reduce the overheads
+%%% of sandboxing untrusted code and running applications
+%%% designed for another OS.
 
 %Because library OSes execute within a VM \daniela{this phrase does not read good to me because (i) it might imply the picoprocesses need hypervisor support, as misunderstood by reviewer 1 and (ii) you already emphasized the drawbacks of leveraging a VM} or lightweight process ({\em picoprocess}~\citep{xax}),
 %library OSes execute with
 
-Legacy application support is provided
-in recent \liboses{}~\citep{porter11drawbridge, baumann13bascule, baumann14haven},
-%, such as Drawbridge~\citep{porter11drawbridge}, Bascule~\citep{baumann13bascule} and Haven~\citep{baumann14haven},
-%partial support for legacy applications is provided
-by emulating the OS personalities in individual \picoprocs{}.
-Among the OS abstractions and features that need to be emulated,
-the emulation of
-single-process abstractions,
-such as accessing unshared files, or creating multiple threads in a process,
-can be wrapped inside
-a \picoproc{}, %, with proper level of translation and bookkeeping.
-thus often relatively straightforward.
-For instance, %Drawbridge loads legacy Windows applications including Microsoft Word.
-Drawbridge~\citep{porter11drawbridge} provides Windows abstractions and personalities,
-with 5.6 million lines of code reused from Windows 7
-to emulate the complete OS personality in a single \picoproc{},
-except a few features such as the Windows registry that has to be implemented
-separately as in-process libraries or services.
-%using in-process services. % such as the Windows registry.
-However, when it comes to emulating multi-process abstractions,
-%in contrast to single-process abstractions,
-%multi-process abstractions 
-which are commonly used by Unix applications,
-%are more challenging, % to emulate in \picoprocs{},
-%due to the assumption and
-%narrowed interfaces of \picoprocs{}.
-\picoprocs{} serving multiple processes of an application
-will need to collaboratively provide shareable OS abstractions,
-and more importantly, a unified OS view to the application.
-%% dp: Daniela, great suggestion!  We need to make this situation seem more
-%%     like the sky will fall without our help
-%A key drawback of recent library OSes, however,
-%is that they are limited to single-process applications.
-%Yet many applications, such as network servers and
-%shell scripts,
-%create multiple processes
-%for
-%performance scalability, fault isolation, and programmer convenience.
-%These applications would benefit from the efficiency and security benefits
-%of a library OS.
-%In order for the efficiency benefits of \liboses{} to be widely applicable,
-%especially for unmodified Unix applications,
-%either applications must be rewritten to implement ad hoc coordination mechanisms, or
-%\liboses{} must provide commonly-used multi-process abstractions,
-The multi-process abstractions to be emulated include
-forking, signals, System V IPC, file descriptor sharing, exit notification, etc.
-A possible alternative is
-%To support multi-process abstractions, \liboses{} often have 
-to rely on %sharing OS states,
-the hosts' memory sharing features to share OS states.
-However, memory sharing is not always an available features in the host:
-for example, Drawbridge and Bascule~\citep{baumann13bascule} cannot emulate process forking because copy-on-write memory sharing is not a platform-independent features.
-Furthermore, when Haven isolates applications
-in enclaves,
-memory sharing is strictly forbidden by the hardware platform,
-to prevent leaking secret to other enclaves.
-In a word, emulating OS abstractions and personalities can fundamentally
-oppose the assumptions or limitations of the system,
-causing obstacles to supporting legacy applications.
+
+The emulation of Linux abstractions in \graphene{}
+poses several challenges (described in \S\ref{chap:graphene}).
+Specifically, we identify the key challenge as the Linux \term{multi-process abstractions},
+commonly used in many server-type or shell applications,
+for job control or splitting executables for modularity and isolation.
+As each application process runs with a singled \libos{} instance,
+a multi-process application will require multiple \libos{} instances to collaboratively
+implement an unified OS.
+As platform-specific and delicate these abstraction can be,
+\graphene{} simplifies the emulation to a general model of distributed OS implementation,
+using generic, pipe-like RPC streams
+to coordinate OS states across \libos{} instances.
+The multi-process abstractions to emulated by \graphene{} include
+forking, {\tt execve}, signals, System V IPC, file descriptor sharing, exit notification, etc.
+\graphene{} emulates these abstractions without introducing any platform-specific host features, including memory sharing,
+except an optional bulk IPC feature purely for optimization.
+
+%Legacy application support is provided
+%in recent \liboses{}~\citep{porter11drawbridge, baumann13bascule, baumann14haven},
+%%, such as Drawbridge~\citep{porter11drawbridge}, Bascule~\citep{baumann13bascule} and Haven~\citep{baumann14haven},
+%%partial support for legacy applications is provided
+%by emulating the OS personalities in individual \picoprocs{}.
+%Among the OS abstractions and features that need to be emulated,
+%the emulation of
+%single-process abstractions,
+%such as accessing unshared files, or creating multiple threads in a process,
+%can be wrapped inside
+%a \picoproc{}, %, with proper level of translation and bookkeeping.
+%thus often relatively straightforward.
+%For instance, %Drawbridge loads legacy Windows applications including Microsoft Word.
+%Drawbridge~\citep{porter11drawbridge} provides Windows abstractions and personalities,
+%with 5.6 million lines of code reused from Windows 7
+%to emulate the complete OS personality in a single \picoproc{},
+%except a few features such as the Windows registry that has to be implemented
+%separately as in-process libraries or services.
+%%using in-process services. % such as the Windows registry.
+%However, when it comes to emulating multi-process abstractions,
+%%in contrast to single-process abstractions,
+%%multi-process abstractions 
+%which are commonly used by Unix applications,
+%%are more challenging, % to emulate in \picoprocs{},
+%%due to the assumption and
+%%narrowed interfaces of \picoprocs{}.
+%\picoprocs{} serving multiple processes of an application
+%will need to collaboratively provide shareable OS abstractions,
+%and more importantly, a unified OS view to the application.
+%%% dp: Daniela, great suggestion!  We need to make this situation seem more
+%%%     like the sky will fall without our help
+%%A key drawback of recent library OSes, however,
+%%is that they are limited to single-process applications.
+%%Yet many applications, such as network servers and
+%%shell scripts,
+%%create multiple processes
+%%for
+%%performance scalability, fault isolation, and programmer convenience.
+%%These applications would benefit from the efficiency and security benefits
+%%of a library OS.
+%%In order for the efficiency benefits of \liboses{} to be widely applicable,
+%%especially for unmodified Unix applications,
+%%either applications must be rewritten to implement ad hoc coordination mechanisms, or
+%%\liboses{} must provide commonly-used multi-process abstractions,
+%The multi-process abstractions to be emulated include
+%forking, signals, System V IPC, file descriptor sharing, exit notification, etc.
+%A possible alternative is
+%%To support multi-process abstractions, \liboses{} often have 
+%to rely on %sharing OS states,
+%the hosts' memory sharing features to share OS states.
+%However, memory sharing is not always an available features in the host:
+%for example, Drawbridge and Bascule~\citep{baumann13bascule} cannot emulate process forking because copy-on-write memory sharing is not a platform-independent features.
+%Furthermore, when Haven isolates applications
+%in enclaves,
+%memory sharing is strictly forbidden by the hardware platform,
+%to prevent leaking secret to other enclaves.
+%In a word, emulating OS abstractions and personalities can fundamentally
+%oppose the assumptions or limitations of the system,
+%causing obstacles to supporting legacy applications.
+
+
+
+The \graphene{} \libos{} provides not only free OS emulation on the platforms
+where the host interface can be ported,
+but a way to estimate and reason about the completeness of emulation
+when certain host features are unavailable.
+For example, allocation and assignment of thread-local storage based on x86 segment registers ({\tt FS}/{\tt GS})
+is required in numerous applications.
+We observe that, as the host platform may confiscate the segment registers for its own purpose,
+implementing this host interface ({\tt DkSegmentRegisterSet}) can be infeasible on many platforms, such as Win32 or OSX.
+Fortunately, \graphene{} allows the host interfaces to be partially ported,
+while the developers can determine or even measure the consequence of missing the interfaces---such as acknowledging that applications statically accessing segment registers will be broken.
+Moreover, for specific interfaces,
+the \libos{} can provide generalizable, platform-independent workarounds to address the portability,
+with acceptable penalty on performance.
 
 
 %\begin{figure}[t!]
@@ -378,41 +498,41 @@ causing obstacles to supporting legacy applications.
 %while upholding the efficiency and host compatibility benefits of recent \liboses{}.
 
 
-The key to emulating multi-process abstractions in a \libos{},
-especially when memory sharing is not safe or available,
-is to coordinate shared OS states
-across \picoprocs{} using limited host abstractions.
-%The \libos{} of related \picoprocs{} %that accompany application processes
-%must collaboratively provide a unified OS view
-%to the application.
-The OS states needed to be coordinated
-are primarily in three types:
-process states that are inherited at process creation
-(e.g., {\tt fork}, {\tt execve});
-abstraction states that are shared among related processes
-(e.g., signals, \sysvipc{} semaphores);
-and namespace states to locate the owners of abstractions
-(e.g., process IDs, \sysvipc{} keys).
-A \libos{} that implements all the idiosyncratic OS states
-must not overly expand the host interface,
-and compromise the security isolation or platform independence of the system.
-%and thus increase the risk of
-%allowing malicious applications to compromise the host kernel.
-As a solution, we present \term{\graphene{}},
-a Linux-compatible \libos{} that collaboratively implement
-various Linux multi-process abstractions,
-yet appear to the application as a single, shared OS.
-\graphene{} instances coordinate all OS states using remote procedure calls (RPCs) over
-host-provided, pipe-like streams.
-The use of host RPC streams
-does not expand the host interface already used by a single \picoproc{},
-and can be naturally isolated
-by sandboxing the RPC streams from the host.
-%with the application.
-%In a distributed POSIX implementation, placement of shared state and messaging complexity
-%are first-order performance concerns.
-%%We chose to shift implementation complexity into the library OS
-%%in order to uphold simple enforcement of security isolation in the host.
+%The key to emulating multi-process abstractions in a \libos{},
+%especially when memory sharing is not safe or available,
+%is to coordinate shared OS states
+%across \picoprocs{} using limited host abstractions.
+%%The \libos{} of related \picoprocs{} %that accompany application processes
+%%must collaboratively provide a unified OS view
+%%to the application.
+%The OS states needed to be coordinated
+%are primarily in three types:
+%process states that are inherited at process creation
+%(e.g., {\tt fork}, {\tt execve});
+%abstraction states that are shared among related processes
+%(e.g., signals, \sysvipc{} semaphores);
+%and namespace states to locate the owners of abstractions
+%(e.g., process IDs, \sysvipc{} keys).
+%A \libos{} that implements all the idiosyncratic OS states
+%must not overly expand the host interface,
+%and compromise the security isolation or platform independence of the system.
+%%and thus increase the risk of
+%%allowing malicious applications to compromise the host kernel.
+%As a solution, we present \term{\graphene{}},
+%a Linux-compatible \libos{} that collaboratively implement
+%various Linux multi-process abstractions,
+%yet appear to the application as a single, shared OS.
+%\graphene{} instances coordinate all OS states using remote procedure calls (RPCs) over
+%host-provided, pipe-like streams.
+%The use of host RPC streams
+%does not expand the host interface already used by a single \picoproc{},
+%and can be naturally isolated
+%by sandboxing the RPC streams from the host.
+%%with the application.
+%%In a distributed POSIX implementation, placement of shared state and messaging complexity
+%%are first-order performance concerns.
+%%%We chose to shift implementation complexity into the library OS
+%%%in order to uphold simple enforcement of security isolation in the host.
 
 
 %\fixmedp{After a complete draft is written, coalesce all goals and make sure they are addressed early on.  We are doing some scatter-shot motivation}
@@ -486,302 +606,302 @@ by sandboxing the RPC streams from the host.
 %--- especially useful for privacy-preserving applications.
 
 
-In particular, the platform independence of \liboses{}
-allows porting legacy applications to platforms with more restricted interfaces
-and functionalities than monolithic kernels,
-such as \intel{} \sgx{} enclaves.
-The essence of isolating applications using \liboses{} in enclaves
-is to ensure
-the security benefits promised by the platform,
-%in an system enforcing stronger security isolation
-%on legacy applications,
-%such as Haven~\citep{baumann14haven},
-%it is necessary
-%%the system must not only emulate the personalities,
-%to provide the security benefits promised by the platform
-%(i.e., enclaves).
-%%instead of simply emulating the personalities.
-%For instance,
-%the security benefits of enclaves
-including application integrity,
-sealing confidential information,
-and attestation.
-%These benefits must be also provided by systems that use enclaves to isolate legacy applications.
-An existing system, Haven~\citep{baumann14haven},
-packs a Windows-compatible \picoproc{}
-into an enclave,
-using an encrypted virtual disk
-securely provisioned from a remote, attested server.
-Haven essentially provides a trusted path to safely load application and \libos{} binaries,
-as well as mediating all input and output to the host.
-%as the trusted path to safely load application and \libos{} binaries.
-%Haven relies on
-%%the \libos{} to
-%securely provisioning an encrypted virtual disk
-%from a trusted, remote server,
-%to ensure a \emph{trusted path} to
-%load authenticated application binaries
-%and redirecting IOs,
-%yet appears
-%completely transparent to the application.
-The only limitations in the model of Haven, however, 
-%are the huge TCB (trusted computing base)
-%caused by the \libos{} (209MB in total),
-are the lack of multi-process support,
-and being overly reliant on the remote server.
-% and being incapable of isolating multi-process applications.
-% especially in the finer, per-process granularity.
-Addressing these issues,
-by porting \graphene{} to enclaves
-(\term{\graphenesgx{}}),
-we reassure multi-process, UNIX applications in a multi-enclave environment.
-The application integrity in \graphenesgx{} 
-is validated on unencrypted,
-regularly distributed binaries,
-using checksums
-signed by the hardware-attested measurement
---- an off-line model without relying on
-remote servers.
-\graphenesgx{} ensures that
-process creation in enclaves can be scalable, and individually configured
---- a parent enclave can identify and restrict
-the application binaries to be loaded into any child enclaves it creates.
-%to isolate multi-process applications in a multi-enclave environment.
-%The coordination of \graphene{} based on RPC streams
-%allows isolated \picoprocs{} to build a trusted path for OS coordination,
-%by attesting and encrypting the RPC streams.
-%\graphene{} verifies binary integrity using per-binary checksums,
-%to rid most application behaviors
-%of the dependency on remote trusted servers,
-%and to allow each \picoprocs{} be attested and provisioned individually.
-
-
-
-%To alleviate the pain of migrating applications to SGX,
-%recent works like Haven~\citep{baumann14haven} provides a mechanism
-%of loading native applications into enclaves,
-%alongside a library OS to facilitate rich OS features.
-%These systems are called ``shielding %systems''~\citep{xu15controlledchannel},
-%which means these systems can secure execution environments
-%without trusting the host.
-
-%A primary drawback of the non-partitioned model is the huge TCB loaded into the enclave.
-%In the partitioned model, only minimal code needed for the isolated execution will be loaded into the enclave.
-%However, in the non-partitioned model, the whole application must be loaded into the enclave,
-%in addition to the TCB contributed by the \libos{}.
-%For instance, size of the \libos{} used in \cite{baumann14haven} is 209MB,
-%which yields significant expansion to the original TCB.
+%In particular, the platform independence of \liboses{}
+%allows porting legacy applications to platforms with more restricted interfaces
+%and functionalities than monolithic kernels,
+%such as \intel{} \sgx{} enclaves.
+%The essence of isolating applications using \liboses{} in enclaves
+%is to ensure
+%the security benefits promised by the platform,
+%%in an system enforcing stronger security isolation
+%%on legacy applications,
+%%such as Haven~\citep{baumann14haven},
+%%it is necessary
+%%%the system must not only emulate the personalities,
+%%to provide the security benefits promised by the platform
+%%(i.e., enclaves).
+%%%instead of simply emulating the personalities.
+%%For instance,
+%%the security benefits of enclaves
+%including application integrity,
+%sealing confidential information,
+%and attestation.
+%%These benefits must be also provided by systems that use enclaves to isolate legacy applications.
+%An existing system, Haven~\citep{baumann14haven},
+%packs a Windows-compatible \picoproc{}
+%into an enclave,
+%using an encrypted virtual disk
+%securely provisioned from a remote, attested server.
+%Haven essentially provides a trusted path to safely load application and \libos{} binaries,
+%as well as mediating all input and output to the host.
+%%as the trusted path to safely load application and \libos{} binaries.
+%%Haven relies on
+%%%the \libos{} to
+%%securely provisioning an encrypted virtual disk
+%%from a trusted, remote server,
+%%to ensure a \emph{trusted path} to
+%%load authenticated application binaries
+%%and redirecting IOs,
+%%yet appears
+%%completely transparent to the application.
+%The only limitations in the model of Haven, however, 
+%%are the huge TCB (trusted computing base)
+%%caused by the \libos{} (209MB in total),
+%are the lack of multi-process support,
+%and being overly reliant on the remote server.
+%% and being incapable of isolating multi-process applications.
+%% especially in the finer, per-process granularity.
+%Addressing these issues,
+%by porting \graphene{} to enclaves
+%(\term{\graphenesgx{}}),
+%we reassure multi-process, UNIX applications in a multi-enclave environment.
+%The application integrity in \graphenesgx{} 
+%is validated on unencrypted,
+%regularly distributed binaries,
+%using checksums
+%signed by the hardware-attested measurement
+%--- an off-line model without relying on
+%remote servers.
+%\graphenesgx{} ensures that
+%process creation in enclaves can be scalable, and individually configured
+%--- a parent enclave can identify and restrict
+%the application binaries to be loaded into any child enclaves it creates.
+%%to isolate multi-process applications in a multi-enclave environment.
+%%The coordination of \graphene{} based on RPC streams
+%%allows isolated \picoprocs{} to build a trusted path for OS coordination,
+%%by attesting and encrypting the RPC streams.
+%%\graphene{} verifies binary integrity using per-binary checksums,
+%%to rid most application behaviors
+%%of the dependency on remote trusted servers,
+%%and to allow each \picoprocs{} be attested and provisioned individually.
 %
-%We present {\em \gsgx{}}, a port of \graphene{} \libos{} on \sgx{}, to secure unmodified Linux applications in \sgx{} enclaves{}.
-%The support for Linux applications
-%has been missing in the non-partitioned model,
-%which is a missed opportunity according to the 75\% market share of Linux cloud providers~\citep{linuxcloud2014}.
-%\gsgx{} supports most OS features provided by \graphene{}
-%including both single- and multi-process abstractions.
 %
-%The design of \gsgx{} ensures the minimal enclave TCB
-%that can be achieved without further partitioning any application binaries.
-%The integrity of the loaded application binaries
-%is enforced in a fine-grained fashion:
-%each binary must be signed and checked individually,
-%and only binaries that are actually needed will be ever loaded.
-%For multi-process applications,
-%\gsgx{} isolates each \picoproc{} in a separate enclave,
-%thus every \picoproc{} can execute and be attested separately.
-%In a nutshell, \gsgx{} tries to honor and exploit the established partitioning in multi-process applications,
-%with the benefit of minimizing the porting effort from using the non-partitioned model.
-
-
-\paragraph{Improving Efficiency with Legacy Support.}
-One of the other first-order requirements in systems, besides legacy support,
-is to pursue low latency or high throughput,
-according to how users define quality of service.
-Nevertheless, there is a trade-off between the emulation of OS personality
-and the efficiency of system operations.
-\graphene{}, for instance, coordinates OS states %for multi-process abstractions
-over PRC streams,
-and requires strategies to mitigate the significant RPC coordination overhead.
-%will cause nonnegligible overhead to the latency of IPC,
-%in comparison with coordination by memory sharing. % in the kernel or in the \picoprocs{}.
-%However, when designing a \libos{},
-We observe, in a distributed UNIX implementation,
-placement of shared OS states and
-messaging complexity
-are essentially the top performance factors.
-%%there are opportunities to identify and remove unneeded or redundant
-%%overhead or bottleneck,
-%%especially on the critical or common paths.
-%%%frequent operations.
-%%An example of reducing overhead
-%%is to remove redundant permission checks in \liboses{},
-%%because \picoprocs{} rely on the host kernel to enforce security policies.
-%%Similarly, to compensate the overhead of IPC
-%%in a distributed implementation, placement of shared OS states and messaging complexity
-%%will be the first-order performance concerns.
-%For \picoprocs{} that most frequently access an abstraction state,
-%place the state in this very \picoproc{}
-%will optimally avoid the need for coordination over RPC streams.
-Improving the coordination overhead will require placing the OS states in the most frequency accessing \picoprocs{},
-and reducing round trips of RPC messages.
-
-\paragraph{Partitioning Legacy Applications.}
-Beside supporting whole applications,
-%and derive principles to improve the result of implementation.
-we also explore the opportunity of partitioning a legacy application,
-in a model where it is split into
-trusted and untrusted components that are isolated by platforms like enclaves.
-The partitioned model for porting to enclaves
-is commonly used for quarantining the extremely sensitive execution
-in an application.
-The purpose of partitioning is to
-defend against the whole, untrusted host systems (except the CPUs)
-as well as other less sensitive components,
-in order to minimize the trusted computing base.
-The weakness of the model is,
-partitioning an application requires additional effort to identify and separate
-the execution that needs to be protected,
-and the effort becomes unacceptably expensive when the application is considerably sophisticated.
-In particular, we are targeting applications implemented
-in a managed language such as \java{},
-which are more likely to be automatically compartmentalized
-using programming language techniques.
-
-
-%We observe that in order to partition a system or application
-%in finer granularity,
-%%such as an extremely sensitive component,
-%%legacy code reuse will become even more challenging.
-%%In this case,
-%%inevitably,
-%applying techniques from programming languages %and code analysis
-%will become necessary.
-%Specifically, one technique that developers will need is automated compartmentalization of legacy code.
-%%The reason is, 
-%Unless the partitioned component code is compact and simple,
-%the effort required
-%for cleanly and minimally partitioning the code
-%will be too high.
-%For an application developed in a managed or object-oriented language (e.g., \java{}),
-%code compartmentalization can be effective enough to create close-to-optimal partitioning.
-
-The motivation for pursuing \java{} application partitioning
-is two-folded.
-On one hand,
-many enterprise or cross-platform applications
-are developed in \java{},
-but so far no enclave support for whole or partial \java{} applications
-is ever provided.
-%To load an application into an enclave,
-%both the execution and interface of the application code
-%have to be static
-%ever since the enclave starts.
-%Because \java{} classes are dynamically loaded and managed by \java{} VMs,
-%extra support from the system will be necessary.
-On the other hand,
-execution isolated in an enclave must be unconditionally trusted;
-if any vulnerabilities exist in the execution,
-the attack can infiltrate from the untrusted host to compromise the isolation.
-However,
-just as the whole application,
-the isolated part is also hard to completely eliminate vulnerabilities.
-%an application or component isolated in an enclave must be %verified to
-%immune to security vulnerabilities,
-%otherwise there will be risks of leaking the enclave secrets.
-By allowing developers to port \java{} applications into enclaves,
-protection mechanisms based on
-the characteristics of \java{} language,
-such as type checking, information flow tracking among objects,
-can further ensure the soundness of isolated execution.
-The automated partitioning of \java{} applications into enclaves
-is an ongoing work.
-
-
 %
-%Haven effectively migrates native Windows applications to enclaves,
-%providing a shortcut for developers
-%to easily boost the security of their products.
-%However, there are several limitations in Haven, including
-%excessive trusted computing base (TCB),
-%a restrictive model of adapting applications,
-%and missing support for Linux or multi-process applications.
-
-%We present \gsgx{}, a \libos{}-based shielding system
-%targeting Linux multi-process applications,
-%as improvement to the Haven model of migrating native application to SGX.
-%\gsgx{} is derived of \graphene{}~\citep{tsai14graphene},
-%which supports 139 out of 300 Linux system calls.
-%\graphene{} runs numbers of popular applications
-%such as Apache web server, OpenJDK virtual machine, or shell scripts,
-%all of which relies on multi-process abstractions
-%such as {\tt fork}, {\tt execve}, signals or System V IPC.
-
-
-
-
-\paragraph{Measurements for System Completeness.}
-In general, due to the complexity of implementation or preserving
-the complete specifications,
-developers must prioritize the development based on
-what they believe to be more important
---- what will impact or satisfy more applications or more users.
-Especially for innovative systems like \liboses{},
-developers struggle to evaluate the progress in a partial prototype.
-%From improving legacy code compatibility in different systems
-%(Linux to \graphene{}),
-%we observe that system developers including us
-%routinely make design choices based on 
-%what they believe to be the common and uncommon behaviors of a system.
-%For instance, in \graphene{}, we start with handpicking the abstractions and specifications
-%that we believe to be more important to the applications.
-%When optimizing Linux file system directory cache,
-%we shorten the latency of {\tt stat} and {\tt open} system calls
-%at the expense of {\tt rename} and {\tt chmod},
-%assuming that {\tt stat} and {\tt open} are the more commonly used operations in majority of applications.
-%%In the case of a general-purpose OS, determining
-%%exactly what the common case is can be challenging.
-%In general,
-%a developer's view of what system APIs are important is skewed towards
-%the developer's preferred workloads.
-%%the choice of what features matter skews heavily towards
-%%workloads particular developers use.
-%Similarly, developers who struggle to evaluate the impact of a 
-%change on compatibility
-%must implement every abstractions and specifications,
-%and then be able to reason about the completeness of legacy support.
-%support of legacy application in the product system.
-At the center of these problems is the missing of information about how system abstractions or APIs are used in the run-time.
-%and a metric to estimate the completeness of legacy applications that can be supported
-%for any random users.
-In search of better methods for
-evaluating the legacy support,
-we conduct a study of Linux system APIs usage among a large sample of Debian/Ubuntu x86\_64 applications,
-weighted by the application popularity
-collected by the Popularity Contests~\citep{debian-popularity, ubuntu-popularity}.
-Based on the study,
-we create a measurement
-for estimating the fraction of applications installed by a user
-that can plausibly use the system.
-For instance, the current \graphene{} prototype,
-in which we hand-pick Linux system calls according to the applications for experiment,
-can support the complete API footprint
-in 0.42\% of applications installed by a user.
-The data-driven, principled strategy shows than \graphene{} can be improved to
-supporting 21.1\% of applications,
-by simply adding two missing system calls, {\tt sched\_setcheduler} and {\tt sched\_setparam}.
-
-%We create sensible, representative metrics,
-%which measure the effects of both applications and users.
-%Using the metrics and insights from the study,
-%the significant improvement on legacy application support in \graphene{} is demonstrated
-%if we guide the development using this approach.
-
-%Summarizing all contributions of the thesis,
-%we explore the solutions and principles,
-%to implement OS support for legacy applications in either 
-%isolated systems
-%(i.e., \graphene{} \libos{}, enclaves) 
-%or optimized legacy OS components
-%(i.e., Linux file system directory cache).
+%%To alleviate the pain of migrating applications to SGX,
+%%recent works like Haven~\citep{baumann14haven} provides a mechanism
+%%of loading native applications into enclaves,
+%%alongside a library OS to facilitate rich OS features.
+%%These systems are called ``shielding %systems''~\citep{xu15controlledchannel},
+%%which means these systems can secure execution environments
+%%without trusting the host.
+%
+%%A primary drawback of the non-partitioned model is the huge TCB loaded into the enclave.
+%%In the partitioned model, only minimal code needed for the isolated execution will be loaded into the enclave.
+%%However, in the non-partitioned model, the whole application must be loaded into the enclave,
+%%in addition to the TCB contributed by the \libos{}.
+%%For instance, size of the \libos{} used in \cite{baumann14haven} is 209MB,
+%%which yields significant expansion to the original TCB.
+%%
+%%We present {\em \gsgx{}}, a port of \graphene{} \libos{} on \sgx{}, to secure unmodified Linux applications in \sgx{} enclaves{}.
+%%The support for Linux applications
+%%has been missing in the non-partitioned model,
+%%which is a missed opportunity according to the 75\% market share of Linux cloud providers~\citep{linuxcloud2014}.
+%%\gsgx{} supports most OS features provided by \graphene{}
+%%including both single- and multi-process abstractions.
+%%
+%%The design of \gsgx{} ensures the minimal enclave TCB
+%%that can be achieved without further partitioning any application binaries.
+%%The integrity of the loaded application binaries
+%%is enforced in a fine-grained fashion:
+%%each binary must be signed and checked individually,
+%%and only binaries that are actually needed will be ever loaded.
+%%For multi-process applications,
+%%\gsgx{} isolates each \picoproc{} in a separate enclave,
+%%thus every \picoproc{} can execute and be attested separately.
+%%In a nutshell, \gsgx{} tries to honor and exploit the established partitioning in multi-process applications,
+%%with the benefit of minimizing the porting effort from using the non-partitioned model.
+%
+%
+%\paragraph{Improving Efficiency with Legacy Support.}
+%One of the other first-order requirements in systems, besides legacy support,
+%is to pursue low latency or high throughput,
+%according to how users define quality of service.
+%Nevertheless, there is a trade-off between the emulation of OS personality
+%and the efficiency of system operations.
+%\graphene{}, for instance, coordinates OS states %for multi-process abstractions
+%over PRC streams,
+%and requires strategies to mitigate the significant RPC coordination overhead.
+%%will cause nonnegligible overhead to the latency of IPC,
+%%in comparison with coordination by memory sharing. % in the kernel or in the \picoprocs{}.
+%%However, when designing a \libos{},
+%We observe, in a distributed UNIX implementation,
+%placement of shared OS states and
+%messaging complexity
+%are essentially the top performance factors.
+%%%there are opportunities to identify and remove unneeded or redundant
+%%%overhead or bottleneck,
+%%%especially on the critical or common paths.
+%%%%frequent operations.
+%%%An example of reducing overhead
+%%%is to remove redundant permission checks in \liboses{},
+%%%because \picoprocs{} rely on the host kernel to enforce security policies.
+%%%Similarly, to compensate the overhead of IPC
+%%%in a distributed implementation, placement of shared OS states and messaging complexity
+%%%will be the first-order performance concerns.
+%%For \picoprocs{} that most frequently access an abstraction state,
+%%place the state in this very \picoproc{}
+%%will optimally avoid the need for coordination over RPC streams.
+%Improving the coordination overhead will require placing the OS states in the most frequency accessing \picoprocs{},
+%and reducing round trips of RPC messages.
+%
+%\paragraph{Partitioning Legacy Applications.}
+%Beside supporting whole applications,
+%%and derive principles to improve the result of implementation.
+%we also explore the opportunity of partitioning a legacy application,
+%in a model where it is split into
+%trusted and untrusted components that are isolated by platforms like enclaves.
+%The partitioned model for porting to enclaves
+%is commonly used for quarantining the extremely sensitive execution
+%in an application.
+%The purpose of partitioning is to
+%defend against the whole, untrusted host systems (except the CPUs)
+%as well as other less sensitive components,
+%in order to minimize the trusted computing base.
+%The weakness of the model is,
+%partitioning an application requires additional effort to identify and separate
+%the execution that needs to be protected,
+%and the effort becomes unacceptably expensive when the application is considerably sophisticated.
+%In particular, we are targeting applications implemented
+%in a managed language such as \java{},
+%which are more likely to be automatically compartmentalized
+%using programming language techniques.
+%
+%
+%%We observe that in order to partition a system or application
+%%in finer granularity,
+%%%such as an extremely sensitive component,
+%%%legacy code reuse will become even more challenging.
+%%%In this case,
+%%%inevitably,
+%%applying techniques from programming languages %and code analysis
+%%will become necessary.
+%%Specifically, one technique that developers will need is automated compartmentalization of legacy code.
+%%%The reason is, 
+%%Unless the partitioned component code is compact and simple,
+%%the effort required
+%%for cleanly and minimally partitioning the code
+%%will be too high.
+%%For an application developed in a managed or object-oriented language (e.g., \java{}),
+%%code compartmentalization can be effective enough to create close-to-optimal partitioning.
+%
+%The motivation for pursuing \java{} application partitioning
+%is two-folded.
+%On one hand,
+%many enterprise or cross-platform applications
+%are developed in \java{},
+%but so far no enclave support for whole or partial \java{} applications
+%is ever provided.
+%%To load an application into an enclave,
+%%both the execution and interface of the application code
+%%have to be static
+%%ever since the enclave starts.
+%%Because \java{} classes are dynamically loaded and managed by \java{} VMs,
+%%extra support from the system will be necessary.
+%On the other hand,
+%execution isolated in an enclave must be unconditionally trusted;
+%if any vulnerabilities exist in the execution,
+%the attack can infiltrate from the untrusted host to compromise the isolation.
+%However,
+%just as the whole application,
+%the isolated part is also hard to completely eliminate vulnerabilities.
+%%an application or component isolated in an enclave must be %verified to
+%%immune to security vulnerabilities,
+%%otherwise there will be risks of leaking the enclave secrets.
+%By allowing developers to port \java{} applications into enclaves,
+%protection mechanisms based on
+%the characteristics of \java{} language,
+%such as type checking, information flow tracking among objects,
+%can further ensure the soundness of isolated execution.
+%The automated partitioning of \java{} applications into enclaves
+%is an ongoing work.
+%
+%
+%%
+%%Haven effectively migrates native Windows applications to enclaves,
+%%providing a shortcut for developers
+%%to easily boost the security of their products.
+%%However, there are several limitations in Haven, including
+%%excessive trusted computing base (TCB),
+%%a restrictive model of adapting applications,
+%%and missing support for Linux or multi-process applications.
+%
+%%We present \gsgx{}, a \libos{}-based shielding system
+%%targeting Linux multi-process applications,
+%%as improvement to the Haven model of migrating native application to SGX.
+%%\gsgx{} is derived of \graphene{}~\citep{tsai14graphene},
+%%which supports 139 out of 300 Linux system calls.
+%%\graphene{} runs numbers of popular applications
+%%such as Apache web server, OpenJDK virtual machine, or shell scripts,
+%%all of which relies on multi-process abstractions
+%%such as {\tt fork}, {\tt execve}, signals or System V IPC.
+%
+%
+%
+%
+%\paragraph{Measurements for System Completeness.}
+%In general, due to the complexity of implementation or preserving
+%the complete specifications,
+%developers must prioritize the development based on
+%what they believe to be more important
+%--- what will impact or satisfy more applications or more users.
+%Especially for innovative systems like \liboses{},
+%developers struggle to evaluate the progress in a partial prototype.
+%%From improving legacy code compatibility in different systems
+%%(Linux to \graphene{}),
+%%we observe that system developers including us
+%%routinely make design choices based on 
+%%what they believe to be the common and uncommon behaviors of a system.
+%%For instance, in \graphene{}, we start with handpicking the abstractions and specifications
+%%that we believe to be more important to the applications.
+%%When optimizing Linux file system directory cache,
+%%we shorten the latency of {\tt stat} and {\tt open} system calls
+%%at the expense of {\tt rename} and {\tt chmod},
+%%assuming that {\tt stat} and {\tt open} are the more commonly used operations in majority of applications.
+%%%In the case of a general-purpose OS, determining
+%%%exactly what the common case is can be challenging.
+%%In general,
+%%a developer's view of what system APIs are important is skewed towards
+%%the developer's preferred workloads.
+%%%the choice of what features matter skews heavily towards
+%%%workloads particular developers use.
+%%Similarly, developers who struggle to evaluate the impact of a 
+%%change on compatibility
+%%must implement every abstractions and specifications,
+%%and then be able to reason about the completeness of legacy support.
+%%support of legacy application in the product system.
+%At the center of these problems is the missing of information about how system abstractions or APIs are used in the run-time.
+%%and a metric to estimate the completeness of legacy applications that can be supported
+%%for any random users.
+%In search of better methods for
+%evaluating the legacy support,
+%we conduct a study of Linux system APIs usage among a large sample of Debian/Ubuntu x86\_64 applications,
+%weighted by the application popularity
+%collected by the Popularity Contests~\citep{debian-popularity, ubuntu-popularity}.
+%Based on the study,
+%we create a measurement
+%for estimating the fraction of applications installed by a user
+%that can plausibly use the system.
+%For instance, the current \graphene{} prototype,
+%in which we hand-pick Linux system calls according to the applications for experiment,
+%can support the complete API footprint
+%in 0.42\% of applications installed by a user.
+%The data-driven, principled strategy shows than \graphene{} can be improved to
+%supporting 21.1\% of applications,
+%by simply adding two missing system calls, {\tt sched\_setcheduler} and {\tt sched\_setparam}.
+%
+%%We create sensible, representative metrics,
+%%which measure the effects of both applications and users.
+%%Using the metrics and insights from the study,
+%%the significant improvement on legacy application support in \graphene{} is demonstrated
+%%if we guide the development using this approach.
+%
+%%Summarizing all contributions of the thesis,
+%%we explore the solutions and principles,
+%%to implement OS support for legacy applications in either 
+%%isolated systems
+%%(i.e., \graphene{} \libos{}, enclaves) 
+%%or optimized legacy OS components
+%%(i.e., Linux file system directory cache).
 
 
 
@@ -1314,49 +1434,68 @@ is safe to be released from the enclave.
 %All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.
 
 
-\paragraph{Optimizing Linux File System Directory Cache.}
-%The principle to optimize the critical path of frequent operations
-%also applies to legacy systems.
-The difficulty of simultaneously achieving compatibility, efficiency, and other qualities
-can also be observed in commodity operating systems.
-In the design of a traditional OS such as Windows or Linux,
-the implementation of OS abstractions are
-often entangled with security mechanisms and performance optimizations,
-leading to suboptimal efficiency.
-The complexity of the OS design makes any structural changes to the OS logic
-unreasonably hard to adopt.
-%is not only observed in 
-%In an operating system like Linux,
-%complex logics are design to simultaneously implement specifications
-%and improve performance,
-%causing suboptimal results in the system.
-One classic example is the \term{Linux file system directory cache},
-a heavily engineered component designed for
-avoiding the significant latency of looking up duplicated paths
-on physical storage,
-yet also used as data structures
-for file system features,
-such as storing permissions, attributes and symbolic links.
-In our analysis, even when the directory cache is warm (no cache misses),
-the latency of path-searching system calls
-still dominates many lookup-bound applications,
-such as the GIT version control system.
-The culprit of the suboptimal latency is
-the requirement of permission checks and processing file system features
-that interleaves with
-looking up path prefixes in the directory cache.
-A more optimal design
-shall decouple the looking up cached paths
-from other operations,
-%from the path-based lookup in the directory cache,
-by fully exploiting locality to cache the results of redundant operations
-(i.e., permission checks, retrieving attributes, resolving symboling links, etc).
-The systematic, principled
-redesign of Linux file system directory cache 
-preserves the compatibility to existing Linux file system features,
-as well as
-various security mechanisms (e.g., AppArmor, SELinux)
-and most underlying storage (e.g., Ext4, Pseudo file systems).
+%\paragraph{Optimizing Linux File System Directory Cache.}
+%%The principle to optimize the critical path of frequent operations
+%%also applies to legacy systems.
+%The difficulty of simultaneously achieving compatibility, efficiency, and other qualities
+%can also be observed in commodity operating systems.
+%In the design of a traditional OS such as Windows or Linux,
+%the implementation of OS abstractions are
+%often entangled with security mechanisms and performance optimizations,
+%leading to suboptimal efficiency.
+%The complexity of the OS design makes any structural changes to the OS logic
+%unreasonably hard to adopt.
+%%is not only observed in 
+%%In an operating system like Linux,
+%%complex logics are design to simultaneously implement specifications
+%%and improve performance,
+%%causing suboptimal results in the system.
+%One classic example is the \term{Linux file system directory cache},
+%a heavily engineered component designed for
+%avoiding the significant latency of looking up duplicated paths
+%on physical storage,
+%yet also used as data structures
+%for file system features,
+%such as storing permissions, attributes and symbolic links.
+%In our analysis, even when the directory cache is warm (no cache misses),
+%the latency of path-searching system calls
+%still dominates many lookup-bound applications,
+%such as the GIT version control system.
+%The culprit of the suboptimal latency is
+%the requirement of permission checks and processing file system features
+%that interleaves with
+%looking up path prefixes in the directory cache.
+%A more optimal design
+%shall decouple the looking up cached paths
+%from other operations,
+%%from the path-based lookup in the directory cache,
+%by fully exploiting locality to cache the results of redundant operations
+%(i.e., permission checks, retrieving attributes, resolving symboling links, etc).
+%The systematic, principled
+%redesign of Linux file system directory cache 
+%preserves the compatibility to existing Linux file system features,
+%as well as
+%various security mechanisms (e.g., AppArmor, SELinux)
+%and most underlying storage (e.g., Ext4, Pseudo file systems).
+
+
+Besides emulating OS abstractions, the \graphene{} \libos{} also provides a reasonable model of enforcing security isolation among applications launched by mutually untrusting users.
+Similar as the complexity of emulating all the abstractions,
+the security isolation on a monolithic OS can be delicate and prone to mistake,
+if each abstraction is controlled individually.
+\graphene{} simplifies the isolation of OS abstractions
+down to three host abstractions: files, network connections, and RPC streams.
+For these host abstractions, \graphene{} enforces isolation policies in the styles
+commonly used by security experts:
+white-lists for file access, firewall rules for network connection,
+and simple ``Chinese Wall'' isolation for RPC streams.
+We show that, by isolating these host abstractions,
+the numerous OS abstractions emulated by the \liboses{} will be utterly isolated,
+without making significant effort to build individual access control.
+The isolation model is fully portable to every host platforms,
+including the host with SGX enclaves, where no trusted host monitor is present.
+
+
 
 
 \paragraph{Contributions.}
@@ -1482,8 +1621,8 @@ in enclaves.
 \item \S\ref{chap:syspop}
 discusses new, fractal measurements for evaluating importance of system APIs and completeness of prototype systems,
 based on a study of Linux API usage and compatibility.
-\item \S\ref{chap:dcache}
-explains a fast-path design for optimizing the hit latency for looking up in Linux's egacy file system directory cache.
+%\item \S\ref{chap:dcache}
+%explains a fast-path design for optimizing the hit latency for looking up in Linux's egacy file system directory cache.
 \item \S\ref{chap:proposal}
 lists the proposed tasks for the fulfillment of thesis.
 \item \S\ref{chap:related}
