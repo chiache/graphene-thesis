@@ -10,7 +10,7 @@ all: pdf
 # Source files.  Edit these variables for each new paper.
 #----------------------------------------------------------------------
 
-name = proposal
+name = thesis
 
 latex_files = $(name).tex \
 		psfig_macros.tex \
