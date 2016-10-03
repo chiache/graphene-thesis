@@ -29,6 +29,7 @@
 \usepackage{upgreek}
 \usepackage{mathtools}
 \usepackage{amsmath}
+\usepackage{fancybox}
 \usepackage{float}
 \usepackage[font={small}]{caption}
 \usepackage{booktabs}
@@ -42,7 +43,7 @@
 \newcommand{\fixme}[1]{{}}
 \newcommand{\fixmedp}[1]{{}}
 \else
-\newcommand{\fixme}[1]{{\bf\textcolor{blue}{ [ FIXME: #1 ]}}}
+\newcommand{\fixme}[1]{{\bf\textcolor{red}{ [ FIXME: #1 ]}}}
 \newcommand{\fixmedp}[1]{{\bf\textcolor{red}{ [ FIXME dP: #1 ]}}}
 \fi
 
@@ -52,12 +53,28 @@
 \newcommand{\note}[1]{{\bf\textcolor{blue}{ [ NOTE: #1 ]}}}
 \fi
 
+\ifx \prethesis \undefined
+\newenvironment{outline}{\begin{comment}}{\end{comment}}
+\else
+\newenvironment{outline}{%
+  \VerbatimEnvironment
+  \vspace{0.5\baselineskip}
+  \begin{minipage}{\linewidth}
+  \bf\color{blue}\small%
+  \begin{Verbatim}
+}{
+  \end{Verbatim}
+  \end{minipage}
+  \vspace{0.5\baselineskip}
+}
+\fi
+
 %\newcommand{\thesistitle}{Balancing Practicality and Security Isolation for Applications\\ with Untrustworthy System Stacks}
 %\newcommand{\thesistitle}{Legacy Code Reuse in Partitioned Systems for Isolating Security and Performance Pitfalls: from the OS perspective}
 %\newcommand{\thesistitle}{Reusing Legacy Code in Partitioned or Optimized Systems for Isolating Security and Performance Pitfalls: An OS perspective}
 %\newcommand{\thesistitle}{Enabling Legacy Applications in Innovative Systems for Security Isolation and Efficiency}
 %\newcommand{\thesistitle}{Securely and Efficiently Reusing Legacy Applications with the Graphene Library OS}
-\newcommand{\thesistitle}{Emulating and Isolating Idiosyncratic OS Abstractions Using the Graphene Library OS}
+\newcommand{\thesistitle}{Simplifying Application Reuse and Isolation on Emerging Systems Using the Graphene Library OSes}
 \newcommand{\thesisauthor}{Chia-Che Tsai}
 \newcommand{\thesisyear}{2016}
 \newcommand{\thesismonth}{August}
@@ -87,7 +104,7 @@
 \vspace*{6\baselineskip}
 {\centering{\bf{\thesistitle{}}}\\}
 \vspace*{3\baselineskip}
-\centerline{A Dissertation Proposal presented}
+\centerline{A Dissertation presented}
 \vspace*{1\baselineskip}
 \centerline{by} 
 \vspace*{1\baselineskip}
@@ -185,7 +202,7 @@
 
 \phantomsection
 \addcontentsline{toc}{chapter}{Abstract}
-\centerline{Abstract of the Dissertation Proposal}
+\centerline{Abstract of the Dissertation}
 \vspace*{3\baselineskip}
 {\centering{\bf{\thesistitle{}}}\\}
 \vspace*{1\baselineskip}
