@@ -1,6 +1,70 @@
 \chapter{Introduction}
 \label{chap:intro}
 
+\begin{outline}
+Motivation:
+-- A working operating system requires compatible applications to perform the operations demanded by the users.
+-- The compatibility between an application and its operating system is determined by whether the required OS abstractions are faithfully supported.
+-- In modern operating systems, applications can rely on plenty abstractions that exclusively belong to certain operating systems, thus the applications become hard to reuse on other platforms.
+-- Application reuse is valuable for saving the cost of porting the demanded applications, especially on emerging, experimental operating systems. 
+  
+Emulation and its challenges:
+-- Emulating all abstractions of an existing operating system is a solution for facilitating the application reuse on another operating system.
+-- Building a working emulation for modern applications is often cumbersome: Although the size of OS abstractions will be an obvious obstacle, some abstractions can be fundamentally challenging to emulate.
+-- For example, a challenging abstraction to emulate is the multiplexing of CPU resource for concurrently running applications on the same host.
+  --> Discuss multi-process abstractions.
+  
+Emulation by library OSes:
+-- Most working, commercialized emulation solutions are based on implementing a well-known interface of the system stack, such as POSIX functions, UNIX system calls, or the hardware interface.
+-- Virtualization, for instance, emulates the hardware interface required by a native, guest operating system, to reuse the applications.
+-- Instead of emulating a wide, well-known interface, a narrower ``pinch point'' in the operating system can be more easily emulated, if all OS components above are packed into a ``library OS''.
+  --> Discuss Drawbridge.
+  
+Goal and hypothesis:
+-- When emulating an interface, the effectiveness of emulation can be determined by two factors: the sufficiency of emulating different abstractions, and the simplicity of development with acceptable cost.
+-- This dissertation demonstrates that using library OSes is a more effective emulation approach than others.
+-- We present the Graphene library OS, a Linux-compatible library OS implemented on a host interface that can be easily emulated on emerging OSes.
+
+Justification:
+-- Graphene implements the complex and idiosyncratic Linux abstractions, on a narrow host interface separately emulated for each OSes.
+-- The host interface is easy to emulate for two reasons:
+  -- The size of host abstractions is much smaller than Linux system calls, or the hardware interface.
+  -- Similar abstractions can be found on most operating systems, with minimal effort of API translation.
+-- Graphene justifies the simplicity by the proof-of-a-concept of emulating the host interface on vastly diverse operating systems: monolithic kernels (Linux, Windows, etc), micro-kernels (L4), multi-kernels (Barrelfish), and isolated execution platforms (Intel SGX).
+-- Using the host interface, Graphene implements the major part of the Linux system calls, ranged from single-process to multi-process abstractions.
+
+Backward compatibility:
+-- A key to our approach is to take a fresh look at the requirement of existing approaches, which often involve fulfilling backward compatibility.
+-- Using library OSes isolates the idiosyncrasy of APIs and abstractions from the provisioning of system resources and features.
+-- For emerging OSes, emulating outdated OS abstractions for backward comparability is a lost cause.
+-- A measurement to estimate the effectiveness of application support can guide the development of selected emulation in emerging OSes.
+  --> Discuss API importance and weighted completeness.
+
+1.1. Application isolation:
+-- Permission checking and access control for each OS abstractions is cumbersome and prone for error.
+-- Recent systems apply simply, out-and-out isolation between mutually untrusting applications.
+  --> Discuss related works (docker, virtualization)
+-- Graphene provides a reasonable, platform-independent model for application isolation, by enforcing simple rules on the host interface.
+
+1.2. Introducing system features to applications:
+-- A system feature introduced by the underlying OS can either be integrated into the host interface, or become a selectable extension.
+  --> Adding library OS APIs for accessing SGX features
+-- If a feature is limited by the applications` development model, language-level assistance is needed to introduce the feature.
+  --> Accessing SGX features from Java applications (Civet) 
+
+2. Organization:
+-- Section 2: Background of library OSes and emerging operating systems. 
+-- Section 3: Emulation of the host interface on various OSes, including legacy and emerging ones
+-- Section 4: Implementation of the Linux OS abstractions using the host interface
+-- Section 5: A measurement for evaluating the partial support / emulation of OS abstractions
+-- Section 6: A reasonable, platform-independent model of isolating mutually untrusting applications.
+-- Section 7: Introducing system features to applications with language limitations; Java applications in SGX enclaves as an example.
+
+3. Conclusion:
+-- The Graphene library OS effectively reuses applications from a modern OS like Linux to any emerging OSes, with bounded emulation effort. 
+
+\end{outline}
+
 The functionability of applications counts on the hosting platforms
 to provide the necessary abstractions,
 such as starting a standard executable, or accessing a regular file.
@@ -1500,7 +1564,7 @@ including the host with SGX enclaves, where no trusted host monitor is present.
 
 
 
-
+\begin{comment}
 \paragraph{Contributions.}
 This thesis proposes the challenges, solutions and principles,
 to mitigate limitations from innovative system designs on enabling the execution of legacy applications.
@@ -1609,6 +1673,7 @@ and GIT version control system by up to 25\%.
 
 \end{compactitem}
 
+\end{comment}
 
 
 \paragraph{Organization.}
