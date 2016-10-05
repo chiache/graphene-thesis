@@ -2,8 +2,31 @@
 \label{chap:intro}
 
 \begin{outline}
-- Operating systems export abstractions for applications to use.
+Motivations:
+- A working operating system requires compatible applications to perform the desired operations for users.
+- The primary factor that determines the compatibility between an application and operating system is the support of necessary OS abstractions, which must faithfully reflect the specifications of operating system.
+- A modern operating system often exports a great deal of complex, OS-specific abstractions, making the applications hard to reuse on another platform.
+- The reuse of applications is especially valuable for emerging operating systems, in order to avoid the costly re-development of applications.
+  
+Emulation and its challenges:
+- Emulating an existing operating system with backward compatibility is a common approach for application reuse.
+- Building a working emulation for modern applications is cumbersome;
+  The obstacle comes from the size of specifications depended by the applications, and more importantly, supporting abstractions that cannot be organically introduced on the emerging OSes.
+- For example, a challenging abstraction to emulate is the multiplexing of CPU resource for concurrently running applications on the same host.
+  Discuss multi-process abstractions.
+  
+Emulation by library OSes:
+- Most of the working, commercialized emulation solutions are based on implementing a well-known interface of the system stack, such as POSIX functions, UNIX system calls, or the hardware interface.
+- Virtualization, for instance, emulates the hardware interface required by a native operating system, to reuse the applications accordingly.
+- Instead of emulating a wide, well-known interface, a narrower ``pinch-point'' in the operating system can be found as an interface easier to emulate, if the OS components above can be packaged into a library OS.
+  Discuss Drawbridge.
+- For either library OSes, virtualization, or emulation at other interfaces, the effectiveness of these solutions on application reuse depends on two properties:
+  - Completeness of abstraction supported by the emulation (sufficiency),
+  - Development effort of emulation, with acceptable resource cost and operation overhead (simplicity).
+
+Goal and hypothesis:
 - 
+
 \end{outline}
 
 The functionability of applications counts on the hosting platforms

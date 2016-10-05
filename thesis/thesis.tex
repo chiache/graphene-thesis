@@ -12,7 +12,6 @@
 \usepackage{setspace}
 \usepackage{paralist}
 \usepackage{rotating}
-\usepackage{fancybox}
 \usepackage{listings}
 \lstset{language=C}
 \usepackage{comment}
@@ -54,17 +53,13 @@
 \fi
 
 \ifx \prethesis \undefined
-\newenvironment{outline}{\begin{comment}}{\end{comment}}
+\lstnewenvironment{outline}{\begin{comment}}{\end{comment}}
 \else
-\newenvironment{outline}{%
-  \VerbatimEnvironment
+\lstnewenvironment{outline}{%
   \vspace{0.5\baselineskip}
-  \begin{minipage}{\linewidth}
-  \bf\color{blue}\small%
-  \begin{Verbatim}
+  \lstset{basicstyle=\footnotesize\normalfont,breaklines=true}
+  \bf\color{blue}%
 }{
-  \end{Verbatim}
-  \end{minipage}
   \vspace{0.5\baselineskip}
 }
 \fi
@@ -74,7 +69,7 @@
 %\newcommand{\thesistitle}{Reusing Legacy Code in Partitioned or Optimized Systems for Isolating Security and Performance Pitfalls: An OS perspective}
 %\newcommand{\thesistitle}{Enabling Legacy Applications in Innovative Systems for Security Isolation and Efficiency}
 %\newcommand{\thesistitle}{Securely and Efficiently Reusing Legacy Applications with the Graphene Library OS}
-\newcommand{\thesistitle}{Simplifying Application Reuse and Isolation on Emerging Systems Using the Graphene Library OSes}
+\newcommand{\thesistitle}{Application Reuse and Isolation on Emerging Systems Using the Graphene Library OS}
 \newcommand{\thesisauthor}{Chia-Che Tsai}
 \newcommand{\thesisyear}{2016}
 \newcommand{\thesismonth}{August}
