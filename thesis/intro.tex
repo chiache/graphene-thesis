@@ -25,15 +25,25 @@ The diversity of OSes and hardware platforms provides more options for users to 
 
 However, a new OS or hardware platform does not always benefit applications immediately.
 Applications can be broken when users try to reuse them across OS generations (e.g., Windows XP and Windows 10) or distributions (e.g., Linux and Mac OSX).
-It often takes significant efforts or techniques,
-such as Windows using lightweight virtual machines to run outdated applications,
-for system developers to keep different OS generations or distributions compatible to same applications.
+It often takes significant efforts or techniques to make OS variants compatible to the same applications---for instance, Windows uses lightweight virtual machines to run outdated applications from former generations.
 For OS prototypes created to overcome issues of major OSes,
-existing Windows or UNIX applications often don't work right out-of-the-box on these OS prototypes, due to fundamentally changing the OS architecture or personality.
+existing Windows or UNIX applications often don't work straight out of the box on these prototypes, due to fundamental changes on OS architecture or personality.
+New hardware platforms also contribute to the difficulty of reusing applications with new technoligies,
+by adding new challenges for the OSes to address security or performance concerns specific to the hardware platforms.
+For instance, parallel computing platforms like NUMA requires the OSes to be customized to
+maximally localize in-memory OS states associated with an application context.
+Moreover, trusted execution platforms, such as Intel SGX, overturn the threat model of a traditional OS,
+making the whole OS or part of the OS untrusted by the applications.
+An application running with Intel SGX can no longer rely on the OS functionality
+it used to get from a trusted OS.
+The application has to be modified to communicate with an untrusted OS, with the utmost caution of any potential attacks from the OS.
+Therefore, despite the advances of OS or hardware technologies,
+the application development to use a technology often lag behind the technology,
+making the technology hard to commericalize in practice.
 
 
 
-\begin{outline}
+\begin{comment}
 Emulation and its challenges:
 -- Emulating all abstractions of an existing operating system is a solution for facilitating the application reuse on another operating system.
 -- Building a working emulation for modern applications is often cumbersome: Although the size of OS abstractions will be an obvious obstacle, some abstractions can be fundamentally challenging to emulate.
@@ -45,7 +55,34 @@ Emulation by library OSes:
 -- Virtualization, for instance, emulates the hardware interface required by a native, guest operating system, to reuse the applications.
 -- Instead of emulating a wide, well-known interface, a narrower ``pinch point'' in the operating system can be more easily emulated, if all OS components above are packed into a ``library OS''.
   --> Discuss Drawbridge.
-  
+\end{comment}
+
+
+A critical problem of reusing applications on new OSes or hardware platforms is the difficulty of building ad-hoc layers or solutions to adapt the applications.
+Between OS families (i.e., Windows and UNIX) or distributions (e.g., Linux and Mac OSX),
+system developers often build a compatibility layer to translate the host OS features for applications.
+Although each application does not need full OS functionality to execute on a new OS or hardware platform, system developers have little information about exactly which part of OS functionality is needed to provide more general support, and often end up having to implement full OS functionality.
+To reuse applications from a modern OS like Linux or Windows, the difficulty is not necessarily equivalent to the complexity of implementing 300 Linux system calls or thousands of Windows APIs on a new OS or hardware platform.
+Moreover, the difficulty lies in reproducing the assumption of having a unified, trusted, monolithic kernel where all the OS features needed are defined,
+whereas a new OS or hardware platform holds a completely opposite assumption
+regarding its threat model or performance patterns.
+
+
+Take reusing Linux applications with Intel SGX for example. Intel SGX is a trusted execution platform which protects applications from untrusted or even compromised OSes, hypervisors, and other applications.
+A Linux application running in Intel SGX can no longer trust the OS to faithfully return correct and benign results
+to any request of OS features such as reading a file or creating a thread.
+The potential attacks that can be launched by the untrusted OS through manipulating valid return values to legacy system APIs are known as the Iago attacks.
+The Iago attacks are also hard to predict among all the scenarios and corner cases
+supported by all the OS functionality of a modern OS like Linux or Windows,
+given the complexity of the OS semantics lacking any study of potential threats from an untrusted OS.
+As a result,
+building an ad-hoc compatibility layer to implement and defend OS features for general Linux applications
+against an untrusted OS
+is impractical, as it is not only cumbersome but also unsafe.
+
+
+
+\begin{outline}  
 Goal and hypothesis:
 -- When emulating an interface, the effectiveness of emulation can be determined by two factors: the sufficiency of emulating different abstractions, and the simplicity of development with acceptable cost.
 -- This dissertation demonstrates that using library OSes is a more effective emulation approach than others.
