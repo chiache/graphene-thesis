@@ -9,18 +9,29 @@ Motivation:
 -- Application reuse is valuable for saving the cost of porting the demanded applications, especially on emerging, experimental operating systems. 
 \end{comment}
 
-Operating systems (OSes) and hardware platforms have evolved over time for new system requirements and problems, and will continue to evolve.
-Up till this day, the major OSes have evolved and branched into two families as the Windows and UNIX OSes:
-the former (Windows) have spanned across several generations
-(e.g., Windows 3.x, XP, NT, Vista, 7, 8, and 10) over the last three decades,
-while the latter (UNIX) have also grown into an enormous family including several distributions such as Linux, BSD, and Mac OSX.
-Besides, system researchers have continued to invent OS prototypes
-to resolve issues fundamental to the major OSes, caused by conventionally building a unified, monolithic kernel to provide OS functionality.
-All of these OS variants can be paired with different hardware platforms.
-For instance, hardware platforms like NUMA improve the parallelism between application contexts to make the overall performance scales better for larger inputs.
-Another branch of hardware platforms, known as the trusted execution platforms,
-targets on isolating security-sensitive applications from malicious system components and applications.
-The diversity of OSes and hardware platforms provides more options for users to deal with circumstances where they need to run the applications.
+
+During the last decade, operating systems have dramatically diversified into computing platforms, to optimize applications for disparate purposes. A \emph{computing platform} is defined as the combination of a software environment including libraries and runtimes, an operating system, and some selected hardware architectures, to allow a certain group of applications to perform computation.
+History has shown that different computing platforms have thrived in individual application domains, such as cloud computing, desktop software, and mobile computing---for example, Linux is an operating system broadly applicable to cloud, desktop, and mobile devices, but is specialized since 2008 as Android, a platform that dominates more than 50\% of mobile market since 2013. Despite the popularity of Android in the mobile domain, other Linux distributions like Debian, Ubuntu, and Cent OS are mostly used in cloud, desktop, and network devices and nearly never used as mobile computing platforms.
+
+
+
+
+
+%Operating systems (OSes) and hardware platforms have evolved over time for new system requirements and problems, and will continue to evolve.
+%Up till this day, the major OSes have evolved and branched into two families as the Windows and UNIX OSes:
+%the former (Windows) have spanned across several generations
+%(e.g., Windows 3.x, XP, NT, Vista, 7, 8, and 10) over the last three decades,
+%while the latter (UNIX) have also grown into an enormous family including several distributions such as Linux, BSD, and Mac OSX.
+%Besides, system researchers have continued to invent OS prototypes
+%to resolve issues fundamental to the major OSes, caused by conventionally building a unified, monolithic kernel to provide OS functionality.
+%All of these OS variants can be paired with different hardware platforms.
+%For instance, hardware platforms like NUMA improve the parallelism between application contexts to make the overall performance scales better for larger inputs.
+%Another branch of hardware platforms, known as the trusted execution platforms,
+%targets on isolating security-sensitive applications from malicious system components and applications.
+%The diversity of OSes and hardware platforms provides more options for users to deal with circumstances where they need to run the applications.
+
+
+
 
 
 However, a new OS or hardware platform does not always benefit applications immediately.
@@ -80,8 +91,8 @@ not only is cumbersome but also cannot be properly checked for security.
 
 
 
-The challenge of reusing applications shows that 
-a universal solution is needed to shorten the cycle for a new OS or hardware platform to be applied on real-world applications. The solution requires minimizing the per-platform effort for implementing the OS functionality and addressing any platform-specific security or performance concerns (e.g., Iago attacks to Intel SGX). 
+The difficulty of reusing applications by ad hoc solutions shows that 
+a universal solution is needed to shorten the cycle for a new OS or hardware platform to be applied on applications currently being used. The solution requires minimizing the per-platform effort for implementing the OS functionality and addressing any platform-specific security or performance concerns (e.g., Iago attacks to Intel SGX). 
 We can re-negotiate the host OS functionality and define a set of OS features that generally can be provided by every OSes and hardware platforms.
 Using the host OS functionality, the complex, legacy OS features can be reimplemented as a {\bf library OS}, which serves applications right below them inside an application context.
 Introducing a library OS for applications allows system developers to partition the traditional, monolithic kernel,
