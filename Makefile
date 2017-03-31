@@ -14,7 +14,7 @@ name = thesis
 
 latex_files = $(name).tex \
 		psfig_macros.tex \
-		../bibliography.bib
+		bibliography.bib
 
 # Xfig source.
 xfig_files = 	
@@ -80,7 +80,7 @@ ps: $(name).ps
 #DISTILL = ps2pdf
 #DISTILL_FLAGS = -dPDFSETTINGS=/prepress -dEmbedAllFonts=true 
 
-$(name).pdf: *.tex */*.tex */*/*.tex $(fm_eps) ../bibliography.bib 
+$(name).pdf: *.tex */*.tex */*/*.tex $(fm_eps) bibliography.bib 
 	rubber -Wrefs -Wmisc -d $(name)
 
 #	./check_pdf_embedded_fonts.sh $(name).pdf
@@ -88,7 +88,7 @@ $(name).pdf: *.tex */*.tex */*/*.tex $(fm_eps) ../bibliography.bib
 # ps2pdf -sPAPERSIZE=letter -dPDFSETTINGS=/prepress -dEmbedAllFonts=true \
 # 	$(name).ps $(name).pdf
 
-$(name).ps: *.tex */*.tex */*/*.tex $(fm_eps) ../bibliography.bib 
+$(name).ps: *.tex */*.tex */*/*.tex $(fm_eps) bibliography.bib 
 	rubber -Wrefs -Wmisc -p $(name)
 
 #	$(DISTILL) $(DISTILL_FLAGS) $(name).ps
