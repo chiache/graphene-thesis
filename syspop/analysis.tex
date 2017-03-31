@@ -1,0 +1,291 @@
+\section{Implications for System Developers}
+\label{sec:syspop:analysis}
+
+The statistics in Section~\ref{sec:observation} can inform decisions of application developers, library developers,
+and kernel developers.  Similarly, the ability to easily generate a comprehensive data set of API footprints
+has several practical uses.
+
+% to make well informed decisions that may affect the efficiency, security and compatibility of the system.
+
+%As a side-effect of our study, we generate a system call profile for every 
+%application binary i.e., we determine what are the possible system calls 
+%made by a given application either directly to the kernel or via a 
+%dynamically linked library. 
+
+One practical benefit of this study is the ability to automatically identify a system call profile of
+every application distributed with \osdist{}. In fact, we observed that the total 31,433 applications 
+have 11,680 different system call footprint and 9,133 out of these applications have a unique system call footprint.
+We note that these numbers may vary with dynamic analyses, but the fact that one third of all Debian/Ubuntu applications
+have a unique system call footprint is interesting.
+
+System call footprints have been explored previously for identifying malware or software compromises~\citep{policy-extraction}. %\fixmedp{Is this a correct interpretation?}
+%This approach has been explored previously in the literature
+Linux has recently added seccomp, a Berkeley Packet Filter-based system call filtering framework~\citep{seccomp};
+generation of seccomp policies can be easily automated using our framework,
+reducing the system's attack surface in the event of an application compromise.
+
+%\callout{We can automatically create system call filters for applications to reduce security risks.}
+
+%%% this has been ond 
+%%% Kernel rootkits enter the system by exploiting some vulnerability in the
+%%% application and elevating the privilege to modify the system behavior.
+%%% The set of system calls or kernel interfaces 
+%%% used by an application constitute the bare minimum kernel attack surface 
+%%% that needs to be exposed to vulnerabilities in that particular application.
+%%% However, unless the access of kernel interface is limited to only this minimal set,
+%%% all the linux interfaces are exposed to the vulnerabilities in the application.
+%%% Linux kernel v3.5 added the BPF based seccomp support for system call filtering to limit which
+%%% syscalls can be called by a process/application. 
+%%% As a side-effect of our study, we generate a system call profile for every 
+%%% application binary i.e., we determine what are the possible system calls 
+%%% made by a given application either directly to the kernel or via a 
+%%% dynamically linked library.
+%%% We can easily automate the conversion of this system call profile generated
+%%% by our analysis for each application to seccomp filter rules.
+%%% These seccomp rules can reduce the attack surface available to vulnerability exploits in the application,
+%%% improving the overall security of the system.
+
+%\fixmedp{From here down is a little repetitive.  It is ok, but I think this has been covered elsewhere, or could be merged up into the appropriate section}
+These tools can also help OS developers evaluate when it is safe to remove a deprecated interface,
+or when interfaces appear to be irrelevant to most users (e.g., {\tt remap\_file\_ pages}).
+In the case of an irrelevant interface, this may either indicate something is a candidate for deprecation (e.g., {\tt lookup\_dcookie}),
+or that a useful or important feature (e.g., {\tt faccessat}) is not getting sufficient traction.
+Linux developers currently wait as long as 
+six years to retire an interface, allowing ample time for application and library developers to change.
+% let the applications and libraries to change the use of deprecated ABI before it is completely dropped. 
+Our dataset and methodology can allow more proactive outreach and more rapid system evolution.
+%The reason for this long wait is that the kernel developers have no way of knowing if there is any application in the wild
+%still using the interface to be deprecated. Using our system, the kernel developers can be proactive and
+%notify the maintainers of only those applications that are affected by the change. 
+
+%%% Apart from helping new OS developers to maintain compliance to Linux ABI based on the metric discussed in section \S\ref{sec:measure},
+%%% our popularity distribution can also help kernel developers to choose the interfaces to be deprecated.
+%%% More the number of interfaces to kernel, bigger is the available attack surface. Thus, it is desirable to
+%%% remove some of the less popular interfaces to reduce the attack surface. Moreover, maintaining each
+%interface incurs additional effort for kernel developers. 
+
+%% dp:  meh
+%%% Apart from just removing the
+%%% interfaces no longer used by any application, the kernel developers can also move the less popular system calls
+%%% to optional ioctl calls provided by dynamically loaded kernel modules. In fact, the kernel developers can
+%%% just notify particular libraries to handle the missing syscall by registering for seccomp upcall so that
+%%% the libraies can load the required kernel module at runtime if needed.
+%%% Moreover, this syscall popularity
+%%% distribution can provide the application and library developers a good approximation of the possible candidates for
+%%% deprecation so that they can avoid refactoring the code by avoiding use of least popular interfaces especially 
+%%% if there is another popular alternative is available.
+
+The \libc{} function call popularity can similarly help library developers to remove function calls that
+are not used (222 functions). 
+Moreover, the function call importance distribution can also help reduce the library's memory footprint by
+organizing the in-memory layout by importance.
+%Unimportant functions will never be demand-paged in on many systems.
+% 2MB is a little underwhelming
+%%% Although \libc{}'s text segment is only about 2MB, this could be a non-trivial improvement for 
+%%% embedded devices, and potentially reduce the need for 
+%%% loading the code for only most popular functions in memory. While the reduction in memory footprint is small
+%%% it is still substantial for embedded devices. For instance, the total \libc{} text section is only about 2MB.
+
+% dp: I also think this is  a reach
+\begin{comment}
+The x86 processor fetches instructions at the order of cacheline size and usually have an prefetch hardware
+that learns sequential or step-based access patterns of memory and prefetch those instructions or data before
+it is actually needed. The performance of an application can be highly optimized if there are very low number of
+cache misses and if the prefetch hardware can always fetch the right data or instruction.
+The compilers know about the details of target architecture and can organize the code to optimize the code
+for the target architecture. Using the \libc{} function call popularity, the compilers can place the most frequently used code
+together causing less cacheline misses. The least popular part of the library will be demand loaded in memory only if it is accessed.
+In fact, this approach can help reduce the working memory set of the application without even any need for special case handling.
+For instance, 46\% of all the function call constitute the top 90\% of the most popular function calls. 
+\end{comment}
+
+%Commands to get the numbers for this calculation.
+% grep -n -e '0\.09' libc-popularity.csv | head -n 1 | cut -d ":" -f 1
+% wc -l libc-popularity.csv
+
+
+
+%Popularity of system calls can help kernel developers decide on which system calls can be easily deprecated.
+
+
+%1. Which syscalls/function calls to deprecate?
+%	- Help application developers to choose popular system calls as they have lower risk of being deprecated. Application developers do not have to refactor the code if they can avoid the
+%	  potential candidates for deprecation.
+
+%2. Help compiler tools to load only most popular system calls in memory during linking so that the memory footprint will be reduced and caching can be used much more efficiently
+%	- Kernel compilers can also organize the code such that all the code for popular system calls is placed together so that it will cause least number of cache line misses and be easy to prefetch.
+
+%3. Automatically generate sandbox profiles and reduce the attack surface of OS/library/application
+
+%4. Case study the most used and unused syscalls and find the reason behind them.
+%	If the answer is because \libc{} decided to do so, find out if a syscall is used by \libc{} but not by any application, we need to figure out why?
+
+%5. Make popular vector calls/fs access as syscalls and make less popular ones as optional ioctls.
+
+%%=======Inferences=======
+%1. syncfs is less prefered over sync by developers.
+%2. security which is undefined is used by librsbac.so.1.0.0 but everyone now uses librsbac.so.1 instead which doesnt use security
+%3. numa based syscalls have very low popularity - get\_mempolicy, set\_mempolicy, numactl, sched\_getaffinity, sched\_setaffinity, move\_pages, migrate\_pages.
+%4. Recently added syscalls like finit_module, kcmp have lower popularity.
+%5. Pople use setresuid and getresuid more often than confusing and distribution dependent setuid/setreuid thanks to setuid demystified paper.
+
+
+
+
+% Unused System Calls & Possible reason for not using
+% get\_kernel\_syms & Removed in 2.6
+% getpmsg, putpmsg, tuxcall & Unimplemented
+% io\_getevents, restart\_syscall, rt\_tgsigqueueinfo, kcmp, finit\_module & No \libc{} wrapper for this system call
+% lookup\_dcookie & special-purpose system call only used by oprofile profiler
+% epoll\_ctl\_old, epoll\_wait\_old & Replaced by epoll\_ctl and epoll\_wait
+% semtimedop & Timeout option for semop which is by itself not popular(0.162)
+% migrate\_pages, move\_pages & Applicaitons are not NUMA-aware
+% recvmmsg, sendmmsg & Linux specific. Other generic syscalls like recvmsg(0.968) and sendmsg(0.808) are prefered.
+% clock\_adjtime & Added in 2.6.39 to support Precision Time Protocol. Other system call adjtimex(0.021) is prefered
+% process\_vm\_readv, process\_vm\_writev & Nonstandard Linux extensions. No atomicity guarantee.
+
+
+
+
+%%%% Unused system calls %%%%
+
+% get_kernel_syms Removed in 2.6
+% getpmsg The getpmsg() function shall be equivalent to getmsg(), except that it provides finer control over the priority of the messages received. - Unimplemented
+% putpmsg The putpmsg() function is equivalent to putmsg(), except that the process can send messages in different priority bands. - Unimplemented
+% tuxcall Unimplemented
+% lookup_dcookie added in 2.6 - return a directory entry's path <=====
+% epoll_ctl_old - old
+% epoll_wait_old - old
+% restart_syscall added in 2.6 - a helper function that restarts a system call <=====
+% migrate_pages added in 2.6.16 - move all pages in a process to another set of nodes<===== 
+% move_pages added in 2.6.18 - move individual pages of a process to another node <=====
+% rt_tgsigqueueinfo added in 2.6.31 - send a signal plus data to a process or thread. These system calls are not intended for direct application use; they are provided to allow the implementation of sigqueue(3) and pthread_sigqueue(3). <=====
+% recvmmsg added in 2.6.33  -  receive multiple messages on a socket <=====
+% clock_adjtime - add in 2.6.39 - \libc{} doesnt offer the syscall <=====
+% sendmmsg added in 3.0 - send multiple messages on a socket <=====
+
+
+%%%% Least popular syscall (<1%) in ascending order of popularity%%%%
+
+% process_vm_writev - added in 3.2 These system calls are nonstandard Linux extensions. The data transfers performed by process_vm_readv() and process_vm_writev() are not guaranteed to be atomic in any way. These system calls were designed to permit fast message passing by allowing messages to be exchanged with a single copy operation (rather than the double copy that would be required when using, for example, shared memory or pipes). <===== 
+
+% finit_module added in 3.8
+% kcmp added in 3.5 - compare  two  processes  to determine if they share a kernel resource
+% process_vm_readv - read process_vm_writev details. <=====
+% security - Unimplemented system calls  
+% getcpu - 2.6.19  determine CPU and NUMA node on which the calling thread is running
+% syncfs - 2.6.39 synchronizes just the file system containing file referred to by the open file descriptor fd
+% sysfs - 1.2 get file system type information
+% get_mempolicy - 2.6.6 retrieve NUMA memory policy for a process
+% mq_notify - 2.6.6
+% get_thread_area
+% set_thread_area
+% get_robust_list
+% set_mempolicy
+% remap_file_pages
+% semtimedop
+% vserver
+% timerfd_gettime
+% mbind
+% io_getevents
+% timer_getoverrun
+% uselib
+% afs_syscall
+% io_destroy
+% _sysctl
+% query_module
+% create_module
+% kexec_load
+% fanotify_init
+% fanotify_mark
+% timerfd_settime
+% name_to_handle_at
+% open_by_handle_at
+% timerfd_create
+% modify_ldt
+% prlimit64
+% mq_getsetattr
+% tee
+% mq_timedsend
+% vmsplice
+% perf_event_open
+% mq_open
+% mq_timedreceive
+% mq_unlink
+% io_cancel
+% sched_rr_get_interval
+% io_setup
+% acct
+% io_submit
+% rt_sigqueueinfo
+% clock_nanosleep
+% epoll_pwait
+% preadv
+% pwritev
+% nfsservctl
+% ustat
+% request_key
+% rt_sigpending
+% add_key
+% getdents64
+% timer_gettime
+% setfsgid
+% setfsuid
+% keyctl
+% capget
+% waitid
+% msgrcv
+% msgsnd
+
+
+
+%%%% Most popular syscall (>90%) in decending order of popularity%%%%
+
+% vfork
+% exit_group
+% exit
+% close
+% stat
+% fstat
+% lseek
+% mmap
+% munmap
+% gettid
+% rt_sigprocmask
+% write
+% open
+% read
+% writev
+% getrlimit
+% getuid
+% sched_yield
+% getcwd
+% getdents
+% futex
+% clock_getres
+% getpid
+% getgid
+% fcntl
+% tgkill
+% clone
+% lstat
+% dup2
+% newfstatat
+% openat
+% execve
+% kill
+% setpgid
+% setresuid
+% setresgid
+% sched_setscheduler
+% pread64
+% sched_setparam
+% ioctl
+% madvise
+% mprotect
+% rt_sigreturn
+% rt_sigaction
+% set_tid_address
+% set_robust_list
+% 
+

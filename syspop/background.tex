@@ -1,0 +1,75 @@
+\section{Background}
+\label{sec:background}
+
+\fixmedp{Refocus on our goals, assumptions, basic approach.  Sec 3 is the detailed metric}
+
+\note{about 1.5 page}
+\note{1. What is platform compatibility?}
+\note{2. How is compatibility related with system interface?}
+\note{3. What to improve interfaces?}
+%{\bf Compatibility} is a property often mentioned in different areas such as operating system, micro-architectures or language runtimes.
+%With compatibility, other entities are guaranteed to obtain expected services according to the specification they agree to.
+%{\bf Platform Compatibility}, specifically mentioned in operating systems, guarantees applications to execute on the defined hardware,
+%as long as they follow conventions such as APIs or executable formats.
+
+{\bf Compatibility} ensures that other entities will receive services according to a pre-agreeed specification contract without having to make any changes.
+The compatibility property is often mentioned in different areas such as operating system, micro-architectures or language runtimes.
+{\bf Platform Compatibility}, specifically mentioned in operating systems, guarantees applications to execute on the defined hardware,
+as long as they follow the convention such as APIs or executable formats.
+
+
+Platform compatibility is essential for decoupling the development of operating systems and applications.
+Modern computer systems are complex ecosystems that contain 
+%plenty of 
+many
+applications and subsystems 
+%for various
+that serve different
+purposes.
+%When developers change or recreate an OS, preserving platform compatibility will guarantee that developers does not have to pay extra efforts to reimplement existing applications.
+Platform compatibility guarantees that the application developers do not have to 
+reimplement existing applications when the OS developers change or redesign the OS.
+%Sometimes, a OS might not have full compatibility to other OSes, but it only takes {\em recompilation} of applications rather than reimplementation.
+Occasionally, applications only need to be recompiled instead of reimplementing to execute an application from one OS to another. 
+%These OSes can be consider having lesser platform compatibility, or {\em portability}.
+These OSes are considered to have lower platform compatibility, or {\em portability}.
+For example, a UNIX operating system like Linux, Solaris or BSD can port most of the applications to one another with the compiler's help.
+
+For a given 
+%ideal 
+operating system, platform compatibility 
+%can be 
+is determined by the definition of its {\bf system interfaces}.
+Irrespective of the OSes' internal logic, two different OSes are considered as platform compatible, if the applications get the same expected behavior while interacting with each of the OSes.
+%The criteria is whether applications can always see the expected behaviors when they interact with the OS.
+%As long as the agreed specifications have been perfectly implemented on the interfaces, platform compatibility is justified regardless of the OS's internal logics.
+%In reality, there might be ambiguity in the definition of system interfaces, so that platform compatibility has to depend on internal behaviors as well.
+In reality however, the platform compatibility may have to depend on internal behavior of OSes, because of possible ambiguity in the definition of system interfaces.
+As the OS matures, like Linux, it minimizes the ambiguity of system interfaces
+%A mature operating systems like Linux will have minimized the ambiguity,
+and always provide a consistent system view to the applications.
+
+%Therefore, platform compatibility can be often confirmed by testing every system interfaces against the specifications.
+We can often confirm platform compatibility of an OS by testing its every system interface against the specification.
+For instance, to confirm compatibility to Linux, developers can test every system call based on use cases described in the official Linux {\em Manpages}.
+However, considering the size and complexity of system interfaces in an OS, it is often impossible to fully verify its platform compatibility.
+As long as platform compatibility of an OS is never fully verified,
+there is always a possiblity that special efforts need to be taken to port a few applications.
+%the cost of porting any applications cannot be eliminated.
+
+Besides API-like system interfaces like system calls,
+applications also interact with the OS through other special system interfaces in the form of file systems, databases, or plugin runtimes such as {\em Proc pseudo-filesystem}, {\em FUSE framework} of UNIX, or  Microsoft Windows {\em Registry}.
+To interact with these special system interfaces, applications often use a generic set of file-system-like operations,
+but applications also need to comprehend the data type or semantics of the special system interface input and output. 
+Therefore, these special system interfaces are often more complex than API-like system interfaces.
+
+In general, system interfaces are defined as the boundary between OS kernels and the user space.
+However, although located in the user space, some libraries, such as GNU Library C on UNIX, are ubiquitously used by applications, thus can be counted as system interfaces.
+The development of these libraries is often closely coupled with the kernel, and their main purpose is to provide additional APIs without overly expanding the kernel code and interfaces.
+Some APIs in the libraries are simply wrappers of kernel interfaces,
+in order to provide more user-friendly interfaces, or mitigate the difference of kernel interfaces when the OS changes.
+
+\fixmetsai{I need to think about what else to write}
+
+\note{talk about ELF}
+

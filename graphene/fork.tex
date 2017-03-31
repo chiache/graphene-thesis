@@ -1,0 +1,138 @@
+
+%\section{User-level {\tt fork} and other Linux library OS challenges}
+%%% \vspace{5pt}
+%%% \label{sec:fork}
+%%% \noindent {\bf Copy-On-Write Fork.~}
+%%% Creating a clean guest eases reasoning about security isolation, as all shared abstractions
+%%% must be implemented using explicit data streams  between guests.
+%%% This section describes how we implement these Unix abstractions in the guest
+%%% %achieve a sensible division of labor between guest and host, and 
+%%% without baking Unix personality into the host ABI.
+
+
+\begin{comment}
+\vspace{5pt}
+\noindent{\bf Guest self-migration.~}  One of the key features of the host ABI
+is that guest state can be programmatically read and recreated.
+As a result, guests can checkpoint, migrate, and resume themselves in a new picoprocess,
+potentially on a new host.  
+Most of the library OS and application state are checkpointed simply 
+by copying the contents of virtual memory into a file.
+Checkpointing requires manually serializing a few key data structures
+in {\tt libLinux} that are needed to resume the library OS from a checkpoint,
+% interface directly with the PAL, 
+including the thread states, handle table, and memory mappings.  
+
+Resuming from a checkpoint involves restoring these key data
+structures (handles, thread register contexts, memory mappings), and re-loading memory
+contents from the checkpoint.  Most additional data structures
+in {\tt libLinux}, and all application data structures,
+are reloaded at the virtual address as before the checkpoint and work without modification.
+\end{comment}
+
+\begin{comment}
+When a new guest begins execution, an input argument to {\tt libLinux} indicates
+whether control should be transferred to the Linux loader ({\tt ld.so}) to start a new application instance, 
+or whether a checkpoint should be loaded instead.
+\end{comment}
+%After the checkpoint is loaded, all threads resume execution on their stacks.
+
+\paragraph{Implementing fork by (Ab)using Checkpoints.} 
+Copy-on-write fork presented a particular challenge.
+%when implemented using only a VM-like picoprocess abstraction.
+As with a virtual machine, each new picoprocess 
+is created in a ``clean'' state; fork is implemented in the \libos{}.
+%yet applications require common Unix abstractions such as file handle inheritance and copy-on-write fork.
+
+Graphene implements file Unix-style {\tt fork}
+by leveraging portions of the checkpoint and migration code,
+which can programmatically save and restore OS state (e.g., file handles, and memory mappings).
+Rather than writing the checkpoint to a file, 
+we developed an efficient bulk IPC mechanism to 
+permit copy-on-write sharing of memory pages among processes.
+Bulk IPC is a performance optimization over sending each byte of the parent address
+space over a stream, although {\tt libLinux} can also implement {\tt fork}
+over a stream.
+Bulk IPC adds 3 calls to the host ABI,
+and the host reference monitor only permits bulk IPC among
+picoprocesses within a sandbox.
+
+%% Conceptually, {\tt fork} could be implemented by checkpointing the parent,
+%% modifying the primary thread's checkpoint 
+%% so that the child returns 0 from the fork call 
+%% (indicating it is the child),
+%% and then immediately resuming the checkpoint in another picoprocess.
+
+%% In practice, we optimize {\tt fork} performance by avoiding 
+%% the use of an intermediate checkpoint file, instead transferring the checkpoint
+%% directly to the child over a host-level bulk IPC
+%%  mechanism (\S\ref{sec:linux:pal}).
+%The Graphene bulk IPC abstraction adds 3 PAL calls 
+%that allow guests to efficiently transfer large regions of memory to each other\fixmedp{after reordering, add a forward or back ref}.
+
+Using our bulk IPC mechanism,
+the sender (parent) can request that the host kernel copy
+a series of pages, which need not be virtually contiguous,
+into the receiver's address space.
+The receiver (child) specifies where these pages should be mapped.
+In both sender and receiver, the pages are marked copy-on-write.  
+This bulk IPC mechanism sends pages out-of-band on a byte stream and guests also use the stream to send control messages 
+indicating 
+how many pages are being sent and how they should be interpreted.
+
+Our IPC module is \gipclines{} lines of code (Table~\ref{tab:graphene:loc}), 
+runs on multiple versions of Linux (2.6 and 3 series kernels), and
+does not require
+Linux kernel changes or recompilation.
+
+
+\begin{comment}
+A critical challenge in developing a Linux library OS was implementing 
+handle inheritance in the guest.  In some cases, 
+handles are easy to reproduce: an open file can simply be reopened in the child,
+and the cursor offset adjusted (note that file handle offsets are a library abstraction
+implemented over a memory mapped file).
+Pipes, however, are not easily recreated without host support.
+\end{comment}
+%One option was to create explicitly named host-level byte streams,
+%similar to System V or Windows named pipes.
+%This strategy is simple to add to the Drawbridge host ABI and easy to program in {\tt libLinux},
+%but complicates security isolation, as guests must be prevented from 
+%opening a host-level pipe outside of their sandbox.
+
+%A second option, which we pursue, is to only create anonymous bytes streams,
+\paragraph{Inheriting File Handles.}
+Graphene adds two PAL ABI functions that transfer 
+stream handles out-of-band over reviously 
+established byte streams within a sandbox.  Handle passing facilitates inheritance
+and general-purpose RPC.
+This mechanism is similar to Unix Domain Sockets,
+which are commonly used by sandboxing systems. % such as plash~\citep{plash}.
+This strategy allows a guest to seamlessly and explicitly 
+share an open handle with another guest in the same sandbox, but prevents
+a guest from sharing a handle with a guest outside of the sandbox.
+
+\begin{comment}
+\vspace{5pt}
+\noindent{\bf Discussion.~}
+A Graphene picoprocess can copy part or all its address space into a child
+picoprocess relatively efficiently.
+Although this mechanism is less efficient than an in-kernel {\tt fork},
+we wanted to maintain the generality benefits of recent \liboses{},
+and only added the minimal building blocks to the host ABI.
+%we felt this design would bake Unix personality into the host kernel ABI,
+%and  reintroduce security problems caused by accidental inheritance~\citep{close-on-exec}.
+The transfer of data is explicit to the host, can be mediated by a reference monitor,
+the sender, or the receiver.
+For instance, recent Unix systems introduced a close-on-exec flag for file handles~\citep{close-on-exec}, 
+which prevents inheritance of handles to sensitive files.  This can be implemented
+either in a parent, by excluding the file handle from a checkpoint, 
+or in the child, by closing this handle on an {\tt exec} call.
+Our current implementation implements close-on-exec in the child for complete compatibility,
+but a more security-sensitive application could easily implement ``close-on-fork'' semantics 
+in the parent.
+This clean division of labor retains full functionality
+and facilitates extensibility.
+
+
+\end{comment}

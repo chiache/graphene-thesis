@@ -1,0 +1,156 @@
+\section{Measurement and Study of System APIs}
+
+%\fixmedp{I am not sure about this paragraph.  I probably need to discuss in person} \fixmebj{any better?}
+
+Concurrent with our work, Atlidakis et al.~\citep{atlidakis16posix} conducted a similar 
+study of POSIX.
+A particular focus of the POSIX study is measuring fragmentation across different POSIX-compliant OSes
+(Android, OS X, and Ubuntu), as well as identifying points where higher-level frameworks
+are driving this fragmentation, such as the lack of a ubiquitous abstraction for graphics.
+Both studies identify long tails of unused or lightly-used functionality in OS APIs.
+The POSIX study factors in dynamic tracing, which can yield performance insights;
+our study uses installation metrics, which can yield insights about the impact of incompatibilities end-users.
+Our paper contributes complimentary insights, such as a metric and incremental path for 
+completeness of an emulation layer, as well as analysis of the importance of less commonly-analyzed 
+APIs, such as pseudo-files under {\tt /proc}.
+
+%% \fixmetsai{My crack on discussing this work.}
+%% Atlidakis, et. al use a related technique of static analysis,
+%% to trace POSIX API linkage in multiple OSes such as Android, OS X and Ubuntu.
+%% The study also uses dynamic analysis, as to intercept applications' runtime API usage using a library called {\tt libtrack},
+%% to trace dynamic invocation of POSIX abstractions in 45 popular Android applications.
+%% While our work is focused on
+%% studying more universal, modern Linux API importance to end users on a large scale,
+%% their study targets on elaborating the dependency on POSIX APIs
+%% in applications,
+%% and more importantly,
+%% the performance implications of POSIX APIS to application in the runtime.
+
+A number of previous studies have investigated how other portions of the Operating System
+interact, often at large scale.
+Kadav and Swift~\citep{understand-drivers} studied the effective API the Linux kernel exports 
+to device drivers, as well as device driver interaction with Linux---complementary to our study
+of how applications interact with the kernel or core libraries.
+Palix et al.\ study faults in all subsystems of the Linux kernel and identify the 
+most fault-prone subsystems~\citep{linux-faults}.
+They find architecture-specific subsystems have highest fault rate, followed by file systems.
+Harter et al.~\citep{file-not-file} studied
+ the interaction of a set of Mac OS X applications with the file system APIs---identifying a number
+of surprising I/O patterns.
+%Other systems have studied specialized set of software that 
+%interact with specific components of Linux kernel.
+%%For instance, Harter et.al. study only I/O behavior of iBench applications on Mac to conclude that each of these applications form a mini-filesystem amongst themselves and their interactions with the
+%filesystem kernel component are different than other standard applications~\citep{file-not-file}.
+%Another study of device drivers classifies drivers into 5 different classes after analyzing the interacion of the drivers with the kernel, devices, and buses~\citep{understand-drivers}.
+%SymDrive identifies busgs in device drivers in the kernel by studying I/O changes after the driver patches~\citep{symdrive}. \fixmedp{Is this really related?  I was thinking of a different swift paper}
+Our approach is complementary to these studies, with a focus on overall API 
+usage across an entire Linux distribution.
+
+%% Our study however is more general as 
+%% we focus on all the applications in the Debian/Ubuntu repositories
+%% and the applications' use of different kernel interfaces including the 
+%% standard system calls, vectored system calls and other interfaces such as
+%% /proc, /sys and /dev.
+
+
+%\note{about 1/2 page}
+
+A number of previous studies have drawn inferences about user and developer behavior
+using Debian and Ubuntu package metadata and popularity contest statistics.
+Debian packages have been analyzed to study the evolution 
+of the software itself~\citep{macro-study, life-death, mining-over-time}, 
+to measure the popularity of application programming 
+languages~\citep{upgrade-libre}, to analyze dependencies between the packages~\citep{package-dependency}, 
+to identify trends in package sizes~\citep{pigs-to-stripes}, 
+the number of developers involved in developing and maintaining a package~\citep{toy-story},
+%\fixmedp{right?}\fixmebj{yeah}, 
+and estimating the cost of development~\citep{measuring-woody}.
+Jain et al.\ used popularity contest survey data to 
+prioritize the implementation effort for new system security policies~\citep{jain14setuid}. % \fixmebj{nice one :)}.
+This study is unique in using this information to infer the relative importance of 
+of system APIs to end users, based on frequency of application installation.
+
+%%% Although our study is unique in its focus on footprint of interaction
+%%% between the applications and the kernel interfaces, a body of similar application studies
+%%% exist that analyze different questions than the ones discussed in this paper. 
+
+%%% On the other hand, we analyze the Debian and Ubuntu package repositories to 
+%%% study the kernel interface footprints of the applications
+%%% and the minimal set of interfaces necessary to support those applications.
+
+%\fixmedp{How do these studies quantify compatibility?}
+A number of previous projects develop techniques or tools to identify software incompatibilities, with 
+the goal of avoiding subtle errors during integration of software components.
+The Linux Standard Base (LSB)~\citep{linux-standard-base} 
+predicts whether an application can run on a given distribution based on the 
+symbols imported by the application from system libraries.
+%exported symbols and libraries provided by that distribution.
+%examines
+%applications to get the binary symbols and libraries used by those applications.
+%LSB goal is
+%Several previous studies have examined compatibility of different software library implementations~\citep{linux-standard-base}
+Other researchers have studied application compatibility 
+across different versions of same library,
+creating rules for library developers
+to maintain the compatibility across versions~\citep{shared-library}.
+Previous projects have also developed tools to verify backward compatibility of libraries, based on checking for any changes in library variable 
+type definitions and function signatures~\citep{backward-compatibility}.
+%that can cause backward binary compatibility problems
+Another variation of compatibility looks at integrating independently-developed components of a larger software project; 
+solutions examine various attributes of the components' source code, such as recursive functions and strong coupling of different classes~\citep{component-compatibility}.
+In these studies, compatibility is a binary property, reflecting a focus on correctness. Moreover, these studies are focused on the interface between the application and the libraries or distribution ecosystem.
+In contrast, this paper proposes a metric for relative completeness of a prototype system. % with a focus on the compatibility between the applications or libraries and the kernel ABIs.
+
+
+%%% Research has been done on the compatibility of components during software development~\citep{component-compatibility}.
+%%% There are verifiers for compatibility
+%%% between software components such as binaries and libraries based on
+%%% broad spectrum of compatibility problems~\citep{backward-compatibility}.
+%%% Other studies focus on compatibility of application binaries with the different 
+%%% versions of libraries~\citep{shared-library} and with libraries provided in different 
+%%% distribution environments~\citep{linux-standard-base}.
+%%% However, we study the kernel-userspace ABI compatibility between the application binaries
+%%% and systems that support linux ABI.
+
+%\fixmedp{I'm not sure what the theme of this paragraph is.  Everything is listed here, but it is pretty terse.
+%I like to frame each paragraph as ``what is known'', ``how it has been used'', and ``what is new here'' (and maybe why important)}
+%\fixmebj{This paragraph is about all the related work that does any sort of system call profiling for applications and what do they do with it.}
+
+Identifying the system call footprint of an application is useful for a number of reasons;
+our work contributes data from studying trends in system API usage in a large set of application software.
+The system call footprint of an application can be extracted by static or dynamic analysis.
+The trade-off is that dynamic analysis is easier to implement quickly, but the results are input-dependent.
+Binary static analysis, as this paper uses, 
+can be thwarted by obfuscated binaries,
+which can confuse the disassembler~\citep{zhang13cfi}.
+%is also subject to the limitations of the disassembler to deal with
+Static binary analysis has been used to automatically generate application-specific sandboxing 
+policies~\citep{policy-extraction}.
+Dynamic analysis has been used to compare system call sequences of two applications
+as an indicator of potential intellectual property theft~\citep{software-theft},
+to identify opportunities to batch system calls~\citep{multi-call},
+to model power consumption on mobile devices~\citep{power-modelling},
+and to repackage applications to run on different systems~\citep{cde}.
+These projects answer very different questions than ours, but could, in principle, benefit
+from the resulting data set.
+
+%Many previous works have used static as well as dynamic analysis of applications to determine the system calls that they use.
+%While dynamic analysis is the easiest to get a system call trace of the applications, it is very difficult to guarantee that all branches in the code
+%are exercised. On the other hand while static analysis can cover the complete binary, we share the same assumption as other static analysis solutions that the application is not obfuscated.
+%Researches have used static analysis to identify system call footprints of applications to automatically generate application-specific sandboxing policies
+%% Others have also used dynamic analysis to determine and compare system call sequences within applications to detect software threat assuming that common system call sequences may imply
+%% common or stolen code~\citep{software-theft}.
+%% \fixmedp{I don't get this one---a little more detail please?}\fixmebj{how about now?}
+%% Another work reduces the number of kernel boundary crossings by replacing group of system calls, that are identified by dynamically profiling applications, with a single system call~\citep{multi-call}.
+%% %and optimize the performance by clustering multiple related system calls~\citep{multi-call}\fixmedp{or this one?}.
+%% Runtime system call tracing of applications has also been used to model 
+%% fine-grained power consumption for Smartphones~\citep{power-modelling}.
+%% CDE~\citep{cde} use system call information of x86 Linux 
+%% programs to package them differently to run on other x86 Linux machines.
+%% All these research works can benefit from our study and can be applied to large number of applications in the Ubuntu repository.
+%% Moreover, our study answers a different question of what fraction of these packages
+%% can be compatible to a Linux ABI based system.
+
+ 
+
+

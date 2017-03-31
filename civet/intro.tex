@@ -1,0 +1,415 @@
+%\section{Introduction}
+%\label{sec:intro}
+
+%% \fixme{Chia-Che Tsai's opening}
+%% Modern security hardwares such as TPM or \intel{} \sgx{}
+%% provide hardware enforced guarantees of security properties
+%% even upon %untrustworthy hosts with
+%% compromised operating systems or tampered hardwares.
+%% The reasoning of security using these hardwares
+%% is often founded as follows:
+%% An untamperable hardware package such as CPU will guarantee
+%% the integrity of applications loaded
+%% exactly identical to the images signed by clients.
+%% However, to achieve overall security,
+%% the clients are still responsible for ensuring that no vulnerabilities
+%% within the signed images
+%% will compromise the security properties in runtime.
+
+%\fixmedp{I would start by motivating the goal of application partitioning.
+%I think you could add a little more here, but this is a rough sketch.}
+An increasing fraction of applications handle sensitive data (e.g., medical applications)
+or implement proprietary algorithms (e.g., algorithmic stock trading).
+%, such as medical applications, or 
+%implement proprietary algorithms, such as algorithmic stock trading.  
+These applications are composed of 
+libraries and other code from third parties, and may run on 
+hardware and hypervisors provided by an untrusted cloud provider.
+{\bf Application partitioning} is a technique to 
+bound the 
+static or dynamic analysis effort to protect sensitive data and algorithms,
+while still taking advantage of inexpensive code and cloud hardware.
+A partitioned application isolates sensitive data and code, typically using
+language or hardware techniques.
+
+
+%Why \sgx{}
+%\fixme{Bhushan's opening}
+At the hardware level, 
+new CPUs are offering features to protect application-level code and data
+from a  compromised or malicious system software stack,
+including the OS or hypervisor, or simply isolating portions of the 
+application address space from the rest of the application.
+Examples include \intel{} \sgx{}~\citep{intelsgx}, 
+%\fixmedp{Can we mention/cite others? IBM and ARM?}
+IBM SecureBlue++~\citep{secureblue++}, and ARM TrustZone~\citep{trustzone}.
+%are offering models of mutual distrust, which facilitate protecting
+%an application from a
+\sgx{} offers %One feature of \sgx{} is restricted
+entry points to an encrypted region of memory, called an \term{enclave}.
+Encryption and remote attestation 
+prevent the hypervisor or OS from reading or modifying the enclave's contents,
+and validate that the enclave was correctly initialized.
+This in turn
+can exclude 
+a cloud provider's hypervisor or OS from the application's trusted computing base (TCB),
+requiring only trust in the hardware manufacturer (i.e., Intel).
+%Remote attestation can also validate that an enclave was correctly initialized.
+%Enclaves also provide remote attestation, where a client
+%can ascertain whether the hardware is genuine Intel, and that the application was
+%loaded correctly.
+\sgx{} also offers protection against malicious devices off the CPU package,
+such as a compromised storage device.
+
+Although SGX can restrict enclave entry 
+to a few programmer-defined entry points, the programmer must still 
+reason about what those entry points should be, protect against 
+malicious inputs, and verify that code paths within the enclave that cannot
+inadvertently leak sensitive data.
+Iago attacks~\citep{checkoway13iago}, where an OS offers malicious system call return values,
+ are notoriously difficult to defend against;
+although limited countermeasures exist for the OS API (typically with the cooperation of a 
+trusted hypervisor)~\citep{kwon2016sego},%\fixmedp{cite the asplos 16 inktag paper},
+there are no off-the-shelf defenses against Iago-style attacks from libraries
+or compromised application code.
+Further, SGX is designed to run a small, native code library inside of a larger
+application; support for running managed languages in an enclave is currently limited.  
+Writing a security-sensitive application in an unsafe
+language like C dramatically increases the risk of exploitable pointer or control flow errors~\citep{nergal2001libc,bletsch2011jump,checkoway2010return}, which ultimately disclose sensitive data or undermine the integrity of the enclave.
+
+%Modern security hardware
+%such as  provides hardware protection to applications
+%especially the ones deployed in the cloud,
+%so that the applications do not have to trust the privileged
+%OS layer controlled by the cloud provider. 
+%against malicious system stacks, including OS, hypervisors or devices. 
+%In principle, these hardware techniques 
+%Hardware protection between applications and their hosts is appealing
+%in cloud computing, because the cloud client 
+%need only trust the 
+%the cloud provider's hypervisor can, in principle, 
+%be excluded from the application's trusted computing base (TCB).
+%These hardware protection is especially essential for cloud computing, due to the multi-tenant environment and potentially compromisable providers.
+%\fixme{I want to emphasize it can defend against hardware attack.}
+%This type of hardware creates a sanctuary for the most security-sensitive
+%components of an application---
+
+%For instance, \sgx{} creates a encrypted memory region 
+%called enclave within the memory space of an application,
+%which can only be accessed by verified code from the users.
+%\fixme{I rather not emphasize partitioning so early, it's not the only way of using enclave.}
+%\sgx{} lets the developer partition the application into two parts --- 
+%security sensitive and non-security sensitive parts. The security
+%sensitive part of the application is run in an hardware isolated
+%sandbox called enclave, while the non-security sensitive part runs
+%normally outside the enclave.
+%% \sgx{} guarantees not only the integrity of loaded application image,
+%% but also the confidentiality
+%% of application data, %in enclave,
+%% avoiding any information leakage to the untrusted exterior world.
+%\sgx{} provides a fail-safe way to prevent information leakage from the enclave:
+%by guaranteeing the integrity of a measured %and verified
+%application binary
+%and the confidentiality of application data in memory.
+%the OS or hypervisor are simply stopped from peeking any application data, unless the isolated applications release any information. 
+
+Language-level techniques can offer more sophisticated insights into how
+to partition the application, as well as stronger protections ~\citep{bittau2008wedge,brumley2004privtrans,khatiwala2006data}.
+%\fixmedp{Can we bless some language-level app partitioning tools here?}
+Similarly, managed languages such as \java{}, with type-checking,
+can prevent memory corruption attacks,
+while applications developed in C or C++ are often prone to memory-bug exploitation.  
+Because \java{} is memory safe, it is immune to known control flow attacks, such as return-oriented programming,
+where control flow is manipulated by unsafe writes to return pointers on the stack or function pointers in objects.
+
+%protection prevents applications from being compromised by
+%vulnerabilities that exist inside the applications.
+%The vulnerabilities include mistakes made by developers, such as semantic and configuration bugs,
+%and unbound application behaviors that can be exploited by attackers,
+%such as memory attacks or control flow attacks.
+%Based on the different languages used by developers,
+%applications can be offered stronger language specific security guarantees.
+
+Partitioned application developers need both hardware and language-level protections,
+but these are difficult to combine in practice.
+%In general, hardware protection and language-level protection 
+%provide separate security guarantees.
+%Unfortunately, developers often struggle to combine both types of protection, due to the limitations and lack of support for both approaches.
+This paper focuses on \sgx{} and the \java{} language as a running example:
+\sgx{} enclaves are designed to run native binaries, primarily developed in C or C++,
+so developers must employ considerable effort to port a \java{} application or a \java{} VM to SGX.
+To our knowledge, no previous effort has even run a JVM in an enclave, much less partitioned part of a Java application into an enclave.
+For \java{} language, there is no API support for \sgx{} enclaves,
+making it challenging to leverage isolation features of \sgx{}
+in \java{} applications. 
+%Developers often have to create an ad hoc integration of hardware and language-level protection,
+%or they are forced to exclusively expose the application between
+%attacks from the system stacks and vulnerabilities inside the applications.
+The current  state-of-the-art is to develop an ad hoc solution for 
+a specific use case.
+% approaches of combining
+%language and hardware protection often rely on ad-hoc solutions that
+%are specific to certain use cases or technologies.
+For example, VC3 uses \sgx{} to protect mappers and reducers in Hadoop framework~\citep{vc3}.
+Although Hadoop is written in Java, the protected code in VC3 cannot be written in Java.
+
+%% dp: this sentence seems off track, unless you want to say something about ``this has to be in C''
+%Similarly, S-NFV uses \sgx{} to isolate states of Network Function Virtualization Applications~\citep{shih2016s}.
+
+%\fixmedp{Please check the previous 2 sentences for accuracy; if I'm wrong, try to say something more crisp.
+%Also, any other important related work here?}
+%to utilize SGX hardware in language runtimes,
+%a set of APIs may be exported through the native interface to support certain high-demand use cases, such as Hadoop workloads
+%Although these existing solutions nicely support a part of the users,
+%and potentially have demonstrated some common wisdom for combining the language and hardware protection,
+%the problem of how to generalize the approach
+%to cover more use cases or technologies that the authors haven't forseen,
+%still remains unsolved.
+
+%% dp: This paragraph is a little too much philosophy for me.  Cutting for now, but can bring some fo this back later in the intro if needed.  I think it would be better for explaining the benfits of Civet.
+\begin{comment}
+We use SGX vs Java-based protection as an example,
+to show how the guarantees ({\em what is secured?})
+and features ({\em how is it secured?}) of hardware protection
+can be properly modeled at the language level,
+so that language protection mechanisms can be extended
+to mitigate vulnerabilities in hardware protection. 
+For instance,
+SGX hardware provides isolation between multiple
+levels of security sensitivity in an application process,
+by building another privilege level that bypasses the OS or hypervisor.
+We model this hardware guarantee at language level by asking the developers
+to identify the multi-level security sensitivity in the application.
+The developers do not have to worry about
+when to enter or leave the enclaves,
+what information to flow out of the enclaves,
+or even how SGX enclaves fundamentally work.
+The language features
+such as implicit and explicit information flow tracking can be {\em leveraged}
+by the low-level component that interfaces with SGX enclaves
+as the criterion for whether certain information
+is safe to be released from the enclave.
+\end{comment}
+%while 
+%
+
+
+%to the privileged
+%or un-privileged code outside the \enclave{}.
+
+%One of the primary concerns on the security of enclaves is
+%the strong assumption
+%that enclaves' security guarantees rely on---
+%The security guarantees of hardwares like \sgx{} rely on a strong assumption:
+%To provide the confidentiality guarantees,
+%the code running in an enclave must not
+%the secured environment (\enclave{}) must not
+%have %any bugs or
+%vulnerabilities that can be exploited for causing any information leakage.
+%However, without language support, it is hard to ensure that
+%the enclave code is
+%free of vulnerabilities, especially if written in C---which provide no memory safety.
+%the \sgx{} only supports programs 
+%written in C or C++, and it is extremely difficult to find
+%all the memory corruption bugs in the enclave code written in C or C++.
+%Without memory safety, 
+%the control flow of the code %within the enclave
+%can be manipulated by exploiting memory corruption.
+%This type of vulnerabilities will lead to information leakage,
+%defeating the purpose of using \sgx{} enclaves.
+%secure hardware such as
+%\sgx{} in the first place. 
+
+
+%% Lack of memory safety using C or C++ in \sgx{}-secured environments \fixme{maybe spell out why it's hard for SGX}
+%% enervates any software approaches to reinforce application security, including control flow and information flow integrity, 
+%% %These memory corruption bugs can be exploited to change the control flow within the \enclave{} 
+%% %as well as leak confidential information outside the \enclave{},
+%% defeating the purpose of using %\sgx{}
+%% secure hardware in the first place. 
+%% \fixme{perhaps justify why not use verification?}
+
+%One solution to guarantee memory safety in applications is to use 
+%Using a managed language such as Java
+%to implement the security sensitive code
+%is a solution to guarantee
+%can provide the memory safety
+%required by an enclave.
+%The solution to avoid the memory corruption bugs is to use a memory safe managed
+%language like Java. Thus, partitioning an application written in language such as 
+%Java and running the Java based security-sensitive code in an \enclave{}
+%can help provide the control flow as well as information flow guarantees that \sgx{} is
+%designed for.
+%Moreover, Java is widely used to develop many enterprise applications,
+%that can improve their security guarantees by leveraging the \sgx{} feature.
+%However,
+%in absence of Java language support for \sgx{} enclave, 
+%it is cumbersome to leverage security guarantees of \sgx{} directly,
+%unless developers 
+%rewrite the security-sensitive components in C or C++, 
+%and integrate %this new code with the original application using a 
+%using a foreign function interface such as Java Native Interface (JNI).
+%Java Native Interface (JNI).
+%to integrate with the rest of the enterprise application.
+%Moreover,
+%Reimplementing the security-sensitive components
+%of the application 
+%in C or C++
+%Rewriting in C or C++ 
+%essentially voids any security benefits brought by managed languages.
+%the memory safety guarantees provided by Java. 
+
+%Additionally, having runtime support for \sgx{} in %a managed language like
+%Java
+%has many benefits.
+%Code written in Java %a managed language
+%is easier to 
+%modularize, partition and reason about the security and information flow.
+%Thus, providing Java runtime support for \sgx{} can help provide stronger security guarantees
+%for applications running in an \enclave{} as well as make numerous applications
+%written in Java secure against shared vulnerabilities of the privileged layer.
+%Also, imported library classes can be also secured when used in applications instead of be blindly trusted.
+%\fixmebj{Find one more benefit of using Java.} 
+%Moreover,
+%Java is widely used to develop many enterprise applications,
+%which can benefit from the security guarantees of \sgx{}
+%without the cost of reimplementation.
+%that can improve their security guarantees by leveraging the \sgx{} feature.
+
+%Another notable impediment for effectively leveraging \sgx{} 
+%feature in a managed language
+%is the trouble developers
+%have to endure to partition an existing application into two clear parts and design the interface
+%between these two parts. There is a very good chance that an unsuspecting developer may copy
+%information which is either security sensitive or derived from security sensitive data to outside 
+%the enclave,
+%undermining the hardware security guarantees provided by \sgx{}. Thus, we need an 
+%easy to use language runtime support for \sgx{}
+%that can shield the developer from the complexity of determining whether security sensitive information 
+%is leaked outside the enclave.
+
+We present \term{\sysname{}},
+a system that combines the benefits of
+ \sgx{} enclave isolation with \java{} language security features to protect security-sensitive applications.
+\sysname{} avoids the downsides of taking either approach in isolation.
+\sysname{} includes three primary parts:
+a tool that guides the programmer in partitioning an application, ultimately generating an enclave image that includes
+a minimal Java code base;
+a runtime framework that loads and verifies classes, and enforces
+information flow control across the enclave boundary;
+and a \java{} API to seamless access to \sgx{} features such
+as attestation and secure provisioning.
+%\fixme{Bhushan, read until here.}
+%a framework that help Java developers partition their code
+%between security sensitive and non-security sensitive parts by adding a few lines of annotations.
+%The framework automatically partitions the code into two separate binaries which are run 
+%inside and outside the enclave such that the least amount of code as indicated by the
+%developer annotations is run inside the enclave, and transparently creates 
+%the necessary interface between the two parts. 
+%% The interaction between the 2 parts of the application
+%% is handled using \emph{reflection library}.
+%% We perform dynamic information flow tracking 
+%% and control the information flow at the endpoints of the \enclave{}.
+%% By default, the framework automatically encrypts any object leaving the \enclave{}, but the
+%% developer can override an endorser method to explicitly let some objects pass in the clear --- e.g.,
+%% a ciphertext object. Based on information flow tracking, if an endorsed object is affected by some other
+%% security sensitive data before leaving the enclave, the developer has to endorse it again.
+%We use dynamic information flow tracking to enforce the policy that no information that is security sensitive or
+%derived from other security sensitive information is flowing out of enclave in clear, without explicit
+%developer directive.
+%% Our framework provides ease of partition as well as makes it explicitly clear to the
+%% developer when some information is flowing out of enclave in clear. 
+%This ease of use and explicitness helps
+%developer reason about the security of the code more clearly.
+%\sysname{} achieves three properties: {\em security}, {\em practicality} and {\em usability}.
+\sysname{} is designed to protect the confidentiality and integrity of 
+real-world application code. 
+\sysname{} not only requires very little developer effort to adopt, but also provides the developer
+with essential insights into how data can flow through the application,
+leading to better reasoning about the isolation properties of the partition.
+%low developer effort,
+%requires minimal porting effort,
+%and provides ease of reasoning about the security strength.
+
+%\fixmedp{I would refocus a bit on the contributions.  Make sure I don't overstate}
+\sysname{} addresses design challenges at both the hardware and language level.
+%one from each of hardware protection and language-level protection.
+To extend hardware protection, \sysname{} contributes techniques for dynamically loading \java{} classes in enclaves
+with the same code integrity verification as native, static binaries.
+\sysname{} uses the Graphene library OS~\citep{tsai14graphene} to facilitate 
+running a restricted \jvm{} runtime in an enclave.
+%to facilitate and restrict the interface size of a 
+%and prove the measurement of loaded classes as part of the hardware-generated attestation.
+%Then \sysname{} verifies and attests loaded \java{} classes on the basis of measurement checking and attestation generation from the hardware.
+%On the other hand, \sysname{} has to adopt language-level protection to enforce information flow policies against leakage over the border of enclave.
+\sysname{} enforces information flow policies at the border of the enclave by incorporating
+Phosphor~\citep{bell2014phosphor} instrumentation on all classes in the enclave,
+tracing both explicit and implicit flows from any confidential data,
+and preventing tainted information from leaving the enclave by any interface, 
+except via explicit declassification by the developer.
+%either through exported API or low-level interfaces.
+
+%We implemented the prototype for this framework and show three case studies 
+%where this framework can improve security of existing Java applications. 
+%Firstly, we show how to isolate a security sensitive library like 
+%Bouncycastle in the enclave, so that it does not leak the secret key 
+%used for cryptography irrespective of any bugs in the other part of the code.
+%Secondly, we use this framework to achieve code confidentiality
+%for any closed source library implementing proprietary or secret algorithm.
+%Finally, we use the enclave to protect security critical data of a Java Web Start (JavaWS) application.
+
+%As a proof-of-the-concept, 
+This work presents three use cases for \sysname{}.
+First we partition and isolate the 
+cryptography library and keys from the rest of an SSH client and  server.
+%in which the  used for encrypting the connection
+%is partitioned and isolated from the rest of the application, %in the enclave,
+%protecting the generated session key while still
+%using it for encryption and decryption.
+Second, we present a Hadoop workload with a sensitive algorithm;
+the %Partitioner%\fixmedp{what is this?},
+Mapper, Combiner and Reducer classes are provisioned from a trusted server, protecting confidentiality of the sensitive code.
+%always runs in an enclave.
+%protecting the confidentiality of the running algorithm.
+Third, we present a data manager web application---a building block for medical and other applications that handle sensitive data; 
+we protect the secret client data in an enclave on the client's machine.
+%\fixmedp{can we explain a bit more about the security property of interest?}
+%which can serve as a web application for a website.
+For each of the use cases, we show that developers or users
+can utilize \sysname{} to partition the applications
+with minimal effort
+and only an understanding of the isolation properties of SGX,
+not the cumbersome, hardware-level details.  %n{high-level understanding  knowledge of %almost no familiarity with how 
+%the SGX hardware.
+
+%\sysname{} prevents any bugs either in the untrusted application or the isolated crypto library to cause leakage of the encryption key.
+%Another use case is a Hadoop job that is provisioned with a secret algorithm, and automatically encrypts computation results
+%to eliminate risks of leaking the secret sauce.  
+
+%The contributions of this work are:
+%\begin{compactitem}
+%\item An abstraction of hardware isolation, such as \sgx{}, for Java application developers, limiting the trusted computing base to \sysname{} and the hardware.  
+%%, with minimal developer  %  to defend against attacks from system stack and hardware (only the CPU chip itself has to be trusted), with minimal porting effort.
+%% hardware protection support into \java{} applications, to allow developers to fully utilize \sgx{} hardware for defending against 
+%\item Techniques to guide developers in partitioning applications, using information flow analyses to help developers find the ``narrow waist'' in the application.  \sysname{} also uses information flow control to dynamically protect against information leakage %, to sanitize inputs to the enclave, 
+%and
+%to create a minimal enclave image to reduce the trusted computing base of the protected code.
+%%partitioning Java application into enclave images with minimal supporting classes --- to minimize the attack vector in the partitioned applications ---
+%%Using \java{}-based language protection and techniques, our framework 
+%%and leverage information flow as hints to decide
+%%whether data is allowed to be passed outside the enclave.
+%%\item We provide a partition tool to generate an enclave image with minimal supporting classes for protecting the security-sensitive execution in an application.
+%\item We show several practical use cases for \sysname{} that beneficially combine both hardware and language security,
+%such that the sum of the protections is greater than the parts.
+%% that \sgx{} enclave security can be hardened using language protection,
+%%while \java{} language protection can be further shielded from
+%%malicious system stack and hardware using the \sgx{} hardware.
+%%\item We prove the opportunities of hardening enclave security using language protection, such as using information flow tracing to prevent leakage from the enclave.
+%
+%%\item We use memory safe managed language like Java to avoid memory corruption bugs
+%%inside the enclave, providing better security guarantees than traditional C or C++.
+%%\item We provide a framework for wide variety of Java applications to leverage \sgx{} technology.
+%%\item We help developer reason about the security of the application while partitioning and offload
+%%a lot of complexity during partitioning from the developer to the framework.
+%\end{compactitem}
+
