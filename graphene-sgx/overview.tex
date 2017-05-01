@@ -74,7 +74,7 @@ Because the applications are dynamically loaded by the \libos{}
 {\em after} the enclave starts up,
 the CPUs cannot verify the integrity of loaded application binaries.
 An alternative is to place all application binaries in an encrypted virtual disk,
-which can be decrypted using a securely provisioned key~\citep{baumann14haven}.
+which can be decrypted using a securely provisioned key~\cite{baumann14haven}.
 
 \graphenesgx{} guarantees the integrity of applications
 by signing each supporting binaries or generating checksums for the binaries.
@@ -113,7 +113,7 @@ or assume that nothing is safely read or written.
 In addition, \graphenesgx{} does not include {\tt file\_sync} in the untrusted interface,
 because it does not trust the host to faithfully flush any stream.
 With a robustly designed untrusted interface,
-the worst scenario a malicious host can cause is \term{denial-of-the-service}.
+the worst scenario a malicious host can cause is \emph{denial-of-the-service}.
 
 %The Untrusted interface of an enclave is the API that communicates the enclave
 %and the untrusted host, with both entries and exits of the enclave.
@@ -233,7 +233,7 @@ to launch arbitrary attack on the isolated application.
 For multi-process applications, each \picoproc{} created by \graphenesgx{}
 will be isolated in its own enclave.
 No mutual trust is required between the \picoprocs{},
-unless the \term{manifest file}
+unless the \emph{manifest file}
 allows sharing the multi-process abstractions.
 %For example, a parent process can decide to pass output to a child process
 %through a secured pipe,
@@ -250,7 +250,7 @@ We consider side-channel attacks as a potential threat in \graphenesgx{}.
 Attackers may exploit timing channels to expose confidential
 information in the enclave, and current \sgx{} technology has no defense
 against these attacks.
-\cite{xu15controlledchannel} show a stronger attack than regular side-channel attacks, as \term{controlled channel attacks}.
+\cite{xu15controlledchannel} show a stronger attack than regular side-channel attacks, as \emph{controlled channel attacks}.
 This type of attack exploits the fact that an enclave must cooperate
 with the host OS for page management,
 the OS can manipulate paging to amplify the side channels

@@ -1,20 +1,67 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-\begin{comment}
+\begin{outline}
 Motivation:
--- A working operating system requires compatible applications to perform the operations demanded by the users.
--- The compatibility between an application and its operating system is determined by whether the required OS abstractions are faithfully supported.
--- In modern operating systems, applications can rely on plenty abstractions that exclusively belong to certain operating systems, thus the applications become hard to reuse on other platforms.
--- Application reuse is valuable for saving the cost of porting the demanded applications, especially on emerging, experimental operating systems. 
-\end{comment}
+-- Linux is widespread among server/desktop/embedded systems
+-- Many applications are dependent to Linux
+-- Linux exports complex kernel interfaces, which are indispensable to Linux applications
+-- Complex kernel interfaces hinder researchers to explore new kernel designs
+-- Complex kernel interfaces are prone to vulnerability
+Thesis:
+-- Simplifying the kernel interfaces makes researchers/developers:
+    (1) Easier to experiment kernel designs
+    (2) Easier to verify the kernel interfaces to be secure
+-- A library OS enables refactoring of the kernel interfaces to a simpler host ABI
+    (1) The host ABI can be easily ported on different kernels
+    (2) The host ABI can implement sufficient Linux APIs for most applications
+Motivating examples:
+-- New kernel designs:
+    (1) Untrusted kernel with Intel SGX
+    (2) Multikernels
+    (3) Linux on other kernels (Windows, OSX, FreeBSD)
+-- Secure kernel interfaces:
+    (1) Sandboxing suspicious applications
+    (2) Protecting applications from untrusted kernel
+\end{outline}
+
+% Operating systems (OSes) have been essential to running applications on most hardware since the 1960s~\cite{hansen10osbook}. Before OSes are invented, applications are programmed to run directly on hardware, while developers simply exchange reusable code (i.e., \emph{libraries}) for hardware drivers or common operations~\cite{silberschatz08osbook}.
+% As computer systems become more and more complex, applications begin to require a piece of OS to securely share hardware resources between each others, and obtain a bank of useful APIs (application program interfaces) at developers' disposal.
+% Modern OSes like Linux, Windows and Mac OS are ubiquitous and indispensable to \emph{millions} of applications, respectively~\fixme{cite statistics}, by providing a wealth of OS features such as scheduling, memory management, storage and networking.
 
 
-During the last decade, operating systems have dramatically diversified into computing platforms, to optimize applications for disparate purposes. A \emph{computing platform} is defined as the combination of a software environment including libraries and runtimes, an operating system, and some selected hardware architectures, to allow a certain group of applications to perform computation.
-History has shown that different computing platforms have thrived in individual application domains, such as cloud computing, desktop software, and mobile computing---for example, Linux is an operating system broadly applicable to cloud, desktop, and mobile devices, but is specialized since 2008 as Android, a platform that dominates more than 50\% of mobile market since 2013. Despite the popularity of Android in the mobile domain, other Linux distributions like Debian, Ubuntu, and Cent OS are mostly used in cloud, desktop, and network devices and nearly never used as mobile computing platforms.
+Linux operating systems are widespread among server, desktop, and embedded systems.
+
+
+%\fixmedp{Make one point at a time}
+Operating systems manage and abstract hardware resources (such as CPU time, memory, and IO devices) and OS resources (such as credentials and FIFOs) for applications. \fixmedp{start from the application perspective} Applications access hardware and OS resources through generically-defined system APIs (application programming interfaces). Using the system APIs, applications can allocate and access hardware resources, without assuming the capacity or design of the hardware. For example, by calling the threading APIs (e.g.,  \funcname{clone}), applications can obtain fair share of the CPU time and concurrency, without knowing the number of CPU cores. Applications also uses device-neutral system APIs, such as the \funcname{read} and \funcname{write} system calls, to unanimously access a variety of IO devices, such as storage and network devices. In general, application developers rely on the portability of the OS, to design applications that can be reusable across hardware platforms.
 
 
 
+
+%The hardware resources on hardware platforms often differ from one another. The OS, in general, is responsible of mitigating the inconsistency, to allow applications to be reused across hardware platforms.  For instance, the OS schedules and virtualizes CPU and memory resources to applications, using threading and memory paging. The OS also hides the idiosyncrasy of hardware interfaces behind the system interfaces. Applications use generically-defined system interfaces, such as the \funcname{read} and \funcname{write} system calls, to unanimously access IO devices. In current operating systems, developers build general-purpose applications without assuming the hardware setup.
+
+
+\fixmedp{OS perspective: how to maintain portability}
+The OS achieves cross-platform portability by hiding the idiosyncrasy of hardware resources behind system APIs. For some hardware idiosyncrasy, such as the ISA (instruction set architecture) of each CPUs, are mitigated by compilation, either statically or just-in-time (JIT), and deploying architecture-dependent binaries. For other hardware, the OS generally virtualizes the hardware resources by defining the general structures and behaviors of the hardware: CPU and memory resources are managed in threads and virtual pages, respectively; The space on stroage devices in distributed into files and directories; The bandwidth on network devices are shared among network sockets created by applications. To translate the hardware semantics to the virtualized resources, the OS internal is filled with drivers, as well as the general logic for scheduling the resources among applications. For instance, Linux kernels use the {\tt block\_device\_operations} structure to implement the translation for each storage devices. The {\tt block\_device\_operations} structure is then used by VFS (virtual file system) operations to support system calls like \funcname{read} and \funcname{write}. To maintain portability, the same type of hardware devices must behave in similar ways, with little flexibility of customizing the hardware interfaces.  
+
+
+%The OS schedules the applications to run on each CPU cores. The virtual memory within applications are backed by physical pages assigned on demand by the OS. The resources from hard drives and Ethernet cards are managed by the OS through files and network sockets. The OS is filled with drivers, which manage various types of hardware resources and translate hardware interfaces to more generic, portable system interfaces.
+
+
+% During the last decade, operating systems have dramatically diversified into computing platforms, to optimize applications for disparate purposes. A \emph{computing platform} is defined as the combination of a software environment including libraries and runtimes, an operating system, and some selected hardware architectures, to allow a certain group of applications to perform computation.
+% History has shown that different computing platforms have thrived in individual application domains, such as cloud computing, desktop software, and mobile computing---for example, Linux is an operating system broadly applicable to cloud, desktop, and mobile devices, but is specialized since 2008 as Android, a platform that dominates more than 50\% of mobile market since 2013. Despite the popularity of Android in the mobile domain, other Linux distributions like Debian, Ubuntu, and Cent OS are mostly used in cloud, desktop, and network devices and nearly never used as mobile computing platforms.
+
+
+% Despite the maturity of modern OSes, the trend of OS development---especially in the last decade---indicates that modern OSes are becoming more diverse and tend to be specialized for hardware platforms. An evidence is that the development of mainstream OSes, including Linux, Windows and Mac OS, has mostly branched out for different platforms, such as mainframes, desktop computers, mobile and embedded devices, in order to optimize for the characteristics of the platforms.
+% Android, for instance, is a branch of Linux which dominates more than 50\% of mobile device market since 2013, whereas other Linux distributions like Debian, Ubuntu and Cent OS are mostly only used in mainframes and desktop computers. 
+
+
+
+However, new hardware technology can have revolutionary impact on resource management, and can push OS developers to revisit the API definitions. For example, in NUMA (Non-uniform Memory Access) architectures, each CPU is associated with local memory, which can be accessed faster than other memory. Despite that NUMA allows access to all memory, general applications can suffer large overhead when accessing non-local memory. In reaction to the limitation of former operating systems, new system APIs are introduced: Linux 2.6.7 adds four NUMA-specific system calls (\funcname{move\_pages}, etc), for allow applications to be optimized for NUMA platforms.
+
+
+%The way that applications access hardware resources through the OS is to use the system API, such as system calls. The system API consists of the protocol agreed between applications and the OS on how hardware resources and other OS-managed resources are accessed, including the semantics of communication, and the assumptions on resource management. For instance, in Linux or UNIX operating systems, applications use \funcname{mmap}, \funcname{munmap}, and \funcname{mprotect} to update the virtual memory mappings in the address spaces. These system calls have arbitrary semantics and assumptions, including  miscellaneous flags, demand paging, and dedicated granularity of allocating and deallocating memory. Implementing all these semantics and assumptions adds to the difficulty of adapting applications.
 
 
 %Operating systems (OSes) and hardware platforms have evolved over time for new system requirements and problems, and will continue to evolve.
@@ -31,51 +78,69 @@ History has shown that different computing platforms have thrived in individual 
 %The diversity of OSes and hardware platforms provides more options for users to deal with circumstances where they need to run the applications.
 
 
+Similar examples can be found in CPU technology, but with larger impact. Intel SGX (Software Guard Extensions) is a trusted execution features introduced by the sixth generation Intel CPUs. SGX protects applications from insecure operating systems and malwares, by creating isolated contexts called ``enclaves'', in which applications run without the interception of the OS. Because the OS is not trusted, for applications in SGX enclaves, either the system APIs or hardware resources managed by the OS are no longer considered reliable. The limitation reverses the principle of hardware abstraction, so applications either have to manage the resources by themselves (e.g., managing the memory space in a \funcname{malloc}-like style), or use a separate channel to communicate with the OS. In a nutshell, SGX breaks the portability of most existing applications, and forces developers to rewrite every call to the system APIs in applications. 
+
+
+%Current operating systems contain a large amount of conventional system interfaces.
+%In current operating systems, system API often contain a large amount of OS features and semantics for the OS to address. For instance, 
+%The Linux kernels export more than three hundred system calls, including four vectored system calls that are further extensible. The Windows system libraries also export more than 1,600 functions in total.
+
+
+%Although each application does not require the complete system API to run, there is no sufficient information to determine the minimal subset of the system API that applications need. As a result, OS developers often struggle to study and update every corner case of the system API in order to adapt to a new hardware platform.
 
 
 
-However, a new OS or hardware platform does not always benefit applications immediately.
-Applications can be broken when users try to reuse them across OS generations (e.g., Windows XP and Windows 10) or distributions (e.g., Linux and Mac OSX).
-It often takes significant efforts or techniques to make OS variants compatible to the same applications---for instance, Windows uses lightweight virtual machines to run outdated applications from former generations.
-For OS prototypes created to overcome issues of major OSes,
-existing Windows or UNIX applications often don't work straight out of the box on these prototypes, due to fundamental changes on OS architecture or personality.
-New hardware platforms also contribute to the difficulty of reusing applications with new technoligies,
-by adding new challenges for the OSes to address security or performance concerns specific to the hardware platforms.
-For instance, parallel computing platforms like NUMA requires the OSes to be customized for localizing in-memory OS states associated with an application context.
-Moreover, trusted execution platforms, such as ARM TrustZone and Intel SGX, overturn the threat model of a traditional OS,
-making the whole OS or part of the OS no longer needed to be trusted by the applications.
-An application running with Intel SGX can no longer rely on the OS functionality
-it used to get from a trusted OS.
-The caveat is that applications have to be customized to communicate with an untrusted OS, with the utmost caution of potential attacks from the OS.
-Therefore, despite the advances of OS or hardware technologies,
-the application development to use a technology often lag behind the technology,
-and thus the technology becomes hard to utilize in practice.
+%Adapting applications across different hardware platforms is a long-lasting problem in operating systems. The purpose of adaption is to reuse applications previously implemented for the OS, to avoid repeating the effort of implementing similar applications. In tradition, OS developers have to address the inconsistency of hardware platforms in an ad-hoc manner. In the example of running applications on a NUMA architecture, Linux developers have made significant changes since Linux 4.8 to address many NUMA-specific challenges, including scheduling, and memory placement for application and in-kernel states. Linux also added fours system calls to allow applications to directly manage the memory placement. However, our study~\cite{tsai16apistudy} reveals that no known applications are ever customized to use these Linux system calls---The same phenomenon happens as the OS requires applications to be individually customized; the additional effort discourages application developers from using the hardware platform.
+
+
+\fixme{This is a summary of the motivation}
+The example of NUMA and Intel SGX shows that, as the new hardware technology emerges, the OS fails to preserve the system API definitions and the models of hardware resource management. Either new system interfaces will have to be created (e.g., for NUMA), or the whole system interfaces will have to be revisited (e.g., for Intel SGX). In current operating systems, applications are still portable among hardware platforms with only minor distinction, but can be restricted by more major hardware advances. The orthodox approach of regaining the portability will be to redefine the system APIs all over again, with consideration of the new hardware designs. Unfortunately, as long as the hardware technology continues to advance, the OS will always face the risk of losing the portability. OS developers need a more long-term, extensible approach, to adopt any future, OS-changing hardware inventions without breaking the portability of applications.
+
+
+% However, a new OS or hardware platform does not always benefit applications immediately.
+% Applications can be broken when users try to reuse them across OS generations (e.g., Windows XP and Windows 10) or distributions (e.g., Linux and Mac OSX).
+% It often takes significant efforts or techniques to make OS variants compatible to the same applications---for instance, Windows uses lightweight virtual machines to run outdated applications from former generations.
+% For OS prototypes created to overcome issues of major OSes,
+% existing Windows or UNIX applications often don't work straight out of the box on these prototypes, due to fundamental changes on OS architecture or personality.
+% New hardware platforms also contribute to the difficulty of reusing applications with new technoligies,
+% by adding new challenges for the OSes to address security or performance concerns specific to the hardware platforms.
+% For instance, parallel computing platforms like NUMA requires the OSes to be customized for localizing in-memory OS states associated with an application context.
+% Moreover, trusted execution platforms, such as ARM TrustZone and Intel SGX, overturn the threat model of a traditional OS,
+% making the whole OS or part of the OS no longer needed to be trusted by the applications.
+% An application running with Intel SGX can no longer rely on the OS functionality
+% it used to get from a trusted OS.
+% The caveat is that applications have to be customized to communicate with an untrusted OS, with the utmost caution of potential attacks from the OS.
+% Therefore, despite the advances of OS or hardware technologies,
+% the application development to use a technology often lag behind the technology,
+% and thus the technology becomes hard to utilize in practice.
 
 
 
-\begin{comment}
-Emulation and its challenges:
--- Emulating all abstractions of an existing operating system is a solution for facilitating the application reuse on another operating system.
--- Building a working emulation for modern applications is often cumbersome: Although the size of OS abstractions will be an obvious obstacle, some abstractions can be fundamentally challenging to emulate.
--- For example, a challenging abstraction to emulate is the multiplexing of CPU resource for concurrently running applications on the same host.
-  --> Discuss multi-process abstractions.
-  
-Emulation by library OSes:
--- Most working, commercialized emulation solutions are based on implementing a well-known interface of the system stack, such as POSIX functions, UNIX system calls, or the hardware interface.
--- Virtualization, for instance, emulates the hardware interface required by a native, guest operating system, to reuse the applications.
--- Instead of emulating a wide, well-known interface, a narrower ``pinch point'' in the operating system can be more easily emulated, if all OS components above are packed into a ``library OS''.
-  --> Discuss Drawbridge.
-\end{comment}
+
+% A critical problem to reusing applications on new OSes or hardware platforms is the difficulty of building ad hoc layers or solutions to adapt the applications.
+% Between OS families (i.e., Windows and UNIX) or distributions (e.g., Linux and Mac OSX),
+% system developers often build a compatibility layer to translate the host OS features to applications.
+% Although each application does not need full OS functionality to execute on a new OS or hardware platform, system developers have little information about exactly which part of OS functionality is needed to provide more general support, and often end up having to implement full OS functionality.
+% To reuse applications from a modern OS like Linux or Windows, the difficulty is not necessarily equivalent to the complexity of implementing $\sim$300 Linux system calls or thousands of Windows APIs on a new OS or hardware platform.
+% Moreover, the difficulty lies in reproducing the assumption of having a unified, trusted, monolithic kernel where all the OS features needed are defined,
+% whereas a new OS or hardware platform holds a completely opposite assumption
+% regarding its threat model or performance patterns.
 
 
-A critical problem to reusing applications on new OSes or hardware platforms is the difficulty of building ad hoc layers or solutions to adapt the applications.
-Between OS families (i.e., Windows and UNIX) or distributions (e.g., Linux and Mac OSX),
-system developers often build a compatibility layer to translate the host OS features to applications.
-Although each application does not need full OS functionality to execute on a new OS or hardware platform, system developers have little information about exactly which part of OS functionality is needed to provide more general support, and often end up having to implement full OS functionality.
-To reuse applications from a modern OS like Linux or Windows, the difficulty is not necessarily equivalent to the complexity of implementing $\sim$300 Linux system calls or thousands of Windows APIs on a new OS or hardware platform.
-Moreover, the difficulty lies in reproducing the assumption of having a unified, trusted, monolithic kernel where all the OS features needed are defined,
-whereas a new OS or hardware platform holds a completely opposite assumption
-regarding its threat model or performance patterns.
+This thesis proposes using a \emph{\libos{}} to adapt existing applications to new operating systems that support cutting-edge hardware platforms. A \libos{} is a OS component which is relocated to the application space and implements the system APIs using host abstractions. A \libos{} can serve as a compatibility layer between applications and each new operating systems designs specifically for the hardware platforms.  We argue that a full-featured, backward-compatible \libos{} can be implemented, with merely minimal assumption about the supported host abstractions and hardware resources. By minimizing the requirement for the host operating systems to manage and abstract hardware resources, the \libos{} can more easily port applications to any hardware platforms, including the ones emerging in the future.
+
+%system library which implements the system interfaces with minimal host interfaces and assumptions---to improve the OS development model for adapting applications to new hardware platforms.  Using a \libos{} can minimize the effort of customizing the OS for a certain hardware platform. OS developers only need to implement a narrowed host ABI (application binary interface), which includes a set of OS features defined to be stateless and generic to most hardware platform. Above the host ABI, we demonstrate that a full-featured \libos{} can be built to support a major portion of the system API, implemented using only the OS features defined in the host ABI. The \libos{} is practical: it has reasonable performance overhead generally less than 1$\times$, and memory footprint to load the \libos{} with applications.
+
+
+This thesis presents \graphene{}, a \libos{} to support unmodified Linux applications on both old and new hardware platforms, with multiple legacy operating systems (e.g., Linux, FreeBSD, OSX, and Windows). \graphene{} implements a major portion of the Linux system call table (\graphenesyscalls{} out of \linuxsyscalls{} system calls), using a small host ABI (Application Binary Interface) inherited from a precursor \libos{} called \drawbridge{}~\cite{porter11drawbridge}. The host ABI of \drawbridge{} defines the OS features commonly provided on most platforms, including threading, memory management, file systems, and network connections. By experimenting the porting of host ABI to different operating systems and hardware platforms, \graphene{} shows that its host ABI is easy to implement, both efficiently and securely. By carefully engineering a \libos{} on top of the host ABI, we largely improve the performance of the Linux \libos{}. The optimization can be reused on multiple hardware platforms that \graphene{} gracefully supports.
+
+
+
+This thesis have three primary contributions. First, it describe a new approach of operating system design to maintain application portability across hardware platforms. Second, 
+
+
+
+\section{Motivating Examples}
 
 
 Take reusing Linux applications on the Intel SGX platform for example. Intel SGX is a trusted execution platform which protects applications from untrusted or even compromised OSes, hypervisors, and applications.
@@ -101,10 +166,7 @@ regardless the complexity of applications.
 
 
 \begin{outline}  
-Goal and hypothesis:
--- When emulating an interface, the effectiveness of emulation can be determined by two factors: the sufficiency of emulating different abstractions, and the simplicity of development with acceptable cost.
--- This dissertation demonstrates that using library OSes is a more effective emulation approach than others.
--- We present the Graphene library OS, a Linux-compatible library OS implemented on a host interface that can be easily emulated on emerging OSes.
+
 
 Justification:
 -- Graphene implements the complex and idiosyncratic Linux abstractions, on a narrow host interface separately emulated for each OSes.
@@ -163,14 +225,14 @@ The platform dependence of applications is also an major issue for new OSes.
 System developers who build new OSes often struggle to reuse existing applications,
 due to the incompatibility to the prior OSes.
 Specifically, some OSes introduce groundbreaking, structural changes, such as
-bypassing hardware multiplexing (e.g., Exokernel~\citep{engler95exokernel}),
-tailoring OSes to architectural assumptions (e.g., Barrelfish~\citep{baumann09barrelfish}),
-or isolation against untrustworthy components (e.g., OSes with SGX enclaves~\citep{intelsgx}).
+bypassing hardware multiplexing (e.g., Exokernel~\cite{engler95exokernel}),
+tailoring OSes to architectural assumptions (e.g., Barrelfish~\cite{baumann09barrelfish}),
+or isolation against untrustworthy components (e.g., OSes with SGX enclaves~\cite{intelsgx}).
 The functionality of these OSes are either redefined, or reimplemented from the ground up.
 As a result, reusing applications on these OSes
 calls for extra porting effort:
 either applications have to be rewritten to match to the new specifications,
-or the old specifications have to be \term{emulated} in the new OSes.
+or the old specifications have to be emulated in the new OSes.
 
 
 We observe that, the primary culprit that obstructs reusing applications
@@ -199,7 +261,7 @@ Emulating copy-on-write forking on these platforms will require considerable emu
 %%which can be further reused, re-factored and re-purposed in future development.
 %Up to millions of applications
 %are available
-%in the mainstream App stores~\citep{google-play, apple-store, ubuntu-packages};
+%in the mainstream App stores~\cite{google-play, apple-store, ubuntu-packages};
 %%Among them, a large fraction
 %%are restricted to specific operating system specifications (e.g., Windows or Linux)
 %%or programming languages (e.g., C/C++, Python, Java).
@@ -215,7 +277,7 @@ Emulating copy-on-write forking on these platforms will require considerable emu
 
 
 As a systematic approach to facilitate emulation,
-\term{virtualization} allows running existing OSes as a guest,
+virtualization allows running existing OSes as a guest,
 by emulating hardware in the host hypervisor.
 The main advantage of using virtualization for OS emulation is to keep the host interface generic to different guest OSes,
 so a successfully hardware emulation
@@ -334,7 +396,7 @@ such as the previously mentioned SGX enclaves.
 %To address the problem of system vulnerabilities, system researchers have engaged efforts in building more secure operating systems,
 %to isolate the consequence of compromised system stacks.
 %For instance,
-%micro-kernels, such as Exokernel~\citep{engler95exokernel} or HiStar~\citep{zeldovich+histar},
+%micro-kernels, such as Exokernel~\cite{engler95exokernel} or HiStar~\cite{zeldovich+histar},
 %intend to reduce the TCB in the operating systems that are shared by applications.
 %The operating system components that are removed from the shared TCB are placed into a {\em library OS}, which operates in the userspace or even in the application processes.
 %If a malicious application attack its library OS,
@@ -354,12 +416,12 @@ such as the previously mentioned SGX enclaves.
 %In cloud environment, a malicious provider can load a modified kernels or hypervisors into the hosts,
 %bypassing the security isolation enforced by library OSes or virtual machines.
 %Even without loading a malicious system stack,
-%the provider can still attack the hosts by physically launching attacks on the hardware, using techniques such as the Cold-boot Attack~\citep{halderman09coldboot} or 
+%the provider can still attack the hosts by physically launching attacks on the hardware, using techniques such as the Cold-boot Attack~\cite{halderman09coldboot} or 
 %intrude the boot process using counterfeit peripheral devices.
 %Finally, library OSes or virtual machines does not defend against vulnerabilities
 %inside an application or a process
 %that can be exploited to attack the application itself.
-%For instance, the Heartbleed bug~\citep{heartbleed} discovered in OpenSSL cryptography library
+%For instance, the Heartbleed bug~\cite{heartbleed} discovered in OpenSSL cryptography library
 %can leak the private keys of trusted authorities through the vulnerability in OpenSSL's heartbeating service.
 %To eliminate vulnerabilities in a complex, modern applications is as infeasible as eliminating vulnerabilities in the operating systems.
 
@@ -386,30 +448,30 @@ such as the previously mentioned SGX enclaves.
 %\label{sec:intro:graphene}
 
 An alternative to virtualization,
-\term{\liboses{}}~\citep{porter11drawbridge,unikernels,baumann13bascule},
+\emph{\liboses{}}~\cite{porter11drawbridge,unikernels,baumann13bascule},
 also emulate OS abstractions in guest-like environments,
 but have the ability of adjusting the host-guest boundaries, to define suitable host interfaces.
 A \libos{} moves the OS functionality
-(API components, or \emph{system call tales} in UNIX systems)
+(API components, or \emph{system call tables} in UNIX systems)
 from a kernel into the application processes,
 either statically or dynamically linked into a standalone executable.
 Emulation by \liboses{}
 provides an undisruptive way of provisioning OS abstraction for applications,
-on a restricted host platform~\citep{baumann14haven}.
+on a restricted host platform~\cite{baumann14haven}.
 %Using a \libos{} to adopt applications on any operating systems only depends on three prerequisites:
 %(1) environment for executing the application,
 %(2) minimal host abstractions,
 %and (3) emulation of guest OS abstractions.
 
 
-This thesis focuses on the \term{\graphene{} \libos{}}~\citep{tsai14graphene}, for justifying the effectiveness of using \liboses{} for OS emulation.
+This thesis focuses on the \graphene{}~\cite{tsai14graphene}, for justifying the effectiveness of using \liboses{} for OS emulation.
 The justification of \graphene{} is split into two stages:
-first, defining a host interface portable to many platforms (\term{Platform Independence});
+first, defining a host interface portable to many platforms (\emph{Platform Independence});
 and, second, building OS emulation that satisfies majority of applications.
 Using \graphene{}, we show the evidence of running unmodified Linux applications, from the simplest (e.g., a ``Hello World'') to sophisticated ones (e.g., multi-process, server applications).
 The host interface is ported to many platforms, from the most monolithic (e.g., Linux)
 to the most restricted (e.g., SGX enclaves).
-The \graphene{} \libos{} provides a more reasonable, incremental path of building application support,
+The \libos{} provides a more reasonable, incremental path of building application support,
 compared to the open-ended effort needed for emulating OS functionality on individual platforms.
 For every host platforms,
 \graphene{} simplifies the emulation of a complex modern OS like Linux
@@ -417,18 +479,18 @@ to a few generic host interfaces
 such as opening files or creating a clean instance.
 The rest of emulation effort can be simply inherited from the other host platforms,
 where \graphene{} is already ported.
-In a nut shell, both virtualization and the \graphene{} \libos{} have reduced most of emulation effort to one-time cost,
+In a nut shell, both virtualization and the \libos{} have reduced most of emulation effort to one-time cost,
 yet the host interface of \graphene{} is arguably much easier to port,
 and the scope of porting targets is much broader.
  
 
 
-%provides a highly portable, \term{platform independent} platform,
+%provides a highly portable, \emph{platform independent} platform,
 %by splitting the OS functionality from a kernel
 %into the application processes.
 %%enforce isolation on mutually untrusting process,
 %%by essentially \emph{collapsing} OS components
-%%into an application library loaded into the user memory of application processes, or \term{\picoprocs{}}.
+%%into an application library loaded into the user memory of application processes, or \emph{\picoprocs{}}.
 %Compared with monolithic kernels,
 %\liboses{} minimize the reliance on the correctness or effectiveness of kernels,
 %to enforce isolation
@@ -449,7 +511,7 @@ and the scope of porting targets is much broader.
 %%and reducing unnecessary %unneeded or redundant logics causing
 %%%performance bottlenecks 
 %%overhead for specific \picoprocs{}
-%%--- comparable to the benefits of using \term{virtualization},
+%%--- comparable to the benefits of using \emph{virtualization},
 %%but at a significantly lower cost.
 %%%More recent \liboses{}
 %%%provide several qualitative benefits of virtualization,
@@ -459,7 +521,7 @@ and the scope of porting targets is much broader.
 %%%In a \libos{}, the guest OS is 
 %%%% dp: too early for this nomenclature, I think
 %%% \daniela{(a libraryOS instance)},
-%Within a process with a \libos{}, or a \term{\picoproc{}},
+%Within a process with a \libos{}, or a \emph{\picoproc{}},
 %the \libos{} implements the system APIs (e.g., system calls) and supporting data structures as library functions
 %--- mapping the system abstractions and semantics
 %to the narrow host interface.
@@ -468,25 +530,25 @@ and the scope of porting targets is much broader.
 %between the guest and host kernel,
 %such as the CPU scheduler, or
 %%eliminating guest-level multiplexing code, as the library OS supports only one application;
-%even compiling out unnecessary guest kernel APIs~\citep{unikernels}.
-%Sometimes, on top of a minimized \term{\microkernel{}} that often has the size and functionality of a hypervisor,
+%even compiling out unnecessary guest kernel APIs~\cite{unikernels}.
+%Sometimes, on top of a minimized \emph{\microkernel{}} that often has the size and functionality of a hypervisor,
 %library OSes or applications can bypass the multiplexing of hardware resource
-%to improve the performance~\citep{engler95exokernel},
+%to improve the performance~\cite{engler95exokernel},
 %or separating system components
 %that are intensively shared and bottlenecking the applications,
-%such as bulk allocation of processing buffers~\citep{leslie96nemesis}.
+%such as bulk allocation of processing buffers~\cite{leslie96nemesis}.
 %In total, this can reduce the memory requirements of running a single, isolated application
 %by orders of magnitude, and similarly
 %increase the number of applications which can run
-%on a single system~\citep{porter11drawbridge,unikernels}.
+%on a single system~\cite{porter11drawbridge,unikernels}.
 %In addition,
 %because of the narrowness of host interfaces, % is easier to implement on various platforms
 %%than the high-level system APIs,
 %the library OSes can be easily ported to an innovative, vastly distinct platform. 
-%A typical example is in \term{\intel{} \sgx{} enclaves},
+%A typical example is in \emph{\intel{} \sgx{} enclaves},
 %where applications are isolated in a restricted environment that is immune to attacks from untrusted host kernel and hardware peripherals.
 %A \libos{} can support whole applications in enclaves,
-%without expanded attack surface and porting effort on the applications~\citep{baumann14haven}.
+%without expanded attack surface and porting effort on the applications~\cite{baumann14haven}.
 %%% dp: This sentence seems a little premature
 %%In recent works, library OSes provide rich OS features for isolated contexts while the host OSes are untrusted
 %
@@ -501,13 +563,13 @@ and the scope of porting targets is much broader.
 %%% of sandboxing untrusted code and running applications
 %%% designed for another OS.
 
-%Because library OSes execute within a VM \daniela{this phrase does not read good to me because (i) it might imply the picoprocesses need hypervisor support, as misunderstood by reviewer 1 and (ii) you already emphasized the drawbacks of leveraging a VM} or lightweight process ({\em picoprocess}~\citep{xax}),
+%Because library OSes execute within a VM \daniela{this phrase does not read good to me because (i) it might imply the picoprocesses need hypervisor support, as misunderstood by reviewer 1 and (ii) you already emphasized the drawbacks of leveraging a VM} or lightweight process ({\em picoprocess}~\cite{xax}),
 %library OSes execute with
 
 
 The emulation of Linux abstractions in \graphene{}
 poses several challenges (described in \S\ref{chap:graphene}).
-Specifically, we identify the key challenge as the Linux \term{multi-process abstractions},
+Specifically, we identify the key challenge as the Linux \emph{multi-process abstractions},
 commonly used in many server-type or shell applications,
 for job control or splitting executables for modularity and isolation.
 As each application process runs with a singled \libos{} instance,
@@ -523,8 +585,8 @@ forking, {\tt execve}, signals, System V IPC, file descriptor sharing, exit noti
 except an optional bulk IPC feature purely for optimization.
 
 %Legacy application support is provided
-%in recent \liboses{}~\citep{porter11drawbridge, baumann13bascule, baumann14haven},
-%%, such as Drawbridge~\citep{porter11drawbridge}, Bascule~\citep{baumann13bascule} and Haven~\citep{baumann14haven},
+%in recent \liboses{}~\cite{porter11drawbridge, baumann13bascule, baumann14haven},
+%%, such as Drawbridge~\cite{porter11drawbridge}, Bascule~\cite{baumann13bascule} and Haven~\cite{baumann14haven},
 %%partial support for legacy applications is provided
 %by emulating the OS personalities in individual \picoprocs{}.
 %Among the OS abstractions and features that need to be emulated,
@@ -535,7 +597,7 @@ except an optional bulk IPC feature purely for optimization.
 %a \picoproc{}, %, with proper level of translation and bookkeeping.
 %thus often relatively straightforward.
 %For instance, %Drawbridge loads legacy Windows applications including Microsoft Word.
-%Drawbridge~\citep{porter11drawbridge} provides Windows abstractions and personalities,
+%Drawbridge~\cite{porter11drawbridge} provides Windows abstractions and personalities,
 %with 5.6 million lines of code reused from Windows 7
 %to emulate the complete OS personality in a single \picoproc{},
 %except a few features such as the Windows registry that has to be implemented
@@ -573,7 +635,7 @@ except an optional bulk IPC feature purely for optimization.
 %to rely on %sharing OS states,
 %the hosts' memory sharing features to share OS states.
 %However, memory sharing is not always an available features in the host:
-%for example, Drawbridge and Bascule~\citep{baumann13bascule} cannot emulate process forking because copy-on-write memory sharing is not a platform-independent features.
+%for example, Drawbridge and Bascule~\cite{baumann13bascule} cannot emulate process forking because copy-on-write memory sharing is not a platform-independent features.
 %Furthermore, when Haven isolates applications
 %in enclaves,
 %memory sharing is strictly forbidden by the hardware platform,
@@ -602,8 +664,8 @@ with acceptable penalty on performance.
 %\begin{figure}[t!]
 %\centering
 %\includegraphics[width=0.75\linewidth]{graphene/figures/concept.pdf}
-%\caption[Multi-process abstraction model of \sysname{} \libos{}]
-%{Multi-process abstraction model of \sysname{} \libos{}. For each process of an application, a libOS instance will serve system calls and keep local OS states. States of multi-process abstractions are shared by coordinating over host-provided RPC streams, creating an illusion of running in single OS for the application.}
+%\caption[Multi-process abstraction model of \graphene{} \libos{}]
+%{Multi-process abstraction model of \graphene{} \libos{}. For each process of an application, a libOS instance will serve system calls and keep local OS states. States of multi-process abstractions are shared by coordinating over host-provided RPC streams, creating an illusion of running in single OS for the application.}
 %%\vspace{-.1in}
 %\label{fig:graphene:concept}
 %\end{figure}
@@ -626,7 +688,7 @@ with acceptable penalty on performance.
 
 %Previous library OS designs ensured security isolation of independent applications,
 %comparable to a VM, by keeping a relatively narrow host ABI.
-%We selected the \sysname{}
+%We selected the \graphene{}
 %design because it strikes a unique balance between
 %and robust, flexible security enforcement.
 
@@ -666,7 +728,7 @@ with acceptable penalty on performance.
 %and compromise the security isolation or platform independence of the system.
 %%and thus increase the risk of
 %%allowing malicious applications to compromise the host kernel.
-%As a solution, we present \term{\graphene{}},
+%As a solution, we present \emph{\graphene{}},
 %a Linux-compatible \libos{} that collaboratively implement
 %various Linux multi-process abstractions,
 %yet appear to the application as a single, shared OS.
@@ -698,8 +760,8 @@ with acceptable penalty on performance.
 
 %Existing works provide isolated execution of applications
 %on untrusted operating systems or host hardware,
-%using either hypervisors~\citep{criswell2014virtualghost, flicker, inktag, zhang2012mushi} or security hardware~\citep{intelsgx, secureblue++}.
-%Especially security hardware such as \intel{} \sgx{}~\citep{intelsgx} can defense against hardware-level attacks,
+%using either hypervisors~\cite{criswell2014virtualghost, flicker, inktag, zhang2012mushi} or security hardware~\cite{intelsgx, secureblue++}.
+%Especially security hardware such as \intel{} \sgx{}~\cite{intelsgx} can defense against hardware-level attacks,
 %with low execution overhead.
 %\sgx{} is a set of new instructions introduced in the latest \intel{} CPUs,
 %to create a encrypted memory region called {\it enclave}
@@ -745,7 +807,7 @@ with acceptable penalty on performance.
 
 
 %With the support of a \libos{}, developers can port an application to \sgx{} with minimal effort,
-%using a {\em non-partitioned model}~\citep{baumann14haven}.
+%using a {\em non-partitioned model}~\cite{baumann14haven}.
 %The non-partitioned model loads the whole application binary into the enclave,
 %and a \libos{} to support the OS features.
 %The benefits of using a non-partitioned model also include
@@ -763,7 +825,7 @@ with acceptable penalty on performance.
 %the security benefits promised by the platform,
 %%in an system enforcing stronger security isolation
 %%on legacy applications,
-%%such as Haven~\citep{baumann14haven},
+%%such as Haven~\cite{baumann14haven},
 %%it is necessary
 %%%the system must not only emulate the personalities,
 %%to provide the security benefits promised by the platform
@@ -775,7 +837,7 @@ with acceptable penalty on performance.
 %sealing confidential information,
 %and attestation.
 %%These benefits must be also provided by systems that use enclaves to isolate legacy applications.
-%An existing system, Haven~\citep{baumann14haven},
+%An existing system, Haven~\cite{baumann14haven},
 %packs a Windows-compatible \picoproc{}
 %into an enclave,
 %using an encrypted virtual disk
@@ -801,7 +863,7 @@ with acceptable penalty on performance.
 %% especially in the finer, per-process granularity.
 %Addressing these issues,
 %by porting \graphene{} to enclaves
-%(\term{\graphenesgx{}}),
+%(\emph{\graphenesgx{}}),
 %we reassure multi-process, UNIX applications in a multi-enclave environment.
 %The application integrity in \graphenesgx{} 
 %is validated on unencrypted,
@@ -826,10 +888,10 @@ with acceptable penalty on performance.
 %
 %
 %%To alleviate the pain of migrating applications to SGX,
-%%recent works like Haven~\citep{baumann14haven} provides a mechanism
+%%recent works like Haven~\cite{baumann14haven} provides a mechanism
 %%of loading native applications into enclaves,
 %%alongside a library OS to facilitate rich OS features.
-%%These systems are called ``shielding %systems''~\citep{xu15controlledchannel},
+%%These systems are called ``shielding %systems''~\cite{xu15controlledchannel},
 %%which means these systems can secure execution environments
 %%without trusting the host.
 %
@@ -843,7 +905,7 @@ with acceptable penalty on performance.
 %%We present {\em \gsgx{}}, a port of \graphene{} \libos{} on \sgx{}, to secure unmodified Linux applications in \sgx{} enclaves{}.
 %%The support for Linux applications
 %%has been missing in the non-partitioned model,
-%%which is a missed opportunity according to the 75\% market share of Linux cloud providers~\citep{linuxcloud2014}.
+%%which is a missed opportunity according to the 75\% market share of Linux cloud providers~\cite{linuxcloud2014}.
 %%\gsgx{} supports most OS features provided by \graphene{}
 %%including both single- and multi-process abstractions.
 %%
@@ -976,7 +1038,7 @@ with acceptable penalty on performance.
 %%We present \gsgx{}, a \libos{}-based shielding system
 %%targeting Linux multi-process applications,
 %%as improvement to the Haven model of migrating native application to SGX.
-%%\gsgx{} is derived of \graphene{}~\citep{tsai14graphene},
+%%\gsgx{} is derived of \graphene{}~\cite{tsai14graphene},
 %%which supports 139 out of 300 Linux system calls.
 %%\graphene{} runs numbers of popular applications
 %%such as Apache web server, OpenJDK virtual machine, or shell scripts,
@@ -1024,7 +1086,7 @@ with acceptable penalty on performance.
 %evaluating the legacy support,
 %we conduct a study of Linux system APIs usage among a large sample of Debian/Ubuntu x86\_64 applications,
 %weighted by the application popularity
-%collected by the Popularity Contests~\citep{debian-popularity, ubuntu-popularity}.
+%collected by the Popularity Contests~\cite{debian-popularity, ubuntu-popularity}.
 %Based on the study,
 %we create a measurement
 %for estimating the fraction of applications installed by a user
@@ -1060,7 +1122,7 @@ with acceptable penalty on performance.
 %\gsgx{} simply applies to a broader range of cloud-based applications
 %than Haven.
 %Survey shows that Linux yields a market share of up to 75 percent in
-%enterprise cloud providers~\citep{linuxcloud2014}.
+%enterprise cloud providers~\cite{linuxcloud2014}.
 %This data suggests majority of the existing cloud users can
 %more easily adopt \gsgx{} than Haven.
 
@@ -1156,9 +1218,9 @@ with acceptable penalty on performance.
 %from a  compromised or malicious system software stack,
 %including the OS or hypervisor, or simply isolating portions of the 
 %application address space from the rest of the application.
-%Examples include SX~\citep{sgx-manual}, 
+%Examples include SX~\cite{sgx-manual}, 
 %%\fixmedp{Can we mention/cite others? IBM and ARM?}
-%IBM SecureBlue++~\citep{secureblue++}, and ARM TrustZone~\citep{trustzone}.
+%IBM SecureBlue++~\cite{secureblue++}, and ARM TrustZone~\cite{trustzone}.
 %%are offering models of mutual distrust, which facilitate protecting
 %%an application from a
 %SGX offers %One feature of SGX is restricted
@@ -1181,21 +1243,21 @@ with acceptable penalty on performance.
 %Besides automated partitioning,
 %securing \java{} applications in \sgx{} opens opportunities to hardening the security of isolated execution,
 %using language-level protections
-%~\citep{bittau2008wedge,brumley2004privtrans,khatiwala2006data}.
+%~\cite{bittau2008wedge,brumley2004privtrans,khatiwala2006data}.
 %For instance, the type-checking feature in the \java{} language
 %can avoid the risk of exploitable pointers or control flow errors,
 %which is significant in an unsafe language like C
-%~\citep{nergal2001libc,bletsch2011jump,checkoway2010return}.
+%~\cite{nergal2001libc,bletsch2011jump,checkoway2010return}.
 %
 %In addition, although SGX can restrict enclave entry 
 %to a few predefined entry points,
 %the developers still have to reason about what the soundness of the
 %entry-point definitions, protection against malicious inputs,
 %and the code paths that must not inadvertently leak sensitive data.
-%For instance, Iago attacks~\citep{checkoway13iago}, where an OS offers malicious system call return values,
+%For instance, Iago attacks~\cite{checkoway13iago}, where an OS offers malicious system call return values,
 %can be notoriously difficult to defend against from an enclave;
 %although limited countermeasures exist for the OS API (typically with the cooperation of a 
-%trusted hypervisor)~\citep{kwon2016sego},%\fixmedp{cite the asplos 16 inktag paper},
+%trusted hypervisor)~\cite{kwon2016sego},%\fixmedp{cite the asplos 16 inktag paper},
 %there are no off-the-shelf defenses against Iago-style attacks from the compromised application code.
 
 %Further, SGX is designed to run a small, native code library inside of a larger
@@ -1240,7 +1302,7 @@ with acceptable penalty on performance.
 %the OS or hypervisor are simply stopped from peeking any application data, unless the isolated applications release any information. 
 
 %Language-level techniques can offer more sophisticated insights into how
-%to partition the application, as well as stronger protections ~\citep{bittau2008wedge,brumley2004privtrans,khatiwala2006data}.
+%to partition the application, as well as stronger protections ~\cite{bittau2008wedge,brumley2004privtrans,khatiwala2006data}.
 %%\fixmedp{Can we bless some language-level app partitioning tools here?}
 %Similarly, managed languages such as Java, with type-checking,
 %can prevent memory corruption attacks,
@@ -1279,7 +1341,7 @@ with acceptable penalty on performance.
 %--- instead of the Hadoop framework that generally supports \java{}.
 
 %% dp: this sentence seems off track, unless you want to say something about ``this has to be in C''
-%Similarly, S-NFV uses SGX to isolate states of Network Function Virtualization Applications~\citep{shih2016s}.
+%Similarly, S-NFV uses SGX to isolate states of Network Function Virtualization Applications~\cite{shih2016s}.
 
 %\fixmedp{Please check the previous 2 sentences for accuracy; if I'm wrong, try to say something more crisp.
 %Also, any other important related work here?}
@@ -1451,14 +1513,14 @@ is safe to be released from the enclave.
 %%one from each of hardware protection and language-level protection.
 %To extend hardware protection, Civet contributes techniques for dynamically loading JAVA classes in enclaves
 %with the same code integrity verification as native, static binaries.
-%Civet uses the \graphene{} library OS~\citep{tsai14graphene} to facilitate 
+%Civet uses the \graphene{} library OS~\cite{tsai14graphene} to facilitate 
 %running a restricted JVM runtime in an enclave.
 %to facilitate and restrict the interface size of a 
 %and prove the measurement of loaded classes as part of the hardware-generated attestation.
 %Then Civet verifies and attests loaded JAVA classes on the basis of measurement checking and attestation generation from the hardware.
 %On the other hand, Civet has to adopt language-level protection to enforce information flow policies against leakage over the border of enclave.
 %Civet enforces information flow policies at the border of the enclave by incorporating
-%Phosphor~\citep{bell2014phosphor} instrumentation on all classes in the enclave,
+%Phosphor~\cite{bell2014phosphor} instrumentation on all classes in the enclave,
 %tracing both explicit and implicit flows from any confidential data,
 %and preventing tainted information from leaving the enclave by any interface, 
 %except via explicit declassification by the developer.
@@ -1520,7 +1582,7 @@ is safe to be released from the enclave.
 %will need to maintain the correspondent confidentiality levels.
 %The web server may perform operations that are more security sensitive (e.g., retrieve a secret key)
 %or more vulnerable (e.g., execute privilege-escalating scripts).
-%For components in the same process, we have seen examples, such as the heart-bleed bug~\citep{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
+%For components in the same process, we have seen examples, such as the heart-bleed bug~\cite{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
 %
 %\paragraph{Seamless Transition of Security Isolation.}
 %Each existing solution of security isolation can protect applications
@@ -1572,7 +1634,7 @@ is safe to be released from the enclave.
 %we observe missed opportunities in these solutions to further minimize the risk.
 %In \graphene{}, the \libos{} of untrused applications are evicted from the TCB,
 %but the host kernel must still be trusted. The system call restriction enforced by Seccomp filters is helpful, but it is hard to reason that the vulnerabilities are eliminated in the kernel.
-%For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\citep{l4family}.
+%For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\cite{l4family}.
 %
 %In \gsgx{} and \civet{}, we observe more opportunities of reducing TCB with engineering efforts.
 %For instance, \gsgx{}, the size of \libos{} and supporting libraries
@@ -1598,7 +1660,7 @@ is safe to be released from the enclave.
 %%complex logics are design to simultaneously implement specifications
 %%and improve performance,
 %%causing suboptimal results in the system.
-%One classic example is the \term{Linux file system directory cache},
+%One classic example is the \emph{Linux file system directory cache},
 %a heavily engineered component designed for
 %avoiding the significant latency of looking up duplicated paths
 %on physical storage,
@@ -1627,7 +1689,7 @@ is safe to be released from the enclave.
 %and most underlying storage (e.g., Ext4, Pseudo file systems).
 
 
-Besides emulating OS abstractions, the \graphene{} \libos{} also provides a reasonable model of enforcing security isolation among applications launched by mutually untrusting users.
+Besides emulating OS abstractions, \graphene{} also provides a reasonable model of enforcing security isolation among applications launched by mutually untrusting users.
 Similar as the complexity of emulating all the abstractions,
 the security isolation on a monolithic OS can be delicate and prone to mistake,
 if each abstraction is controlled individually.
@@ -1654,11 +1716,11 @@ from a technical view:
 
 \begin{compactitem}
 
-\item A Linux-compatible \libos{} called \term{\graphene{}}~\citep{tsai14graphene},
+\item A Linux-compatible \libos{} called \emph{\graphene{}}~\cite{tsai14graphene},
 which runs legacy Linux applications in a platform independent environment.
 The platforms where \graphene{} has been ported
 include Linux, FreeBSD, OSX,
-Windows and \sgx{} enclaves (also called \term{\graphenesgx{}}).
+Windows and \sgx{} enclaves (also called \emph{\graphenesgx{}}).
 \graphene{} extends the security isolation on single-process applications,
 to processes that share UNIX multi-process abstractions,
 such as forking, signaling, sharing file descriptors, \sysvipc{}, etc.
@@ -1679,7 +1741,7 @@ a feature generally provided by most platforms.
 %instead of relying on sandboxing by the host.
 
 \item
-A framework called \term{Civet},
+A framework called \emph{Civet},
 that combines the isolated execution of \sgx{} and
 \java{} language protections,
 for partitioning legacy \java{} applications.
@@ -1698,12 +1760,12 @@ isolating session keys and supporting cryptography library for a SSH connection,
 %using it for encryption and decryption.
 protecting Hadoop workloads that run proprietary algorithms,
 and a web application deployed over HTTP.
-\term{This work is still in progress.}
+\emph{This work is still in progress.}
 
 
 
 \item
-A study of \term{Linux API usage and compatibility}~\citep{tsai16apistudy}, to provide the information missing in
+A study of \emph{Linux API usage and compatibility}~\cite{tsai16apistudy}, to provide the information missing in
 the decision-making process of system developers.
 The study uses
 a approach to measure platform compatibility as the relative completeness of prototype systems.
@@ -1722,8 +1784,8 @@ of rarely or never-used APIs.
 
 
 \item
-We identify the suboptimal lookup latency in \term{Linux file system directory cache}
-~\citep{tsai15dcache}.
+We identify the suboptimal lookup latency in \emph{Linux file system directory cache}
+~\cite{tsai15dcache}.
 This heavily engineered OS component
 optimizes looking up paths in file systems,
 yet the searching in the directory cache is closely interleaved
@@ -1757,7 +1819,8 @@ and GIT version control system by up to 25\%.
 \end{comment}
 
 
-\paragraph{Organization.}
+\section{Organization.}
+
 The organization of this thesis is presented as follows:
 \begin{compactitem}
 \item \S\ref{chap:graphene}

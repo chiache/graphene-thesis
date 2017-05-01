@@ -1,22 +1,21 @@
-
-\section{Evaluation of \sysname{}}
+\section{Evaluation of \graphene{}}
 \label{sec:graphene:eval}
 
 %\fixmedp{Missing back-of-the envelope for fork overheads, fraction of system calls using ipc}
 
 
-This section evaluates \sysname{}'s multi-process coordination, security, cross-host migration, memory footprint, and performance.
-We drive this evaluation with a selection of real-world applications that leverage multiple processes in \sysname{},
+This section evaluates \graphene{}'s multi-process coordination, security, cross-host migration, memory footprint, and performance.
+We drive this evaluation with a selection of real-world applications that leverage multiple processes in \graphene{},
 as well as with microbenchmarks and stress tests.
 We organize the evaluation around the following questions:
 \begin{compactenum}
-\item How do \sysname{}'s startup and migration costs compare to running an application in a dedicated VM?
-\item Given that RAM is often the limiting factor in VMs per system, how does \sysname{}'s memory footprint compare to other virtualization techniques?
-\item What are the performance overheads of \sysname{} relative to a native Linux process or VM?
+\item How do \graphene{}'s startup and migration costs compare to running an application in a dedicated VM?
+\item Given that RAM is often the limiting factor in VMs per system, how does \graphene{}'s memory footprint compare to other virtualization techniques?
+\item What are the performance overheads of \graphene{} relative to a native Linux process or VM?
 \item What additional overheads are added by the reference monitor?
-\item How do \sysname{}'s overheads scale with the number of processes in a sandbox?
-\item Does the \sysname{} reference monitor enforce security isolation comparable to running the application in a VM?  
-\item What fraction of recent Linux vulnerabilities would \sysname{} prevent?
+\item How do \graphene{}'s overheads scale with the number of processes in a sandbox?
+\item Does the \graphene{} reference monitor enforce security isolation comparable to running the application in a VM?  
+\item What fraction of recent Linux vulnerabilities would \graphene{} prevent?
 \end{compactenum}
 
 %We note that no recent single-process library OSes are both publicly available
@@ -34,12 +33,12 @@ QEMU version 1.0.
 Each KVM Guest is deployed with 4 virtual CPU with EPT, 2GB RAM, a 30GB virtual disk image, Virtio enabled for network and disk, bridged connection with TAP, and runs the same Ubuntu and Linux kernel image.
 We note that recent library OSes are either not openly available
 or cannot execute unmodified Linux binaries.
-Unless otherwise noted, \sysname{} measurements include the reference monitor.
+Unless otherwise noted, \graphene{} measurements include the reference monitor.
 %In order to assess the relative overhead of the monitor (\S\ref{sec:eval:micro}), 
 %we include some microbenchmark measurements with and without the monitor.
 
 %\paragraph{Seccomp filter optimization.~}
-%Our benchmark shows that applying a seccomp filter can cause \fixme{xxx}\% overhead on {\tt getppid} syscall latency. We use a seccomp optimization patch, which just-in-time compiles filter code into machine code~\citep{seccomp-jit}.
+%Our benchmark shows that applying a seccomp filter can cause \fixme{xxx}\% overhead on {\tt getppid} syscall latency. We use a seccomp optimization patch, which just-in-time compiles filter code into machine code~\cite{seccomp-jit}.
 %The result shows that the patch can improve xxx\% of {\tt getppid} latency.
 %This patch is not officially adopted by Linux kernel, but it can be confirmed secure at least for x86-64 architecture.
 
@@ -50,7 +49,7 @@ Unless otherwise noted, \sysname{} measurements include the reference monitor.
 \begin{tabular}{|l|r|rr|rr|rr|}
 \hline
 {\bf Test } & {\bf Linux } & \multicolumn{2}{c|}{{\bf KVM}}
-& \multicolumn{2}{c|}{{\bf \sysname{}}} \\\hline
+& \multicolumn{2}{c|}{{\bf \graphene{}}} \\\hline
 
 %Start-up time& 88.40& 3293296.77 & 3725349\% & 125350.73 & 1417\%& 622.00 & 604\% \\
 Start-up   & 208 \us{} & 3.3 s & 15K\x{} & 641 \us{} & 3.1\x{}  \\
@@ -62,34 +61,34 @@ Resume     & N/A   & 1.146 s  &  &  1387 \us{} & \\
 Checkpoint size & N/A & \multicolumn{2}{l|}{105 MB} & \multicolumn{2}{l|}{376 KB}   \\
 \hline
 \end{tabular}
-\caption[Startup, checkpoint, and resume times in Linux, KVM, and \sysname{}]
+\caption[Startup, checkpoint, and resume times in Linux, KVM, and \graphene{}]
 {Startup, checkpoint, and resume times for (1) a native Linux process,
 (2) a KVM virtual machine,
-(3) a \sysname{} \picoproc{},
-(4) a \sysname{} \picoproc{} in a \sgx{} enclave,
+(3) a \graphene{} \picoproc{},
+(4) a \graphene{} \picoproc{} in a \sgx{} enclave,
  where appropriate. Lower is better.  
-Overheads are relative to Linux. \fixme{Update \sysname{} and \graphenesgx{} numbers}} 
+Overheads are relative to Linux.} 
 \label{tab:graphene:startup}
 \end{table}
 
 \subsection{Process Migration and Application Startup}
 
 %A key feature of VMs is the ability to move a running application to a new system.
-\sysname{} supports migration of an application from a \picoproc{} on one machine
+\graphene{} supports migration of an application from a \picoproc{} on one machine
 to a \picoproc{} on another machine by checkpointing the application,
 copying the checkpoint over the network, and then resuming the checkpoint.
 %We note that resuming a checkpoint executes entirely in userspace.
 Table~\ref{tab:graphene:startup} shows the time to start
-up a process, VM, or \picoproc{}; as well as the checkpoint and resume time for KVM and \sysname{}.
+up a process, VM, or \picoproc{}; as well as the checkpoint and resume time for KVM and \graphene{}.
 Migration across machines is a function of network bandwidth,
 %% and checkpoint size, 
 so we report checkpoint size instead. % of migration time.
-%Only KVM and \sysname{} have the ability to checkpoint and resume, and are the only data points listed.
+%Only KVM and \graphene{} have the ability to checkpoint and resume, and are the only data points listed.
 
 
-\sysname{} shows dramatically faster initialization times than a VM. This is not surprising,
-since \sysname{} is substantially smaller than an OS kernel. 
-Similarly, checkpointing and restoring a 4 MB application on \sysname{} is 1--4 times faster than checkpointing or restoring a KVM guest.
+\graphene{} shows dramatically faster initialization times than a VM. This is not surprising,
+since \graphene{} is substantially smaller than an OS kernel. 
+Similarly, checkpointing and restoring a 4 MB application on \graphene{} is 1--4 times faster than checkpointing or restoring a KVM guest.
 
 
 
@@ -99,7 +98,7 @@ Similarly, checkpointing and restoring a 4 MB application on \sysname{} is 1--4 
 \label{sec:graphene:eval:mem}
 
 We begin by measuring the minimal memory footprint of a simple ``hello world'' program 
-on Linux (352 KB) and \sysname{} (1.4 MB).
+on Linux (352 KB) and \graphene{} (1.4 MB).
 Thus, one would expect roughly 1 MB of extra memory usage for any single-\picoproc{} application.
 Because of copy-on-write sharing, however, the incremental cost of adding additional ``hello world'' children
 is only about 790 KB per process.
@@ -114,7 +113,7 @@ is only about 790 KB per process.
 %%small executable;
 %the \light{} web server (v1.4.30) with 4 threads,
 %the Apache web server (v2.4.3) with 4 processes,
-%and the \busy{} shell (v4.1) executing the shell script test ({\tt multi.sh}) from the Unixbench suite (v5.1.3)~\citep{unixbench}.
+%and the \busy{} shell (v4.1) executing the shell script test ({\tt multi.sh}) from the Unixbench suite (v5.1.3)~\cite{unixbench}.
 %We measure memory utilization based on the maximum kernel-reported resident set size
 %of each process or VM. For most applications, memory usage was fairly constant across inputs,
 %so we only display representative examples.
@@ -123,31 +122,31 @@ is only about 790 KB per process.
 %\centering
 %\includeplot[0.5]{apps-memusage}
 %\centerline{\includegraphics[width=\linewidth]{figures/memusage.pdf}}
-%\caption{Memory usage of applications on Linux, \sysname{}, and KVM, in MB.  Lower s better.
+%\caption{Memory usage of applications on Linux, \graphene{}, and KVM, in MB.  Lower s better.
 %\label{fig:graphene:memusage}}
 %\end{figure}
 
 
 We found that the memory footprints of compilation were a function of the 
 size of the source base, even on Linux; we select compile of {\tt libLinux} as a representative example.
-\sysname{} adds less than 15\% overhead in all cases.
-%every compilation we measured on \sysname{} had less than 10\% memory overhead.
+\graphene{} adds less than 15\% overhead in all cases.
+%every compilation we measured on \graphene{} had less than 10\% memory overhead.
 
-Unixbench on \sysname{} uses substantially more memory at a given time than native Linux---more than double.
-In these samples, however, \sysname{} also had 3--4\x{} as many processes
+Unixbench on \graphene{} uses substantially more memory at a given time than native Linux---more than double.
+In these samples, however, \graphene{} also had 3--4\x{} as many processes
 running; this is because Unixbench simply spawns all of the tasks in the background, rather than
-executing them sequentially.   Because \sysname{} processes execute more slowly (attributable to a slower {\tt fork}---\S\ref{sec:graphene:eval:perf}),
+executing them sequentially.   Because \graphene{} processes execute more slowly (attributable to a slower {\tt fork}---\S\ref{sec:graphene:eval:perf}),
 a given sample will include more \picoprocs{}, pushing total memory usage higher.
 Thus, we expect that further tuning {\tt fork} performance will lower sampled memory usage.
 
 
-Across all workloads, \sysname{}'s memory footprint is 3--20\x{}  
+Across all workloads, \graphene{}'s memory footprint is 3--20\x{}  
 smaller than KVM.  
 For all tests, we used a minimal KVM disk image, 
 %formatted as a 30GB\fixmewkj{this can be changed to be smaller, but I don't know if disk size would impact memory} raw disk image with ext4. The root image was 
 generated using debootstrap 1.0.39ubuntu0.3 and supplemented only by packages required to obtain, compile, and run the experiments.
 In order to make memory footprint measurements as fair as possible to KVM, 
-we used both the virtio balloon driver and kernel same page merging (KSM)~\citep{ksm}.
+we used both the virtio balloon driver and kernel same page merging (KSM)~\cite{ksm}.
 We also reduced the RAM allocated to the VM to the smallest size without harming performance---128MB.  We note that memory measured includes memory used by QEMU for VM device emulation, 
 adding a few dozen MB.
 %hence the total is 
@@ -166,7 +165,7 @@ one could run anywhere from 12--188 libOSes within the same footprint.
 \hline
 &\multicolumn{11}{c|}{Execution time (s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf \gcc/make} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \sysname{} + \sgx{}}} \\
+{\bf \gcc/make} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \graphene{} + \sgx{}}} \\
 \hline
 % gcc
 %\multicolumn{2}{|l|}{helloworld} & .02 & .02 & 0 \% & .03 & 100 \% \\ 
@@ -184,13 +183,13 @@ make -j4 libLinux & 1.361 & .000 &  1.413 & .000 & 4 \% &  1.459 & .000 &   7 \%
 \hline\hline
 Ap. Bnch     & \multicolumn{11}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf Apache} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in in KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + SC + RM}}  & \multicolumn{3}{c|}{{\bf \sysname{} + \sgx{}}} \\
+{\bf Apache} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}}  & \multicolumn{3}{c|}{{\bf \graphene{} + \sgx{}}} \\
 \hline
 25 conc     & 6.282 & .005 & 5.327 & .031 & 18 \% & 4.586 & .002 & 36 \% & 2.312 & .192 & 171 \%    \\\hline
 50 conc     & 6.305 & .002 & 5.420 & .060 & 16 \% & 4.555 & .012 & 38 \% & 2.752 & .463 & 129 \%  \\\hline
 100 conc    & 6.347 & .010 & 5.152 & .036 & 22 \% & 4.572 & .009 & 39 \% & 2.488 & .781 & 155 \%   \\\hline
 
-{\bf \light{}} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \sysname{} + \sgx{}}} \\
+{\bf \light{}} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \graphene{} + \sgx{}}} \\
 \hline
 
 25 conc    & 6.66 &.01 &6.46 &.03 &3 \% &5.65 &.00 &18 \% & 2.124 & .072 & 171 \%    \\\hline
@@ -202,7 +201,7 @@ Ap. Bnch     & \multicolumn{11}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \
 
   & \multicolumn{11}{c|}{Execution Time (s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf bash } & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \sysname{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
+{\bf bash } & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
 \hline
 %2.1 s linux
 %graphene 10.06s
@@ -211,8 +210,8 @@ Ap. Bnch     & \multicolumn{11}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \
 Unix utils & 0.87 & .00 & 1.10 & .01 & 26 \% & 2.01 & .00 & 134 \% & \multicolumn{3}{c|}{not supported yet} \\\hline
 Unixbench  & 0.55 & .00 & 0.55 & .00 &  0 \% & 1.49 & .00 & 192 \% & \multicolumn{3}{c|}{not supported yet} \\\hline
 \end{tabular}
-\caption[Application benchmark results in Linux, KVM and \sysname{}]
-{Application benchmark execution times in a (1) native Linux process, (2) a process inside a KVM virtual machine, (3) a \sysname{} \picoproc{} with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \sysname{} in \sgx{} enclaves. }
+\caption[Application benchmark results in Linux, KVM and \graphene{}]
+{Application benchmark execution times in a (1) native Linux process, (2) a process inside a KVM virtual machine, (3) a \graphene{} \picoproc{} with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in \sgx{} enclaves. }
 \label{tab:graphene:apps}
 \end{table}
 
@@ -234,7 +233,7 @@ with inputs of varying sizes:
 %the ogg sound encoder (v1.0.1, 5 KLoC),
 %GNU {\tt make} (v3.82, \fixmedp{XX} KLoC)
 bzip2 (v1.0.6, 5KLoC, 13 files),
-\sysname{}'s {\tt libLinux} (31 KLoC, 78 files)
+\graphene{}'s {\tt libLinux} (31 KLoC, 78 files)
 and \gcc{} (v3.5.0, 551 KLoC, collected as a single source file). 
 We benchmark Apache (4 preforked workers) and \light{} (4 threads) with 
 \ab{},
@@ -242,27 +241,27 @@ which issues 25, 50, and 100 concurrent requests
 to download a 100 byte file 50,000 times.
 
 We exercised \busy{} with 
-300 iterations of the Unixbench benchmark~\citep{unixbench}, as well as 
+300 iterations of the Unixbench benchmark~\cite{unixbench}, as well as 
 300 iterations of a simple shell script benchmark that runs 6 common shell script commands
 ({\tt cp}, {\tt rm}, {\tt ls}, {\tt cat}, {\tt date}, and {\tt echo}).
 
 Compilation workloads incur overheads ranging from 5--30\%.
 %All compilation workloads have minimal overheads compared to native when executed sequentially;
-Parallel compilation on both \sysname{} and Linux yields comparable  speedups  over sequential,
-but the percent overhead increases for parallel \sysname{}.
-For instance, {\tt make -j4 libLinux} speeds up 3.7\x{} on Linux and 3.4$\times$ on \sysname{}.
+Parallel compilation on both \graphene{} and Linux yields comparable  speedups  over sequential,
+but the percent overhead increases for parallel \graphene{}.
+For instance, {\tt make -j4 libLinux} speeds up 3.7\x{} on Linux and 3.4$\times$ on \graphene{}.
 The compilation overheads are primarily from the reference monitor---nearly all for bzip2 and gcc, and half for {\tt libLinux}.
 %Nearly all of the overhead from the bzip2 and gcc compilations are from the reference monitor; about half of the overheads of {\tt libLinux} compile 
-%are the reference monitor and half are \sysname{} itself.
+%are the reference monitor and half are \graphene{} itself.
 In the case of both \busy{} workloads, the key bottleneck is the {\tt fork} system call.
 Profiling indicates that half of the time in {\tt libLinux} is spent on {\tt fork} in both benchmarks.
 The trend is exacerbated in Unixbench, which creates all of the processes at the beginning and
-waits for them all to complete; because \sysname{} cannot create children as quickly as native, this leads to 
+waits for them all to complete; because \graphene{} cannot create children as quickly as native, this leads to 
 load imbalance throughout the rest of the benchmark.  
 
 With the reference monitor disabled,  \light{} has equivalent throughput to a native Linux process;
 as discussed in the next subsection, these overheads come from checking paths in the monitor.
-The Apache web server loses about half of its throughput relative to \light{} on \sysname{}.
+The Apache web server loses about half of its throughput relative to \light{} on \graphene{}.
 The primary bottleneck in Apache relative to \light{} is System V semaphores,
 %, which account for about 
 %one third of the additional time spent in {\tt libLinux}
@@ -282,20 +281,20 @@ In order to understand the overheads of individual system calls,
 Table~\ref{tab:graphene:lmbench} lists 
 a representative sample of 
 tests from the
-\lmbench{} suite, version 2.5~\citep{McVoy:lmbench}.
+\lmbench{} suite, version 2.5~\cite{McVoy:lmbench}.
 Each row reports a mean and 95\% confidence interval;
 we use the default number of iterations for each test case.
 %We have added code to \lmbench{} to also calculate 95\% confidence intervals 
 %within a run~\footnote{The lmbench authors deliberately exclude variation statistics
 %because most methods assume a known distribution, generally a normal distribution---an 
-%assumption which is often not the case for a computer microbenchmark~\citep{staelin05lmbench}.
+%assumption which is often not the case for a computer microbenchmark~\cite{staelin05lmbench}.
 %Though confidence intervals should be taken with a grain of salt, 
 %we include them because they clearly indicate that these experiments have very low variance. In 
 %a few cases of minor performance improvement, one can assess the impact of noise.}.
 To measure the marginal cost of the reference monitor, we report numbers with and without 
 the reference monitor.
 
-%The performance of \sysname{} relative to Linux varies
+%The performance of \graphene{} relative to Linux varies
 %based on the system call.  
 In general, calls that can be serviced inside the library are faster than native,
 whereas calls that require translation to a native call incur overheads typically under 100\%.
@@ -310,8 +309,8 @@ as the Linux kernel implementation.
 \centering
 \begin{tabular}{|l|rr|rrr|rrr|rrr|}
 \hline
-{\bf Test } & \multicolumn{2}{c|}{{\bf Linux}} & \multicolumn{3}{c|}{{\bf \sysname{}
-}} & \multicolumn{3}{c|}{{\bf \sysname{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \sysname{} + \sgx{}}} \\
+{\bf Test } & \multicolumn{2}{c|}{{\bf Linux}} & \multicolumn{3}{c|}{{\bf \graphene{}
+}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \graphene{} + \sgx{}}} \\
 &
 \usec{} & +/- & 
 \usec{} & +/- & \%O &
@@ -356,11 +355,11 @@ fork+sh        & 499.64 & 0.67 & 1,726.75 & 6.14 & 245 & 1,912.00 & 3.83 &   283
 %%% 10K creat & 83 & 0.1  & 28 & 0.0 & 195 & 27 & 0.0 & 204 \\\hline
 %%% 10K del & 149 & 0.3  & 94 & 0.1 & 58 & 88 & 0.2 & 69 \\\hline
 \end{tabular}
-\caption[\lmbench{} benchmarking results in Linux, KVM and \sysname{}]
-{\lmbench{} comparison among (1) native Linux processes, (2) \sysname{} \picoprocs{} on Linux host, both without and with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \sysname{} in \sgx{} enclaves.
+\caption[\lmbench{} benchmarking results in Linux, KVM and \graphene{}]
+{\lmbench{} comparison among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in \sgx{} enclaves.
 Execution time is in microseconds, and lower is better. 
 %The file system is measured in thousands operations per second, and higher is better.
-Overheads are relative to Linux; negative overheads indicate improved performance. \fixme{Update \sysname{} and \graphenesgx{} numbers}} 
+Overheads are relative to Linux; negative overheads indicate improved performance.} 
 \label{tab:graphene:lmbench}
 \end{table}
 
@@ -382,19 +381,19 @@ A more competitive {\tt fork} will require host support and additional {\tt libL
 %and more tuning in the {\tt libLinux} code. 
 %\fixmewkj{explain why TCP faster than UDP?}
 
-We also measure the overhead of isolating a \sysname{} \picoproc{} inside the reference monitor.
+We also measure the overhead of isolating a \graphene{} \picoproc{} inside the reference monitor.
 Because most filtering rules can be statically loaded into the kernel,
 the cost of filtering is negligible with few exceptions.
 %TCP and UDP latency is increased slightly because the monitor checks
 %the arguments of the {\tt connect} system call.
 Only calls that
-involve path traversals, such as {\tt open} and {\tt exec}, result in substantial overheads relative to \sysname{}.
+involve path traversals, such as {\tt open} and {\tt exec}, result in substantial overheads relative to \graphene{}.
 %%, adding an additional 100--200\% overhead. This is 
 %because the AppArmor extensions must verify that
 %the requested paths are in the permitted file system view.
-%Alternative implementations, such as a {\tt chroot-ed} environment using the aufs unioning file system version 3.0~\citep{aufs},
+%Alternative implementations, such as a {\tt chroot-ed} environment using the aufs unioning file system version 3.0~\cite{aufs},
 %resulted in opens that were {\em twice} as slow as our LSM extensions.
-An efficient implementation of an environment similar to FreeBSD  jails~\citep{jails}
+An efficient implementation of an environment similar to FreeBSD  jails~\cite{jails}
 would make all reference monitoring overheads negligible.
 
 \begin{table}[t!b!]
@@ -404,7 +403,7 @@ would make all reference monitoring overheads negligible.
 \hline
 \multicolumn{2}{|c|}{{\bf Test}} &
 \multicolumn{2}{c|}{{\bf Linux}} &
-\multicolumn{3}{c|}{{\bf \sysname{}}} \\
+\multicolumn{3}{c|}{{\bf \graphene{}}} \\
  & & \us{} & +/- & \us{} & +/- & \\
 \hline
 msgget   & in-process    & 3320	& 0.7 &  2823 & 0.3 &	-15	\%		\\
@@ -424,11 +423,11 @@ msgrcv   & in-process    &  149	& 0.1 &   237 & 0.2 &	60	\%		\\
          & persistent    &  N/A	&     &   979 & 0.6 &	561	\%	    \\
          \hline
 \end{tabular}
-\caption[The \microbench{} results for System V message queues in Linux, KVM, and \sysname{}]
+\caption[The \microbench{} results for System V message queues in Linux, KVM, and \graphene{}]
 {Micro-benchmark comparison for System V message queues
-between a native Linux process and \sysname{} \picoprocs{}.
+between a native Linux process and \graphene{} \picoprocs{}.
 Execution time is in microseconds, and lower is better.
-overheads are relative to Linux, and negative overheads indicate improved performance. \fixme{Update \sysname{} and \graphenesgx{} numbers}}
+overheads are relative to Linux, and negative overheads indicate improved performance.}
 %We measure the cost of sending and receiving from the same process (in process),
 %across two processes (inter process), and non-concurrently (persistent).
 \label{tab:graphene:msgq}
@@ -445,7 +444,7 @@ survive processes in kernel memory.
 In-process queue creation and lookup are faster than Linux.
 In-process send and receive overheads are higher
 because of locking on the internal data structures; the current implementation acquires and releases four
-fine-grained locks, two of which could be elided by using RCU to eliminate locking for the readers~\citep{mckenney04rcu}.
+fine-grained locks, two of which could be elided by using RCU to eliminate locking for the readers~\cite{mckenney04rcu}.
 Most of the costs of persisting message queue contents are also attributable to locking.
 
 Although inter-process send and receive still induce substantial overhead, the optimizations
@@ -455,14 +454,14 @@ when a producer/consumer pattern were detected were particularly helpful.
 
 %%\begin{comment}
 %\paragraph{Scalability.}
-%We compare the scalability of \sysname{}'s RPC substrate with the scalability
+%We compare the scalability of \graphene{}'s RPC substrate with the scalability
 %of Linux pipes, using a \libos{} that compares the cost of ping-ponging a no-op RPC within a sandbox.
-%%In order to evaluate the scalability of \sysname{}'s m
+%%In order to evaluate the scalability of \graphene{}'s m
 %%we created a microbenchmark where processes within one sandbox ping-pong a no-op RPC,
 %%in figure~\ref{fig:rpc4core}.For comparison we executed a similar test where processes send equal sized
 %For this experiment, we used a 48-core SuperMicro SuperServer, with four 12-core AMD Opteron 6172 chips running at 2.1 GHz and 64 GB of RAM.
-%The performance of \sysname{} closely matches Linux (Figure~\ref{fig:graphene:rpc48core}),
-%indicating that the \sysname{} RPC mechanism doesn't introduce any scalability bottlenecks above
+%The performance of \graphene{} closely matches Linux (Figure~\ref{fig:graphene:rpc48core}),
+%indicating that the \graphene{} RPC mechanism doesn't introduce any scalability bottlenecks above
 %the scalability of IPC on the host OS (Linux).
 %The relative performance differences are more variable above 24 cores, which we believe are the 
 %result of host-level scheduling.
@@ -481,7 +480,7 @@ when a producer/consumer pattern were detected were particularly helpful.
 %% %%For comparison, we also include a comparable {\tt libLinux}-level 
 %% %%signal ping-pong benchmark.  This is less scalable than the RPC substrate due to coarse
 %% %%locking on the sigaction structures in {\tt libLinux}.
-%% These tests indicate that \sysname{}'s RPC mechanism is sufficiently scalable within a sandbox for 
+%% These tests indicate that \graphene{}'s RPC mechanism is sufficiently scalable within a sandbox for 
 %% any reasonable multi-processing application.
 %%\end{comment}
 
@@ -491,7 +490,7 @@ when a producer/consumer pattern were detected were particularly helpful.
 %\includeplot[0.5]{rpc-scalability}
 %\centerline{\includegraphics[width=\linewidth]{figures/48core.png}}
 %\vspace{-10pt}
-%\caption{Scalability of Linux pipes and \sysname{} RPC on a 48 core machine. Pairs of processes concurrently exchange 10,000 1-byte messages.
+%\caption{Scalability of Linux pipes and \graphene{} RPC on a 48 core machine. Pairs of processes concurrently exchange 10,000 1-byte messages.
 %\label{fig:rpc48core}}
 %\end{figure}
 
@@ -531,19 +530,19 @@ when a producer/consumer pattern were detected were particularly helpful.
 %\subsection{Multi-Processing and Security}
 
 %This subsection details the microbenchmarks
-%and stress tests we use to exercise \sysname{}'s multi-processing
+%and stress tests we use to exercise \graphene{}'s multi-processing
 %support and security isolation.
 
 %\paragraph{Security isolation.}
 
-%We validate that the \sysname{} host can dynamically move a \picoproc{} into a new sandbox, and that the \sysname{} handles this transparently to the application. In this test case, the host forcibly disconnects all streams between two guests after execution begins. Both library OSes behave as if the other \picoproc{} terminated, delivering exit notifications, closing application-visible pipes. The \picoproc{} which was not already leader for IPC coordination  assumes this role in the new sandbox. Thus, we show that \sysname{} gracefully handles dynamic sandboxing or disconnection of collaborating \picoprocs{}.
+%We validate that the \graphene{} host can dynamically move a \picoproc{} into a new sandbox, and that the \graphene{} handles this transparently to the application. In this test case, the host forcibly disconnects all streams between two guests after execution begins. Both library OSes behave as if the other \picoproc{} terminated, delivering exit notifications, closing application-visible pipes. The \picoproc{} which was not already leader for IPC coordination  assumes this role in the new sandbox. Thus, we show that \graphene{} gracefully handles dynamic sandboxing or disconnection of collaborating \picoprocs{}.
 
 \subsection{Security Study}
 
 Demonstrating security is always challenging, as it requires exploring all possible attacks.
 We instead offer statistics that indicate an overall reduction in attack surface,
 and qualitative validation where appropriate.
-\sysname{} runs substantial Linux applications using less than 15\% of the
+\graphene{} runs substantial Linux applications using less than 15\% of the
 Linux system call table
 --- reducing this attack surface.
 We wrote several tests that attempt to issue illegal system calls with inline assembly;
@@ -552,16 +551,16 @@ and that signals and other IPC cannot cross sandbox boundaries.
 %This protection adds only \~{}2,500 lines of code to the trusted computing base
 %of the system.  
 %Admittedly, Linux itself adds millions of lines to the TCB,
-%but independent results indicate the \sysname{} ABI
-%could be implemented on a substantially smaller kernel~\citep{porter11drawbridge, baumann13bascule}.
+%but independent results indicate the \graphene{} ABI
+%could be implemented on a substantially smaller kernel~\cite{porter11drawbridge, baumann13bascule}.
 
 
 
 
-%\sysname{}’s goal is to provide a lightweight alternative to isolate applications. Instead of leveraging a heavy-weighed VM to isolate an application or a set of collaborating processes, one can leverage \sysname{} to achieve isolation with much less memory overhead. Application isolation has many advantages from a security viewpoint: any vulnerability, malicious computations and bugs are isolated in the application sandbox. It is very hard for a malicious application to affect another, for example, obtaining/leaking sensitive information,  crashing or affecting performance. 
+%\graphene{}’s goal is to provide a lightweight alternative to isolate applications. Instead of leveraging a heavy-weighed VM to isolate an application or a set of collaborating processes, one can leverage \graphene{} to achieve isolation with much less memory overhead. Application isolation has many advantages from a security viewpoint: any vulnerability, malicious computations and bugs are isolated in the application sandbox. It is very hard for a malicious application to affect another, for example, obtaining/leaking sensitive information,  crashing or affecting performance. 
 
 \begin{comment}
-In our design, only trusted applications such as system utilities can run as a non-\sysname{} \picoproc{}, as they need many more functionality that the \sysname{} Linux ABI support. From a security standpoint, nothing prevents a \sysname{} \picoprocs{} from acting maliciously, as application code runs unmodified in \sysname{}.  However, it is important to note that \sysname{}’s goal is not to secure a system but to isolate applications in a competitive level compared to the VM alternative. 
+In our design, only trusted applications such as system utilities can run as a non-\graphene{} \picoproc{}, as they need many more functionality that the \graphene{} Linux ABI support. From a security standpoint, nothing prevents a \graphene{} \picoprocs{} from acting maliciously, as application code runs unmodified in \graphene{}.  However, it is important to note that \graphene{}’s goal is not to secure a system but to isolate applications in a competitive level compared to the VM alternative. 
 \end{comment}
 
 %Thus, the security issues discussed in this section are related to \emph{isolation}, especially in comparison to the VM environment. In fact, VM environment can suffer from malicious processes in the same guest. 
@@ -570,41 +569,41 @@ In our design, only trusted applications such as system utilities can run as a n
 
 
 \paragraph{Isolation Experiments.}
-This subsection tests whether \sysname{} meets its goal of providing equivalent isolation
+This subsection tests whether \graphene{} meets its goal of providing equivalent isolation
 to a VM.
-We conducted an evaluation of the security of the isolation mechanisms in \sysname{} and analyzed whether a malicious \sysname{} \picoproc{} could 
-(i) fork a non-\sysname{} process, 
-(ii)  kill processes from another sandbox or a non \sysname{} process, 
+We conducted an evaluation of the security of the isolation mechanisms in \graphene{} and analyzed whether a malicious \graphene{} \picoproc{} could 
+(i) fork a non-\graphene{} process, 
+(ii)  kill processes from another sandbox or a non \graphene{} process, 
 (iii) access files not prescribed in its Manifest, and 
-(iv) discover secrets from \picoprocs{} in other sandboxes or from non-\sysname{} process through side-channels via the {\tt /proc} file system. 
+(iv) discover secrets from \picoprocs{} in other sandboxes or from non-\graphene{} process through side-channels via the {\tt /proc} file system. 
 The first three attacks use inline assembly to directly issue a system call, and are blocked by the reference monitor; the fourth creates
-an attack similar to Memento~\citep{memento} and is frustrated by the fact that {\tt /proc} is implemented within {\tt libLinux} and
-the system {\tt /proc} is inaccessible from \sysname{}.
+an attack similar to Memento~\cite{memento} and is frustrated by the fact that {\tt /proc} is implemented within {\tt libLinux} and
+the system {\tt /proc} is inaccessible from \graphene{}.
 
 \begin{comment}
-Consider the configuration illustrated in Figure \ref{fig:coordination} and assume that \picoproc{} 1 is malicious . In our first experiment, \picoproc{} 1 unsuccessfully attempts to fork a non-\sysname{} process by invoking the {\tt fork()} function and also invoking the {\tt fork} system call directly. Since \sysname{} hooks system calls at the kernel level, it does not matter how the fork occurs since the kernel checks whether it is a \sysname{} \picoproc{} that is calling {\tt fork} and creates a new \sysname{} process if it is. 
+Consider the configuration illustrated in Figure \ref{fig:coordination} and assume that \picoproc{} 1 is malicious . In our first experiment, \picoproc{} 1 unsuccessfully attempts to fork a non-\graphene{} process by invoking the {\tt fork()} function and also invoking the {\tt fork} system call directly. Since \graphene{} hooks system calls at the kernel level, it does not matter how the fork occurs since the kernel checks whether it is a \graphene{} \picoproc{} that is calling {\tt fork} and creates a new \graphene{} process if it is. 
 
 In our second experiment \picoproc{} 1 attempts to kill \picoproc{} 3 in a separate sandbox. Picoprocess 1 is blocked from calling the kill command on any process that is not explicitly contained in its sandbox since the PID is checked against the sandbox's PID list. 
 
-%Each \sysname{} application includes a manifest, which specifies restrictions, including such as network firewall rules and subsets of the file system it is allowed to access. 
+%Each \graphene{} application includes a manifest, which specifies restrictions, including such as network firewall rules and subsets of the file system it is allowed to access. 
 
 In a third experiment \picoproc{} 1 tries to access files that do not belong in its Manifest. Picoprocess 1 attempts to circumvent the Manifest rules through the function {\tt open}, {\tt fopen}, and also by calling the open system call directly. When the open system call is called, it’s filename parameter is checked against a list of acceptable directories and rejected if it does not match anything in this list. This blocks the \picoproc{} 1 from accessing illegal files.
 
-In our last experiment, \picoproc{} 1 attempts to obtain secrets from \picoproc{} 3, in an attack similar to Memento \citep{memento}. \sysname{} processes are restricted from using the proc file system in order gain information about system processes.  In our experiment, \picoproc{} 1's manifest file was setup to deny access to this directory and, as a result, it was unable access system or other processes' information outside its sandbox.
+In our last experiment, \picoproc{} 1 attempts to obtain secrets from \picoproc{} 3, in an attack similar to Memento \cite{memento}. \graphene{} processes are restricted from using the proc file system in order gain information about system processes.  In our experiment, \picoproc{} 1's manifest file was setup to deny access to this directory and, as a result, it was unable access system or other processes' information outside its sandbox.
 \end{comment}
 
 %This attack involves correlating a web browser’s data resident size (inspected via the {\tt proc} file system) to the web sites visited by a user. 
 %Since the proc file system is accessed as though it was part of the normal file system, any access to it has to go through the system  open command.
 \paragraph{Analysis of Linux Vulnerabilities.}
-\sysname{} restricts \picoprocs{} to 15\% of the system call table.
+\graphene{} restricts \picoprocs{} to 15\% of the system call table.
 To evaluate the impact on system security,
 we \emph{manually} analyzed
 all reported Linux vulnerabilities from 2011--2013 (a total
-of 291 vulnerabilities)~\citep{linuxvuln}.
+of 291 vulnerabilities)~\cite{linuxvuln}.
 We categorized these exploits by kernel component, listed in Table~\ref{table:vulnerabilities}.
 Roughly half of these vulnerabilities required a system
-call  which \sysname{} blocks in order to exploit the system.
-\sysname{} would only allow 5 of the relevant vulnerabilities
+call  which \graphene{} blocks in order to exploit the system.
+\graphene{} would only allow 5 of the relevant vulnerabilities
 through its system call filtering and reference monitor.
 The remaining half of the vulnerabilities were entirely within the kernel or modules,
     such as bugs in the virtual memory subsystem.
@@ -614,9 +613,9 @@ The remaining half of the vulnerabilities were entirely within the kernel or mod
 \centering
 \begin{tabular}{|l|r|rr|}
 \hline
-{\bf Category } & {\bf Total} & \multicolumn{2}{|c|}{{\bf Prevented by \sysname{}}}\\
+{\bf Category } & {\bf Total} & \multicolumn{2}{|c|}{{\bf Prevented by \graphene{}}}\\
 
-%&& \multicolumn{2}{|c|}{{\bf by \sysname{}}}\\
+%&& \multicolumn{2}{|c|}{{\bf by \graphene{}}}\\
 \hline
 System call      & 118        &   \hspace{0.2in} 113 &96\% \\\hline 
 Network          & 73         &   \hspace{0.2in}30 & 41\% \\\hline 
@@ -628,8 +627,8 @@ Kernel other     & 13      & \hspace{0.2in} 0 &\\\hline
 Total            & 291     & \hspace{0.2in} 147 & 51\% \\\hline 
 %\hline
 \end{tabular}
-\caption[Analysis of Linux vulnerabilities prevented by \sysname{}]
-{Manual analysis of Linux vulnerabilities from 2011-2013 and \sysname{}'s prevention.}
+\caption[Analysis of Linux vulnerabilities prevented by \graphene{}]
+{Manual analysis of Linux vulnerabilities from 2011-2013 and \graphene{}'s prevention.}
 \label{table:vulnerabilities}
 \end{table}
 
@@ -638,7 +637,7 @@ Total            & 291     & \hspace{0.2in} 147 & 51\% \\\hline
 %were in uncommonly-used network protocols, and 
 
 %%% For each
-%%% vulnerability we analyzed whether or not \sysname{} restrictions,
+%%% vulnerability we analyzed whether or not \graphene{} restrictions,
 %%% especially related to system calls, would have prevented the
 %%% vulnerability. Table \ref{table:vulnerabilities} shows the results of
 %%% our analysis.
@@ -646,7 +645,7 @@ Total            & 291     & \hspace{0.2in} 147 & 51\% \\\hline
 %System
 %call interface, Network subsystem , File System, Drivers, VM support
 %subsystem, vulnerable applications and general kernel issues.
-%%% Even though \sysname{}'s main goal is to provide a light-weight
+%%% Even though \graphene{}'s main goal is to provide a light-weight
 %%% alternative for isolating a process or a group of cooperating
 %%% processes, we wanted to discover how this paradigm affect the overall
 %%% security of a system. To accomplish that we 
@@ -655,16 +654,16 @@ Total            & 291     & \hspace{0.2in} 147 & 51\% \\\hline
  
 \begin{comment}
 As Table \ref{table:vulnerabilities} illustrates almost all Linux
-system call-related vulnerabilities are prevented through the \sysname{}
+system call-related vulnerabilities are prevented through the \graphene{}
 paradigm. These vulnerabilities are related to system calls or flags
-that are blocked or restricted in \sysname{}, such as I/O control, event
+that are blocked or restricted in \graphene{}, such as I/O control, event
 polling and notification, huge pages, socket options, task stats,
-\emph{etc.}  \sysname{} also restricts rarely used network protocols
+\emph{etc.}  \graphene{} also restricts rarely used network protocols
 such as VSOCK, TIPC and ROSE, and this prevents 41\% of network
-vulnerabilities in \sysname{} systems. The Manifest file used to
+vulnerabilities in \graphene{} systems. The Manifest file used to
 restrict portions of the file system also prevented 2 FS-related
 vulnerabilities. We also considered vulnerabilities in Linux
-applications as preventable by \sysname{}, as all the effects are
+applications as preventable by \graphene{}, as all the effects are
 confined in the correspondent \picoproc{} or sandbox. 
 \end{comment}
 
@@ -676,7 +675,7 @@ the application has the potential to substantially reduce exploitable
 system vulnerabilities.
 
 \paragraph{New Opportunities.}
-To explore new use cases of the \sysname{} sandboxing model, we modified the 
+To explore new use cases of the \graphene{} sandboxing model, we modified the 
 Apache {\tt mod\_\-auth\_\-basic.so} module to call the new library OS function
 {\tt sandbox\_create} after user authentication.
 The work\-er process that services the user request executes in a separate sandbox 
@@ -694,13 +693,13 @@ We see interesting opportunities to expand this model in future work.
 
 
 %%% Our results show
-%%% that \sysname{} paradigm prevents 50\% of all Linux security
+%%% that \graphene{} paradigm prevents 50\% of all Linux security
 %%% vulnerabilities reported for the last 3 years, even though the
 %%% immediate goal of the paradigm is isolation.
 
 
 
-%As an example of our analysis process, consider the description of Linux vulnerability with CVE-2013-1828: \emph{The {\tt sctp\_getsockopt\_assoc\_stats} function in net/sctp/socket.c in the Linux kernel before 3.8.4 does not validate a size value before proceeding to a {\tt copy\_from\_user} operation, which allows local users to gain privileges via a crafted application that contains an SCTP\_GET\_ASSOC\_STATS {\tt getsockopt} system call}. As the {\tt getsockopt} system call is not provided in the PAL and gets blocked even if the application invoked it directly through inline assembly, this vulnerability will not occur in \sysname{} applications.
+%As an example of our analysis process, consider the description of Linux vulnerability with CVE-2013-1828: \emph{The {\tt sctp\_getsockopt\_assoc\_stats} function in net/sctp/socket.c in the Linux kernel before 3.8.4 does not validate a size value before proceeding to a {\tt copy\_from\_user} operation, which allows local users to gain privileges via a crafted application that contains an SCTP\_GET\_ASSOC\_STATS {\tt getsockopt} system call}. As the {\tt getsockopt} system call is not provided in the PAL and gets blocked even if the application invoked it directly through inline assembly, this vulnerability will not occur in \graphene{} applications.
 
 %processes sharing I/O context, perf events, key control and related functions, ptrace, capabilities, module loading/unloading, tun tap, partitions, TPM encruption, sigqueueand and Hyper V.
 %, NFC, NETROM, LLC, L2TP, IUCV, IRDA, CAIF, BLUETOOTH
@@ -720,7 +719,7 @@ We see interesting opportunities to expand this model in future work.
 
 
 
-%% This experiment show how \sysname{} isolate child processes by
+%% This experiment show how \graphene{} isolate child processes by
 %% shutdown namespace coordination channel. We enforce an easy
 %% isolation rule (defined by manifest) that isolate process
 %% after their parent explicitly exits. The child process loses the view

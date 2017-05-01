@@ -1,4 +1,4 @@
-\section{Implementation Details in \sysname{}}
+\section{Implementation Details in \graphene{}}
 \label{sec:graphene:impl}
 
 \paragraph{Linux \pal{}.}
@@ -12,8 +12,8 @@ Finally, the other major \pal{} components are an ELF loader (2 kLoC), headers (
 and internal support code (2.3 kLoC).
 
 \paragraph{Alternative \pal{} Ports.}
-We prove the platform independence of \sysname{}
-by porting \pal{} to \term{FreeBSD}, \term{OSX} and \term{Windows}.
+We prove the platform independence of \graphene{}
+by porting \pal{} to \emph{FreeBSD}, \emph{OSX} and \emph{Windows}.
 With the alternative host \pal{}, unmodified Linux binaries,
 along with {\tt glibc} and {libLinux},
 can be transparently run on the host.
@@ -23,7 +23,7 @@ which are significantly less than FreeBSD Linux compatibility module (10.8 kLoC)
 \pal{} components including ELF loader and internal support code can be shared by any \pal{} ports.
 
 %\fix{We leave host \pal{} ports to non-unix OSes like Windows as future work,
-%but previous works~\citep{porter11drawbridge,baumann13bascule} have already shown it feasible.}
+%but previous works~\cite{porter11drawbridge,baumann13bascule} have already shown it feasible.}
 
 \begin{table}[t!b!]
 \footnotesize
@@ -45,8 +45,8 @@ Linux kernel reference monitor module ({\tt /dev/graphene}) & \sandboxmodlines{}
 Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 \hline
 \end{tabular}
-\caption[Lines of code written or changed in \sysname{}]
-{Lines of code written or changed to produce \sysname{}.  Applications and other libraries are unchanged. \fixme{update numbers}}
+\caption[Lines of code written or changed in \graphene{}]
+{Lines of code written or changed to produce \graphene{}.  Applications and other libraries are unchanged.}
 \label{tab:graphene:loc}
 \end{table}
 
@@ -60,8 +60,8 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 
 \paragraph{Implementing Linux Personality.} 
 %\fixmedp{Revisit the logical flow of these paragraphs}
-The \sysname{} {\tt libLinux.so} implements a subset 
-of the Linux system call API (currently \syscalls{} calls)
+The \graphene{} {\tt libLinux.so} implements a subset 
+of the Linux system call API (currently \graphenesyscalls{} calls)
 using only the \pal{} ABI to interact with the host.
 We note that Linux exports a very long tail of infrequently used calls.
 %applications.
@@ -75,11 +75,11 @@ In the last category of system calls, the degree to which actual host details sh
 %We believe represent the most commonly used system calls.
 %When an application requests a call or argument that {\tt libLinux.so} does not implement,
 %the picoprocess exits with a distinct error message. 
-Each time we have tested \sysname{} with a new application, the number of extra system calls
+Each time we have tested \graphene{} with a new application, the number of extra system calls
 required has dropped---most recently we only added 4 calls
 (namely, epoll\_create, epoll\_wait, semget and semop)
 to support the Apache web server.
-Thus, we believe \sysname{} implements a representative sample of Linux calls.
+Thus, we believe \graphene{} implements a representative sample of Linux calls.
 
 %such as {\tt sched\_setparam}, which manipulates scheduler-specific
 %parameters or 
@@ -87,7 +87,7 @@ Thus, we believe \sysname{} implements a representative sample of Linux calls.
 %in {\tt glibc} version 2 in favor of a user-space dynamic linker.
 %We do not plan to implement administrative interfaces, such as {\tt reboot}.
 %The growth in the set of supported system calls has been driven by 
-%the requirements of new applications we use to exercise \sysname{}, and has been 
+%the requirements of new applications we use to exercise \graphene{}, and has been 
 %slowing considerably over time.
 
 %directly to guests, and thus will not implement them in {\tt libLinux.so}.
@@ -121,11 +121,11 @@ and to cooperatively manage thread-local storage with {\tt libLinux.so} (Table~\
 \begin{comment}
 \vspace{5pt}
 \noindent{\bf ABI Extensions.~}
-\sysname{} extends the Drawbridge ABI with 9 additional \pal{} calls.
+\graphene{} extends the Drawbridge ABI with 9 additional \pal{} calls.
 As discussed above, one creates a new sandbox, and 
 5 additional calls were added for IPC.
 We also add 3 calls to manage x86 segmentation registers
-and exceptions (Bascule~\citep{baumann13bascule} adds
+and exceptions (Bascule~\cite{baumann13bascule} adds
 similar extensions).
 \end{comment}
 
@@ -134,7 +134,7 @@ synchronization appears substantially easier than Windows synchronization,
 as {\tt libLinux} did not require all of the various
 synchronization ABIs provided by Drawbridge.
 We believe the reason for this is that Linux has consolidated 
-all user-level synchronization primitives to use futexes~\citep{franke02futex},
+all user-level synchronization primitives to use futexes~\cite{franke02futex},
 which are essentially kernel-level wait queues.
 %In Windows parlance, this is simply an Event associated with a virtual address.
 %Thus, our effort implementing synchronization was relatively straightforward.

@@ -7,19 +7,19 @@
 %Recent library OS designs focus on single-process applications,
 %which move a substantial portion of the OS APIs and state used by the application into the \libos{}.
 
-%A key contribution of the \sysname{} 
+%A key contribution of the \graphene{} 
 %design is robust and flexible support for multi-process applications.
-An application executes on \sysname{} 
+An application executes on \graphene{} 
 with the abstraction that all of its processes are running on a single OS.
-\sysname{} \libos{}es service system calls
+\graphene{} \libos{}es service system calls
 from local \libos{} state whenever possible,
 and state is coordinated across \picoprocs{} via RPC when necessary.
-Within a sandbox, \sysname{} \picoprocs{} 
+Within a sandbox, \graphene{} \picoprocs{} 
 coordinate shared state used to implement multi-process
 abstractions, such as process identifiers, thread groups, and 
 System V IPC including message queues and semaphores, shared file system and file descriptor states (Table~\ref{tab:graphene:multiproc}).
-Similar to previous designs~\citep{porter11drawbridge,baumann13bascule}, 
-\sysname{} uses the host file system; 
+Similar to previous designs~\cite{porter11drawbridge,baumann13bascule}, 
+\graphene{} uses the host file system; 
 the \libos{} implements file handles and translates between POSIX and the host ABI.
 Identifying the best division of labor for a \libos{} file system is 
 left for future work.
@@ -64,7 +64,7 @@ Seek pointers & Mappings managed by parent, migrate ownership to \picoproc{} mos
 \hline
 \end{tabular}
 \caption[Multi-process abstractions implemented in sysname{}]
-{Multi-process abstractions implemented in \sysname{}, coordinated state, and implementation strategies.}
+{Multi-process abstractions implemented in \graphene{}, coordinated state, and implementation strategies.}
 \label{tab:graphene:multiproc}
 \end{table}
 
@@ -93,7 +93,7 @@ leverage remote procedure calls (RPCs) to coordinate accesses to shared abstract
 As an example of balancing security isolation and coordination APIs,
 consider functionality that use the process ID namespace,
 such as  Unix signaling or exit notification (e.g., {\tt waitpid()}).
-In \sysname{}, the process ID namespace, 
+In \graphene{}, the process ID namespace, 
 as well as signaling and related system calls,
 are implemented inside the library OS.
 A process can signal itself by having the \libos{} directly call the handler function.
@@ -135,7 +135,7 @@ from the sending library OS to the receiving library OS.
 Note that this is all transparent to the unmodified application.
 Section~\ref{sec:graphene:namespaces} describes these library OS-internal
 coordination mechanisms in more detail.
-The current \sysname{} prototype supports 
+The current \graphene{} prototype supports 
 a range of coordination abstractions, including signaling, 
 exit notification, System V message queues, thread identifiers and groups, sessions,
 and the process tree.
@@ -155,7 +155,7 @@ for coordination is among pairs of processes.
 Examples include a parent waiting on a child to exit, 
 one process signaling another, or a single producer and single consumer
 sharing a message queue.
-Thus, \sysname{} optimizes for the common case of pairwise coordination,
+Thus, \graphene{} optimizes for the common case of pairwise coordination,
 reducing the overhead of replicating data (\S\ref{sec:namespaces:insights}).
 \end{comment}
 
@@ -186,15 +186,15 @@ leverage remote procedure calls (RPCs) to coordinate accesses to shared abstract
 %Picoprocesses then implement abstractions such as signals
 %by issuing a remote procedure call (RPC) to the appropriate \picoproc{}.
 
-\sysname{} creates an  {\bf IPC helper} thread within each \picoproc{},
+\graphene{} creates an  {\bf IPC helper} thread within each \picoproc{},
 which exchanges coordination messages with the IPC helper threads of \picoprocs{} 
 within the sandbox. %, using these broadcast and point-to-point streams.
 The IPC helper
 services RPCs from other \picoprocs{} and is
 hidden from the application. 
 GNU Hurd has a similar helper thread to implement signaling among a process's parent and
-immediate children~\citep{hurd};
-\sysname{} generalizes this idea to share a broader range of abstractions among any \picoprocs{}
+immediate children~\cite{hurd};
+\graphene{} generalizes this idea to share a broader range of abstractions among any \picoprocs{}
 within a sandbox.
 %The IPC helpers are necessary 
 %in each \picoproc{} to serve remote messages and receive responses atomically.
@@ -243,7 +243,7 @@ ensuring serializability and consistency for that resource.
 %%% If the leader crashes, 
 %%% a new leader can be elected. The detail of leadership recovery is discussed in
 %%% Section~\ref{sec:namespaces:leader}. 
-%More detailed discussion of the \sysname{}-internal
+%More detailed discussion of the \graphene{}-internal
 %RPC protocol is omitted for space;
 %but it 
 %consists of 30 message types which 
@@ -263,14 +263,14 @@ If a process signals itself, {\tt libLinux} simply uses internal data structures
 to call the appropriate signal handler directly.
 %this section describes how this local model is extended with RPCs for remote PIDs.
 %For cross-process signals, we use the namespace coordination mechanism.
-\sysname{} implements all three of Linux's signaling namespaces:
+\graphene{} implements all three of Linux's signaling namespaces:
 process, process group, and thread IDs.
 
 \begin{figure}
 \centering
 \includegraphics[width=6in]{graphene/figures/coordination.pdf}
-\caption[Sandboxing inter-process cordination in \sysname{}]
-{Two pairs of \sysname{} \picoprocs{} in different sandboxes 
+\caption[Sandboxing inter-process cordination in \graphene{}]
+{Two pairs of \graphene{} \picoprocs{} in different sandboxes 
 coordinate signaling and process ID management.
 The location of each PID is tracked in {\tt libLinux}; Picoprocess 1 signals
 \picoproc{} 2 by sending a signal RPC over stream 1,
@@ -313,19 +313,19 @@ an {\tt exitnotify} RPC to \picoproc{} 4.
 
 %%% Using a helper thread alongside each process to asynchro-
 %%% nously handle signaling
-%%% is common in many \microkernel{}-based OSes such as GNU Hurd~\citep{hurd}.
+%%% is common in many \microkernel{}-based OSes such as GNU Hurd~\cite{hurd}.
 %%% GNU Hurd also maintains local mappings of PIDs and RPC ports for inter-process messaging.
 %%% However, PID namespace in GNU Hurd is only tracked between the parents/children, so signaling cannot be transferred between arbitrary processes.
-%%% \sysname{} handles PID namespace with global consistency inside a sandbox,
+%%% \graphene{} handles PID namespace with global consistency inside a sandbox,
 %%% but requires no intensive RPCs to any centralized service.   
 
-The \sysname{} {\tt libLinux} signal semantics closely match Linux behavior, which
+The \graphene{} {\tt libLinux} signal semantics closely match Linux behavior, which
 delivers signals upon return from a system call or an interrupt or trap handler (\pal{} upcall).
 %Each process and thread have {\tt sigaction} structures adapted from the Linux source 
 %that implement the
 %POSIX specification, including handler functions, as well as masking signals and
 %reentrant behavior.
-The {\tt libc} signal handling code is unmodified on \sysname{}.
+The {\tt libc} signal handling code is unmodified on \graphene{}.
 %We extend the \pal{} with ABIs for explicit upcalls on certain hardware exceptions, such
 %as divide-by-zero or segmentation faults.
 %Signals from other processes, such as {\tt SIGUSR1}, are generally delivered upon 
@@ -336,7 +336,7 @@ the thread.
 
 
 % Daniela Oliveira commented. old caption for coordination
-%\caption{\sysname{} namespace coordination example.  
+%\caption{\graphene{} namespace coordination example.  
  % Two applications and {\tt libLinux} instances
  % coordinate signaling and process ID management.
  % The location of each PID is tracked in {\tt libLinux};
@@ -348,11 +348,11 @@ the thread.
 
 
 \begin{comment}
-\sysname{} internally indexes point-to-point handles using PIDs.
+\graphene{} internally indexes point-to-point handles using PIDs.
 In order to facilitate reallocation of PIDs without global coordination, 
-\sysname{}-internal PIDs also include a {\em generation number},
+\graphene{}-internal PIDs also include a {\em generation number},
 allowing \picoprocs{} to lazily detect reuse similar to generation numbers 
-for inodes in NFS~\citep{sandberg85nfs}.
+for inodes in NFS~\cite{sandberg85nfs}.
 \end{comment}
 
 \paragraph{System V IPC.} System V IPC
@@ -369,7 +369,7 @@ The leader also dynamically allocates keys to \picoprocs{}.
 %%% makes the definitive decision about whether a ID mapping is still valid.
 %%% A key which does not have a valid mapping can be assigned to an ID by any \picoproc{}.
 
-\paragraph{Message Queues.} In \sysname{}, the owner of a queue ID is responsible for 
+\paragraph{Message Queues.} In \graphene{}, the owner of a queue ID is responsible for 
 storing the messages written to the queue; all message sends and receives must 
 go through the owning \picoproc{}.  
 In our initial implementation, any sends to or receives from a remote queue were several
@@ -400,7 +400,7 @@ and the receiving process may request ownership of the queue from the leader.
 
 %\paragraph{Failure Recovery.}
 %\label{sec:namespaces:failurerecovery}
-%The \sysname{} coordination protocols are designed such that the leader does not store any unrecoverable information---the leader
+%The \graphene{} coordination protocols are designed such that the leader does not store any unrecoverable information---the leader
 %only caches the current name allocations.
 %Because we assume that \picoprocs{} within a sandbox trust each other, 
 %a new leader can simply broadcast a request to 
@@ -412,14 +412,14 @@ and the receiving process may request ownership of the queue from the leader.
 \paragraph{Semaphores.} IPC semaphores 
 follow a similar pattern to message queues, where ownership of a given semaphore is migrated
 to the \picoproc{} that most frequently acquires the semaphore.
-%If the owner of a semaphore exits, \sysname{} transfers ownership to the leader.  rather than serialize the semaphore to disk.
+%If the owner of a semaphore exits, \graphene{} transfers ownership to the leader.  rather than serialize the semaphore to disk.
 Most of the overhead in the Apache benchmark (\S\ref{sec:graphene:eval:perf}) is attributable to semaphore overheads.
 %and, in ongoing work, we will likely optimize this by 
 %either expanding the host ABI to share synchronization primitives within a sandbox,
 %using shared memory to reduce semaphore latency.
 
 \paragraph{Shared File Descriptors.} 
-Open handle descriptors in the \sysname{} host ABI do not include a seek pointer; 
+Open handle descriptors in the \graphene{} host ABI do not include a seek pointer; 
 Unix-style seek behavior is implemented in the library OS.
 The default Linux behavior is that children copy the open handles and file seek cursors,
 but subsequent cursor movements are not shared between parent and child.
@@ -443,7 +443,7 @@ or atomically locking a file.
 Coordinating these states can be cause significant slowdown on regular file system operations, so we simply export the state in regular files on the host,
  and atomically update them by renaming.
 
-\paragraph{Shared Memory.} The \sysname{} host ABI 
+\paragraph{Shared Memory.} The \graphene{} host ABI 
 does not currently permit shared memory among \picoprocs{}.
 We expect that a host ABI and existing support for coordinating System V IDs would be sufficient to implement this,
 with the caveat that the host must be able to handle sandbox disconnection gracefully, perhaps converting the pages to copy-on-write.
@@ -453,7 +453,7 @@ and as a rough mechanism to keep all coordination requests explicit.
 %all \picoprocs{} are on the same host.
 
 
-%in \sysname{} are implemented by a simple producer-consumer model.
+%in \graphene{} are implemented by a simple producer-consumer model.
 %%% Without blocking, the latency of an inter-process semaphore operation equals to a round-trip of RPC messages.
 %%% We observed that IPC semaphores can benefit from the same optimization
 %%% used by message queues,
@@ -467,29 +467,29 @@ and as a rough mechanism to keep all coordination requests explicit.
  
 \begin{comment}
 \paragraph{Limitations.} At the time of submission,
-\sysname{} does not recover from all cases where a leader \picoproc{} crashes.
+\graphene{} does not recover from all cases where a leader \picoproc{} crashes.
 Our current prototype requires the IPC helper thread in the leader to remain 
 in the sandbox and respond to messages even if its process {\tt main} routine has completed,
 and the evaluation data reflects this state.
 \end{comment}
 
 \paragraph{Failure and Disconnection Tolerance.}  
-\sysname{} is designed to tolerate disconnection of collaborating \libos{} instances,
-either because of crashes or blocked RPCs.  In general, \sysname{} makes 
+\graphene{} is designed to tolerate disconnection of collaborating \libos{} instances,
+either because of crashes or blocked RPCs.  In general, \graphene{} makes 
 these disconnections isomorphic to a reasonable application behavior,
 although there may be some edge cases that cannot be made completely transparent to the application.
 
 In the absence of crashes, placing shared state in a given \picoproc{} introduces the risk that an errant 
 application will corrupt shared \libos{} state.  The \microkernel{} approach of 
 moving all shared state into a separate server process is more resilient to this problem.
-Anecdotally, \sysname{}'s performance optimization of migrating ownership to the process that 
+Anecdotally, \graphene{}'s performance optimization of migrating ownership to the process that 
 most heavily uses a given shared abstraction also improves the likelihood that only the corrupted
 process will be affected.  
-Making \sysname{} resilient to arbitrary memory corruption of any \picoproc{} is left for future work.
+Making \graphene{} resilient to arbitrary memory corruption of any \picoproc{} is left for future work.
 
 
 \paragraph{Leader Recovery.}
-\sysname{} provides a leadership recovery mechanism when a leader failure is detected.
+\graphene{} provides a leadership recovery mechanism when a leader failure is detected.
 A non-leader \picoproc{} can detect the failure of a leader by either observing the shutdown of RPC streams or timing out on waiting for responses. 
 Once the \picoproc{} detects leader failure, it sends out a message on the broadcast stream to volunteer for leadership.
 After a few rounds of competition, the winning \picoproc{} becomes the new leader and recover the namespace state by recollecting from every other \picoproc{} in the sandbox.
@@ -520,12 +520,12 @@ This subsection summarizes the design principles that have emerged from this pro
 \paragraph{Service requests from local state whenever possible.}
 Sending RPC messages over Linux pipes is expensive;
 this is unsurprising, given the long history of 
-work on reducing IPC overhead in microkernels~\citep{liedtke93sosp,chen93memory}.  
-We expect that \sysname{} performance could be improved on a 
+work on reducing IPC overhead in microkernels~\cite{liedtke93sosp,chen93memory}.  
+We expect that \graphene{} performance could be improved on a 
 \microkernel{} with
-a more optimized IPC substrate, such as L4~\citep{liedtke95sosp,klein09sel4,elphinstone13microkernels};
+a more optimized IPC substrate, such as L4~\cite{liedtke95sosp,klein09sel4,elphinstone13microkernels};
 we take a complementary approach of avoiding IPC if possible.
-%but this is beyond the scope of our work, and we want \sysname{} to perform well on any 
+%but this is beyond the scope of our work, and we want \graphene{} to perform well on any 
 %host OS.
 
 An example of this principle is migrating message queues to the ``consumer'' when a 
@@ -537,7 +537,7 @@ reduced overhead for message receive by a factor of $10\times$.
 \paragraph{Lazy discovery and caching improve performance.}  
 No library OS keeps a complete replica of all distributed state,
 avoiding substantial overheads to pass messages replicating irrelevant state.
-Instead, \sysname{} incurs the overhead of discovering the owner of a name
+Instead, \graphene{} incurs the overhead of discovering the owner of a name
 on the first use, and amortizes this cost over subsequent uses.
 Part of this overhead is potentially establishing a point-to-point stream,
 which can then be cached for subsequent use.
@@ -559,7 +559,7 @@ leader queries for adjacent queries.
 
 %% dp: Sad to see this go, but it is sort of subsumed by the other discussion
 \paragraph{The coordination within a sandbox is often pairwise.}
-\sysname{} optimizes the common case of pairwise coordination,
+\graphene{} optimizes the common case of pairwise coordination,
 by authorizing one side of the coordination to dictate the abstraction state,
 but also allows
 more than two processes to share an abstraction.
@@ -574,7 +574,7 @@ but optimizes more common patterns, such as waiting for a child to exit.
 
 \paragraph{Make RPCs asynchronous whenever possible.} 
 For operations that must write to state in another \picoproc{}, 
-the \sysname{} design strives to cache enough information in the sender 
+the \graphene{} design strives to cache enough information in the sender 
 to evaluate whether the operation will succeed, thereby obviating the 
 need to block on the response.  This principle is applied to lower the overheads
 of sending messages to a remote queue.
@@ -588,9 +588,9 @@ of sending messages to a remote queue.
 
 
 \paragraph{Summary.}
-The current \sysname{} design minimizes the use of RPC,
+The current \graphene{} design minimizes the use of RPC,
 avoiding heavy communication overheads in the common case.
 This design also allows for substantial flexibility to dynamically moving processes out of
 a sandbox.  Finally, applications do not need to select different 
-library OSes {\em a priori} based on whether they are multi-process or single-process---\sysname{}
+library OSes {\em a priori} based on whether they are multi-process or single-process---\graphene{}
 automatically uses optimal single-process code until otherwise required.
