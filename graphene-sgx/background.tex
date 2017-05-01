@@ -23,7 +23,7 @@
 is a set of new x86/x86\_64 instructions
 introduced in the latest \intel{} \skylake{} processors,
 to create, interface and attest
-an isolated memory region (\term{enclave}) inside applications' virtual memory.
+an isolated memory region (\emph{enclave}) inside applications' virtual memory.
 \sgx{} guarantee any data in an enclave
 stay encrypted in the DRAMs, using a secret key derived from
 the application's cryptographic measurements.
@@ -43,8 +43,8 @@ against malicious or compromised OSes, hypervisors, or even hardware peripheral.
 For instance, \cite{hoekstra13sgx} show how SGX can be used
 to build a trusted path from a video chat application to a GPU and network card, which maintains confidentiality and integrity of the
 video stream, even if the OS is compromised.
-Similarly, because DRAM contents are encrypted, SGX can resist attacks such as cold-boot attacks~\citep{halderman09coldboot} or 
-malicious peripheral devices~\citep{hudson15thunderstrike}.
+Similarly, because DRAM contents are encrypted, SGX can resist attacks such as cold-boot attacks~\cite{halderman09coldboot} or 
+malicious peripheral devices~\cite{hudson15thunderstrike}.
 
 \paragraph{A Partitioned Usage Model.}
 To secure an application with \sgx{},
@@ -54,7 +54,7 @@ and the untrusted part which loads and triggers the execution of the trusted par
 %Developers shall keep the trusted path as small and simple
 %Even if the trusted code only contains the simplest the logic,
 %the untrusted code is still needed to pass the input and output of the execution.
-The interaction between the trusted and untrusted parts is through \term{untrusted interfaces}.
+The interaction between the trusted and untrusted parts is through \emph{untrusted interfaces}.
 Untrusted interfaces are defined by the developers, and include a few
 logical entry and exit points of the enclave.
 In the architectural level,
@@ -87,7 +87,7 @@ to determine entry and exit of the enclave.
 %application can designate part of its virtual memory as an {\em enclave}.
 %The CPU guarantees that the contents of the enclave never leave the CPU package unencrypted.
 %The CPU also measures the integrity of a binary loaded into the enclave, and offers remote attestation,
-%similar to a TPM~\citep{TPM}.
+%similar to a TPM~\cite{TPM}.
 
 
 %%% create a protected memory region, called an {\em enclave}, inside it's virtual memory,
@@ -106,7 +106,7 @@ to determine entry and exit of the enclave.
 %Fundamentally, this argues for writing enclave code in higher-level languages
 %(e.g., \java{}) that provide important 
 %safety properties, such as memory and type safety, that reduce or eliminate common vulnerabilities.
-%Ideally, one would formally verify security properties of enclave code~\citep{moat}; this verification is significantly aided by using 
+%Ideally, one would formally verify security properties of enclave code~\cite{moat}; this verification is significantly aided by using 
 %higher-level languages amenable to formal reasoning.  Verification is significantly harder
 %with C/C++ or assembly languages.
 
@@ -159,8 +159,8 @@ becomes considerably complex,
 the effort for porting and validating the execution
 quickly becomes unacceptably expensive.
 
-\term{Haven}~\citep{baumann14haven}
-shows a \term{non-partitioned usage model},
+\emph{Haven}~\cite{baumann14haven}
+shows a \emph{non-partitioned usage model},
 for loading whole, unmodified applications and supporting libraries
 into enclaves.
 The non-partitioned model allows application to be run in the enclave as it is, without any porting effort.
@@ -177,7 +177,7 @@ A \libos{}, on the other hand, supports system APIs as in-memory function calls,
 and mediates all input and output
 during interaction with the untrusted host.
 For instance, Haven supports unmodified Windows applications in enclaves,
-using \drawbridge{} \libos{}~\citep{porter11drawbridge}
+using \drawbridge{} \libos{}~\cite{porter11drawbridge}
 to handle all the Windows API calls.
 
 At the low level, the non-partitioned model still requires partitioning, but instead of the applications,

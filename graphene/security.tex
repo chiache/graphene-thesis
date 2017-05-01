@@ -1,22 +1,22 @@
 \section{Isolating Mutually Untrusting Applications}
 \label{sec:graphene:security}
 
-\sysname{} ensures that mutually untrusting applications 
+\graphene{} ensures that mutually untrusting applications 
 cannot interfere with each other, providing security isolation
 comparable to running in separate VMs.
-\sysname{} reduces the attack surface exposed to applications
+\graphene{} reduces the attack surface exposed to applications
 by restricting access to the host kernel ABI 
 and prevents access to unauthorized system calls, files, byte streams,
-and network addresses with a \term{reference monitor}.
+and network addresses with a \emph{reference monitor}.
 %The host kernel ABI exported by the \pal{} heavily 
-%limits the ability of a \sysname{} application to interact with the rest of the system;
+%limits the ability of a \graphene{} application to interact with the rest of the system;
 %any external interactions are further mediated by a reference monitor.
-%Unlike a typical Linux system, \sysname{} applications cannot interact with shared 
+%Unlike a typical Linux system, \graphene{} applications cannot interact with shared 
 %system daemons or other shared system resources.
-%As a result, \sysname{} enforces security isolation similar to running applications in separate VMs---even
+%As a result, \graphene{} enforces security isolation similar to running applications in separate VMs---even
 %applications that span multiple processes.
-\sysname{} contributes a multi-process security model 
-based on the abstraction of a \term{sandbox},
+\graphene{} contributes a multi-process security model 
+based on the abstraction of a \emph{sandbox},
 or a set of mutually trusting picoprocesses.
 The reference monitor permits picoprocesses within the same sandbox
 to communicate and exchange RPC messages, but disallows cross-sandbox communication.
@@ -31,28 +31,28 @@ are files, network sockets, and RPC streams
 modify only local \picoproc{} state.
 %Thus, the reference monitor need only mediate file access, socket and RPC stream creation.
 %an unprivileged daemon
-%as well as extensions to the App\-Armor LSM~\citep{apparmor},
+%as well as extensions to the App\-Armor LSM~\cite{apparmor},
 %which checks file and socket policies in the kernel.
 %, reducing context switching overhead
-%and the risk of race conditions~\citep{garfinkel03traps}.
+%and the risk of race conditions~\cite{garfinkel03traps}.
 In order for the reference monitor to restrict file access, socket and RPC stream creation,
-each application includes a \term{manifest file}~\citep{hunt07rethink},
+each application includes a \emph{manifest file}~\cite{hunt07rethink},
 which describes a {\tt chroot}-like, restricted view of the local 
-file system (similar to Plan 9's unioned file system views~\citep{pike90plan9}),
+file system (similar to Plan 9's unioned file system views~\cite{pike90plan9}),
 %including read-only shared files,
-as well as \term{iptables}-style~\citep{iptablesman} network restrictions.
+as well as \emph{iptables}-style~\cite{iptablesman} network restrictions.
 %%% To facilitate sharing read-only libraries,
 %%% a manifest may specify a file system view which 
 %%% combines several different sub-directories of the local file system,
 %%% and can prevent writing to files or directories.
 
 
-%The \sysname{} reference monitor on a Linux host
+%The \graphene{} reference monitor on a Linux host
 %is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
-%A picoprocess is restricted by seccomp filter~\citep{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
-%It must use the \sysname{} special device to open or create streams,
+%A picoprocess is restricted by seccomp filter~\cite{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
+%It must use the \graphene{} special device to open or create streams,
 %so the file paths or network addresses can be checked against the sandbox rules.
-%The kernel module as the driver of the \sysname{} special device can coexist with any LSM such as \term{AppArmor} or \term{SELinux}.
+%The kernel module as the driver of the \graphene{} special device can coexist with any LSM such as \emph{AppArmor} or \emph{SELinux}.
 
 
 \fixme{Explain with a figure.}
@@ -85,19 +85,19 @@ one or more picoprocesses within one or more sandboxes.
 The adversary can control all code in its
 picoprocesses, including {\tt libLinux} and the \pal{}. 
 %We also assume a trusted reference monitor process running on the host kernel that 
-%launches \sysname{} applications and mediates all system calls with external effects,\fixmedp{define precisely}
+%launches \graphene{} applications and mediates all system calls with external effects,\fixmedp{define precisely}
 
-\sysname{} ensures that %The key security property the \sysname{} design upholds is that 
+\graphene{} ensures that %The key security property the \graphene{} design upholds is that 
 the adversary cannot interfere with any victim picoprocesses
 in a separate sandbox.  
-The \sysname{} sandbox design ensures strict isolation: 
+The \graphene{} sandbox design ensures strict isolation: 
 if the only shared kernel abstractions are byte streams and files, 
 and the reference monitor ensures
 there is no writable intersection between sandboxes,
 the adversary cannot interfere with any victim picoprocess.
 
 
-%%% The only processes allowed to run as standard kernel processes (non-\sysname{}) 
+%%% The only processes allowed to run as standard kernel processes (non-\graphene{}) 
 %%% are the reference monitor and
 %%% system administration utilities that need more kernel interfaces than the \pal{} ABI provides.
 %%% Ensuring that a collaborating picoprocess correctly implements
@@ -105,7 +105,7 @@ the adversary cannot interfere with any victim picoprocess.
 %%% as well as preventing exploitation of vulnerabilities in picoprocesses
 %%% are beyond the scope of this work.
 
-\sysname{} reduces the system attack surface of the host, but does not change the size of its
+\graphene{} reduces the system attack surface of the host, but does not change the size of its
 trusted computing base; however, reducing the effective system call table
 size of a picoprocess does facilitate adoption of a smaller host kernel,
 which we leave for future work.
@@ -114,7 +114,7 @@ which we leave for future work.
 \label{sec:graphene:security:syscalls}
 
 
-Unmodified Linux applications run on \sysname{} by issuing 
+Unmodified Linux applications run on \graphene{} by issuing 
 system calls as library calls to {\tt libLinux}.
 Application calls are serviced by {\tt libLinux}-internal data structures
 or \pal{} calls.
@@ -128,16 +128,16 @@ the reference monitor.
 %% dp: Meh
 %%% Any picoprocess implementation 
 %%% must restrict access to the host system call table,
-%%% generally by blocking system calls in the host kernel~\citep{porter11drawbridge}
-%%% or using {\tt ptrace}~\citep{xax}.
+%%% generally by blocking system calls in the host kernel~\cite{porter11drawbridge}
+%%% or using {\tt ptrace}~\cite{xax}.
 
 
 %The \pal{} is a host-provided library which implements \palcalls{} generic kernel ABIs,
 %implemented using 
-%These native system calls include {\tt ioctl} with 5 opcodes exclusively used by \sysname{} kernel extensions.
+%These native system calls include {\tt ioctl} with 5 opcodes exclusively used by \graphene{} kernel extensions.
 
 %This section describes how we adapt recent Linux sandboxing techniques 
-%to \sysname{}.
+%to \graphene{}.
 
 
 %all allowed system calls with potentially external effects.
@@ -160,7 +160,7 @@ the reference monitor.
 \includegraphics[width=6.5in]{graphene/figures/syscall-restriction.pdf}
 \footnotesize
 \caption[System call restriction approach in sysname{}]
-{System call restriction approach. The reference monitor loads policies into the LSM at startup.  A \sysname{} application requests OS services in three different ways. 
+{System call restriction approach. The reference monitor loads policies into the LSM at startup.  A \graphene{} application requests OS services in three different ways. 
 In the normal case (first line of {\tt main}), {\tt malloc} is invoked causing the invocation of {\tt brk} ({\tt libLinux}) and {\tt mmap} in the \pal{}. In the second line, the application jumps to an address in \pal{}, which is permissible.
 Files are accessed through {\tt ioctl} to {\tt /dev/graphene} and checked by reference monitor.
 The third line invokes {\tt brk} with an {\tt int} instruction, which is redirected to the {\tt libLinux} function.}
@@ -169,8 +169,8 @@ The third line invokes {\tt brk} with an {\tt int} instruction, which is redirec
 
 
 
-\sysname{} restricts the host system call table 
-using seccomp~\citep{seccomp}, introduced in Linux 2.6.12.
+\graphene{} restricts the host system call table 
+using seccomp~\cite{seccomp}, introduced in Linux 2.6.12.
 % a recent Linux system call filtering mechanism, called 
 Seccomp allows a process to create an immutable Berkeley Packet Filter (BPF) program
 that specifies allowed system calls, as well as creates {\tt ptrace} 
@@ -187,7 +187,7 @@ call to {\tt libLinux}.
 Seccomp filters cannot be overridden by any picoprocess,
 and are always inherited.
 % by all descendant processes.
-The current \sysname{} filter is 79 lines 
+The current \graphene{} filter is 79 lines 
 of straightforward BPF macros.  In our experience, adding more precise argument checks
 has not significantly changed performance.
 
@@ -198,8 +198,8 @@ Unfortunately, the logic to check for allowed paths network addresses cannot be 
 as a seccomp rule, because it involves reading user memory of unknown sizes. 
 In order to avoid the overhead of trapping to the reference monitor on 
 every use of {\tt open}, {\tt stat}, {\tt bind} or {\tt connect} system calls, we instead 
-force picoprocess to only use {\tt ioctl} system call to \sysname{} special device ({\tt /dev/graphene}) as alternative interface these system calls. Direct access to these system calls are banned by seccomp filter.
-%extend AppArmor~\citep{apparmor} 
+force picoprocess to only use {\tt ioctl} system call to \graphene{} special device ({\tt /dev/graphene}) as alternative interface these system calls. Direct access to these system calls are banned by seccomp filter.
+%extend AppArmor~\cite{apparmor} 
 %to enforce file system isolation in the kernel.
 
 In order to reduce the impact of bugs in the reference monitor,
@@ -232,20 +232,20 @@ externally by the reference monitor.
 
 Dynamically redirecting system calls to {\tt libLinux} is 
 less efficient than dynamically linking against
-the \sysname{} libc or statically compiling {\tt libLinux} into the application.
+the \graphene{} libc or statically compiling {\tt libLinux} into the application.
 The overhead of dynamic redirection comes from 
 transferring control to the kernel, then back to 
 the \pal{}, and then to {\tt libLinux}.
 We leave exploration of more efficient alternatives for future work,
 such as redirecting the hardware system call table to {\tt libLinux}
-on a host system like Dune~\citep{belay12dune},
-or dynamically rewriting parts of the static binary~\citep{hunt99detours}.
+on a host system like Dune~\cite{belay12dune},
+or dynamically rewriting parts of the static binary~\cite{hunt99detours}.
 \end{comment}
 
 \paragraph{Example.}
 Figure~\ref{fig:graphene:syscall-restriction} illustrates three possible situations. 
 %% An unmodified Linux application is dynamically linked against the 
-%% \sysname{} {\tt libc}, 
+%% \graphene{} {\tt libc}, 
 %% which then dynamically links its system calls from {\tt libLinux},
 %% which in turn links in the host kernel ABI from the \pal{}.
 %% The application requests OS functionality in three ways.
@@ -270,7 +270,7 @@ seccomp will redirect this call back to the \pal{},
 which then calls the {\tt libLinux} implementation.
 
 \paragraph{Process-specific Isolation.} 
-Sandbox creation in \sysname{} can provide
+Sandbox creation in \graphene{} can provide
 more options than virtualization, to reflect the security policy of applications at any timing,
 in the granularity of picoprocess. 
 A picoprocess can voluntarily detach itself from the current sandbox, dropping its privileges,
@@ -284,7 +284,7 @@ In section~\ref{sec:graphene:eval}, we describe an experiment that improves secu
 \label{sec:graphene:security:monitor}
 
 The reference monitor is a trusted process that runs on the host system.
-\sysname{} applications are launched by the reference monitor,
+\graphene{} applications are launched by the reference monitor,
 which instantiates the seccomp filter and traces all children
 to check host system calls that could have external effects.
 The reference monitor interposes using ptrace events, 
@@ -307,7 +307,7 @@ in the sandbox.
 % PTRACE\_EVENT\_CLONE whenever a clone is done by a child on which
 % PTRACE\_O\_TRACECLONE option was set.
 
-Each application includes a \term{manifest file}, which specifies restrictions,
+Each application includes a \emph{manifest file}, which specifies restrictions,
 including network firewall rules and subsets of the host file system sandboxed
 applications are permitted to access.  The reference monitor enforces these
 rules by interposing on all system calls involving file paths or remote network addresses.
@@ -328,7 +328,7 @@ and cannot be disabled.
 \paragraph{Creating New Sandboxes.~} We add a \pal{} call which
 permits a picoprocess to request that it be moved into a new sandbox.
 This call, as well as file system path checks, are implemented
-as extensions to the  AppArmor LSM~\citep{apparmor}.
+as extensions to the  AppArmor LSM~\cite{apparmor}.
 %We modify \sandboxmodlines{} lines in the
 %to implement this call,
 The new sandbox call closes any open stream handles that cross sandbox boundaries;
@@ -339,13 +339,13 @@ and create a new broadcast stream for multi-process
 %mediate future stream creation.
 
 To securely apply seccomp filtering we leveraged the fact that all
-\sysname{} processes have the same parent and also the new
+\graphene{} processes have the same parent and also the new
 {\tt NO\_NEW\_PRIVS} bit introduced for Linux processes starting kernel
 version 3.5. This bit can be set by any process, is inherited across
 {\tt fork}, {\tt clone}, and {\tt execve}, and cannot be unset by
 children processes. Thus, we set the {\tt NO\_NEW\_PRIVS} bit in the initial
-\sysname{} process and apply seccomp filters allowing only system calls
-with corresponding functions in the \pal{}. As a result all \sysname{}
+\graphene{} process and apply seccomp filters allowing only system calls
+with corresponding functions in the \pal{}. As a result all \graphene{}
 processes will inherit the filters and cannot relax or bypass it.
 
 
@@ -356,32 +356,32 @@ processes will inherit the filters and cannot relax or bypass it.
 %implemented as a Berkeley Packet Filter (BPF) program. The invocation
 %of a disallowed system call causes the application to throw a {\tt SIGSYS}
 %signal, which can be caught by a registered handler provided by the
-%application. In \sysname{} we registered this handler at the \pal{}.
+%application. In \graphene{} we registered this handler at the \pal{}.
 
 
-%\sysname{} applications rely on an OS loaded as a library to request
-%system services. As most of traditional applications, \sysname{}
+%\graphene{} applications rely on an OS loaded as a library to request
+%system services. As most of traditional applications, \graphene{}
 %processes do not normally issue system calls directly: they invoke
-%wrapper functions from a \sysname{}-compliant version of libc, which
+%wrapper functions from a \graphene{}-compliant version of libc, which
 %allows for portability, security (parameters are limited and checked)
 %and easiness of programming. However, while standard libc functions
 %directly invoke the kernel system call themselves, our modified
 %version of libc wrappers invoke functions from another library which
 %represents the OS, libLinux (Figure \ref{fig:graphene:syscall-restriction}). A
-%\sysname{} application can access all necessary system functionality
+%\graphene{} application can access all necessary system functionality
 %through libLinux, which invokes corresponding system call functions at
 %the \pal{}, also loaded as a library with a
-%\sysname{} process. The \pal{} is the layer responsible for directly
-%invoking system calls at the kernel. As discussed in \S\ref{sec:graphene:impl} the \pal{} provides \sysname{} applications with a
-%subset of the kernel system call interface.\sysname{} applications rely
+%\graphene{} process. The \pal{} is the layer responsible for directly
+%invoking system calls at the kernel. As discussed in \S\ref{sec:graphene:impl} the \pal{} provides \graphene{} applications with a
+%subset of the kernel system call interface.\graphene{} applications rely
 %on an OS loaded as a library to request system services.
 %
-%Even though we expect most of \sysname{} applications to leverage libc
+%Even though we expect most of \graphene{} applications to leverage libc
 %wrappers, we need to address applications that need to invoke system
 %calls directly. Applications might need to bypass a library such as
 %libc because some needed wrappers are not provided (there are no
 %wrappers in libc for module and NUMA related system calls), or the
-%wrapper does not meet the programmer’s needs. \sysname{} applications
+%wrapper does not meet the programmer’s needs. \graphene{} applications
 %that need to perform direct invocation of system calls run unmodified
 %as long as the system calls invoked are provided by the libos{l{}. We
 %do not consider this a security violation; even though the application
@@ -390,33 +390,33 @@ processes will inherit the filters and cannot relax or bypass it.
 %misbehaving application itself.  However, we do not allow the direct
 %invocation of a system call that does not have a corresponding
 %function in the libosnd \pal{}. In Figure \ref{fig:graphene:syscall-restriction}
-%we illustrate these three situations. We have a \sysname{} application
-%loaded with three libraries: a \sysname{}-compliant libc, libLinux
+%we illustrate these three situations. We have a \graphene{} application
+%loaded with three libraries: a \graphene{}-compliant libc, libLinux
 %representing the library OS with functions for a selected number of
 %system calls, and the \pal{} which actually invokes host kernel system
 %calls. The illustrated application requests three different types of
 %OS functionality. It first invokes a function from libc, then it
 %directly invokes a system call whose functionality is provided by the
 %\pal{}, and third it attempts to directly invoke a system call not
-%present in the \pal{}, which is not allowed by \sysname{}.
+%present in the \pal{}, which is not allowed by \graphene{}.
 
 %We enforce system call restriction by leveraging seccomp Linux system
-%call filtering mechanism~\citep{seccomp}, which reduces the kernel
+%call filtering mechanism~\cite{seccomp}, which reduces the kernel
 %system call API surface to user-level processes. This mechanism allows
 %a process to specify a whitelist filter for system calls, which is
 %implemented as a Berkeley Packet Filter (BPF) program. The invocation
 %of a disallowed system call causes the application to throw a {\tt SIGSYS}
 %signal, which can be caught by a registered handler provided by the
-%application. In \sysname{} we registered this handler at the \pal{}.
+%application. In \graphene{} we registered this handler at the \pal{}.
 %
 %To securely apply seccomp filtering we leveraged the fact that all
-%\sysname{} processes have the same parent and also the new
+%\graphene{} processes have the same parent and also the new
 %{\tt NO\_NEW\_PRIVS} bit introduced for Linux processes starting kernel
 %version 3.5. This bit can be set by any process, is inherited across
 %{\tt fork}, {\tt clone}, and {\tt execve}, and cannot be unset by
 %children processes. Thus, we set the {\tt NO\_NEW\_PRIVS} bit in the initial
-%\sysname{} process and apply seccomp filters allowing only system calls
-%with corresponding functions in the \pal{}. As a result all \sysname{}
+%\graphene{} process and apply seccomp filters allowing only system calls
+%with corresponding functions in the \pal{}. As a result all \graphene{}
 %processes will inherit the filters and cannot relax or bypass it.
 
 
@@ -424,7 +424,7 @@ processes will inherit the filters and cannot relax or bypass it.
 %\begin{centering}
 %\includegraphics[width=2.0in\textwidth]{figures/syscall_restriction.png}
 %\footnotesize
-%\caption{System call restriction approach. \sysname{} application requesting OS services. The {\tt printf} function is handled by a wrapper function at our modified version of libc., which invoked a corresponding syscall function at libLinux, the library OS.This function invokes a system call function at the \pal{}, which actually invokes kernel system calls. The application also directly invokes two system calls and the last invocation is prohibited.
+%\caption{System call restriction approach. \graphene{} application requesting OS services. The {\tt printf} function is handled by a wrapper function at our modified version of libc., which invoked a corresponding syscall function at libLinux, the library OS.This function invokes a system call function at the \pal{}, which actually invokes kernel system calls. The application also directly invokes two system calls and the last invocation is prohibited.
 %\label{fig:syscall_restriction}
 %\end{centering}
 %\end{figure}

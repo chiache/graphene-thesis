@@ -10,13 +10,13 @@ to support either Linux-style copy-on-write forking or
 sharing abstraction states across processes.
 \graphene{} implements multi-process support
 in zero-sharing fashion.
-The multi-process abstraction supported by \graphene{} thus also \sysname{}
+The multi-process abstraction supported by \graphene{} thus also \graphenesgx{}
 includes {\tt fork}, {\tt execve}, signals, System V IPC, etc.
 %The {\it zero-sharing} nature of \graphene{} makes it possible
 %to support multi-process abstractions in enclaves
 %without any architecture changes.
 
-In this section we will describe how \sysname{} securely creates
+In this section we will describe how \graphenesgx{} securely creates
 processes in new enclaves,
 for supporting {\tt fork} and {\tt execve},
 and implements inter-process communication
@@ -30,10 +30,10 @@ with process isolation.
 \centering
 \includegraphics[width=6.5in]{graphene-sgx/figures/fork.pdf}
 \footnotesize
-\caption[Process creation in \sysname{}]
-{Process creation in \sysname{}.
+\caption[Process creation in \graphenesgx{}]
+{Process creation in \graphenesgx{}.
 Numbers show the order of operations.
-When a process forks, \sysname{} calls {\tt execve} system call
+When a process forks, \graphenesgx{} calls {\tt execve} system call
 on the untrusted host,
 to create a clean enclave with the same \libos{} image.
 Then the two enclaves build up the mutual trust by
@@ -43,10 +43,10 @@ and migrating the process snapshot from the parent.}
 \end{figure}
 
 To securely create process across enclaves,
-\sysname{} builds trusted paths for enclaves to send process snapshots and coordinate shared states.
+\graphenesgx{} builds trusted paths for enclaves to send process snapshots and coordinate shared states.
 Since the enclaves do not directly share pages,
 the coordination must be intermediated by the untrusted host.
-The untrusted host may launch attacks on the multi-process abstractions of \sysname{},
+The untrusted host may launch attacks on the multi-process abstractions of \graphenesgx{},
 by either counterfeiting the behavior of either the forking or forked process,
 or acting as man-in-the-middle between two processes.
 
@@ -60,7 +60,7 @@ or acting as man-in-the-middle between two processes.
 %of which we simply inherit the design.
 
 When a isolated process forks,
-\sysname{} requests the untrusted host to create a clean enclave
+\graphenesgx{} requests the untrusted host to create a clean enclave
 of the forking process.
 The parent and child process in their own enclaves
 will coordinate over an encrypted RPC streams,
@@ -80,9 +80,9 @@ further inter-process coordination is secured.
 %through the said channel.
 %The child process will restore the snapshot in its own enclave,
 %making it a clone of its parent.
-The design of process creation in \sysname{} is shown as Figure~\ref{fig:graphene:sgx-fork}.
+The design of process creation in \graphenesgx{} is shown as Figure~\ref{fig:graphene:sgx-fork}.
 
-%Forking in \sysname{} mainly defends against 3 types of attacks
+%Forking in \graphenesgx{} mainly defends against 3 types of attacks
 %from the untrusted host:
 %
 %\begin{compactenum}
@@ -103,7 +103,7 @@ The design of process creation in \sysname{} is shown as Figure~\ref{fig:graphen
 %between the parent and the child,
 %and encrypting the channel for sending the snapshot.
 %The attestation signed by the processor proves that both entities communicating
-%are valid \sysname{} enclaves,
+%are valid \graphenesgx{} enclaves,
 %and encrypting the channel prevents the snapshot being eavesdropped or
 %counterfeited by the host.
 
@@ -125,7 +125,7 @@ to prove that the attested party is the one who agrees on the key.
 %to avoid being compromised by one attacked worker.
 %\graphene{} \libos{} provides an API for applications like Apache to explicitly
 %specify isolation to untrusted child processes.
-%\sysname{} inherits the ability of dynamic process isolation,
+%\graphenesgx{} inherits the ability of dynamic process isolation,
 %but developers are responsible for keeping confidential information
 %from the untrusted children.
 
@@ -134,7 +134,7 @@ Unlike {\tt fork}, {\tt execve}
 starts a process with a specified binary, often different from the callers,
 in a clean process state.
 %When a thread in the process, either single-threaded or multi-threaded,
-%calls {\tt execve} in \sysname{},
+%calls {\tt execve} in \graphenesgx{},
 %\libos{} will migrate the calling thread to a new process,
 %with clean process states except opened files cloned from the parent.
 A key challenge for implementing {\tt execve} is to
@@ -156,7 +156,7 @@ thus shall be protected from the host.
 
 As securing {\tt fork}, {\tt execve} is secured by the attestation of
 the child processes' measurements.
-\sysname{} only allows a isolated process to create a child process
+\graphenesgx{} only allows a isolated process to create a child process
 in an enclave whose measurement is listed in its manifest.
 In addition, a child process does not verify the measurement of its parent,
 but instead presents the measurements of all ancestors
@@ -167,7 +167,7 @@ say a shell or Apache server.
 
 %To identify binaries that can be trusted (either as parents or children)
 %during process creation,
-%\sysname{} requires each binary ported for an application,
+%\graphenesgx{} requires each binary ported for an application,
 %to be shipped with a list of binaries that can be {\tt execve}'d,
 %and those that can be callers of {\tt execve} to the said binary.
 %Each binary in the list is identified by its measurement, which is mutually attested
@@ -189,13 +189,13 @@ say a shell or Apache server.
 %\graphene{} coordinates multi-process abstractions and namespaces
 %by passing messages over RPC streams.
 %Such a design is beneficial for supporting multi-process abstractions in enclaves.
-%\sysname{} inherits the same design of inter-process coordination,
+%\graphenesgx{} inherits the same design of inter-process coordination,
 %and the RPC streams used for coordination can be secured by the enclaves proactively on untrusted hosts.
 
 %In \graphene{}, security isolation among multi-process abstractions,
 %regardless of their semantics,
 %are enforced by isolating the RPC streams used for coordination.
-%Unfortunately, \sysname{} cannot trust the host to faithfully isolate
+%Unfortunately, \graphenesgx{} cannot trust the host to faithfully isolate
 %the RPC streams.
 %Each enclave launched for an application must secure inter-process coordination
 %spontaneously, by only communicating to enclaves that it has attested
