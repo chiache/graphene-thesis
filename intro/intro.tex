@@ -2,31 +2,25 @@
 \label{chap:intro}
 
 
-\begin{outline}
-Motivation:
--- Linux is popular among system researchers
-
-\end{outline}
-
-
-
-
 % Operating systems (OSes) have been essential to running applications on most hardware since the 1960s~\cite{hansen10osbook}. Before OSes are invented, applications are programmed to run directly on hardware, while developers simply exchange reusable code (i.e., \emph{libraries}) for hardware drivers or common operations~\cite{silberschatz08osbook}.
 % As computer systems become more and more complex, applications begin to require a piece of OS to securely share hardware resources between each others, and obtain a bank of useful APIs (application program interfaces) at developers' disposal.
 % Modern OSes like Linux, Windows and Mac OS are ubiquitous and indispensable to \emph{millions} of applications, respectively~\fixme{cite statistics}, by providing a wealth of OS features such as scheduling, memory management, storage and networking.
 
 
 Commodity operating systems, such as GNU/Linux, represent a research space for practical, what-you-build-is-what-you-use system development.
-Recent system researchers increasingly use Linux as the backbone of prototyping at the early stage, for shortening the time elapsed before integration into production systems.
-Compared with other operating systems, Linux is particularly popular among system researchers due to certain practical reasons, besides being free and open-source:
-Linux supports a sufficient sized software collection ready for commercial-purpose deployment. More importantly, Linux has been broadly ported to almost every domains of computation environment, including from mainframe and desktop computers, to mobile and embedded devices\fixme{cite some study}.
-Linux  
+Recent system researchers increasingly use Linux as the backbone of prototyping, for shortening the time elapsed before integration into production systems.
+Compared with other operating systems, Linux is particularly popular among system researchers due to practical reasons, besides being free and open.
+Firstly, Linux supports a sufficient sized software collection ready for commercial-purpose deployment. More importantly, Linux has been broadly ported to almost every domains of computation environment, including from mainframe and desktop computers, to mobile and embedded devices\fixme{cite some study}.
+Overall, Linux provides a stable research environment, which is versatile enough for experimenting new hardware or OS designs, as well as mature enough for showing the practicality.
 
 
+The versatility of Linux comes with an important caveat---Every system researchers devoted to using Linux for prototyping are responsible for preserving the compatibility of the Linux interfaces.
+The development of a new Linux kernel, either partially or completely modified, cannot affect the reusability of existing applications running on top of previous Linux kernels.
+The common practice is, 
 
  
 %\fixmedp{Make one point at a time}
-Operating systems manage and abstract hardware resources (such as CPU time, memory, and IO devices) and OS resources (such as credentials and FIFOs) for applications. \fixmedp{start from the application perspective} Applications access hardware and OS resources through generically-defined system APIs (application programming interfaces). Using the system APIs, applications can allocate and access hardware resources, without assuming the capacity or design of the hardware. For example, by calling the threading APIs (e.g.,  \funcname{clone}), applications can obtain fair share of the CPU time and concurrency, without knowing the number of CPU cores. Applications also uses device-neutral system APIs, such as the \funcname{read} and \funcname{write} system calls, to unanimously access a variety of IO devices, such as storage and network devices. In general, application developers rely on the portability of the OS, to design applications that can be reusable across hardware platforms.
+%Operating systems manage and abstract hardware resources (such as CPU time, memory, and IO devices) and OS resources (such as credentials and FIFOs) for applications. \fixmedp{start from the application perspective} Applications access hardware and OS resources through generically-defined system APIs (application programming interfaces). Using the system APIs, applications can allocate and access hardware resources, without assuming the capacity or design of the hardware. For example, by calling the threading APIs (e.g.,  \funcname{clone}), applications can obtain fair share of the CPU time and concurrency, without knowing the number of CPU cores. Applications also uses device-neutral system APIs, such as the \funcname{read} and \funcname{write} system calls, to unanimously access a variety of IO devices, such as storage and network devices. In general, application developers rely on the portability of the OS, to design applications that can be reusable across hardware platforms.
 
 
 
