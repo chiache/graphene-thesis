@@ -1,38 +1,30 @@
 \chapter{Introduction}
 \label{chap:intro}
 
+
 \begin{outline}
 Motivation:
--- Linux is widespread among server/desktop/embedded systems
--- Many applications are dependent to Linux
--- Linux exports complex kernel interfaces, which are indispensable to Linux applications
--- Complex kernel interfaces hinder researchers to explore new kernel designs
--- Complex kernel interfaces are prone to vulnerability
-Thesis:
--- Simplifying the kernel interfaces makes researchers/developers:
-    (1) Easier to experiment kernel designs
-    (2) Easier to verify the kernel interfaces to be secure
--- A library OS enables refactoring of the kernel interfaces to a simpler host ABI
-    (1) The host ABI can be easily ported on different kernels
-    (2) The host ABI can implement sufficient Linux APIs for most applications
-Motivating examples:
--- New kernel designs:
-    (1) Untrusted kernel with Intel SGX
-    (2) Multikernels
-    (3) Linux on other kernels (Windows, OSX, FreeBSD)
--- Secure kernel interfaces:
-    (1) Sandboxing suspicious applications
-    (2) Protecting applications from untrusted kernel
+-- Linux is popular among system researchers
+
 \end{outline}
+
+
+
 
 % Operating systems (OSes) have been essential to running applications on most hardware since the 1960s~\cite{hansen10osbook}. Before OSes are invented, applications are programmed to run directly on hardware, while developers simply exchange reusable code (i.e., \emph{libraries}) for hardware drivers or common operations~\cite{silberschatz08osbook}.
 % As computer systems become more and more complex, applications begin to require a piece of OS to securely share hardware resources between each others, and obtain a bank of useful APIs (application program interfaces) at developers' disposal.
 % Modern OSes like Linux, Windows and Mac OS are ubiquitous and indispensable to \emph{millions} of applications, respectively~\fixme{cite statistics}, by providing a wealth of OS features such as scheduling, memory management, storage and networking.
 
 
-Linux operating systems are widespread among server, desktop, and embedded systems.
+Commodity operating systems, such as GNU/Linux, represent a research space for practical, what-you-build-is-what-you-use system development.
+Recent system researchers increasingly use Linux as the backbone of prototyping at the early stage, for shortening the time elapsed before integration into production systems.
+Compared with other operating systems, Linux is particularly popular among system researchers due to certain practical reasons, besides being free and open-source:
+Linux supports a sufficient sized software collection ready for commercial-purpose deployment. More importantly, Linux has been broadly ported to almost every domains of computation environment, including from mainframe and desktop computers, to mobile and embedded devices\fixme{cite some study}.
+Linux  
 
 
+
+ 
 %\fixmedp{Make one point at a time}
 Operating systems manage and abstract hardware resources (such as CPU time, memory, and IO devices) and OS resources (such as credentials and FIFOs) for applications. \fixmedp{start from the application perspective} Applications access hardware and OS resources through generically-defined system APIs (application programming interfaces). Using the system APIs, applications can allocate and access hardware resources, without assuming the capacity or design of the hardware. For example, by calling the threading APIs (e.g.,  \funcname{clone}), applications can obtain fair share of the CPU time and concurrency, without knowing the number of CPU cores. Applications also uses device-neutral system APIs, such as the \funcname{read} and \funcname{write} system calls, to unanimously access a variety of IO devices, such as storage and network devices. In general, application developers rely on the portability of the OS, to design applications that can be reusable across hardware platforms.
 
@@ -127,6 +119,18 @@ The example of NUMA and Intel SGX shows that, as the new hardware technology eme
 % regarding its threat model or performance patterns.
 
 
+
+\begin{outline}
+Thesis:
+  -- Simplifying the kernel interfaces makes researchers/developers:
+	(1) Easier to experiment kernel designs
+	(2) Easier to verify the kernel interfaces to be secure
+  -- A library OS enables refactoring of the kernel interfaces to a simpler host ABI
+	(1) The host ABI can be easily ported on different kernels
+	(2) The host ABI can implement sufficient Linux APIs for most applications
+\end{outline}
+
+
 This thesis proposes using a \emph{\libos{}} to adapt existing applications to new operating systems that support cutting-edge hardware platforms. A \libos{} is a OS component which is relocated to the application space and implements the system APIs using host abstractions. A \libos{} can serve as a compatibility layer between applications and each new operating systems designs specifically for the hardware platforms.  We argue that a full-featured, backward-compatible \libos{} can be implemented, with merely minimal assumption about the supported host abstractions and hardware resources. By minimizing the requirement for the host operating systems to manage and abstract hardware resources, the \libos{} can more easily port applications to any hardware platforms, including the ones emerging in the future.
 
 %system library which implements the system interfaces with minimal host interfaces and assumptions---to improve the OS development model for adapting applications to new hardware platforms.  Using a \libos{} can minimize the effort of customizing the OS for a certain hardware platform. OS developers only need to implement a narrowed host ABI (application binary interface), which includes a set of OS features defined to be stateless and generic to most hardware platform. Above the host ABI, we demonstrate that a full-featured \libos{} can be built to support a major portion of the system API, implemented using only the OS features defined in the host ABI. The \libos{} is practical: it has reasonable performance overhead generally less than 1$\times$, and memory footprint to load the \libos{} with applications.
@@ -142,6 +146,18 @@ This thesis have three primary contributions. First, it describe a new approach 
 
 \section{Motivating Examples}
 
+
+    
+\begin{outline}
+Motivating examples:
+-- New kernel designs:
+    (1) Untrusted kernel with Intel SGX
+    (2) Multikernels
+    (3) Linux on other kernels (Windows, OSX, FreeBSD)
+-- Secure kernel interfaces:
+    (1) Sandboxing suspicious applications
+    (2) Protecting applications from untrusted kernel
+\end{outline}
 
 Take reusing Linux applications on the Intel SGX platform for example. Intel SGX is a trusted execution platform which protects applications from untrusted or even compromised OSes, hypervisors, and applications.
 A Linux application running in Intel SGX can receive end-to-end protection from the untrusted OSes, but also no longer have a trustworthy OS to faithfully return correct, benign OS features, such as reading a file or creating a thread.
