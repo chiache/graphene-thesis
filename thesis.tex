@@ -1,7 +1,7 @@
 \documentclass[12pt]{report}
 
 
-\newcommand{\thesistitle}{Building Linux Compatibility Layers with A Library Operating System}
+\newcommand{\thesistitle}{A Library Operating System for Compatibility and Security Isolation}
 \newcommand{\thesisauthor}{Chia-Che Tsai}
 \newcommand{\thesisyear}{2017}
 \newcommand{\thesismonth}{August}
@@ -11,6 +11,7 @@
 \def \debug{}
 
 
+\usepackage[numbers,sort]{natbib}
 \usepackage[margin=1.5in]{geometry}
 \usepackage{times}
 \usepackage{titlesec}
@@ -38,7 +39,6 @@
 \usepackage[font={small}]{caption}
 \usepackage{booktabs}
 \usepackage[hidelinks]{hyperref}
-\usepackage[textsize=footnotesize,textwidth=1.2in]{todonotes}
 \renewcommand*{\ttdefault}{lmtt}
 
 
@@ -46,10 +46,11 @@
 \newcommand{\fixme}[1]{{}}
 \newcommand{\fixmedp}[1]{{}}
 \else
+\usepackage[textsize=footnotesize,textwidth=1.3in,shadow]{todonotes}
 \newcommand{\fixme}[2][] 
-    {\todo[caption={#2}, #1]
-    {\begin{spacing}{0.5}#2\end{spacing}}} 
-\newcommand{\fixmedp}[1]{\fixme[color=red!40]{#1}}
+    {\todo[caption={#2}, #1, fancyline]
+    {\begin{spacing}{1.1}{\bf #2}\end{spacing}}} 
+\newcommand{\fixmedp}[1]{\fixme[color=red!40][dP]{#1}}
 \fi
 
 \ifx \debug \undefined
@@ -141,13 +142,13 @@
 \vspace*{3\baselineskip}
 \hrule
 \vspace*{.3\baselineskip}
-\centerline{\bf{Donald E. Porter - Dissertation Advisor}}
-\centerline{Research Assistant Professor, Computer Science Department}
+\centerline{\bf{R. Sekar - Chairperson of Defense}}
+\centerline{Professor, Computer Science Department}
 \vspace*{3\baselineskip}
 \hrule
 \vspace*{.3\baselineskip}
-\centerline{\bf{R. Sekar - Chairperson of Defense}}
-\centerline{Professor, Computer Science Department}
+\centerline{\bf{Donald E. Porter - Dissertation Advisor}}
+\centerline{Research Assistant Professor, Computer Science Department}
 \vspace*{3\baselineskip}
 \hrule
 \vspace*{.3\baselineskip}
@@ -282,7 +283,7 @@ This page is optional.
 \phantomsection
 \addcontentsline{toc}{chapter}{References}
 \renewcommand{\bibname}{\centerline{\normalsize\bf{References}}}
-\bibliographystyle{alpha}
+\bibliographystyle{abbrv}
 \bibliography{bibliography}
 
 \newpage
