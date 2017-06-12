@@ -24,6 +24,7 @@ the \libos{} implements file handles and translates between POSIX and the host A
 Identifying the best division of labor for a \libos{} file system is 
 left for future work.
 
+\begin{comment}
 \begin{table}
 \footnotesize
 \centering
@@ -67,6 +68,7 @@ Seek pointers & Mappings managed by parent, migrate ownership to \picoproc{} mos
 {Multi-process abstractions implemented in \graphene{}, coordinated state, and implementation strategies.}
 \label{tab:graphene:multiproc}
 \end{table}
+\end{comment}
 
 %% Outline
 
@@ -268,9 +270,8 @@ process, process group, and thread IDs.
 
 \begin{figure}
 \centering
-\includegraphics[width=6in]{graphene/figures/coordination.pdf}
-\caption[Sandboxing inter-process cordination in \graphene{}]
-{Two pairs of \graphene{} \picoprocs{} in different sandboxes 
+\includegraphics[width=\linewidth]{graphene/figures/coordination.pdf}
+\caption{Two pairs of \graphene{} \picoprocs{} in different sandboxes 
 coordinate signaling and process ID management.
 The location of each PID is tracked in {\tt libLinux}; Picoprocess 1 signals
 \picoproc{} 2 by sending a signal RPC over stream 1,
