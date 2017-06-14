@@ -1,5 +1,55 @@
-\subsection{Linux Host \pal{}}
-\label{sec:linux:pal}
+\section{Host ABI compatibility}
+\label{sec:overview:host}
+
+A host ABI (application binary interface) defines the convention of application binaries, such as the binary format and the linking procedure. A host ABI also includes the system interfaces used to program the applications, each of which is called an application programming interface (API).
+The host ABI describes the minimal functionality that a host OS has to implement, in order to support an application and other libraries, including a library OS.
+
+
+The host ABI defines the acceptable binary format as a simplified version of the ELF (Excutable and Linkable Format).
+Each host of \graphene{} is supposed implement a minimal dynamic loader,
+which can load the \graphene{} library OS binary in ELF.
+The library OS then provides the full-functioned dynamic loader,
+which will loads and links the rest of application binaries, just like the native Linux loader (i.e., \code{ld.so}).
+
+
+
+
+\subsection{The host abstractions}
+\label{sec:overview:host:abstractions}
+
+
+The host ABI shares several common abstractions with most OSes. The interfaces, as part of the host ABI, which access these host abstractions, are ultimately simplified to reduce the porting effort on each host.
+Unlike the system interfaces in the OS, the host ABI does not prioritize backward compatibility. Therefore, the host ABI includes only the minimum interfaces that the library OS needs to interact with the host. The host ABI does not have to include any of  the legacy system interfaces from a production OS, let alone preserving different flavors of system interfaces for backward compatibility.
+
+
+To bootstrap the host ABI, we partially adopt the high-level semantics of a host ABI defined by a prior work called \drawbridge{}~\cite{porter11drawbridge}.
+\drawbridge{} is a library OS for reusing single-process Windows applications.
+We use the definition of the \drawbridge{} host ABI, as a hint to create a list of host abstractions necessary for the library OS, including as streams, memory, threads, and processes. We also added other abstractions that are essential to the implementing of the Linux functionality, such as exception handing and the control of segment registers (i.e., \code{FS}/\code{GS} registers).
+The host ABI eventually contains \palcalls{} host functions (Table~\ref{tab:overview:host-abi}), which are proved to be sufficient to implementing a large chunk of the Linux system interfaces.
+
+
+\begin{table*}[t]
+\centering
+\input{host-abi}
+\caption{Overview of the \graphene{} host abstractions.}
+\label{tab:overview:host-abi}
+\end{table*}
+
+
+
+\subsection{Porting the implementation of the host ABI}
+\label{sec:overview:host:port}
+
+
+\subsection{Remote procedure calls}
+\label{sec:overview:host:rpc}
+
+
+\subsection{Security isolation on the host abstractions}
+\label{sec:overview:host:security}
+
+
+
 
 \begin{comment}
 The Platform Adaptation Layer (\pal{}) exports a generic host kernel interface to the guest, summarized in Table~\ref{tab:abi}.
