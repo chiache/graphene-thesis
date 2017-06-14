@@ -1,0 +1,99 @@
+\small
+\begin{tabular}{|p{.15\textwidth}|p{.33\textwidth}|p{.45\textwidth}|}
+\hline
+{\bf Abstraction} & {\bf Function Names} & {\bf Description} \\
+\hline
+\raggedright
+Streams & 
+\raggedright
+{\tt StreamOpen} \newline
+{\tt StreamMap} \newline
+{\tt StreamFlush} \newline
+{\tt StreamSetLen} \newline
+{\tt StreamRead} \newline
+{\tt StreamWrite} \newline
+{\tt StreamWaitforClient} \newline
+{\tt StreamAttrQuery} \newline
+{\tt StreamAttrQuerybyHandle} \newline
+{\tt StreamAttrSetbyHandle} \newline
+{\tt StreamDelete}
+& 
+Opening streams using URIs, with prefixes representing stream types (e.g., \code{file:},\code{tcp:},\code{pipe:}),
+as well as common stream operations, including transmission of data, and query to the stream attributes.
+\\
+\hline
+\raggedright
+Memory & 
+\raggedright
+{\tt VirtMemAlloc} \newline
+{\tt VirtMemFree} \newline
+{\tt VirtMemProtect}
+& 
+Allocation, deallocation, and protection of a chunk of virtual memory.
+\\
+\hline
+\raggedright
+Threads \& scheduling & 
+\raggedright
+{\tt ThreadCreate} \newline
+{\tt ThreadExit} \newline
+{\tt ThreadDelayExecution} \newline
+{\tt ThreadYieldExecution} \newline
+{\tt SemaphoreCreate} \newline
+{\tt SemaphoreRelease} \newline
+{\tt EventCreate} \newline
+{\tt EventSet} \newline
+{\tt HandlesWaitAny}
+&
+Creation and termination of threads; 
+Using scheduling primitives, including suspension, semaphores, events, and pollable IO events.
+\\
+\hline
+\raggedright
+Process & 
+\raggedright
+{\tt ProcessCreate} \newline
+{\tt ProcessExit}
+& 
+Creating or terminate a process with a library OS instance.
+\\
+\hline
+\raggedright
+Mis\-cel\-la\-ne\-ous & 
+\raggedright
+{\tt SystemTimeQuery} \newline
+{\tt RandomBitsRead}
+& 
+Querying system time, and random number generation.
+\\
+\hline
+\raggedright
+Exceptions $\dagger$ & 
+\raggedright
+{\tt SetExceptionHandle} \newline
+{\tt ExceptionReturn}
+& 
+Setting an exception handler, and returning from the handler.
+\\
+\hline
+\raggedright
+TLS $\dagger$ & 
+\raggedright
+{\tt SetSegmentReg}
+& 
+Setting the \code{FS}/\code{GS} registers.
+\\
+\hline
+\raggedright
+Remote Procedure Call $\dagger$ (optional)& 
+\raggedright
+{\tt StreamSendHandle} \newline
+{\tt StreamRecvHandle} \newline
+{\tt CreateIpcChannel} \newline
+{\tt PhysicalMemoryCommit} \newline
+{\tt PhysicalMemoryMap}
+& 
+Sending opened stream handles or physical memory across processes.
+\\
+\hline
+\end{tabular}
