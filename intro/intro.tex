@@ -4,16 +4,19 @@
 
 %In modern computer systems, an operating system plays a key role
 %of abstracting the hardware for applications. % that are designed to run on a wider range of hardware platforms.
-\fixme{start from the perspective of app developers}
-For application developers, 
-an {\em operating system} represents a layer which abstracts the complex, idiosyncratic hardware,
-and which provides a comprehensive way to program against hardware resources, such as CPU and memory.
-Using the hardware abstractions presented by the OS,
-an application developer needs not to learn the low-level logisitic of the hardware,
-as well as to reprogram her applicatio for every new hardware platform.
-The hardware abstractions are defined by the OS in the form of 
-{\em system interfaces}.
-In principle, a system inteface describes the generic logic of using a certain type of hardware.
+Operating systems provide a comprehensive way for developers to program applications against the hardware.
+%allowing the application developers to focus on more important implementation issues in hand.
+%For application developers, 
+%an {\em operating system} represents an abstract layer, %which abstracts the complex, idiosyncratic hardware,
+%which provides a comprehensive way to program against the idiosyncratic hardware.
+%Using the hardware abstractions presented by the OS,
+The key functionality of an OS is to manage and abstract the hardware resources, by defining a set of generic {\em system interfaces} for system programming.
+Application developers then use these system interfaces
+%, either statically or at the run time,
+to request for the OS-managed hardware resources.
+%needs not to learn how to program against the low-level hardware interfaces, as well as to constantly reprogram the applications for new hardware platforms.
+%Application developers can simply use the {\em system interfaces} defined by the OS,
+%which describe the generic logic of using the hardware:
 %which in principle describes the generic logic of 
 %to express the requirements and operations on the hardware.
 %The system interfaces describe the generic logic of using most of the hardware,
@@ -23,15 +26,36 @@ In principle, a system inteface describes the generic logic of using a certain t
 %to allocate and access hardware resources.
 %either statically or in the run time.
 %A commodity operating system, such as Linux or Windows, define hundreds or even thousands of system interfaces~\cite{linux-syscall,freebsd-syscall,win-api}, in order to accommodate the diverse, contemporary hardware.
-For instance, in UNIX operating systems, such as Linux, system interfaces are mostly defined as {\em system calls}:
-To split CPU cycles or a memory space, an application can use \syscall{clone} and \syscall{mmap} to allocate task contexts and memory regions,
-to request the OS to schedule enough resources to support its execution.
-Another example is the POSIX-style file system operations, including 
-\syscall{open}, \syscall{read}, and \syscall{write},
-which encapsulate the common behaviors of connecting, receiving, and transmiting the data over various types of IO devices, including terminals, hard drives, and network interfaces.
+In UNIX operating systems, system interfaces are mostly defined in the form of {\em system calls}.
+For example, applications can use \syscall{clone} or \syscall{mmap}
+to allocate task contexts or virtual memory areas (VMAs),
+to exchange for the CPU or memory resources managed by the OS schedulers.
+%The application binaries also contain statically-defined code and data segments, which represent the minimal memory usage to start an execution.
+%or based on the code and data segments inside of the application binaries.
+%can help splitting the CPU cycles or the physical memory, by allocating task contexts or virtual memory regions inside of an application.
+Similarly, different types of IO devices, such as storage devices and network interface controllers (NICs), can hide their idiosyncratic operations behind the POSIX-style file operations, such as \syscall{read} and \syscall{write}.
+Defining these system interfaces reduces the learning curve for developers to programming against the hardware, allowing them to focus on more important implementation challenges, such as debugging and optimization.
+
+%Another example is the POSIX-style file system operations, including  \syscall{open}, ;
+%these system calls can be generically used for the common IO operations,
+%over various types of devices, such as .
+%Using these abstractions of hardware, application developers can simplify the development process, as well to reuse the implementations across hardware platforms.
 
 
-
+The generic system interfaces also improve the opportunity of reusing an application, regardless of the choice of hardware platforms.
+The users of an OS can choose the platform with hardware components at various prices and specifications.
+%of the hardware products, at a reasonable budget.
+The OS essentially decouples this choice of hardware platforms from the applications.
+For example,
+the same application should be able to run on either a single-core Pentium-4 3.4GHz CPU or an 8-core Xeon E5 1.8GHz CPU;
+The number or the frequency of cores should look no difference to the application under the abstraction of the OS, 
+%and the choice of CPU will look no difference to the application,
+%can look no difference to an application that simply uses \syscall{clone} to create new threads for parallel processing, 
+except for the impact on performance.
+More importantly, the application developers should not have to reprogram the application against each CPU, except for another instruction set architecture (such as x86 to ARM). 
+%Reimplementing an application for every choice of hardware made by the users is a expensive cost that application developers cannot possibly afford.
+In some occasions, a language runtime, such as a Java virtual machine (JVM), imposes another layer above the OS, to reuse the applications across OSes and architectures. However, a language runtime will still rely on the system interfaces defined by each OS, to abstract the hardware resources, as well as to keep the language runtime itself reusable across hardware platforms.
+%as well as to keep the runtime itself platform-independent.
 
 
 %Only a few hardware components require specialized system interfaces or tool-chains to program against;
@@ -41,69 +65,131 @@ which encapsulate the common behaviors of connecting, receiving, and transmiting
 %which requires applications to be partially reprogrammed in a different language, such as CUDA~\cite{cuda}. 
 
 
-To avoid reprogramming applications for every new hardware platform,
-an operating system is responsible for maintaining the {\em compatibility} of its system interfaces, regardless of what the underlying hardware is.
-The foundation of compatibility is that the operating system faithfully reproduces the definition of system interfaces---a definition that the OS developers and application developers have agreed upon. Existing applications expect the operating system to implement the functionality and behavior consistently, across multiple OS versions (i.e., {\em backward compatibility}).
-On the other hand, the system interfaces that the operating system formerly defines have to accommodate future hardware as much as possible (i.e., {\em forward compatibility}). 
-If OS developers fail to maintain either the backward or forward compatibility
-in an evolving operating system, application developers may be forced to reprogram their applications at a certain point of time,
-to match with the new system interfaces designed to accommodate the outliers.
-The penalty of failing the compatibility can be huge: Among the worst consequences, an operating system can lose its users,
-if the users can no longer run the desired applications, unless they pay the cost of reprogramming.
+To keep the system interfaces programmable, the OS is obliged to maintain the consistency of system interface, or {\em Compatibility}, to ensure continuous support to applications.
+%The programmability of system interfaces has a caveat: applications require the OS developers to be disciplinary on avoiding the disruption on the system interfaces used by the applications, or, in other words, keeping the OS {\em compatible}.
+%In order to preserve the {\em reusability} of applications, the application developers require the OS the 
+%Compatibility is critical to all production OSes %because it directly affects whether the customers can continue to run the same applications.
+%because application developers cannot afford re-implementing the applications
+%whenever a new OS version is released. %implementation is updated, in order to support a new hardware platform.
+Existing applications rely on the OS to faithfully reproduce the behaviors and interfaces implemented by the previous OS versions (i.e., backward compatibility). The definition of system interfaces is essentially a ``contract'' between application developers and the OS.
+Application developers expect the system interfaces to stay identical;
+an application previously developed and tested on an OS should behave the same as running on other OS versions installed by the users.
+Unless the OS has finished its development cycles and stop to adopt new hardware platforms, the compatibility has to be always maintained by the OS developers.
+
+%can have the same behavior, on the OS versions for programming and testing, as well as the ones installed by the users.
+%If the OS fails to maintain the compatibility, the users mostly do not have the expertise of updating the application implementation, or the budget of paying the developers to do so.
+%The user can end up sticking to the older version of the OS, or even switching to another OS which has superior compatibility and can support the application on the desired platform.
+%Users of an application are also likely to stick to an OS that is compatible to the application, than switching to a newer, but incompatible OS.
+%To avoid reprogramming applications for every new hardware platform,
+%an operating system is responsible for maintaining the {\em compatibility} of its system interfaces, regardless of what the underlying hardware is.
 
 
-Unfortunately, the feasibility of maintaining compatibility in a commodity operating system is reaching a tipping point, as the latest hardware does not necessarily follows the same semantics.
-The latest trend in CPU technology is that
-computer architects are more aggressively introducing new instruction set extensions into commodity CPUs, to compensate for the slowdown of Moore's Law, and to utilize the spare transistors on new generations of CPU chips~\cite{baumann17hotos}.
-Recent Intel CPU extensions, including SGX~\cite{intelsgx} and MPX~\cite{intelmpx}, require applications to use a set of new opcodes to the Linux's \syscall{ioctl} system call,
-or be explicitly compiled against specific compiler options (e.g., ``\code{-mmpx}''~\cite{intelgccmpx}).
-\fixme{this sentence requires citations to back the claim.}
-Studies also confirm the increasing likelihood of using heterogeneous hardware
-in future systems, as many latest cloud providers or embedded systems have begun to install their machines with accelerators, general-purpose GPUs, programmable hardware (e.g., FPGA), or peripheral devices (e.g., DRAM, storage, or NICs) with near-data processing.
-An \fixme{use a different adjective} eccentric processing unit, such as GPU, will require developers to wholly or  partially reprogram the applications in a different language, such as CUDA~\cite{cuda}.
-The evolution of hardware poses a huge challenge to maintaining the compatibility in operating systems, since the existing system interfaces are simply not enough to accommodate all the new hardware.
-Driven by this hardware trend, OS developers of Linux and Windows have both rapidly expanded their system interfaces, by both the number of interfaces and the complexity of control options,
-while keeping the old interfaces around for backward compatibility.
+
+%These two principles, backward-compatibility and portability, both contribute to the reuse of applications,
+%but can occasionally become contradictory.
+
+
+%not only program but also test the applications against the certain system interfaces.
+%The other factor of OS compatibility is to keep the system interfaces generic to the hardware, even beyond the introduction of new hardware.
+%The constant factor is to reduce either the risk or the effort that application developers have to reprogram a released application, at any timing during the OS development cycle.
+%We differentiate OS compatibility from hardware compatibility as well as
+%other levels of compatibility in individual applications.
+
+%On the other hand, the system interfaces that the operating system formerly defines have to accommodate future hardware as much as possible (i.e., {\em forward compatibility}). 
+%If OS developers fail to maintain either the backward or forward compatibility
+%in an evolving operating system, application developers may be forced to reprogram their applications at a certain point of time,
+%to match with the new system interfaces designed to accommodate the outliers.
+%The penalty of failing the compatibility can be huge: Among the worst consequences, an operating system can lose its users,
+%if the users can no longer run the desired applications, unless they pay the cost of reprogramming.
+
+
+%\fixme{switch to the OS perspective}
+%From the perspective of OS developers, fulfilling the two meanings of OS compatibility, keeping the OS {\em generic} and keeping the OS {\em backward-compatible}, can be contradicting. 
+
+
+In a production OS such as Linux or Windows, the OS developers go to great lengths to maintain the compatibility. %, especially the backward-compatibility.
+In the fear of breaking the backward compatibility, OS developers are often reluctant to update or deprecate a system interface.
+Instead, they add new system interfaces, or extend the old system interfaces with new corner cases, without disrupting the implementation of existing system interface behavior.
+%The limitation is especially problematic, when the old system interface can no longer accommodate the operations on the new hardware.
+%In this case, the OS developers are forced to add new system interfaces, or add new corner cases to the old system interfaces, without touching the old system interfaces.
+Sometimes, the OS developers have to implement a ``fall-back'' mode, to ensure that the existing applications can still use the old system interfaces, 
+%even though these system interfaces are supported 
+under the emulation of the OS.
+An example is the HugeTLB support in Linux; on one hand, Linux provides a new control option, \code{MAP\_HUGETLB}, for \syscall{mmap}, to explicit specify the use of the optimization; on the other hand, Linux transparently converts the regularly allocated, large VMAs, to emulate VMAs allocated with the \code{MAP\_HUGETLB} option.
+Linux also adds the emulation of old system interfaces in the GNU standard C library (\code{glibc}).
+For example, \syscall{fork} is replaced by a wrapper in \code{glibc}, to explicitly call \syscall{clone} without the \code{CLONE\_VM} option (equivalent to \syscall{fork}), so that the old applications using \syscall{fork} can still be supported.
+Windows 7 even introduces a compatibility mode to align the system interfaces with applications designed for Windows XP, or ``XP mode'', which internally runs the applications in a virtual machine.
+
+
+%Unfortunately, the recent trend of hardware technology shows
+%that it is getting increasingly difficult to keep the system interfaces compatible, while adopting all he new hardware.
+
+%follow both principles: to make the system interfaces both backward-compatible and generic.
+%Unfortunately, the feasibility of maintaining compatibility in a commodity operating system is reaching a tipping point, as the latest hardware does not necessarily follows the same semantics.
+%A set of formerly-defined system interfaces does not always accommodate
+%the operations of new hardware.
+%\fixme{back this claim}
+
+
+%For example, the latest CPU technology is that
+%computer architects are more aggressively introducing new instruction set extensions into commodity CPUs, to compensate for the slowdown of Moore's Law, and to utilize the spare transistors on new generations of CPU chips~\cite{baumann17hotos}.
+%Recent Intel CPU extensions, including SGX~\cite{intelsgx} and MPX~\cite{intelmpx}, require applications to use a set of new opcodes to the Linux's \syscall{ioctl} system call,
+%or be explicitly compiled against specific compiler options (e.g., ``\code{-mmpx}''~\cite{intelgccmpx}).
+%\fixme{this sentence requires citations to back the claim.}
+%Studies also confirm the increasing likelihood of using heterogeneous hardware
+%in future systems, as many latest cloud providers or embedded systems have begun to install their machines with accelerators, general-purpose GPUs, programmable hardware (e.g., FPGA), or peripheral devices (e.g., DRAM, storage, or NICs) with near-data processing.
+%An \fixme{use a different adjective} eccentric processing unit, such as GPU, will require developers to wholly or  partially reprogram the applications in a different language, such as CUDA~\cite{cuda}.
+%The evolution of hardware poses a huge challenge to maintaining the compatibility in operating systems, since the existing system interfaces are simply not enough to accommodate all the new hardware.
+%Driven by this hardware trend, OS developers of Linux and Windows have both rapidly expanded their system interfaces, by both the number of interfaces and the complexity of control options,
+%while keeping the old interfaces around for backward compatibility.
 %Both Linux and Windows have recently experienced explosive growth on the number of system interfaces, which reflects this trend.
 
 
-Maintaining compatibility is also a challenge for the development of a new OS prototype, often for research purposes.
-OS researchers feel the need of building new operating systems
-because existing operating systems, such as Linux or Windows,
-pile up too many idiosyncratic, over-complicated behaviors and implementations, after being used and developed for decades.
-Many innovative OS concepts, data structures, and programming languages cannot be introduced to these operating systems
-without rewriting a significant potion of the kernel code.
-\fixme{cite exokernel, microkernel, IX, and Arrakis}
-Previous research work has point out that the existing commodity operating systems are too complex, so that it is hard to verify or reason about the performance or security of an operating system, or too expensive to process IO requests across the whole system stacks.
-\fixme{cite the Rust kernel paper and HotOS paper}
-Also, a new programming language, such Rust, can potentially be a better choice than the C language for OS development, due to the security features,
-but it is too hard to reprogram the whole operating system in a completely different language.
-So far, OS researchers have succeeded academically on building OS prototypes
-to demonstrate more superior OS designs and implementation.
-However, in order to make these OS prototypes applicable to all existing applications, a long and painful process of development is almost unavoidable. 
+Besides maintaining compatibility of the existing system interfaces in an OS, it is common that a new, research OS prototype to implement the compatibility to a production OS (we call the quality {\em inter-OS compatibility}).
+An OS implements the compatibility to another OS, in order to adopt a set of popular applications.
+For an OS prototype, the developers have the opportunity
+to redefining all system interfaces, which allows introduction of innovative concepts or programming models.
+Even between production OSes, such as Linux, Windows, and OS X, inter-OS compatibility are developed as features, such as the Bash-On-Windows to run Ubuntu applications in Windows, and the WINE emulator to run Windows applications in Linux or OS X.
+%Maintaining compatibility is also a challenge for the development of a new OS prototype, often for research purposes.
+%OS researchers feel the need of building new operating systems
+%because existing operating systems, such as Linux or Windows,
+%pile up too many idiosyncratic, over-complicated behaviors and implementations, after being used and developed for decades.
+%Many innovative OS concepts, data structures, and programming languages cannot be introduced to these operating systems
+%without rewriting a significant potion of the kernel code.
+%\fixme{cite exokernel, microkernel, IX, and Arrakis}
+%Previous research work has point out that the existing commodity operating systems are too complex, so that it is hard to verify or reason about the performance or security of an operating system, or too expensive to process IO requests across the whole system stacks.
+%\fixme{cite the Rust kernel paper and HotOS paper}
+%Also, a new programming language, such Rust, can potentially be a better choice than the C language for OS development, due to the security features,
+%but it is too hard to reprogram the whole operating system in a completely different language.
+%So far, OS researchers have succeeded academically on building OS prototypes
+%to demonstrate more superior OS designs and implementation.
+%However, in order to make these OS prototypes applicable to all existing applications, a long and painful process of development is almost unavoidable. 
 
 
-The compatibility of a commodity operating system is difficult to maintain
-for two primary reasons. First, the system interfaces defined by an operating system are objectively enormous and complex.
-A Linux kernel above the version of 3.0 exports more than three hundreds system calls;
-The Windows 8.1 API set, which includes the APIs exported by the core system libraries, contains more than four thousands interfaces; Even POSIX 1003.1 has defined 1,191 interfaces for operating systems that are designed to be POSIX-compliant.
+
+The primary challenge to implementing the inter-OS compatibility
+is to provide the complete support of the enormous and complex system interfaces of a production OS.
+A Linux kernel above the version of 3.0 exports more than 300 system calls;
+The Windows 8.1 API set, which includes the APIs exported by the core system libraries, contains more than four thousands interfaces;
+Even POSIX 1003.1 has defined 1,191 interfaces for operating systems that are designed to be POSIX-compliant.
 These system interfaces are not just large in number;
 many of these interfaces have defined a tremendous amount of features, control options, sub-interfaces (e.g., opcodes for the \syscall{ioctl} system call), and corner cases.
-Many decisions made in the definitions of these system interfaces are random and inconsistent,
-making the implementation of the interfaces in a new operating system an unbearable pain.
+Reimplementing the whole system interfaces in another production OS, or a research OS prototype, is a huge burden to the OS developers.
+%Many decisions made in the definitions of these system interfaces are random and inconsistent,
+%making the implementation of the interfaces in a new operating system an unbearable pain.
 
-The second reason is more nuanced but has a deep impact on
-OS prototyping: the development of commodity operating systems has always been driven by certain conventional models and assumptions, which can be too limited or too outdated.
-For instance, a commodity operating system always assumes a ``monolithic'' kernel, which is privilege-separated by the hardware from the address spaces of applications.
-The monolithic kernel must be trusted by all applications that run on top of it, and is assumed to be secure and correct, for implementing all system interfaces that the applications depend on. Some modern computer systems oppose this model;
-\fixme{citations needed}
-Running a monolithic kernel can be too expensive for hardware platforms that have a limited resource or energy budget;
-Otherwise, an application can be too sensitive to run on a kernel
-that is too complex to defend any exploitable vulnerabilities.
-Another assumption always made by a commodity operating system is the presence of
-the traditional Von Neumann architecture, where the CPUs always run on top of a coherent memory architecture.
-Some research OS prototypes, especially ones that are designed for hardware heterogeneity or parallelism, insist on not assuming a shared, coherent memory,
-to avoid expensive inter-processing-unit communication.
+%The second reason is more nuanced but has a deep impact on
+%OS prototyping: the development of commodity operating systems has always been driven by certain conventional models and assumptions, which can be too limited or too outdated.
+%For instance, a commodity operating system always assumes a ``monolithic'' kernel, which is privilege-separated by the hardware from the address spaces of applications.
+%The monolithic kernel must be trusted by all applications that run on top of it, and is assumed to be secure and correct, for implementing all system interfaces that the applications depend on. Some modern computer systems oppose this model;
+%\fixme{citations needed}
+%Running a monolithic kernel can be too expensive for hardware platforms that have a limited resource or energy budget;
+%Otherwise, an application can be too sensitive to run on a kernel
+%that is too complex to defend any exploitable vulnerabilities.
+%Another assumption always made by a commodity operating system is the presence of
+%the traditional Von Neumann architecture, where the CPUs always run on top of a coherent memory architecture.
+%Some research OS prototypes, especially ones that are designed for hardware heterogeneity or parallelism, insist on not assuming a shared, coherent memory,
+%to avoid expensive inter-processing-unit communication.
 
 
 
@@ -372,6 +458,7 @@ and GIT version control system by up to 25\%.
 \section{Motivating Examples}
 
 
+\subsection{Intel SGX (Software Guard Extensions)}
 
 One of the motivating examples, for using \libos{} to improve application compatibility,
 is the support of unmodified Linux application
@@ -1894,6 +1981,10 @@ is safe to be released from the enclave.
 \section{Language Support for Hardware Abstractions}
 
 
+
+\section{Summary}
+
+\paragraph{Previous publications.}
 
 \section{Organization}
 
