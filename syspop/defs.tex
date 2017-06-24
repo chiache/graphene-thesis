@@ -1,27 +1,27 @@
-\chapter{Formal Definitions of System API Metrics}
+\chapter{Formal Definitions}
 \label{chap:defs}
 
 %\fixmedp{The formal definition of importance in section 2.1 is hard to follow, in part because of the naming. The names of variables (Dependentapi, inst) don't make clear the types of the variables (a package, set of packages, set of API, instance, set of instance) etc. It would be helpful to reconsider the terminology to make the variable types more clear.
 %In the equations in 2.2, explaining what E means would be helpful, as it is not obvious from the context. Also, should Weighted Compliance be a function of the instance in addition to the API?
 %}
 
-\section{\UsageMetric{} --- A Metric for APIs}
+\section{\UsageMetric{}}
 \label{sec:defs:usagemetric}
 
-\vspace{0.1in}
-{\noindent
-\fbox{\begin{minipage}{\linewidth}
-\setlength{\parindent}{-0.1in}
-\setlength{\leftskip}{0.1in}
-\setlength{\rightskip}{0.1in}
- Definition: {\bf \UsageMetric{}.} \\
-For a given API, the probability that an installation includes
-at least one application requiring the given API.
+%\vspace{0.1in}
+%{\noindent
+%\fbox{\begin{minipage}{\linewidth}
+%\setlength{\parindent}{-0.1in}
+%\setlength{\leftskip}{0.1in}
+%\setlength{\rightskip}{0.1in}
+% Definition: {\bf \UsageMetric{}.} \\
+%For a given API, the probability that an installation includes
+%at least one application requiring the given API.
 %at least one broken application
 %(whose API footprint covers the target API),
 %if the target API was removed.
-\end{minipage}}}
-\vspace{0.1in}
+%\end{minipage}}}
+%\vspace{0.1in}
 
 A system installation ($\mathtt{inst}$)
 is a set of packages installed ($\{\mathtt{pkg}_1, \mathtt{pkg}_2, ..., \mathtt{pkg}_k \in \mathtt{Pkg}_\mathtt{all}\}$).
@@ -35,9 +35,9 @@ $\mathtt{exe}$ has usage of $\mathtt{api}$}}\}
 \end{align*}
 
 \noindent
-For a target API, \usagemetric{} is calculated as the probability
+The \usagemetric{} is calculated as the probability
 that any installation includes
-at least one package that uses the API;
+at least one package that uses an API;
 i.e.,
 the API belongs to the footprint of at least one package.
 Using \osdist{}'s package installation statistics, one can calculate the
@@ -58,7 +58,7 @@ from $\mathtt{Dependents}_\mathtt{api}$ is installed on a random installation, w
 &= 1 - \prod_{\mathtt{pkg} \in \mathtt{Dependent}_\mathtt{api}} (1 - \frac{\text{\# of installations including $\mathtt{pkg}$}}{\text{total \# of installations}})
 \end{align*}
 
-\section{\CompatMetric{} --- A System-Wide Metric}
+\section{\CompatMetric{}}
 \label{sec:defs:compatmetric}
 
 %% An accurate metric for API compatibility must take into account at least two factors:
@@ -80,18 +80,18 @@ or any machines of generalized sense such as a virtual machines, containers or s
 In our model, installations represent customers of the OS, who are considered equal when providing any services.
 \end{comment}
 
-\vspace{0.1in}
+%\vspace{0.1in}
 %\fixmetsai{Find a good name for our metric} 
-{\noindent
-\fbox{\begin{minipage}{\linewidth}
-\setlength{\parindent}{-0.1in}
-\setlength{\leftskip}{0.1in}
-\setlength{\rightskip}{0.1in}
-Definition: {\bf \CompatMetric{}.} \\
-For a target system, the fraction of applications supported,
-weighted by the popularity of these applications.
-\end{minipage}}}
-\vspace{0.1in}
+%{\noindent
+%\fbox{\begin{minipage}{\linewidth}
+%\setlength{\parindent}{-0.1in}
+%\setlength{\leftskip}{0.1in}
+%\setlength{\rightskip}{0.1in}
+%Definition: {\bf \CompatMetric{}.} \\
+%For a target system, the fraction of applications supported,
+%weighted by the popularity of these applications.
+%\end{minipage}}}
+%\vspace{0.1in}
 
 \Compatmetric{} is used to evaluate the relative compatibility on a system that
 supports a set of APIs ($\mathtt{API}_\mathtt{Supported}$).

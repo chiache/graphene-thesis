@@ -48,9 +48,9 @@
 \else
 \usepackage[textsize=footnotesize,textwidth=1.3in,shadow]{todonotes}
 \newcommand{\fixme}[2][] 
-    {\todo[caption={#2}, #1, fancyline]
+    {\todo[caption=#2, #1, fancyline]
     {\begin{spacing}{1.1}{\bf #2}\end{spacing}}} 
-\newcommand{\fixmedp}[1]{\fixme[color=red!40][dP]{#1}}
+\newcommand{\fixmedp}[1]{\fixme[color=red!40]{dP: #1}}
 \fi
 
 \ifx \debug \undefined
@@ -272,8 +272,7 @@ This page is optional.
 \input{host/host}
 \input{libos/libos}
 \input{sgx/sgx}
-%\input{civet/civet}
-%\input{syspop/syspop}
+\input{syspop/syspop}
 %\input{future/proposal}
 %\input{future/future}
 \input{eval/eval}
@@ -281,15 +280,17 @@ This page is optional.
 \input{conclusion}
 
 \newpage
+\begin{appendices}
+\input{syspop/defs}
+\end{appendices}
+
+\newpage
 \phantomsection
 \addcontentsline{toc}{chapter}{References}
 \renewcommand{\bibname}{\centerline{\normalsize\bf{References}}}
-\bibliographystyle{abbrv}
+\bibliographystyle{abbrvnat}
 \bibliography{bibliography}
 
-\newpage
-\begin{appendices}
-%\input{syspop/defs}
-\end{appendices}
+
 
 \end{document}
