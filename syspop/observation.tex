@@ -1,5 +1,5 @@
-\section{A Study of Modern Linux API Usage}
-\label{sec:observation}
+\section{Linux API Study}
+\label{sec:syspop:study}
 
 %\note{about 3 pages, include graphs}
 %\note{try to break the page here so the whole observation can start on a new page}
@@ -39,21 +39,21 @@
 %% the following sub-sections?  Not that we discuss and then have a box} 
 
 %\subsection{\usagemetric{} of Linux System Calls}
-\subsection{Spot the Most Valuable System Calls}
-\label{sec:observation:syscall}
+\subsection{System calls}
+\label{sec:syspop:study:syscall}
 
-We begin by looking at the \usagemetric{} of each system call, 
+%We begin by looking at the \usagemetric{} of each system call, 
 %ordered by total application installations and regularly used applications 
-in order to answer the following questions:
-\begin{compactitem}
-\item Which system calls are the most important to support when implementing a new system,
-or have high costs to replace, if desired?
+%in order to answer the following questions:
+%\begin{compactitem}
+%\item Which system calls are the most important to support when implementing a new system,
+%or have high costs to replace, if desired?
 %%1) do we definitely need to support any of the surveyed systems?
 %%2) are used by at least one frequently used application on the surveyed systems?
-\item Which system calls are very rarely used and candidates for deprecation?
-\item Which system calls are not supported by the OS, but still attempted by applications?
-\end{compactitem}
-\vspace{10pt}
+%\item Which system calls are very rarely used and candidates for deprecation?
+%\item Which system calls are not supported by the OS, but still attempted by applications?
+%\end{compactitem}
+%\vspace{10pt}
 
 There are \syscallnum{} system calls defined in \osarch{} Linux \kernelversion{} (as listed in {\tt unistd.h}). 
 Figure~\ref{fig:syscall-popularity-trend} shows the 
@@ -100,7 +100,7 @@ developers only have to pay minimum efforts to re-implement the wrappers in libr
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=6in]{syspop/figures/syscall-popularity-all-by-inst.pdf}
+\includegraphics[width=\textwidth]{syscall-popularity-all-by-inst.pdf}
 \caption[N-most important system calls in Linux.]
 {The trend of \usagemetric{} as N-most important system calls among total \syscallnum{} system calls of \osversion{} with Linux kernel \kernelversion{}. .
 Higher is more important; 100\% indicates all installations include software that make the system call.}
@@ -133,8 +133,8 @@ such as {\tt kexec\_load}, which is used by {\tt kexec-tools}).
 %,These system calls are mostly used by special-purpose utilities (e.g., 
 %and generally address  because their semantics are not friendly enough.
 
-\input{syspop/tab-wrapped}
-\input{syspop/tab-dominated}
+\input{tab-wrapped}
+\input{tab-dominated}
 
 In some cases, system calls are effectively offloaded to a file in {\tt /proc} or {\tt /sys}.
 For instance, some of the information that was formerly available via 
@@ -282,8 +282,8 @@ also available from {\tt /proc/filesystems}.
 %\label{fig:syscall-popularity-bottom}
 %\end{figure}
 
-\subsection{From ``Hello World'' to Qemu}
-\label{sec:observation:hello}
+%\subsection{From ``Hello World'' to Qemu}
+%\label{sec:observation:hello}
 
 Figure~\ref{fig:syscall-compatibility} shows the optimal path of adding system calls to a prototype system,
 using a simple, greedy strategy of implementing the N-most important APIs, which in turns
@@ -309,15 +309,14 @@ are supported by the prototype.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=5in]{syspop/figures/syscall-compatibility.pdf}
-\caption[Accumulated compatibility of system prototype prioritzed by importance]
-{Accumulated \compatmetric{} when N top-ranked system calls are implemented in the OS. Higher is more compliant.}
+\includegraphics[width=.8\textwidth]{syscall-compatibility.pdf}
+\caption{Accumulated \compatmetric{} when N top-ranked system calls are implemented in the OS. Higher is more compliant.}
 \label{fig:syscall-compatibility}
 \end{figure}
 
 \begin{table}[t]
 \center{
-\begin{tabular}{c>{\footnotesize\raggedright\arraybackslash}m{3.6in}>{\raggedleft}m{0.8in}>{\raggedleft\arraybackslash}m{1in}}
+\begin{tabular}{c>{\footnotesize\raggedright\arraybackslash}m{.5\textwidth}>{\raggedleft}m{.15\textwidth}>{\raggedleft\arraybackslash}m{.15\textwidth}}
 \toprule
 Stage & {\normalsize Sample System Calls} & \# syscalls & {\footnotesize \CompatMetric{}} \\
 \addlinespace
@@ -394,8 +393,8 @@ during the early stage of developing a system prototype.
 
 %\fixmedp{This callout is not really justified by the text  I took the point to be that the right 132 and 202 system calls are ``sweet spots'' on the path to maturity.}
 
-\subsection{Vectored System Call Opcodes}
-\label{sec:observation:vector}
+\subsection{Vectored System Calls}
+\label{sec:syspop:study:vector}
 
 %\fixmedp{I think RD is right: can we give more landscape of what the long tail of vectored calls are for?  Why do they exist?}
 
@@ -475,11 +474,10 @@ of reducing the system attack surface.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=3in]{syspop/figures/ioctl-popularity-by-inst.pdf}
-\includegraphics[width=1.7in]{syspop/figures/fcntl-popularity-by-inst.pdf}
-\includegraphics[width=1.7in]{syspop/figures/prctl-popularity-by-inst.pdf}
-\caption[\Usagemetric{} of {\tt ioctl}, {\tt fcntl} and {\tt prctl} opcodes]
-{Ranking of \usagemetric{} among {ioctl}, {\tt fcntl} and {\tt prctl} opcodes.  Higher is more important; 100\% indicates all installations include software that request the operations.}
+\includegraphics[width=.48\textwidth]{ioctl-popularity-by-inst.pdf}
+\includegraphics[width=.25\textwidth]{fcntl-popularity-by-inst.pdf}
+\includegraphics[width=.25\textwidth]{prctl-popularity-by-inst.pdf}
+\caption{Ranking of \usagemetric{} among {ioctl}, {\tt fcntl} and {\tt prctl} opcodes.  Higher is more important; 100\% indicates all installations include software that request the operations.}
 \label{fig:syspop:opcode-popularity}
 \end{figure}
 
@@ -505,7 +503,7 @@ of reducing the system attack surface.
 %\end{figure}
 
 \subsection{Pseudo-Files and Devices}
-\label{sec:observation:pseudo}
+\label{sec:syspop:study:pseudo}
 
 In addition to the main system call table, Linux exports many additional APIs through 
 pseudo-file systems, such as {\tt /proc}, {\tt /dev}, and {\tt /sys}.
@@ -543,8 +541,7 @@ an important usage pattern.  %is a reasonable sample.
 \begin{figure}[t]
 \centering
 \includegraphics[width=5.5in]{syspop/figures/dev-proc-popularity-by-inst.pdf}
-\caption[\Usagemetric{} of selected {\tt /dev} and {\tt /proc} pseudo-files]
-{\usagemetric{} distribution over files under {\tt /dev} and {\tt /proc}.  Higher is more important; 100\% indicates all installations include software that accesses the file. }
+\caption{\usagemetric{} distribution over files under {\tt /dev} and {\tt /proc}.  Higher is more important; 100\% indicates all installations include software that accesses the file. }
 \label{fig:syspop:dev-proc-popularity}
 \end{figure}
 
@@ -684,8 +681,8 @@ that these generally need to be searched at runtime.
 %Table~\fixmedp{XX} lists the {\tt /proc} files with a \usagemetric{} score of one.  
 %\fixmedp{What else to say about this?  Might be more interesting to know how ubiquitously used these are}
 
-\subsection{Reorganizing System Library APIs}
-\label{sec:observation:libc}
+\subsection{\Libc{} functions}
+\label{sec:syspop:study:libc}
 
 In addition to studying kernel interfaces, we also analyze the \usagemetric{} of APIs
 defined in core system libraries, such as \libc{}.
@@ -806,7 +803,7 @@ indicating that changes to some important system interfaces would only require c
 \begin{table}[t]
 \centering
 \small
-\begin{tabular}{>{\footnotesize\raggedright\arraybackslash}m{4.8in}>{\raggedright\arraybackslash}m{1.3in}}
+\begin{tabular}{>{\footnotesize\raggedright\arraybackslash}m{.6\textwidth}>{\raggedright\arraybackslash}m{.3\textwidth}}
 \hline
 \addlinespace
 System Calls & Libraries \\

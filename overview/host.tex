@@ -1,10 +1,12 @@
-\section{Host ABI compatibility}
+\section{The Host ABI}
 \label{sec:overview:host}
 
-A host ABI (application binary interface) defines the convention of application binaries, including the binary format and the linking procedure, as well as a set of  system interfaces.
-The host ABI describes the minimal functionality that a host OS has to implement, in order to reuse an application and the supporting libraries, including the \graphene{} library OS. The host ABI is both simple (minimizing the effort of porting per host) and sufficient (containing enough host abstractions for implementing the library OS functionality).
+\fixme{each sentense should be a paragraph; starting the 2nd sentence}
+The \graphene{} host ABI describes the minimal functionality that a host OS has to implement, in order to reuse an application and the supporting libraries, including the \graphene{} library OS. 
 
+The \graphene{} host ABI is both simple (minimizing the effort of porting per host) and sufficient (containing enough host abstractions for implementing the library OS functionality).
 
+A host ABI (application binary interface) has to define the convention of application binaries, including the binary format and the linking procedure, as well as a set of  system interfaces.
 The host ABI defines the acceptable binary format as a simplified version of the ELF (Excutable and Linkable Format).
 Each host of \graphene{} is supposed implement a minimal dynamic loader,
 which can load the \graphene{} library OS binary in ELF.
@@ -18,6 +20,7 @@ which will loads and links the rest of application binaries, just like the nativ
 \label{sec:overview:host:abstractions}
 
 
+\fixme{the beginning doesn't capture the whole paragraph.}
 The host ABI shares several common abstractions with production OSes. The interfaces, as part of the host ABI, which access these host abstractions, are ultimately simplified to reduce the porting effort on each host.
 Unlike the system interfaces in the OS, the host ABI does not prioritize backward compatibility. Therefore, the host ABI includes only the minimum interfaces that the library OS needs to interact with the host. The host ABI does not have to include any of  the legacy system interfaces from a production OS, let alone preserving different flavors of system interfaces for backward compatibility.
 
@@ -25,8 +28,11 @@ Unlike the system interfaces in the OS, the host ABI does not prioritize backwar
 The host ABI inherits partially the high-level semantics of another host ABI defined by a prior work called \drawbridge{}~\cite{porter11drawbridge}.
 \drawbridge{} is a library OS for reusing single-process Windows applications,
 in a lightweight, guest environment.
-The definition of the \drawbridge{} host ABI is a hint, for creating a list of host abstractions necessary for the library OS, including as streams, memory, threads, and processes. The host ABI is also complemented with several Linux-specific abstractions, such as exception handing and the control of segment registers (i.e., \code{FS}/\code{GS} registers).
-The host ABI eventually contains \palcalls{} host functions (Table~\ref{tab:overview:abi}), which can be directly called from the library OS. \graphene{} shows that the host ABI is sufficient to implementing a large portion of the Linux system calls.
+The definition of the \drawbridge{} host ABI is a hint, for creating a list of host abstractions necessary for the library OS, including streams, memory, threads, and processes. 
+
+\fixme{give more of the background}
+The host ABI is also complemented with several Linux-specific abstractions, such as exception handing and the control of segment registers (i.e., \code{FS}/\code{GS} registers).
+The host ABI contains \palcalls{} host functions (Table~\ref{tab:overview:abi}), which can be directly called from the library OS. \graphene{} shows that the host ABI is sufficient to implementing a large portion of the Linux system calls.
 
 
 \begin{table}[t!]
@@ -43,19 +49,19 @@ allow delegation of an open stream handles to another process, through a connect
 Another RPC abstraction is a bulk IPC channel; a process can use \funcname{PhsyicalMemoryCommit} to commit a large chunk of memory to a bulk IPC channel, which \funcname{PhsyicalMemoryMap} can map into another process, as copy-on-write. The library OS uses bulk IPC as an optimization to \syscall{fork}.
 
 
-To simplify isolation, the functions to access each host abstraction must appear stateless to the host, except for the handles to identify the resources. Each call to the host functions is independent. The arguments given for each call must be always be absolute values, instead of relative values.
+To simplify isolation, the functions to access each host abstraction must appear \fixme{clarify ``stateless''} stateless to the host, except for the handles to identify the resources. Each call to the host functions is independent. The arguments given for each call must be always be absolute values, instead of relative values.
 For example, the offset given to \funcname{StreamMap}, \funcname{StreamRead}, and \funcname{StreamWrite} (if the opened handle is a file) are offsets from the beginning of the file, and thus are irrelevant to how many bytes that are previously written or read.
 When enforcing isolation rules, the host OS can check the arguments of each calls to the host functions, independently and atomically.
 
-\subsection{Porting the host ABI}
+\subsection{Porting to hosts}
 \label{sec:overview:host:port}
 
 
-The compatibility of \graphene{} relies on each host implementing the host ABI.
+The compatibility of \graphene{} relies on each host to implement the host ABI.
 The host ABI is defined for the simplicity of porting.
 First of all, the number of abstractions included in the host ABI
 is objectively smaller than the number of system interfaces in a production OS (e.g., system calls in Linux). 
-The simplicity of porting the host ABI is experiment by the development of
+The simplicity of porting the host ABI is experimented by the development of
 several ``classic'' ports, including the ports to Windows, Linux, OS X, \fixme{the last two are prospective} the L4 microkernel, and Barrelfish.
 For each port, the amount of code written for implementing the host ABI is at the order of magnitude of thousands of lines of code, which is much more manageable than implementing a flat translation layer for system interfaces.
 

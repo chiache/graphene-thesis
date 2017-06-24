@@ -4,16 +4,23 @@
 
 %In modern computer systems, an operating system plays a key role
 %of abstracting the hardware for applications. % that are designed to run on a wider range of hardware platforms.
-Operating systems provide a comprehensive way for developers to program applications against the hardware.
+Application developers rely on operating systems for abstracting the hardware features in OS services.
+In a UNIX-style OS,
+the OS-level hardware abstractions can be controlled by the application developers, 
+using {\em system interfaces} as a convenient programming standpoint~\cite{ritchie74unix}.
+The system interfaces simplify the programming in user space, 
+by exempting the average application developers from getting involved with the intimate details of hardware programming~\cite[\S1]{tanenbaum19os-textbook}.
+%Operating systems presents a comprehensive way for application developers to program the hardware resources.
 %allowing the application developers to focus on more important implementation issues in hand.
 %For application developers, 
 %an {\em operating system} represents an abstract layer, %which abstracts the complex, idiosyncratic hardware,
 %which provides a comprehensive way to program against the idiosyncratic hardware.
 %Using the hardware abstractions presented by the OS,
-The key functionality of an OS is to manage and abstract the hardware resources, by defining a set of generic {\em system interfaces} for system programming.
-Application developers then use these system interfaces
-%, either statically or at the run time,
-to request for the OS-managed hardware resources.
+%The main abstractions of an OS is to manage and abstract the hardware resources, by defining a set of generic {\em system interfaces} for system programming.
+%\fixmedp{move some context into previous sentence}
+%Application developers use the defined , to request for the OS-managed hardware resources,
+%without knowing the low-level details of the hardware.
+%System interfaces simplify programming in user space, and \fixmedp{``allow'' is a weak verb} allow application developers to focus on more \fixmedp{importance is not justified} important development challenges, such as debugging and optimization.
 %needs not to learn how to program against the low-level hardware interfaces, as well as to constantly reprogram the applications for new hardware platforms.
 %Application developers can simply use the {\em system interfaces} defined by the OS,
 %which describe the generic logic of using the hardware:
@@ -26,15 +33,26 @@ to request for the OS-managed hardware resources.
 %to allocate and access hardware resources.
 %either statically or in the run time.
 %A commodity operating system, such as Linux or Windows, define hundreds or even thousands of system interfaces~\cite{linux-syscall,freebsd-syscall,win-api}, in order to accommodate the diverse, contemporary hardware.
-In UNIX operating systems, system interfaces are mostly defined in the form of {\em system calls}.
-For example, applications can use \syscall{clone} or \syscall{mmap}
-to allocate task contexts or virtual memory areas (VMAs),
-to exchange for the CPU or memory resources managed by the OS schedulers.
+%For programmability, system interfaces are defined to be as generic as possible, despite the idiosyncracies of hardware resources;
+The basic system interfaces in UNIX, such as \code{read} and \code{write}, conceal the physical aspects of file storage,
+as well the differences between ordinary files and I/O devices~\cite{ritchie78unix-retro}.
+%for example, in UNIX-style operating systems, application developers use \syscall{clone} and \syscall{mmap},
+%to allocate tasks and virtual memory areas (VMAs),
+%to request for CPU and memory resources from the OS.
 %The application binaries also contain statically-defined code and data segments, which represent the minimal memory usage to start an execution.
 %or based on the code and data segments inside of the application binaries.
 %can help splitting the CPU cycles or the physical memory, by allocating task contexts or virtual memory regions inside of an application.
-Similarly, different types of IO devices, such as storage devices and network interface controllers (NICs), can hide their idiosyncratic operations behind the POSIX-style file operations, such as \syscall{read} and \syscall{write}.
-Defining these system interfaces reduces the learning curve for developers to programming against the hardware, allowing them to focus on more important implementation challenges, such as debugging and optimization.
+For an application, \code{read} and \code{write} can work invariably on every file descriptors,
+whereas the triggered hardware operations can vary
+from accessing storage blocks to processing I/O streams~\cite{ritchie74unix}.
+
+
+
+%Similarly, the POSIX file operations, including \syscall{read} and \syscall{write},
+%are used to \fixmedp{``perform'' is a weak verb} perform generic IO operations,
+%namely to read in and write out the data, in the ways corresponding to the types of IO devices, such as storing on a disk, or transmission over a NIC (network interface controller).
+
+
 
 %Another example is the POSIX-style file system operations, including  \syscall{open}, ;
 %these system calls can be generically used for the common IO operations,
@@ -42,21 +60,72 @@ Defining these system interfaces reduces the learning curve for developers to pr
 %Using these abstractions of hardware, application developers can simplify the development process, as well to reuse the implementations across hardware platforms.
 
 
-The generic system interfaces also improve the opportunity of reusing an application, regardless of the choice of hardware platforms.
-The users of an OS can choose the platform with hardware components at various prices and specifications.
+%Besides for the programmability,
+The OSes also facilitate the reuse and distribution of applications
+across different physical machines.
+The top-down view of a modern OS is an extended machine or a ``virtual machine''~\cite[\S4]{dhamdhere2007os-textbook},
+which hides the low-level information of the bare hardware.
+The benefit is that application developers only see an extended machine with consistent OS functions,
+instead of the distinction of hardware.
+An early design point of UNIX is to move a large amount of device drivers
+into the OS space,
+to make a user program fit into
+removable disks~\cite{ritchie74unix}.
+POSIX later doubles down on defining a system interface standard that covers all the typical hardware operations, and makes the applications machine-independent (i.e., {\em portable})~\cite{ieee-posix}.
+The similar initiative is taken by other open OS standards, such as BSD and Linux~\cite{quarterman85bsd,linux-standard-base}.
+%In the current OS ecosystem,
+In a portable OS, a developer can write a C program that prints ``hello world'' on any physical machines, in merely five lines of code.
+
+
+
+Historically, prioritizing the convenience of application development has increasingly complicated OS development.
+In early UNIX development, system interfaces are reportedly easy to implement~\cite{ritchie78unix-retro}.
+As the range of applications and physical machines expands, the cost for an OS to retain portability has become higher.
+The current Linux kernel contains thousands of device drivers, contributing to \fixme{find these numbers and cite} xxx\% of the source code, or xxx thousand lines of code.
+The number of system interfaces in an OS
+has also grown significantly to fit to the needs of applications:
+Linux contains more than three hundred system calls;
+in Windows 8.1, the core system libraries (e.g., \code{nt.dll}) export more than four thousand APIs;
+%, which includes the APIs exported by the core system libraries, contains more than four thousands interfaces;
+even POSIX has raised the number of APIs to 1,191, in version 1003.1~\cite{ieee-posix}.
+
+
+drifting apart of
+application and OS development, which requires not just portability, but {\em compatibility} of the OS. 
+
+
+\begin{comment}
+A hardware platform consists of various types of hardware, including CPUs, memory, and I/O devices. Users select the hardware platforms %to run the OS and application,
+based on their specification and budget.
+Reusing an application
+%An application that targets multiple hardware platforms
 %of the hardware products, at a reasonable budget.
-The OS essentially decouples this choice of hardware platforms from the applications.
-For example,
-the same application should be able to run on either a single-core Pentium-4 3.4GHz CPU or an 8-core Xeon E5 1.8GHz CPU;
-The number or the frequency of cores should look no difference to the application under the abstraction of the OS, 
+%The OS essentially decouples this choice of hardware platforms from the applications.
+can loosen the restriction on selecting hardware platforms,
+and thus multiplies the value of the application.
+%by reusing the same application code written by the developers.
+%Hardware platforms can contain hardware components
+%of different capacity and performance.
+%A generic system interface can conceal the difference of hardware platforms,
+%, and makes applications reusable as long as they are programmed against the same system interfaces.
+%and allow application developers to decouple the development process
+%from the choice of hardware;
+To put into context, an application developer can expect her application to work on either a single-core Pentium-4 3.4GHz CPU or an 8-core Xeon E5 1.8GHz CPU, with no difference, except for the impact on performance.
+Using \syscall{clone} and scheduling APIs (e.g., \syscall{sched\_setparam}), the difference of the CPUs is orthogonal to the reusability of applications.
+%application can be reused above difference number of CPU cores, or different CPU frequency, 
 %and the choice of CPU will look no difference to the application,
 %can look no difference to an application that simply uses \syscall{clone} to create new threads for parallel processing, 
-except for the impact on performance.
-More importantly, the application developers should not have to reprogram the application against each CPU, except for another instruction set architecture (such as x86 to ARM). 
+%as long as they have the same instruction set (e.g., x86).
+%More importantly, the application developers should not have to reprogram the application against each CPU, except for another instruction set architecture (such as x86 to ARM). 
 %Reimplementing an application for every choice of hardware made by the users is a expensive cost that application developers cannot possibly afford.
-In some occasions, a language runtime, such as a Java virtual machine (JVM), imposes another layer above the OS, to reuse the applications across OSes and architectures. However, a language runtime will still rely on the system interfaces defined by each OS, to abstract the hardware resources, as well as to keep the language runtime itself reusable across hardware platforms.
+%Sometimes, a language runtime, such as a Java virtual machine (JVM), may impose another layer to reuse applications across OSes and instruction sets, but still relies on system interfaces of each OS, to make the whole language runtime reusable across hardware platforms.
+%abstract the hardware resources, as well as to keep the language runtime itself reusable across hardware platforms.
 %as well as to keep the runtime itself platform-independent.
-
+%By wrapping the hardware operations with generic system interfaces, 
+Using system interfaces, application developers can avoid writing the platform-specific code for hardware management, in either an application or a general-purpose, linkable library.
+%Developers may even write a general-purpose library, such as a cryptographic library, to be reusable in arbitrary applications,
+%and thus can make the library code more broadly reused on hardware platforms.
+\end{comment}
 
 %Only a few hardware components require specialized system interfaces or tool-chains to program against;
 %for example, recently Intel CPU extensions, including SGX~\cite{intelsgx} and MPX~\cite{intelmpx}, require applications to access a set of customized opcodes to the Linux's \syscall{ioctl} system call,
@@ -64,17 +133,23 @@ In some occasions, a language runtime, such as a Java virtual machine (JVM), imp
 %Another example is a GPU (Graphic Processing Unit),
 %which requires applications to be partially reprogrammed in a different language, such as CUDA~\cite{cuda}. 
 
-
-To keep the system interfaces programmable, the OS is obliged to maintain the consistency of system interface, or {\em Compatibility}, to ensure continuous support to applications.
+This thesis defines 
+\fixme{define ``compatibility''}
+the quality of reusing formerly-developed applications on different hardware platforms, as {\em compatibility}.
+%To keep the system interfaces programmable, the OS is obliged to maintain the consistency of system interface, or , to ensure continuous support to applications.
 %The programmability of system interfaces has a caveat: applications require the OS developers to be disciplinary on avoiding the disruption on the system interfaces used by the applications, or, in other words, keeping the OS {\em compatible}.
 %In order to preserve the {\em reusability} of applications, the application developers require the OS the 
 %Compatibility is critical to all production OSes %because it directly affects whether the customers can continue to run the same applications.
 %because application developers cannot afford re-implementing the applications
 %whenever a new OS version is released. %implementation is updated, in order to support a new hardware platform.
-Existing applications rely on the OS to faithfully reproduce the behaviors and interfaces implemented by the previous OS versions (i.e., backward compatibility). The definition of system interfaces is essentially a ``contract'' between application developers and the OS.
-Application developers expect the system interfaces to stay identical;
-an application previously developed and tested on an OS should behave the same as running on other OS versions installed by the users.
-Unless the OS has finished its development cycles and stop to adopt new hardware platforms, the compatibility has to be always maintained by the OS developers.
+The compatibility of an OS relies on both genericity of system interfaces and {\em backward compatibility} of the implementation.
+%For genericness, the application needs the system interfaces to be independent to the hardware platforms.
+For backward compatibility, the application expects the OS to consistently implement all the necessary system interfaces, as previously defined.
+%The consistency of system interface implementation is also called ``{\em backward compatibility}'', to differentiate with compatibility.
+Compatibility is essentially a ``contract'' between application developers and the OS;
+%Application developers expect the system interfaces to stay identical;
+a compatible OS ensures that an existing application, which is developed and tested on a certain version of the OS and a hardware platform, will behave identically on the same OS installed on other hardware platforms.
+%Unless the OS has finished its development cycles and stop to adopt new hardware platforms, the compatibility has to be always maintained by the OS developers.
 
 %can have the same behavior, on the OS versions for programming and testing, as well as the ones installed by the users.
 %If the OS fails to maintain the compatibility, the users mostly do not have the expertise of updating the application implementation, or the budget of paying the developers to do so.
@@ -106,20 +181,56 @@ Unless the OS has finished its development cycles and stop to adopt new hardware
 %\fixme{switch to the OS perspective}
 %From the perspective of OS developers, fulfilling the two meanings of OS compatibility, keeping the OS {\em generic} and keeping the OS {\em backward-compatible}, can be contradicting. 
 
-
-In a production OS such as Linux or Windows, the OS developers go to great lengths to maintain the compatibility. %, especially the backward-compatibility.
-In the fear of breaking the backward compatibility, OS developers are often reluctant to update or deprecate a system interface.
-Instead, they add new system interfaces, or extend the old system interfaces with new corner cases, without disrupting the implementation of existing system interface behavior.
+For an OS, implementing compatibility is both high-stakes and high-priority.
+%failing the compatibility may cause the OS to lose users who want to run an application that cannot be reused.
+Compatibility is the first factor that decides whether an OS is usable to a user, as the user cares about whether she can run the desired applications.
+%on the target hardware platform. %Therefore, OS developers often go to great lengths to preserve the compatibility of a OS.
+%In Linux or Windows, great effort has been made to avoid changing the behavior of an existing system interface, as well as to avoid deprecating one.
+%in order to preserve the backward compatibility.
+%Instead, they add new system interfaces, or extend the old system interfaces with new corner cases, without disrupting the implementation of existing system interface behavior.
 %The limitation is especially problematic, when the old system interface can no longer accommodate the operations on the new hardware.
 %In this case, the OS developers are forced to add new system interfaces, or add new corner cases to the old system interfaces, without touching the old system interfaces.
-Sometimes, the OS developers have to implement a ``fall-back'' mode, to ensure that the existing applications can still use the old system interfaces, 
+%OS developers must abide with the compatibility of the existing system interfaces,
+%and only add or extend system interfaces for supporting new hardware.
+%, so that the old system interfaces can remain unchanged.
+For a commodity OS, an OS developer would avoid changing or deprecating a system interface, unless she has taken a decades-long process of confirming that no application uses the system interface.
+%If an OS must introduce new system interfaces to support new hardware, old system interfaces are kept around for compatibility, creating system interfaces with duplicated functionality.
+%OS developers often choose to add new system interfaces, while keeping the old ones around as duplicates.
+%The duplication of system interfaces complicates the OS development, because the OS has to implement the new system interfaces for extended hardware support,
+The compatibility requirment also restricts an OS developer to add system interfaces for supporting new hardware platforms.
+Because only an updated application can benefit from new system interfaces, an OS developer has to to implement a transparent, ``fall-back'' support, for an existing, unmodified application %using the outdated system interfaces, 
+to utilize the new hardware.
+%in order to support a new hardware.
+%In order to preserve an old system interface with the support of new hardware, OS developers often implement , which will compensate for the existing applications.
+%existing applications that use the old interfaces and the new applications that use the extended interfaces.
+%Sometimes, the OS developers have to implement a ``fall-back'' mode, to ensure that the existing applications can still use the old system interfaces, 
 %even though these system interfaces are supported 
-under the emulation of the OS.
-An example is the HugeTLB support in Linux; on one hand, Linux provides a new control option, \code{MAP\_HUGETLB}, for \syscall{mmap}, to explicit specify the use of the optimization; on the other hand, Linux transparently converts the regularly allocated, large VMAs, to emulate VMAs allocated with the \code{MAP\_HUGETLB} option.
-Linux also adds the emulation of old system interfaces in the GNU standard C library (\code{glibc}).
-For example, \syscall{fork} is replaced by a wrapper in \code{glibc}, to explicitly call \syscall{clone} without the \code{CLONE\_VM} option (equivalent to \syscall{fork}), so that the old applications using \syscall{fork} can still be supported.
-Windows 7 even introduces a compatibility mode to align the system interfaces with applications designed for Windows XP, or ``XP mode'', which internally runs the applications in a virtual machine.
+%under the emulation of the OS.
+%Implementing the fall-back mode for new hardware can be challenging;
+An example of the fall-back support is the implementation in Linux to support huge pages (pages larger than 4KB), which transparently converts contiguous 4KB pages to huge pages, for VMAs allocated with the old \syscall{mmap} (without using the newly-added \code{MAP\_HUGETLB} option).
+%Linux also adds a new system interface---a  to \syscall{mmap}---which is much more efficient,
+%because the OS needs not to guess which VMAs can benefit from huge pages,
+%but does not supersede the fall-back strategy.
+The fall-back support is usually less efficient and complicates the OS design, 
+just like the conversion for huge pages would bring overheads to the page fault handler.
+However, OS developers cannot let the perfect be the the enemy of the good.
+A slightly slower but compatible solution, in many cases, is a necessary evil, in order to maintain the reusability of existing applications.
 
+
+%Using the \code{MAP\_HUGETLB} option is more effective than transparent conversion, because the OS needs not to anticipate whether the VMAs will benefit from using huge pages.
+
+
+\begin{comment}
+In case an OS has to change or deprecate a system interface, the OS developers might emulate the system interface in a user-space library.
+In Linux, the GNU standard C library (i.e., \code{glibc}) is often responsible for maintaining the compatibility of the system call table;
+\code{glibc} contains several wrappers for retired system calls, such as \syscall{fork} as a wrapper to the more general \syscall{clone} system call.
+%using wrappers to the existing system calls (e.g., \syscall{clone}).
+%For example, \syscall{fork} is replaced by a wrapper in \code{glibc}, to explicitly call \syscall{clone} without the \code{CLONE\_VM} option (equivalent to \syscall{fork}), so that the old applications using \syscall{fork} can still be supported.
+If library emulation is difficult, the OS might even introduce a compile-time tool, to rewrite or to recompile the application code
+against the new system interfaces. %The tool chain will technically make the application code reusable, but can no longer reuse the previously-compiled binaries.
+Virtualization is also a slightly more expensive solution to maintaining compatibility;
+for example, Windows 7 supports a compatibility mode for reusing the XP-only applications, or ``XP mode'', which internally runs the applications in a virtual machine.
+\end{comment}
 
 %Unfortunately, the recent trend of hardware technology shows
 %that it is getting increasingly difficult to keep the system interfaces compatible, while adopting all he new hardware.
@@ -144,9 +255,11 @@ Windows 7 even introduces a compatibility mode to align the system interfaces wi
 %while keeping the old interfaces around for backward compatibility.
 %Both Linux and Windows have recently experienced explosive growth on the number of system interfaces, which reflects this trend.
 
-
-Besides maintaining compatibility of the existing system interfaces in an OS, it is common that a new, research OS prototype to implement the compatibility to a production OS (we call the quality {\em inter-OS compatibility}).
-An OS implements the compatibility to another OS, in order to adopt a set of popular applications.
+\begin{comment}
+%Besides maintaining compatibility of the existing system interfaces in an OS, it is common that a new, research OS prototype to implement the compatibility to a production OS (we call the quality {\em inter-OS compatibility}).
+Compatibility also matters for reusing applications developed for a production OS, such as Linux or Windows,
+on a new OS prototype or another production OS.
+The purpose of ``inter-OS compatibility'' is  to adopt the collection of applications that are only available on another OS.
 For an OS prototype, the developers have the opportunity
 to redefining all system interfaces, which allows introduction of innovative concepts or programming models.
 Even between production OSes, such as Linux, Windows, and OS X, inter-OS compatibility are developed as features, such as the Bash-On-Windows to run Ubuntu applications in Windows, and the WINE emulator to run Windows applications in Linux or OS X.
@@ -164,19 +277,46 @@ Even between production OSes, such as Linux, Windows, and OS X, inter-OS compati
 %So far, OS researchers have succeeded academically on building OS prototypes
 %to demonstrate more superior OS designs and implementation.
 %However, in order to make these OS prototypes applicable to all existing applications, a long and painful process of development is almost unavoidable. 
+\end{comment}
 
 
+However, implementing compatibility can cause a dilemma, when supporting a new hardware platform that affects a large amount of system interfaces.
+For example, an unconventional memory architecture, such as NUMA (Non-uniform Memory Architecture) would affect every system interface that access shared, kernel state across memory units.
+%OS developers face a dilemma when implementing compatibility of the OS:
+%due to programmability, application developers require the system interfaces to stay generic and backward-compatible; however, OS developers also need to continue the OS development, in order to support new hardware platforms.
+%The primary challenge to implementing compatibility,
+%with a new hardware platform,
+%is the complexity of updating the current OS implementation to the system interfaces, which are unchangable and often overly complex.
+%in a commidity OS such as Linux or Windows.
+%is to provide the complete support of the enormous and complex system interfaces of a production OS.
+As another example,
+the Intel SGX (Software Guard Extensions) moves an application into an isolated environment protected by the CPU, and treats all system interfaces
+provided by the OS as untrustworthy.
+Supporting these new hardware platforms, for the existing, unmodified applications, 
+poses a tremendous challenge for OS developers.
+OS developers have to update a substantial portion of the OS implementation,
+without disrupting the support for existing system interfaces.
+The OS development process can be both painful and time-comsuming.
 
-The primary challenge to implementing the inter-OS compatibility
-is to provide the complete support of the enormous and complex system interfaces of a production OS.
-A Linux kernel above the version of 3.0 exports more than 300 system calls;
-The Windows 8.1 API set, which includes the APIs exported by the core system libraries, contains more than four thousands interfaces;
-Even POSIX 1003.1 has defined 1,191 interfaces for operating systems that are designed to be POSIX-compliant.
-These system interfaces are not just large in number;
-many of these interfaces have defined a tremendous amount of features, control options, sub-interfaces (e.g., opcodes for the \syscall{ioctl} system call), and corner cases.
-Reimplementing the whole system interfaces in another production OS, or a research OS prototype, is a huge burden to the OS developers.
+
+Primarily, the difficulty to update a substantial part of an OS
+is dominated by the complexity of system interfaces.
+%A primary challenge to implementing compatibility on these disruptive hardware platforms
+A commodity OS, such as Linux or Windows, normally contains a large amount of system interfaces, with signficiant complexity.
+The Linux kernel defines more than 300 system calls, and each system call
+can further define lots of options, sub-interfaces (e.g., opcodes for \syscall{ioctl}), and corner cases that have to be handled.
+Similarly, in Windows 8.1, the core system libraries (e.g., \code{nt.dll}) provide more than four thousand APIs.
+%, which includes the APIs exported by the core system libraries, contains more than four thousands interfaces;
+Even for a POSIX-compliant OS, such as AIX, the POSIX standard contains up to 1,191 APIs (version 1003.1). % including the extensible \syscall{ioctl}.
+%many of these interfaces have defined a tremendous amount of features, control options, sub-interfaces (e.g., opcodes for the \syscall{ioctl} system call), and corner cases.
+%Reimplementing the whole system interfaces in another production OS, or a research OS prototype, is a huge burden to the OS developers.
 %Many decisions made in the definitions of these system interfaces are random and inconsistent,
 %making the implementation of the interfaces in a new operating system an unbearable pain.
+Either one of these OSes or OS specifications has defined an objectively large amount of system interfaces, which would be difficult to preserve when updating a substantial part of the OS implementation.
+
+
+
+
 
 %The second reason is more nuanced but has a deep impact on
 %OS prototyping: the development of commodity operating systems has always been driven by certain conventional models and assumptions, which can be too limited or too outdated.
@@ -309,23 +449,45 @@ Reimplementing the whole system interfaces in another production OS, or a resear
 % regarding its threat model or performance patterns.
 
 
-This thesis establishes an operating system design and a general principle,
-for building up compatibility against existing applications, in an operating system which the OS developers intend to adopt for an emerging hardware platform, as well as a developing OS prototype.
+This thesis establishes an OS design and a general design principle, for simplifying the implementation of compatibility in an OS, in case the OS developers intend to adopt a new hardware platform.
+The key to reducing the difficulty of implementing compatibility
+is to largely reduce the amount of system interfaces that have to be preserved,
+when updating the OS implementation.
+This thesis shows that the OS developers need not to preserve the complete set of existing system interfaces, when the goal is to preserve the compatibility for a certain amount of applications, on an unconventional hardware platform.
 
 
-The first part of the thesis proposes using a {\em \libos{}},
-as a compatibility layer above the operating systems, to implement the system interfaces that the existing applications imperatively depend on.
-A \libos{} is different from a translation layer which maps one set of system interfaces to another, nor is it the same as wrapper functions for formerly defined interfaces.
-A \libos{} implements an operating system instance separated from the host, upon a standalone host interfaces similar to a set of virtualized hardware interfaces, or para-virtualized hypercalls.
-This thesis shows that a \libos{} can implement the rich OS features that the applications need, using a host interface defined with simplicity and minimal assumptions. This \libos{} design, alone with the host interface, is potentially stackable on various operating systems, to benefit both backward and forward compatibility.
+
+For the OS design, this thesis presents a narrowed set of system interfaces,
+or {\em host ABIs},
+to be implemented for each hardware platform.
+The host ABIs are defined to be completely generic to the hardware platforms,
+and contain abstractions that are easy to implement in most existing OSes that require compatibility improvement.
+Above the host ABIs, this thesis proposes using a {\em library OS},
+a compatibility layer which implement a set of {\em legacy} system interfaces,
+from a commodity OS such as Linux, in order to reuse the targetted applications.
+%that the existing applications imperatively depend on.
+%A \libos{} is different from a translation layer which maps one set of system interfaces to another, nor is it the same as wrapper functions for formerly defined interfaces.
+%A \libos{} implements an operating system instance separated from the host, upon a standalone host interfaces similar to a set of virtualized hardware interfaces, or para-virtualized hypercalls.
+This thesis shows that a library OS can implement a substabtial amount of OS features that the targetted applications require, 
+using the host ABIs, which an OS developer can easily implement, for a new hardware platform.
+%using a host interface defined with simplicity and minimal assumptions. This \libos{} design, alone with the host interface, is potentially stackable on various operating systems, to benefit both backward and forward compatibility.
 
 
-This thesis presents \graphene{}, a \libos{} to support unmodified Linux applications on various hosts. \graphene{} implements a major portion of the Linux system call table 
-\fixme{try to grow this number}
-(\graphenesyscalls{} out of \linuxsyscalls{} system calls),
-using a small host ABI (Application Binary Interface) inherited from a precursor \libos{} called \drawbridge{}~\cite{porter11drawbridge}.
-The host ABI of \drawbridge{} defines the OS features commonly provided on most platforms, including threading, memory management, file systems, and network connections.
-By experimenting the porting of host ABI on different hosts, \graphene{} shows that its host ABI is easy to implement, both efficiently and securely. By carefully engineering a \libos{} on top of the host ABI, we largely improve the performance of the Linux \libos{}. The optimization can be reused on multiple hosts \graphene{} has supported.
+This thesis presents an embodiment of the compatibility-favored OS design, as the \graphene{} library OS.
+The \graphene{} library OS can run a wide range of unmodified Linux applications,
+including server-type applications, command-line programs, and language runtimes, on a set of host OSes and hardware platforms.
+\graphene{} implements \fixme{try to grow this number} \graphenesyscalls{} out of \linuxsyscalls{} system calls,
+using \palcalls{} host ABIs. 
+%nherited from a precursor \libos{} called \drawbridge{}~\cite{porter11drawbridge}.
+The host ABIs contain the most OS features, including threading, memory management, file systems, and network connections.
+This thesis experiment the implementation of the host ABIs on various hosts,
+including alternative OS kernels (e.g., Windows, OS X, FreeBSD) on x86 hardware,
+the Intel SGX isolation hardware platform,
+and research OS prototypes (e.g., Barrelfish, the L4 microkernel).
+The implementation of the \graphene{} library OS and the host ABIs demonstrates the {\em simplification} and {\em sufficiency} of the proposed OS design, to implement compatibility.
+
+
+%By experimenting the porting of host ABI on different hosts, \graphene{} shows that its host ABI is easy to implement, both efficiently and securely. By carefully engineering a \libos{} on top of the host ABI, we largely improve the performance of the Linux \libos{}. The optimization can be reused on multiple hosts \graphene{} has supported.
 
 
 
@@ -333,7 +495,10 @@ By experimenting the porting of host ABI on different hosts, \graphene{} shows t
 
 %system library which implements the system interfaces with minimal host interfaces and assumptions---to improve the OS development model for adapting applications to new hardware platforms.  Using a \libos{} can minimize the effort of customizing the OS for a certain hardware platform. OS developers only need to implement a narrowed host ABI (application binary interface), which includes a set of OS features defined to be stateless and generic to most hardware platform. Above the host ABI, we demonstrate that a full-featured \libos{} can be built to support a major portion of the system API, implemented using only the OS features defined in the host ABI. The \libos{} is practical: it has reasonable performance overhead generally less than 1$\times$, and memory footprint to load the \libos{} with applications.
 
-The second half of this thesis shows that the compatibility against the existing applications, in an evolving operating system, is actually measurable using a scientific method.
+
+Besides the OS design, this thesis also presents a general design principle
+for implementing compatibility, either in a commodity OS, or the \graphene{} library OS.
+This thesis shows that the compatibility against the existing applications, in an OS, can be measured and incrementally improved, by scientific approach.
 Using a metric that is weighted by the usage of system interfaces in a large sample of commonly used applications, as well as the popularity of the sampled applications, one can estimate the portion of potentially affected users when changing or deprecating a system interface, or evaluate the probably for existing applications to work on a new OS prototype. By measuring the partial compatibility of an OS prototype against a commodity operating system, the OS developers can prioritize the implementation of more ``important'' system interfaces, or ones that can potentially resurrect the most existing applications, instead of implementing every features and corner cases of the system interfaces.
 
 
@@ -343,7 +508,10 @@ Using a metric that is weighted by the usage of system interfaces in a large sam
 
 
 
-%This thesis have three primary contributions:
+This thesis have three primary contributions. First, the thesis presents a OS design, as the \graphene{} library OS, which simplifies the implementation of compatibility, using a narrowed set of host ABIs, and a library OS implemented to reuse unmodified Linux applications.
+Second, the thesis demonstrates the simplification and sufficiency of the OS design to the existing practice of compatibility, by porting the host ABIs to a number of host OSes and hardware platforms. Third, the thesis shows that the compatibility against existing, unmodified applications can be measured and incrementally improved, based on a ``compatibility metric'' which evaluates the coverage of supported system interfaces among applications, weighted by the application popularity.
+
+
 \begin{comment}
 \paragraph{Contributions.}
 This thesis proposes the challenges, solutions and principles,
@@ -457,18 +625,22 @@ and GIT version control system by up to 25\%.
 
 \section{Motivating Examples}
 
+This section shows several examples in which implementing compatibility is challenging, to motivate the OS design presented in this thesis.
+
 
 \subsection{Intel SGX (Software Guard Extensions)}
 
-One of the motivating examples, for using \libos{} to improve application compatibility,
-is the support of unmodified Linux application
-on the platform of Intel Software Guard Extensions (SGX)~\cite{intelsgx}.
-Intel SGX is a trusted execution hardware introduced in the sixth-generation Intel CPUs extensions, which isolates and protects a piece of verified code from being attacked by potentially compromised OSes, hypervisors, and other applications.
-The isolated environment created by SGX to run a specific piece of code is called an ``enclave''. The security benefit of using SGX is to utilize the hardware resources of an untrusted host,
+%One of the motivating examples, for using \libos{} to improve application compatibility,
+%is the support of unmodified Linux application
+%on the platform of Intel (SGX)~\cite{intelsgx}.
+Intel SGX provide the hardware support for trustworthy, isolated execution, as part of the sixth-generation Intel CPU extensions.
+Using Intel SGX, application developers can isolate and protect a piece of verified, application code from being attacked by the potentially compromised OSes, hypervisors, and other applications.
+The isolated environment created by SGX to run an application is called an ``enclave''. The security benefit of using SGX is to utilize the hardware resources of an untrusted host,
 such as a public cloud for rent, or an unsecured machine owned by the customers.
-The application code running on SGX has the end-to-end protection enforced by the CPU,
-guaranteeing the memory state of the trusted execution to be signed and encrypted when the code and data leaves the CPU package and is eventually stored in the DRAM or swapped out to the storage.
-SGX can also prove the integrity of the protected execution, to a remote, trusted entity, as well as the integrity of the CPU itself.
+By running the application code on SGX, the code has the end-to-end protection enforced and attested by the CPU,
+ensuring the memory state inside of the protected code
+to be signed and encrypted, when the code and data leave the CPU package and are stored in the DRAM or swap device.
+SGX also proves the integrity of the protected execution, to a remote entity, as well as the integrity of the CPU itself.
 
 
 %A Linux application running on Intel SGX can receive end-to-end protection from the untrusted OSes, but also no longer have a trustworthy OS to faithfully return correct, benign OS features, such as reading a file or creating a thread.
@@ -479,14 +651,15 @@ SGX can also prove the integrity of the protected execution, to a remote, truste
 %building an ad hoc compatibility layer to implement and defend OS features for general Linux applications in Intel SGX
 %not only is cumbersome but also cannot be properly checked for security.
 
-In order to program against such a hardware, the conventional expectation is that the application developers must modify the applications, to isolate a small piece of code inside an enclave.
-If the users intend to run an existing application borrowed from a commodity operating system, SGX actually imposes several restrictions to running the ``legacy code'' inside the enclaves.
-The restrictions are either imposed by the SGX hardware in the run time, or statically by the official Intel SGX SDK (software development kit).
-As one of the restrictions, the SGX hardware forbids a few x86 instructions,
-including \code{cpuid} and \code{rdtsc}, for the clarity of shielding~\fixme{maybe explain or mention this word upfront} these hardware features.
-For example, \code{cpuid} is forbidden because SGX can be combined with the hardware virtualization (VT) of the Intel CPUs, and a mode of VT actually can trap the \code{cpuid} instructions to the hypervisor, which is untrusted in the threat model of SGX.
-\code{rdtsc} is also removed from the enclaves because the Intel CPUs cannot completely rule out the case where the attackers slow down the Time Stamp Counter (TSC) physically. 
-The application developers would have to remove these instructions from the enclave code, or the supporting framework inside the enclaves can implement certain wrapper to emulate the semantic when the use of these instructions triggers hardware faults.
+In order to program against such a hardware, the common expectation is that the application developers must modify an application, to isolate the application code, partially or wholely, inside an enclave.
+If the users intend to run an unmodified application, SGX imposes several restrictions to running ``legacy code'' inside an enclave.
+%The restrictions are either imposed by the SGX hardware in the run time, or statically by the official Intel SGX SDK (software development kit).
+For example, the SGX hardware forbids several x86 instructions,
+including \code{cpuid} and \code{rdtsc}, for the clarity of shielding these hardware features.
+\code{cpuid} is forbidden in case that SGX is combined with the hardware virtualization (VT) of the Intel CPUs, because a mode of VT can trap the \code{cpuid} instructions to the hypervisor.
+%, which is untrusted in the threat model of SGX.
+\code{rdtsc} is also forbidden because the Intel CPUs cannot completely rule out the case that the Time Stamp Counter (TSC) is physically slowed down. 
+The application developers would have to remove these instructions from the applications in order to run inside an enclave.
 
 %The difficulty of reusing applications by ad hoc solutions shows that 
 %a universal solution is needed to shorten the cycle for a new OS or hardware platform to be applied on applications currently being used. The solution requires minimizing the per-platform effort for implementing the OS functionality and addressing any platform-specific security or performance concerns (e.g., Iago attacks to Intel SGX). 
@@ -524,12 +697,30 @@ The application developers would have to remove these instructions from the encl
 %or the old specifications have to be emulated in the new OSes.
 
 However, the most important restriction imposed by SGX is
-to disallow the use of majority of OS functionality, including system calls and dynamic loading of application binaries.
-This restriction is actually motivated by the security, because the operating system is not trusted to provide these OS features benignly and genuinely.
-By design, the supporting framework of the official SDK, or a library called \code{libsgx}, only contains features that are irrelevant to hardware resources and doesn't require interaction with the untrusted OS,
-such as \funcname{memcpy}, or \funcname{malloc}, which is a simplified version of the real libc \funcname{malloc} and only allocates from static memory regions.
-These OS features are vastly insufficient for supporting the existing applications. Most of the applications heavily depend on the operating systems to faithfully implement the existing system call semantics.
-Any supporting framework for running the existing applications on SGX must reproduce the semantics, under the circumstance that the framework cannot directly manage any hardware, but the host operating system can never be trusted.
+to disallow the access to OS functionality, 
+because the system interfaces defined by the OS are not trusted in the threat model of SGX.
+%including system calls and dynamic loading of application binaries.
+This restriction is motivated by security, 
+%because the operating system is not trusted to provide these OS features benignly and genuinely.
+and using the official SDK, the supporting library, or \code{libsgx}, can only provide minimal amount of APIs, which are irrelevant to OS-managed hardware resources, 
+such as \funcname{memcpy} and \funcname{malloc}.
+%which is a simplified version of the real libc \funcname{malloc} and only allocates from static memory regions.
+These APIs are insufficient to supporting an unmodified applications to run inside of an enclave. 
+%Most of the applications heavily depend on the operating systems to faithfully implement the existing system call semantics.
+%Any supporting framework for running the existing applications on SGX must reproduce the semantics, under the circumstance that the framework cannot directly manage any hardware, but the host operating system can never be trusted.
+
+
+Theoretically, an unmodified application can be supported on SGX, using a thin redirection layer, which forwards the system interfaces to the OS.
+However, the problem is that the application must check the results of system interfaces, since the OS is not trusted to faithfully provide the requested OS features.
+The application can perform some simple check against relatively naive attacks
+from the system interfaces, such as returning a invalid pointer which may corrupt other memory regions or cause the application to leak sensitive information.
+However, for the rest of system interfaces, the required checks against the untrusted OS are more subtle, as the application has to predict the correct results which it can check against. Predicting the results for most system interfaces is likely to be as expensive as implementing the system interfaces.
+
+
+\subsection{\syscall{brk} and \syscall{mmap}}
+
+
+\subsection{Multi-process applications}
 
 
 
@@ -1958,7 +2149,7 @@ is safe to be released from the enclave.
 %and most underlying storage (e.g., Ext4, Pseudo file systems).
 
 
-\section{Security Isolation on the Host ABI}
+\section{Security Isolation}
 
 
 %Besides emulating OS abstractions, \graphene{} also provides a reasonable model of enforcing security isolation among applications launched by mutually untrusting users.
@@ -1976,9 +2167,6 @@ is safe to be released from the enclave.
 %without making significant effort to build individual access control.
 %The isolation model is fully portable to every host platforms,
 %including the host with SGX enclaves, where no trusted host monitor is present
-
-
-\section{Language Support for Hardware Abstractions}
 
 
 
