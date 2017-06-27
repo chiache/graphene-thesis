@@ -12,17 +12,17 @@ of supported applications.
 
 
 These metrics are easy to quantify, but problematic.
-Simply put, not all APIs are equally important: some are indispensable (e.g., {\tt read} and {\tt write}),
-whereas others are very rarely used (e.g., {\tt preadv} and {\tt delete\_module}).
+Simply put, not all APIs are equally important: some are indispensable (e.g., \syscall{read} and \syscall{write}),
+whereas others are very rarely used (e.g., \syscall{preadv} and \syscall{delete\_module}).
 A simple count of system calls is easily skewed by 
-system calls that are variations on a theme (e.g., {\tt setuid}, {\tt seteuid}, and {\tt setresuid}).
-Moreover, some system calls, such as {\tt ioctl},
+system calls that are variations on a theme (e.g., \syscall{setuid}, \syscall{seteuid}, and \syscall{setresuid}).
+Moreover, some system calls, such as \syscall{ioctl},
 export widely varying operations---some used by 
-by {\em all} applications and many that are essentially never used (\S\ref{sec:observation:vector}).
+by {\em all} applications and many that are essentially never used (\S\ref{sec:syspop:study:opcodes}).
 %We use the term {\em vectored system call} for calls, such as {\tt ioctl},
 %which essentially export a nested system call table, selected by an opcode argument.
 %by {\em any} applications in Ubuntu 
-Thus, a system with ``partial support'' for {\tt ioctl}
+Thus, a system with ``partial support'' for \syscall{ioctl}
 is just as likely to support all or none of the Linux applications distributed with Ubuntu.
 
 
