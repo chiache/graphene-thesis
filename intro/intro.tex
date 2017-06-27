@@ -4,12 +4,10 @@
 
 %In modern computer systems, an operating system plays a key role
 %of abstracting the hardware for applications. % that are designed to run on a wider range of hardware platforms.
-Application developers rely on operating systems for abstracting the hardware features in OS services.
-In a UNIX-style OS,
-the OS-level hardware abstractions can be controlled by the application developers, 
+Application developers rely on operating systems for abstracting the hardware features as OS services.
+The OS-level hardware abstractions are controllable by the application developers, 
 using {\em system interfaces} as a convenient programming standpoint~\cite{ritchie74unix}.
-The system interfaces simplify the programming in user space, 
-by exempting the average application developers from getting involved with the intimate details of hardware programming~\cite[\S1]{tanenbaum19os-textbook}.
+The presence of system interfaces frees the average application developers from getting involved with the intimate details of hardware programming~\cite[\S1]{tanenbaum19os-textbook}.
 %Operating systems presents a comprehensive way for application developers to program the hardware resources.
 %allowing the application developers to focus on more important implementation issues in hand.
 %For application developers, 
@@ -34,7 +32,7 @@ by exempting the average application developers from getting involved with the i
 %either statically or in the run time.
 %A commodity operating system, such as Linux or Windows, define hundreds or even thousands of system interfaces~\cite{linux-syscall,freebsd-syscall,win-api}, in order to accommodate the diverse, contemporary hardware.
 %For programmability, system interfaces are defined to be as generic as possible, despite the idiosyncracies of hardware resources;
-The basic system interfaces in UNIX, such as \code{read} and \code{write}, conceal the physical aspects of file storage,
+For example, the basic system interfaces in UNIX, such as \code{read} and \code{write}, conceal the physical aspects of file storage,
 as well the differences between ordinary files and I/O devices~\cite{ritchie78unix-retro}.
 %for example, in UNIX-style operating systems, application developers use \syscall{clone} and \syscall{mmap},
 %to allocate tasks and virtual memory areas (VMAs),
@@ -42,9 +40,8 @@ as well the differences between ordinary files and I/O devices~\cite{ritchie78un
 %The application binaries also contain statically-defined code and data segments, which represent the minimal memory usage to start an execution.
 %or based on the code and data segments inside of the application binaries.
 %can help splitting the CPU cycles or the physical memory, by allocating task contexts or virtual memory regions inside of an application.
-For an application, \code{read} and \code{write} can work invariably on every file descriptors,
-whereas the triggered hardware operations can vary
-from accessing storage blocks to processing I/O streams~\cite{ritchie74unix}.
+From the perspective of an application developer, either \code{read} or \code{write} works invariably on all file descriptors,
+whereas the triggered hardware operations can vary from accessing storage blocks to processing I/O streams~\cite{ritchie74unix}.
 
 
 
@@ -61,37 +58,45 @@ from accessing storage blocks to processing I/O streams~\cite{ritchie74unix}.
 
 
 %Besides for the programmability,
-The OSes also facilitate the reuse and distribution of applications
+The OSes facilitate the reuse and distribution of applications
 across different physical machines.
-The top-down view of a modern OS is an extended machine or a ``virtual machine''~\cite[\S4]{dhamdhere2007os-textbook},
+The top-down view of a UNIX-style OS is an extended machine or a ``virtual machine''~\cite[\S4]{dhamdhere2007os-textbook},
 which hides the low-level information of the bare hardware.
 The benefit is that application developers only see an extended machine with consistent OS functions,
 instead of the distinction of hardware.
 An early design point of UNIX is to move a large amount of device drivers
 into the OS space,
-to make a user program fit into
+so that a user program can be small enough to fit into
 removable disks~\cite{ritchie74unix}.
-POSIX later doubles down on defining a system interface standard that covers all the typical hardware operations, and makes the applications machine-independent (i.e., {\em portable})~\cite{ieee-posix}.
-The similar initiative is taken by other open OS standards, such as BSD and Linux~\cite{quarterman85bsd,linux-standard-base}.
+POSIX later doubles down on defining a system interface standard that covers all the typical hardware operations, and thus making the applications machine-independent (i.e., {\em portable})~\cite{ieee-posix}.
+Similar initiatives are taken by other open OS standards, such as BSD and Linux~\cite{quarterman85bsd,linux-standard-base}.
 %In the current OS ecosystem,
-In a portable OS, a developer can write a C program that prints ``hello world'' on any physical machines, in merely five lines of code.
+As a result, in a portable OS, a developer can easily write a C program that prints ``hello world'' on any physical machines, in merely five lines of code.
 
 
+The focus on convenience of application programming and portability in the OS design space ends up creating several millions-line-of-code OS artifacts,
+including Linux and Windows~\cite{tanenbaum2006os,kroah2007linux,cusumano1997microsoft}.
+Unlike the contemporary OS implementations, the early UNIX systems are reportedly simple and straightforward to implement~\cite{ritchie78unix-retro}.
+However, the increasing variety of applications and physical machines
+has raised the bar for retaining OS portability.
+A commercial-class OS has to contain at least thousands of device drivers~\cite{padioleau2008linux-device-drivers}, each of which will transparently implement a set of legacy driver interfaces.
+%Each device driver is a transparent implementation of the legacy driver interfaces, in order to be pluggable to the OS.
+In addition, system interfaces have grown much more complex and offered more programmable options, as being tailored to the need of applications.
+The modern versions of Linux, Windows, and POSIX have each defined hundreds to thousands of OS functions~\cite{linux-man-syscall,win-api,ieee-posix}, to support a tremendous amount of existing applications. 
 
-Historically, prioritizing the convenience of application development has increasingly complicated OS development.
-In early UNIX development, system interfaces are reportedly easy to implement~\cite{ritchie78unix-retro}.
-As the range of applications and physical machines expands, the cost for an OS to retain portability has become higher.
-The current Linux kernel contains thousands of device drivers, contributing to \fixme{find these numbers and cite} xxx\% of the source code, or xxx thousand lines of code.
-The number of system interfaces in an OS
-has also grown significantly to fit to the needs of applications:
-Linux contains more than three hundred system calls;
-in Windows 8.1, the core system libraries (e.g., \code{nt.dll}) export more than four thousand APIs;
+
+%Linux contains more than three hundred system calls;
+%in Windows 8.1, the core system libraries (e.g., \code{nt.dll}) export more than four thousand APIs;
 %, which includes the APIs exported by the core system libraries, contains more than four thousands interfaces;
-even POSIX has raised the number of APIs to 1,191, in version 1003.1~\cite{ieee-posix}.
+%even POSIX has raised the number of APIs to 1,191, in version 1003.1
 
 
-drifting apart of
-application and OS development, which requires not just portability, but {\em compatibility} of the OS. 
+
+
+
+
+
+
 
 
 \begin{comment}
@@ -133,22 +138,29 @@ Using system interfaces, application developers can avoid writing the platform-s
 %Another example is a GPU (Graphic Processing Unit),
 %which requires applications to be partially reprogrammed in a different language, such as CUDA~\cite{cuda}. 
 
-This thesis defines 
-\fixme{define ``compatibility''}
-the quality of reusing formerly-developed applications on different hardware platforms, as {\em compatibility}.
+
+The modern OSes face a challenge as retaining the {\em compatibility} to the existing applications,
+in order to preserve the legacy of software development.
+%This thesis defines 
+%\fixme{define ``compatibility''}
+%the quality of reusing formerly-developed applications on different hardware platforms, as {\em compatibility}.
 %To keep the system interfaces programmable, the OS is obliged to maintain the consistency of system interface, or , to ensure continuous support to applications.
 %The programmability of system interfaces has a caveat: applications require the OS developers to be disciplinary on avoiding the disruption on the system interfaces used by the applications, or, in other words, keeping the OS {\em compatible}.
 %In order to preserve the {\em reusability} of applications, the application developers require the OS the 
 %Compatibility is critical to all production OSes %because it directly affects whether the customers can continue to run the same applications.
 %because application developers cannot afford re-implementing the applications
 %whenever a new OS version is released. %implementation is updated, in order to support a new hardware platform.
-The compatibility of an OS relies on both genericity of system interfaces and {\em backward compatibility} of the implementation.
+Compatibility relies on %both genericity of system interfaces and {\em backward compatibility} of the implementation.
 %For genericness, the application needs the system interfaces to be independent to the hardware platforms.
-For backward compatibility, the application expects the OS to consistently implement all the necessary system interfaces, as previously defined.
+%For backward compatibility, the application expects 
+the OS to faithfully implement the existing system interfaces,
+to prevent the OS updates from making the existing applications obsolete.
 %The consistency of system interface implementation is also called ``{\em backward compatibility}'', to differentiate with compatibility.
-Compatibility is essentially a ``contract'' between application developers and the OS;
+Compatibility is essentially a long-lasting ``contract'' between the OS and the application developers.
 %Application developers expect the system interfaces to stay identical;
-a compatible OS ensures that an existing application, which is developed and tested on a certain version of the OS and a hardware platform, will behave identically on the same OS installed on other hardware platforms.
+A compatible OS ensures that
+all previously developed and tested application will behave consistently on the successors of the OS.
+%identically on the same OS installed on other hardware platforms.
 %Unless the OS has finished its development cycles and stop to adopt new hardware platforms, the compatibility has to be always maintained by the OS developers.
 
 %can have the same behavior, on the OS versions for programming and testing, as well as the ones installed by the users.
