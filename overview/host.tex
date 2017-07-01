@@ -1,36 +1,66 @@
-\section{The Host ABI}
+\section{The Host ABIs}
 \label{sec:overview:host}
 
-\fixme{each sentense should be a paragraph; starting the 2nd sentence}
-The \graphene{} host ABI describes the minimal functionality that a host OS has to implement, in order to reuse an application and the supporting libraries, including the \graphene{} library OS. 
+%\fixme{each sentense should be a paragraph; starting the 2nd sentence}
+The \graphene{} host ABIs
+describe the OS functions needed from a host,
+to reuse an application and all its supporting libraries, including the \graphene{} library OS. 
+For each host which requires the compatibility for unmodified Linux applications, one only has to implement the narrowed host ABIs,
+instead of reimplementing the bloated, ``legacy'' system interfaces
+needed by the applications.
+The host ABIs decouple the OS development in the host and the implementation of compatibility for the existing Linux application.
+What the host ABIs expose is a simplified OS as a consistent, host-independent,  extended machine,
+on which another layer of virtualization (i.e., the library OS) can be built to reproduce the compatibility for Linux.
 
-The \graphene{} host ABI is both simple (minimizing the effort of porting per host) and sufficient (containing enough host abstractions for implementing the library OS functionality).
-
-A host ABI (application binary interface) has to define the convention of application binaries, including the binary format and the linking procedure, as well as a set of  system interfaces.
-The host ABI defines the acceptable binary format as a simplified version of the ELF (Excutable and Linkable Format).
-Each host of \graphene{} is supposed implement a minimal dynamic loader,
-which can load the \graphene{} library OS binary in ELF.
-The library OS then provides the full-functioned dynamic loader,
-which will loads and links the rest of application binaries, just like the native Linux loader (i.e., \code{ld.so}).
-
-
-
-
-\subsection{Host abstractions}
-\label{sec:overview:host:abstractions}
+The definition of the host ABIs must be both
+{\em simple} (i.e., minimizing the difficulty of porting per host)
+and {\em sufficient} (i.e., containing all necessary host functions for implementing the Linux functionality in the library OS).
+For the simplicity, \graphene{} reduces the host functions
+to the bare minimum.
+In the simplest host ABIs, none of the host functions shall be able to internally implement the behavior of another host function,
+or the definition of the host ABIs is further reducible.
+Moreover, the host ABIs contain the most common OS functions
+offered on most of the potential hosts,
+so the implementation of the host ABIs shall be as straightforward as redirecting to the closest host-specific system interfaces,
+such as the Linux system calls or the Windows APIs.
 
 
-\fixme{the beginning doesn't capture the whole paragraph.}
+For sufficiency, the host ABIs cover the typical categories of OS functions, such as process management,
+memory management, and I/O management~\cite{dhamdhere2007os-textbook},
+as demonstrated in Table~\ref{tab:overview:abi}.
+The host ABI inherits the high-level definition of the host ABIs from a prior work called \drawbridge{}~\cite{porter11drawbridge},
+which is used by a library OS to run a single-process Windows application
+in a lightweight, guest environment.
+%The definition of the \drawbridge{} host ABI is a hint, for creating a list of host abstractions necessary for the library OS, including streams, memory, threads, and processes. 
+If the host ABIs are insufficient for implementing a certain legacy OS service in the library OS, one may extend the host ABIs with the missing functions.
+The extension to the host ABIs must be disciplined, to keep the extension minimal, and to avoid adding redundant functions.
+
+
+%A host ABI (application binary interface) has to define the convention of application binaries, including the binary format and the linking procedure, as well as a set of  system interfaces.
+The host ABIs contain a minimal loader which recognizes a basic version of the ELF (Executable and Linkable Format), just enough to compose a binary of the library OS.
+The very initial loading procedure as part of the host ABIs only loads a clean library OS instance.
+%Each host of \graphene{} is supposed implement a minimal dynamic loader,
+%which can load the \graphene{} library OS binary in ELF.
+The library OS then completes the dynamic loading procedure,
+by directly loading the Linux native dynamic loader (i.e., \code{ld.so}), and indirectly loading the rest of the application binaries.
+
+%ill loads and links the rest of application binaries, just like the native Linux loader (i.e., \code{ld.so}).
+
+
+
+
+\subsection{Host functions}
+\label{sec:overview:host:palcalls}
+
+
+\fixmedp{the beginning doesn't capture the whole paragraph.}
 The host ABI shares several common abstractions with production OSes. The interfaces, as part of the host ABI, which access these host abstractions, are ultimately simplified to reduce the porting effort on each host.
 Unlike the system interfaces in the OS, the host ABI does not prioritize backward compatibility. Therefore, the host ABI includes only the minimum interfaces that the library OS needs to interact with the host. The host ABI does not have to include any of  the legacy system interfaces from a production OS, let alone preserving different flavors of system interfaces for backward compatibility.
 
 
-The host ABI inherits partially the high-level semantics of another host ABI defined by a prior work called \drawbridge{}~\cite{porter11drawbridge}.
-\drawbridge{} is a library OS for reusing single-process Windows applications,
-in a lightweight, guest environment.
-The definition of the \drawbridge{} host ABI is a hint, for creating a list of host abstractions necessary for the library OS, including streams, memory, threads, and processes. 
 
-\fixme{give more of the background}
+
+\fixmedp{give more of the background}
 The host ABI is also complemented with several Linux-specific abstractions, such as exception handing and the control of segment registers (i.e., \code{FS}/\code{GS} registers).
 The host ABI contains \palcalls{} host functions (Table~\ref{tab:overview:abi}), which can be directly called from the library OS. \graphene{} shows that the host ABI is sufficient to implementing a large portion of the Linux system calls.
 
@@ -49,12 +79,12 @@ allow delegation of an open stream handles to another process, through a connect
 Another RPC abstraction is a bulk IPC channel; a process can use \funcname{PhsyicalMemoryCommit} to commit a large chunk of memory to a bulk IPC channel, which \funcname{PhsyicalMemoryMap} can map into another process, as copy-on-write. The library OS uses bulk IPC as an optimization to \syscall{fork}.
 
 
-To simplify isolation, the functions to access each host abstraction must appear \fixme{clarify ``stateless''} stateless to the host, except for the handles to identify the resources. Each call to the host functions is independent. The arguments given for each call must be always be absolute values, instead of relative values.
+To simplify isolation, the functions to access each host abstraction must appear \fixmedp{clarify `stateless'} stateless to the host, except for the handles to identify the resources. Each call to the host functions is independent. The arguments given for each call must be always be absolute values, instead of relative values.
 For example, the offset given to \funcname{StreamMap}, \funcname{StreamRead}, and \funcname{StreamWrite} (if the opened handle is a file) are offsets from the beginning of the file, and thus are irrelevant to how many bytes that are previously written or read.
 When enforcing isolation rules, the host OS can check the arguments of each calls to the host functions, independently and atomically.
 
-\subsection{Porting to hosts}
-\label{sec:overview:host:port}
+\subsection{Porting to different hosts}
+\label{sec:overview:host:porting}
 
 
 The compatibility of \graphene{} relies on each host to implement the host ABI.
@@ -62,7 +92,9 @@ The host ABI is defined for the simplicity of porting.
 First of all, the number of abstractions included in the host ABI
 is objectively smaller than the number of system interfaces in a production OS (e.g., system calls in Linux). 
 The simplicity of porting the host ABI is experimented by the development of
-several ``classic'' ports, including the ports to Windows, Linux, OS X, \fixme{the last two are prospective} the L4 microkernel, and Barrelfish.
+several ``classic'' ports, including the ports to Windows, Linux, OS X,
+\fixme{the last two are prospective}
+the L4 microkernel, and Barrelfish.
 For each port, the amount of code written for implementing the host ABI is at the order of magnitude of thousands of lines of code, which is much more manageable than implementing a flat translation layer for system interfaces.
 
 
