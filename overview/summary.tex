@@ -1,6 +1,14 @@
 \section{Summary}
 \label{sec:graphene:summary}
 
+The whole \graphene{} design is centered around building an extra para-virtualization layer, instead of implementing a significantly larger set
+of system interfaces.
+Although implementing the existing system interfaces from Linux is still necessary for running unmodified Linux applications,
+the \graphene{} implementation is reusable and thus can be seen as a one-time cost.
+The rest of effort goes into decoupling the porting issue on the hosts from the compatibility issue in the library OS.
+Chapter~\ref{chap:abi} and chapter~\ref{chap:sgx} will discuss the definition and implementation of the host ABIs in depth.
+Chapter~\ref{chap:libos} will describe the details of developing the library OS with compatibility to Linux applications.
+
 %\sysname{} extends library OS designs 
 %to include multi-process APIs required by common applications, such as a shell or 
 %web server.
@@ -51,6 +59,7 @@
 %%% eliminating storage management in the host kernel, and 
 %%% investigating the impact of frequent migration among devices.
 
+\begin{comment}
 Enabling legacy applications in a restricted environment,
 such as \picoprocs{} or enclaves,
 requires extra effort for mitigating the limitations of platforms,
@@ -75,8 +84,9 @@ and shared states.
 Because the corporative nature of \picoprocs{} in \graphene{},
 an application can even dynamically impose sandboxing on one of its processes,
 to reflect per-process, variable security policies.
+\end{comment}
 
-
+\begin{comment}
 In principle, we attempt to use \graphene{} to justify the platform independence
 of the \libos{} design,
 without sacrificing its qualitative benefits,
@@ -101,3 +111,4 @@ by simply porting the reasonably sized host ABI
 to a new platform,
 a whole large spectrum of legacy applications tested on the previous platforms
 can be activated all together.
+\end{comment}

@@ -1,0 +1,79 @@
+\section{Stream I/O}
+\label{sec:abi:streams}
+
+
+
+\begin{paldef}
+HANDLE StreamOpen (STRING stream_uri,
+                   INT access_flags, INT share_flags,
+                   INT create_flags, INT options);
+\end{paldef}
+
+
+
+
+\begin{paldef}
+LONG StreamRead (HANDLE stream_handle,
+                 LONG offset, LONG size, PTR buffer,
+                 PTR source_uri, LONG uri_len);
+\end{paldef}
+
+
+
+
+\begin{paldef}
+LONG StreamWrite (HANDLE stream_handle,
+                  LONG offset, LONG size, PTR buffer,
+                  STRING dest_uri);
+\end{paldef}
+
+
+
+\begin{paldef}
+PTR StreamMap (HANDLE stream_handle, PTR addr,
+               INT prot, LONG offset, LONG size);
+\end{paldef}
+
+
+\begin{paldef}
+VOID StreamAttrQuery (STRING stream_uri,
+                      STREAM_ATTRS attrs);
+\end{paldef}
+
+
+\begin{paldef}
+VOID StreamAttrQuerybyHandle (HANDLE stream_handle,
+                              STREAM_ATTRS attrs);
+\end{paldef}
+
+
+
+\begin{paldef}
+VOID StreamAttrSetbyHandle (HANDLE stream_handle,
+                            STREAM_ATTRS attrs);
+\end{paldef}
+
+
+
+\begin{paldef}
+VOID StreamSetLength (HANDLE stream_handle,
+                      LONG length);
+\end{paldef}
+
+
+
+\begin{paldef}
+VOID StreamFlush (HANDLE stream_handle);
+\end{paldef}
+
+
+\begin{paldef}
+HANDLE StreamWaitforClient (HANDLE stream_handle);
+\end{paldef}
+
+
+
+\begin{paldef}
+HANDLE StreamDelete (HANDLE stream_handle,
+                     INT delete_flags);
+\end{paldef}
