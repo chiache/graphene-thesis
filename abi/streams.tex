@@ -1,79 +1,109 @@
 \section{Stream I/O}
 \label{sec:abi:streams}
 
+\subsection*{Opening or creating a stream}
+
+\begin{paldef}
+HANDLE StreamOpen (const char *stream_uri,
+                   uint access_flags, uint share_flags,
+                   uint create_flags, uint options);
+\end{paldef}
+
+
+\palkeyword{access_flags} can be any combination of the following access types:
+\begin{compactitem}
+\item \palkeyword{ACCESS_R}:
+\item \palkeyword{ACCESS_W}:
+\item \palkeyword{ACCESS_X}:
+\end{compactitem}
+
+
+\palkeyword{share_flags} can be any combination of the following sharing types:
+\begin{compactitem}
+\item \palkeyword{SHARE_R}:
+\item \palkeyword{SHARE_W}:
+\item \palkeyword{SHARE_X}:
+\end{compactitem}
+
+
+\palkeyword{create_flags} can be any combination of the following two conditions:
+\begin{compactitem}
+\item \palkeyword{CREATE_TRY}:
+\item \palkeyword{CREATE_ALWAYS}:
+\end{compactitem}
+
+
+
+\subsection*{Reading and writing a stream}
+
+\begin{paldef}
+ulong StreamRead (HANDLE stream_handle,
+                  ulong offset, ulong size, void *buffer,
+                  char *source_uri, uint uri_len);
+ulong StreamWrite (HANDLE stream_handle,
+                   ulong offset, ulong size,
+                   const void *buffer,
+                   const char *dest_uri);
+\end{paldef}
+
+
+\subsection*{Mapping a stream into virtual memory}
+
+\begin{paldef}
+void *StreamMap (HANDLE stream_handle, void *addr,
+                 uint prot, ulong offset, ulong size);
+\end{paldef}
+
+
+
+\subsection*{Querying stream attributes}
+
+\begin{paldef}
+bool StreamAttrQuery (const char *stream_uri,
+                      STREAM_ATTRS attributes);
+bool StreamAttrQuerybyHandle (HANDLE stream_handle,
+                              STREAM_ATTRS attributes);
+\end{paldef}
+
+
+
+\subsection*{Setting stream lengths and attributes}
 
 
 \begin{paldef}
-HANDLE StreamOpen (STRING stream_uri,
-                   INT access_flags, INT share_flags,
-                   INT create_flags, INT options);
+bool StreamSetLength (HANDLE stream_handle,
+                      ulong length);
+\end{paldef}
+
+
+\begin{paldef}
+bool StreamAttrSetbyHandle (HANDLE stream_handle,
+                            STREAM_ATTRS attributes);
 \end{paldef}
 
 
 
 
-\begin{paldef}
-LONG StreamRead (HANDLE stream_handle,
-                 LONG offset, LONG size, PTR buffer,
-                 PTR source_uri, LONG uri_len);
-\end{paldef}
-
-
+\subsection*{Flushing a stream}
 
 
 \begin{paldef}
-LONG StreamWrite (HANDLE stream_handle,
-                  LONG offset, LONG size, PTR buffer,
-                  STRING dest_uri);
+bool StreamFlush (HANDLE stream_handle);
 \end{paldef}
 
 
-
-\begin{paldef}
-PTR StreamMap (HANDLE stream_handle, PTR addr,
-               INT prot, LONG offset, LONG size);
-\end{paldef}
-
-
-\begin{paldef}
-VOID StreamAttrQuery (STRING stream_uri,
-                      STREAM_ATTRS attrs);
-\end{paldef}
-
-
-\begin{paldef}
-VOID StreamAttrQuerybyHandle (HANDLE stream_handle,
-                              STREAM_ATTRS attrs);
-\end{paldef}
-
-
-
-\begin{paldef}
-VOID StreamAttrSetbyHandle (HANDLE stream_handle,
-                            STREAM_ATTRS attrs);
-\end{paldef}
-
-
-
-\begin{paldef}
-VOID StreamSetLength (HANDLE stream_handle,
-                      LONG length);
-\end{paldef}
-
-
-
-\begin{paldef}
-VOID StreamFlush (HANDLE stream_handle);
-\end{paldef}
+\subsection*{Waiting for a listening stream}
 
 
 \begin{paldef}
 HANDLE StreamWaitforClient (HANDLE stream_handle);
-\end{paldef}
+\end{paldef} 
 
+
+\subsection*{Deleting or shutting down a stream}
 
 
 \begin{paldef}
 HANDLE StreamDelete (HANDLE stream_handle,
-                     INT delete_flags);
+                     uint delete_flags);
 \end{paldef}

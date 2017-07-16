@@ -517,10 +517,11 @@ POSIX also contains up to 1,191 APIs (version 1003.1)~\cite{ieee-posix}, if the 
 %Reimplementing the whole system interfaces in another production OS, or a research OS prototype, is a huge burden to the OS developers.
 %Many decisions made in the definitions of these system interfaces are random and inconsistent,
 %making the implementation of the interfaces in a new operating system an unbearable pain.
-Similarly, in Windows 8.1, the core system libraries (e.g., \code{nt.dll}) export more than four thousand APIs~\cite{win-api}.
-Either one of these OSes or OS standards has defined an objectively large amount of system interfaces, which would be
+Similarly, in Windows 8.1, the core system libraries (e.g., \code{nt.dll}) export more than four thousand functions~\cite{win-api}.
+These OSes or OS standards have defined objectively large system interfaces, which would be
 %difficult to preserve when updating a substantial part of the OS implementation.
-expensive to implement in a new OS prototype.
+expensive to implement on
+ a new OS prototype.
 
 
 
@@ -664,18 +665,18 @@ This thesis shows that the OS developers need not to preserve the complete set o
 
 
 
-For the OS design, this thesis presents a narrowed set of system interfaces,
-or {\em host ABIs},
-to be implemented for each host platforms.
-The host ABIs are defined to be completely independent from the physical machines,
+For the OS design, this thesis presents a narrow system interface to each hosts,
+or {\em host ABI}.
+%to be implemented for each host platforms.
+The host ABI is defined to be completely independent from the physical machines,
 and contain abstractions that are easy to implement in most commodity OSes.
-Above the host ABIs, this thesis proposes using a {\em library OS}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
+Above the host ABI, this thesis proposes using a {\em library OS}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
 a compatibility layer which implement a set of system interfaces from a commodity OS such as Linux, to reuse the existing applications.
 %that the existing applications imperatively depend on.
 %A \libos{} is different from a translation layer which maps one set of system interfaces to another, nor is it the same as wrapper functions for formerly defined interfaces.
 %A \libos{} implements an operating system instance separated from the host, upon a standalone host interfaces similar to a set of virtualized hardware interfaces, or para-virtualized hypercalls.
 This thesis shows that a library OS can implement a substantial amount of OS features needed by the reused applications,
-and the host ABIs can be easily ported to a new physical machine or an alternative OS.
+and the host ABI can be easily ported to a new physical machine or an alternative OS.
 %using a host interface defined with simplicity and minimal assumptions. This \libos{} design, alone with the host interface, is potentially stackable on various operating systems, to benefit both backward and forward compatibility.
 
 
@@ -683,14 +684,14 @@ This thesis shows the embodiment of an OS design as the \graphene{} library OS.
 The \graphene{} library OS can run a wide range of unmodified Linux applications,
 including server-type applications, command-line programs, and language runtimes, on a set of host OSes and hardware platforms.
 \graphene{} implements \fixme{try to grow this number} \graphenesyscalls{} out of \linuxsyscalls{} system calls in Linux 4.0,
-using \palcalls{} host ABIs. 
+using \palcalls{} functions in the host ABI.
 %nherited from a precursor \libos{} called \drawbridge{}~\cite{porter11drawbridge}.
-The host ABIs contain the typical OS features, including threading, memory management, file systems, and network connections.
-This thesis experiment the implementation of the host ABIs on various hosts,
+The host ABI contains the typical OS functions, including threading, memory management, file systems, and network connections.
+This thesis experiment the implementation of the host ABI on different hosts,
 including alternative OS kernels (e.g., Windows, OS X, FreeBSD) on x86 hardware,
 the Intel SGX isolation hardware platform,
 and research OS prototypes (e.g., Barrelfish~\cite{baumann09barrelfish} and the L4 microkernel~\cite{l4family}).
-The implementation of the \graphene{} library OS and the host ABIs demonstrates the {\em simplification} and {\em sufficiency} of the proposed OS design, as improvement to the implementation of compatibility.
+The implementation of the \graphene{} library OS and the host ABI demonstrates the {\em simplification} and {\em sufficiency} of the proposed OS design, as improvement to the implementation of compatibility.
 
 
 %By experimenting the porting of host ABI on different hosts, \graphene{} shows that its host ABI is easy to implement, both efficiently and securely. By carefully engineering a \libos{} on top of the host ABI, we largely improve the performance of the Linux \libos{}. The optimization can be reused on multiple hosts \graphene{} has supported.
@@ -714,7 +715,7 @@ Using a metric that is weighted by the usage of system interfaces in a large sam
 
 
 
-This thesis have three primary contributions. First, the thesis presents a OS design, as the \graphene{} library OS, which simplifies the implementation of compatibility, using a narrowed set of host ABIs, and a library OS implemented to reuse unmodified Linux applications.
+This thesis have three primary contributions. First, the thesis presents a OS design, as the \graphene{} library OS, which simplifies the implementation of compatibility, using a narrowed host ABI, and a library OS implemented to reuse unmodified Linux applications.
 Second, the thesis demonstrates the simplification and sufficiency of the OS design to the existing practice of compatibility, by porting the host ABIs to a number of host OSes and hardware platforms. Third, the thesis shows that the compatibility against existing, unmodified applications can be measured and incrementally improved, based on a compatibility metric which evaluates the coverage of supported system interfaces among applications, weighted by the application popularity.
 
 
@@ -761,7 +762,7 @@ a tool that automates code compartmentalization,
 generating an enclave with minimal supporting \java{} classes;
 a runtime framework that loads signed classes into an enclave,
 with language protection such as information flow control at the enclave boundary;
-and \java{} APIs to seamless access the \sgx{} features such
+and \java{} API to seamless access the \sgx{} features such
 as attestation and secure provisioning.
 The use cases of \civet{} includes
 isolating session keys and supporting cryptography library for a SSH connection,
@@ -789,9 +790,9 @@ Based on the study,
 we provides a range of insights into current API usage patterns.
 For instance, we identify an efficient path to implementing a new Linux compatibility layer, maximizing the additional applications per system call.
 We also identify
-that usage of many APIs is similarly distributed:
+that usage of many system calls is similarly distributed:
 some are widely used, and there is a sharp drop with a very long tail
-of rarely or never-used APIs.
+of rarely or never-used system calls.
 
 
 \item
@@ -884,7 +885,7 @@ The application developers would have to remove these instructions from the appl
 %A platform, as either an OS, language runtime, or architecture, is expected to provision applications
 %based on the specifications---a ``contract'' agreed between the system and application developers---which can be vastly distinct among platforms.
 %For example, running a POSIX application
-%requires an OS that provides all the necessary APIs from the POSIX standard,
+%requires an OS that provides all the necessary functions from the POSIX standard,
 %thus the application will not function
 %on an OS, like Win32, that has no POSIX support.
 %In general, the ability of providing compatible, functioning abstractions for existing applications
@@ -914,14 +915,14 @@ to defend against malicious administrators or compromised OSes.
 %including system calls and dynamic loading of application binaries.
 Motivated by the security properties,
 %because the operating system is not trusted to provide these OS features benignly and genuinely.
-the supporting library of the official SDK~\cite{intel-sgx-sdk}, \code{libsgx}, contains only the minimum amount of APIs, equivalent to the subset of POSIX APIs which is completely unrelated to hardware management, 
+the supporting library of the official SDK~\cite{intel-sgx-sdk}, \code{libsgx}, contains only a minimal API, equivalent to the subset of POSIX API which is completely unrelated to hardware management, 
 such as \funcname{memcpy} and \funcname{malloc}.
 %which is a simplified version of the real libc \funcname{malloc} and only allocates from static memory regions.
-These APIs are far from sufficient to supporting an unmodified applications in an enclave. 
+The official SDK API is far from sufficient to supporting an unmodified applications in an enclave. 
 If an application needs to request OS services from an enclave,
 the application must be modified
 to jump out of the enclave
-whenever it calls a system interface. %, such as a POSIX API or a Linux system call.
+whenever it calls a system interface. %, such as a POSIX function or a Linux system call.
 
 
 %Most of the applications heavily depend on the operating systems to faithfully implement the existing system call semantics.
@@ -932,11 +933,11 @@ The problem, however, is in checking the results of forwarded system interfaces,
 %Checks against simple attacks are possible,
 %such as checking if returned pointers are valid to the enclave regions.
 %to \syscall{mmap} which points to existing memory regions that can be corrupted or can leak sensitive information
-Checking the system APIs turns out to be subtle~\cite{checkoway13iago},
-because of the requirement of predicting the correct results of system APIs.
+Checking untrusted system calls turns out to be subtle~\cite{checkoway13iago},
+because of the requirement of predicting the correct results of system calls.
 This thesis compares these thin redirection layers
 with the library OS approach,
-and demonstrates that checking the results of untrusted system APIs
+and demonstrates that checking the results of untrusted system calls
 can be as complex as 
 %which is often
 %Predicting the correct results of a system interface is often
@@ -954,10 +955,13 @@ pulling the implementation into enclaves.
 \subsection{Inter-process communication}
 
 
-One characteristic of a UNIX-style program is the opportunity of utilizing multiple processes, and cloning processes using \syscall{fork}.
-\syscall{fork} is originally designed for executing commands in a shell environment:
-each command will run in a separate context (process), which initially receives a copy of the virtual address space from its parent.
-Process creation using \syscall{fork} offers the convenience of programming multiple commands as individual programs,
+One characteristic of a UNIX-style program is the opportunity of utilizing multiple processes, and cloning more processes using \syscall{fork}.
+\syscall{fork} is originally designed for the shell environment,
+to improve the simplicity and robustness of implementing each shell commands.
+%each command will run in a separate isolated context, which initially receives a copy of the virtual address space from its parent.
+%Process creation using 
+\fixme{still working on this}
+\syscall{fork} offers the convenience of programming multiple commands as individual programs,
 and quickly snapshotting and restoring the program state
 when switching between commands.
 Multi-process applications are common
@@ -2477,7 +2481,7 @@ is safe to be released from the enclave.
 %and most underlying storage (e.g., Ext4, Pseudo file systems).
 
 
-\section{Enforcing security isolation policies}
+\section{Security isolation}
 
 \placeholder{}
 
@@ -2502,7 +2506,7 @@ is safe to be released from the enclave.
 \section{Summary}
 
 This thesis contributes an open, practical design of a library OS,
-to demonstrate the benefit on establishing the compatibility for unmodified Linux applications, upon OS research prototypes or new hardware platforms.
+to demonstrate the benefit on reusing unmodified Linux applications upon OS research prototypes or new hardware platforms.
 Compared with ad-hoc compatibility layers, \graphene{} shows that
 a full-featured library OS can be reused on various host platforms, as a highly-portable layer for compatibility.
 A library OS can adapt for the restrictions and
@@ -2513,7 +2517,7 @@ OS implementation and optimize for compatibility.
 
 \paragraph{Previous publications.}
 The initial design of the \graphene{} library OS is presented in \cite{tsai14graphene}, which emphasizes on enforcing security isolation between mutually-distrusting, multi-process applications.
-A later publication~\cite{tsai17graphene-sgx} focuses on porting the host ABIs
+A later publication~\cite{tsai17graphene-sgx} focuses on porting the host ABI
 to Intel SGX, and demonstrates the security benefit 
 over a thin redirection layer, and the usability feature for running unmodified applications.
 \cite{tsai16apistudy} presents the compatibility measurement for API compatibility,
