@@ -1,0 +1,93 @@
+\section{Threads}
+\label{sec:abi:thread}
+
+
+\begin{paldef}
+HANDLE ThreadCreate (void *callback, void *arg,
+                     uint flags);
+\end{paldef}
+
+
+
+\begin{paldef}
+void ThreadExit (void);
+\end{paldef}
+
+
+
+\begin{paldef}
+void ThreadYield (void);
+\end{paldef}
+
+
+
+\begin{paldef}
+void ThreadInterrupt (HANDLE thread_handle);
+\end{paldef}
+
+
+
+\begin{paldef}
+bool ThreadDelayExecution (ulong microsec);
+\end{paldef}
+
+
+
+\section{Processes}
+\label{sec:abi:proc}
+
+
+
+\begin{paldef}
+HANDLE ProcessCreate (char *manifest, char **args,
+                      uint flags);
+\end{paldef}
+
+
+
+\begin{paldef}
+void ProcessExit (uint exitvalue);
+\end{paldef}
+
+
+
+
+\section{Scheduling}
+
+
+\subsection*{Semaphores}
+
+\begin{paldef}
+HANDLE SemaphoreCreate (uint count, uint inital);
+void SemaphoreRelease (HANDLE semaphore_handle);
+void SemaphoreDestroy (HANDLE semaphore_handle);
+\end{paldef}
+
+
+
+
+\subsection*{Synchronization and notification events}
+
+\begin{paldef}
+HANDLE SynchronizationEventCreate (void);
+HANDLE NotificationEventCreate (void);
+void EventSet (HANDLE event_handle);
+void EventDestroy (HANDLE event_handle);
+\end{paldef}
+
+
+
+\subsection*{Stream events}
+
+\begin{paldef}
+HANDLE StreamGetEvent (HANDLE stream_handle, uint event_flags);
+\end{paldef}
+
+
+
+\subsection*{Blocking for scheduling}
+
+\begin{paldef}
+HANDLE ObjectsWait (HANDLE *handles, uint nhandles,
+                    ulong timeout);
+\end{paldef}

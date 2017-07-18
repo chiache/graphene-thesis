@@ -44,11 +44,13 @@
 
 
 \ifx \debug \undefined
+\newcommand{\placeholder}[0]{{}}
 \newcommand{\fixme}[1]{{}}
 \newcommand{\fixmedp}[1]{{}}
 \else
 \usepackage[textsize=footnotesize,textwidth=1.3in,shadow]{todonotes}
 \WarningFilter{latex}{Marginpar on page}
+\newcommand{\placeholder}[0]{\todo[inline,size=\normalsize,color=green!40]{\bf To be written.}}
 \newcommand{\fixme}[2][]{{\todo[caption=, #1, fancyline]{
   \begin{minipage}{\textwidth}
   \begin{spacing}{1.0}
@@ -80,6 +82,7 @@
 
 
 \setlength{\parskip}{0pt}
+\setlength{\parindent}{.5in}
 \titlespacing{\paragraph}{0pt}{0.5\baselineskip}{1em}
 
 \begin{document}
@@ -275,8 +278,9 @@ This page is optional.
 
 \input{intro/intro}
 \input{overview/overview}
-\input{host/host}
+\input{abi/abi}
 \input{libos/libos}
+\input{linux/linux}
 \input{sgx/sgx}
 \input{syspop/syspop}
 %\input{future/proposal}

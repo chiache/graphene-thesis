@@ -2,8 +2,16 @@
 %The compatibility of an OS is the ability to reuse the application code developed on the system interfaces.
 %By introducing an additional compatibility layer as the library OS,
 %the existing applications can be reused on a set of simpler, more adaptable interfaces.
-This chapter will first describe a narrowed set of system interfaces, also known as the host ABIs,
-which contain the minimal OS functions
-needed on a host (i.e., an OS paired with a physical machine) in the OS design.
-The discussion is followed by an overview of \graphene{},
-a library OS built on the host ABIs for reusing the unmodified Linux applications, to improve the compatibility of the host.
+This chapter gives an overview of the \fixmedp{which OS?} OS design, \fixmedp{the flow here is wrong; do applications -> hosts} which facilitates the implementation of compatibility on host platforms \fixmedp{incompatible with makes more sense} incompatible to unmodified Linux applications.
+The chapter will first describe %a narrowed set of %system interfaces, a.k.a. the 
+a set of host \fixmedp{spell out ABI at the first appearance} ABIs,
+\fixmedp{this definition is confusing}
+including OS functions which export OS states to the hosts (\S\ref{sec:overview:host}).
+%on a host (i.e., an OS paired with a physical machine) in the OS design.
+The discussion then presents an overview of \graphene{},
+%\graphene{} is
+a library OS built upon the narrowed host ABIs (\S\ref{sec:overview:libos}), to reuse unmodified Linux applications
+\fixmedp{maybe break into different sentence, or reorder it}
+on various hosts with either alternative kernels (e.g., Windows) or new hardware platforms (e.g., Intel SGX).
+%(e.g., Intel SGX). 
+%, to improve the compatibility of the host.
