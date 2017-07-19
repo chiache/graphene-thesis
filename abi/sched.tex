@@ -33,23 +33,6 @@ bool ThreadDelayExecution (ulong microsec);
 
 
 
-\section{Processes}
-\label{sec:abi:proc}
-
-
-
-\begin{paldef}
-HANDLE ProcessCreate (char *manifest, char **args,
-                      uint flags);
-\end{paldef}
-
-
-
-\begin{paldef}
-void ProcessExit (uint exitvalue);
-\end{paldef}
-
-
 
 
 \section{Scheduling}
@@ -90,4 +73,23 @@ HANDLE StreamGetEvent (HANDLE stream_handle, uint event_flags);
 \begin{paldef}
 HANDLE ObjectsWait (HANDLE *handles, uint nhandles,
                     ulong timeout);
+\end{paldef}
+
+
+
+
+\section{Processes}
+\label{sec:abi:proc}
+
+
+
+\begin{paldef}
+HANDLE ProcessCreate (const char *manifest,
+                      const char **args, uint flags);
+\end{paldef}
+
+
+
+\begin{paldef}
+void ProcessExit (uint exit_value);
 \end{paldef}

@@ -1,13 +1,27 @@
 \section{Summary}
 \label{sec:graphene:summary}
 
-The whole \graphene{} design is centered around building an extra para-virtualization layer, instead of implementing a significantly larger set
-of system interfaces.
-Although implementing the existing system interfaces from Linux is still necessary for running unmodified Linux applications,
-the \graphene{} implementation is reusable and thus can be seen as a one-time cost.
-The rest of effort goes into decoupling the porting issue on the hosts from the compatibility issue in the library OS.
-Chapter~\ref{chap:abi} and chapter~\ref{chap:sgx} will discuss the definition and implementation of the host ABIs in depth.
-Chapter~\ref{chap:libos} will describe the details of developing the library OS with compatibility to Linux applications.
+The design concept of the \graphene{} library OS is centered around
+building a para-virtualized layer for reusing OS components,
+instead of building arbitrary compatibility layers for reproducing the system interface.
+%constantly porting the significant  of the existing system interface.
+%In \graphene{}, 
+The implementation of the system interface inside the \graphene{} library OS
+%building the system interface for the compatibility of applications
+is an one-time effort.
+%for OS developers.
+%Although implementing the existing system interfaces from Linux is still necessary for running unmodified Linux applications,
+%the \graphene{} implementation is reusable and thus can be seen as a one-time cost.
+%By reusing the library OS,
+The development effort can then be focused on porting the host ABI
+to individual hosts,
+whereas the library OS resolves the
+the compatibility issues for applications.
+The following chapters describe the design of each component of \graphene{}:
+Chapter~\ref{chap:abi} contains the formal definition of the host ABI;
+Chapter~\ref{chap:libos} describes the details of the library OS;
+Chapter~\ref{chap:linux} and \ref{chap:sgx} discusses more in depth on the implementation of the host ABI on Linux, Intel SGX, and other hosts.
+
 
 %\sysname{} extends library OS designs 
 %to include multi-process APIs required by common applications, such as a shell or 
