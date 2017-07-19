@@ -1,7 +1,103 @@
-This chapter describes the formal definition of the \graphene{} host ABI.
+%The host ABI
+%is designed to be simple enough to port to a new host,
+%and sufficient
+The host ABI is the key component
+to simplify the OS development effort for building application compatibility.
+%, which reduces the porting effort for reusing existing applications. 
+%porting effort of a full-featured library OS, in order to reuse Linux applications.
+%The host ABI virtualizes the basic OS functions for implementing the necessary Linux personality
+%inside the library OS.
+%The definition of the host ABI determines the complexity of porting,
+%as well as the performance overheads and resource costs for running the library OS.
+%The concept of the host ABI is to reduce the porting effort,
+%to simply implementing a small set of virtualized, basic OS functions.
+%The functions included in the current \graphene{} host ABI are mostly direct mappings to 
+The definition of the host ABI directly affects the development of the library OS, as well as  the complexity of implementing a host-specific platform adaption layer (PAL).
+The host ABI restricts the interaction between the library OS and the hosts, and thus impacts the performance and security isolation of the library OS.
+%\graphene{} restricts the interaction between the library OS and the hosts
+%to the host ABI,
+%which is much smaller than the Linux system call table
+%and much easier to port.
+%By simply porting the host ABI to a new host,
+%OS developers can virtualize and reuse the same library OS for running
+%applications without modifications.
+The host ABI is a layer for virtualizing the system call implementation,
+without complicating the porting of existing applications to innovative host OSes or hardware platforms.
 
-\section{Basic Definitions}
 
-The \graphene{} host ABI defines a set of {\em functions}, similar to the API of UNIX or POSIX.
-';The functions are directly called by the library OS, along with the arguments given either in the registers or on the stack.
-A host-specific \graphene{} loader is responsible for resolving the linking, from the library OS to the host ABI.
+
+
+This chapter describes the formal definition of the host ABI, with a discussion of related design considerations.
+This chapter explains how the host ABI definition matches with
+several design principles of \graphene{},
+including simplicity of porting, sufficiency for implementing the indispensable OS functionality,
+% in the library OS,
+and acceptable cost for redirection.
+
+
+
+
+\section{Basic Concepts}
+
+
+The host ABI is similar to a para-virtualization layer, which defines the entire host features
+available for implementing the library OS.
+The traditional virtual machines reuse unmodified OS kernels on a virtual hardware interface.
+Unlike a virtual machine,
+the host ABI partitions OS components into the library OS, and retains only a set of basic OS functions to interact with the hosts.
+The functions defined in the host ABI
+are either API for requesting hardware resources, or convenient features, such as scheduling primitives, which commonly exist in many OSes.
+%The functions in the host ABIs are similar to
+%the UNIX-style API, or a small portion of POSIX,
+The host ABI is selected as a pinch point for OS virtualization,
+to recycle the virtualized Linux system call implementation, and to harvest the existing host OS functionality for porting the host ABI. 
+%as a leverage point for harvesting the OS functionality implemented on the hosts.
+
+%The \graphene{} host ABI defines a set of {\em functions}, similar to the API of UNIX or POSIX.
+%The functions are directly called by the library OS, along with the arguments given either in the registers or on the stack.
+%A host-specific \graphene{} loader is responsible for resolving the linking, from the library OS to the host ABI.
+
+
+
+In general, the host ABI is defined as a set of function calls, with dynamic linking initialized at the creation of each process (or picoprocess).
+The platform adaption layers (PALs)
+are responsible for
+resolving the calling addresses inside the library OS, and passing the function arguments and return values in and out of the host ABI.
+By default, the host ABI in \graphene{} follows the Linux x86-64 calling convention,
+which passes function arguments in six general-purpose registers (\code{rdi}, \code{rsi}, \code{rdx}, \code{rcx}, \code{r8}, and \code{r9}).
+For other alternative hosts,
+%If the library OS and the hosts share the same calling convention, the PAL can directly call
+%the host ABI, without any redirection.
+%For other hosts,
+% that do not share the calling convention with the library OS,
+such as OSX and Windows, the PALs redirect
+the function arguments to the correct registers or offsets on the stack frames assigned by the calling convention.
+Dynamic linking is beneficial for
+building a pluggable, host-independent library OS binary, and leveraging the compiler optimizations across the host ABI.
+
+
+
+
+
+%By definition, the host ABI is limited to the OS abstractions to the local process.
+
+%Most functions in the host ABI
+%only have local effect to a picoprocess.
+%Using the host ABI, the library OS can  llocate a memory region inside the current picoprocess, or create a handle that is only accessible by the current picoprocess.
+%Only functions related with stream I/O
+%can share OS resources with other picoprocesses, such as writing to the same file, sharing a network sockets, or connecting through a local RPC (remote-procedure call) stream.
+
+
+
+\subsection{Design principles}
+
+
+The design principles of the host ABI are summarized as follows:
+
+\begin{itemize}
+	
+\item 
+
+
+\end{itemize}
+
