@@ -57,10 +57,10 @@ excessive trusted computing base (TCB),
 a restrictive model of adapting applications,
 and missing support for Linux or multi-process applications.
 
-We present \sysname{}, a \libos{}-based shielding system
+We present \graphenesgx{}, a \libos{}-based shielding system
 targeting Linux multi-process applications,
 as improvement to the \haven{} model of migrating native application to \sgx{}.
-\sysname{} is derived of \graphene{} \libos{}~\citep{tsai14graphene},
+\graphenesgx{} is derived of \graphene{} \libos{}~\citep{tsai14graphene},
 which supports 139 out of 300 Linux system calls.
 \graphene{} runs numbers of popular applications
 such as Apache web server, OpenJDK virtual machine, or shell scripts,
@@ -68,37 +68,37 @@ all of which relies on multi-process abstractions
 such as {\tt fork}, {\tt execve}, signals or System V IPC.
 
 By supporting Linux multi-process applications,
-\sysname{} simply applies to a broader range of cloud-based applications
+\graphenesgx{} simply applies to a broader range of cloud-based applications
 than \haven{}.
 Survey shows that Linux yields a market share of up to 75 percent in
 enterprise cloud providers~\citep{linuxcloud2014}.
 This data suggests majority of the existing cloud users can
-more easily adopt \sysname{} than \haven{}.
+more easily adopt \graphenesgx{} than \haven{}.
 
-\sysname{} uses a different model from \haven{}
+\graphenesgx{} uses a different model from \haven{}
 to bootstrap the trust of loaded applications.
 \haven{} builds up the trust by packing all binaries
 in an encrypted virtual disk,
 with secret key provisioned consensually from a remote server
 trusted by the clients.
-Contrastingly, \sysname{} relies on a model directly derived from
+Contrastingly, \graphenesgx{} relies on a model directly derived from
 the trust model of \sgx{},
 by including applications' checksums
 into the enclave measurement to be attested by hardware.
-\sysname{} can migration applications for enclaves off-line,
+\graphenesgx{} can migration applications for enclaves off-line,
 and share binaries (e.g., shared libraries) to save bandwidths for deployment.
 
 Security-wise speaking,
-\sysname{} provides a way to reduce the TCB of enclaves,
+\graphenesgx{} provides a way to reduce the TCB of enclaves,
 with a smaller code footprint
 and applications natively partitioned as processes.
 \haven{} in general yields a large TCB
 including a \libos{} as large as 209MB,
 and application binaries around 10s \textasciitilde 100s of MB.
-The image of \sysname{} is merely 10MB,
+The image of \graphenesgx{} is merely 10MB,
 and Linux applications generally follow the principle of dividing
 code into smaller, more testable binaries.
-\sysname{} isolates multiple binaries (or processes) of an application
+\graphenesgx{} isolates multiple binaries (or processes) of an application
 in separate enclaves, and authenticates inter-process coordination
 by binary-based policies.
 Even if an enclave is compromised, other enclaves of the same application
@@ -107,7 +107,7 @@ critical information never flows to the victim.
 
 The contributions of this paper are listed as follows:
 \begin{compactitem}
-\item \sysname{}, a Linux-compatible \libos{}-based shielding system,
+\item \graphenesgx{}, a Linux-compatible \libos{}-based shielding system,
 which supports execution of native, unmodified Linux applications
 in \sgx{} enclaves.
 \item A secure implementation of multi-process support
@@ -117,7 +117,7 @@ using standalone enclaves to solate processes.
 where each binaries individually attested and provisioned.
 \end{compactitem}
 
-\sysname{} provides cloud users
+\graphenesgx{} provides cloud users
 ease of shielding Linux applications
 and flexibility of implementing any desired security model
 suitable for each binary.
