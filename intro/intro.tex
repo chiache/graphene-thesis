@@ -760,8 +760,15 @@ This thesis present \graphene{}, a library OS for running unmodified Linux appli
 %including server-type applications, command-line programs, and language runtimes, on a set of host OSes and hardware platforms.
 \graphene{} implements \graphenesyscalls{} out of \linuxsyscalls{} Linux system calls (version 4.0), with a narrowed host ABI containing \palcalls{} functions.
 Part of the host ABI is inherited from \drawbridge{}~\cite{porter11drawbridge}, a prior library OS which has demonstrated its compatibility benefits for Windows applications.
-The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule} and Haven~\cite{baumann14haven}, to show the feasibility of implementing single-process, Linux functionality, and porting to Intel SGX, respectively.
-Established upon the former work, the key contribution of \graphene{} is 
+The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule} and Haven~\cite{baumann14haven}, to show the feasibility of implementing single-process, Linux functionality, and porting to Intel SGX.
+Established upon the former work, \graphene{} holds four key contributions:
+(1) reasoning and refinement of the host ABI and library OS design for both portability and functionality;
+(2) presenting a library OS with rich Linux functionality, and solving Linux/UNIX-specific challenges such as coordinating multi-process applications;
+(3) demonstrating the practicality on retaining acceptable performance and memory footprint;
+(4) reducing the attack surface on the host ABI for enforcing security isolation against malicious applications or hosts (more description in \S\ref{sec:intro:security}).
+Overall, this thesis shows that a library OS is not only a temporary workaround to the application compatibility problems in an OS,
+but can be engineered to be a more permanent, practical solution, with a balance between usability, security, and performance. 
+
 
 %nherited from a precursor \libos{} called \drawbridge{}~\cite{porter11drawbridge}.
 %The host ABI contains the typical OS functions, including threading, memory management, file systems, and network connections.
@@ -781,7 +788,7 @@ Established upon the former work, the key contribution of \graphene{} is
 %system library which implements the system interfaces with minimal host interfaces and assumptions---to improve the OS development model for adapting applications to new hardware platforms.  Using a \libos{} can minimize the effort of customizing the OS for a certain hardware platform. OS developers only need to implement a narrowed host ABI (application binary interface), which includes a set of OS features defined to be stateless and generic to most hardware platform. Above the host ABI, we demonstrate that a full-featured \libos{} can be built to support a major portion of the system API, implemented using only the OS features defined in the host ABI. The \libos{} is practical: it has reasonable performance overhead generally less than 1$\times$, and memory footprint to load the \libos{} with applications.
 
 
-Besides the library OS, this thesis also studies the general principles
+Besides presenting the \graphene{} library OS, this thesis also studies the general principles
 for preserving compatibility, from the perspectives of application developers and users.
 The study begins with building a reasonable measurement for
 application compatibility, with the consideration of developers' preference
@@ -1063,19 +1070,43 @@ with the \graphene{} library OS loaded inside the enclaves.
 
 
 \subsection{Multi-process applications}
+\label{sec:intro:multiproc}
 
 
-One characteristic of a UNIX-style program is the opportunity of utilizing multiple processes, and cloning more processes using \syscall{fork}.
-\syscall{fork} is originally designed for the shell environment,
-to improve the simplicity and robustness of implementing each shell commands.
+One characteristic of a UNIX-style program is the opportunity of utilizing multiple processes, cloned by \syscall{fork} or \syscall{exec},
+to program self-contained sessions or commands.
+Especially, the \syscall{fork}-style cloning has always been an unique feature to UNIX-style OSes, such as Linux and BSD. 
+When a process clones a child process with \syscall{fork}, the child receives a copy of process state from the parent. The parent and child processes are mutually isolated (usually backed by copy-on-write paging), and can be cleanly tore down at process exit.
+
+
+Between the parent and child processes, there are several inter-process communication (IPC) mechanisms available for programming.
+The Linux IPC mechanisms combine the UNIX System V abstractions, including message queues and semaphores,
+and POSIX abstractions, including signaling, shared descriptors, and namespaces.
+The implementation of these mechanisms is idiosyncratic to Linux applications, and has to coordinate several global states across all processes.
+Figure~\ref{fig:overview:proc-example} shows a code example of
+two Linux programs (``\code{sh}'' and ``\code{kill}'')
+running in parallel as part of a multi-process application and communicating with signals.
+%Signaling between the parent and child processes
+%can happen in several occasions, including processes being terminated accidentally or deliberately, and one process calling the \syscall{kill} system call.
+The destination of signaling is determined by a unique process identifier (PID),
+shared among all processes.
+These global name states are parts of the POSIX namespaces, and are indispensable for most Linux multi-process applications.
+
+ 
+%These {\em namespace} states must be shared in the whole OS space
+%The sharing of PIDs is part of the namespace coordination that an OS must implement 
+%for all processes within an application.
+
+
+%\syscall{fork} is originally designed for the shell environment,
+%to improve the simplicity and robustness of implementing each shell commands.
 %each command will run in a separate isolated context, which initially receives a copy of the virtual address space from its parent.
 %Process creation using 
-\fixme{still working on this}
-\syscall{fork} offers the convenience of programming multiple commands as individual programs,
-and quickly snapshotting and restoring the program state
-when switching between commands.
-Multi-process applications are common
-in Linux or other UNIX-style OSes, including job-control systems (e.g., makefiles) or server applications (e.g., Apache web server).
+%\fixme{still working on this}
+%\syscall{fork} offers the convenience of programming multiple commands as individual programs,
+%and quickly snapshotting and restoring the program state
+%when switching between commands.
+%Multi-process applications are commonly used in job-control systems (e.g., makefiles) or server applications (e.g., Apache web server).
 
 
 \begin{comment}
@@ -1120,42 +1151,24 @@ kill(pid, SIGKILL);
 
 \end{lstlisting}
 \end{minipage}
-\caption{Sample code for Linux applications using inter-process communication.}
+\caption{Sample code for Linux applications using process cloning and inter-process communication (IPC), including \syscall{fork}, \syscall{execv} (i.e., a variant of \syscall{exec}), and signaling (i.e., \syscall{kill} and \syscall{wait}).}
 \label{fig:overview:proc-example}
 \end{figure*}
 
 
-%Furthermore,
-Besides \syscall{fork},
-Linux multi-process applications also heavily rely on
-inter-process communication (IPC).
-%which is challenging to implement on an OS prototype
-%or a non-uniform memory architecture.
-The IPC
-in Linux is a combination of the UNIX System V IPC mechanisms (e.g., message queues and semaphores)
-and the POSIX IPC abstractions (e.g., signaling and namespaces).
-Figure~\ref{fig:overview:proc-example} shows a code example of
-two Linux programs (``\code{sh}'' and ``\code{kill}'')
-running in parallel as part of a multi-process application and communicating with signals.
-Signaling between the parent and child processes
-can happen in several occasions, including processes being terminated accidentally or deliberately, and one process calling the \syscall{kill} system call.
-The destination of signaling is determined by a unique identifier
-for each process (i.e., PID),
-which is a shared global state for the whole system.
-These {\em namespace} states must be shared in the whole OS space
-%The sharing of PIDs is part of the namespace coordination that an OS must implement 
-for all processes within an application.
 
-
-Implementing the whole Linux IPC abstractions is especially challenging for
-OS prototypes, or hardware platforms without
-memory coherence.
-The coordination of inter-process states, especially the namespace states, is deeply encapsulated in a large portion of the Linux system calls,
-from signaling to reading a file in a pseudo file system (e.g., \code{/proc}).
-Implementing inter-process coordination is easier
-for a monolithic OS which has a unified kernel space and can store single copies for any OS states. 
-Many new hardware platforms choose not to have inter-connected coherent memory,
-including several innovative multi-core designs~\cite{gschwind2007,cascaval2002evaluation},
+The implementation of Linux IPC mechanisms originally relies on storing global variables
+in a unified kernel space,
+but can be challenging for a hardware platform without coherent memory.
+%Implementing the whole Linux IPC abstractions is especially challenging for
+%OS prototypes, or hardware platforms without
+%memory coherence.
+%The coordination of inter-process states, especially the namespace states, is deeply %encapsulated in a large portion of the Linux system calls,
+%from signaling to reading a file in a pseudo file system (e.g., \code{/proc}).
+%Implementing inter-process coordination is easier
+%for a monolithic OS which has a unified kernel space and can store single copies for any OS states. 
+Several new hardware platforms choose not to have inter-connected memory,
+including innovative multi-core designs~\cite{gschwind2007,cascaval2002evaluation},
 and the physically-encrypted SGX enclaves.
 Distributing OS states across CPU cores without a unified memory space
 brings challenges to OS development,
@@ -2592,6 +2605,7 @@ is safe to be released from the enclave.
 
 
 \section{Security isolation}
+\label{sec:intro:security}
 
 \placeholder{}
 
