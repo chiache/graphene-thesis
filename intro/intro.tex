@@ -152,14 +152,14 @@ The same assumption on application portability has been shared among many OS sta
 
 
 
-Application portability is a key quality to many OSes, but has gradually
-become a burden for OS development,
-due to the rapid growth of applications and hardware devices.
-One reason has been that an OS now has to always keep the system interface {\em compatible} against existing applications,
-instead of just focusing on making new applications portable.
-An observable trend is that the amount of applications previously developed in an OS, such as Linux or Windows, has grown to 
-untraceable level.
-Any change of the system interface can take a long time before updating all the existing applications accordingly, causing applications to lag behind OS development for adopting new hardware.
+Unfortunately, in a modern OS, system interfaces not only are design to keep future applications portable, but also are preserved for the {\em compatibility} against previous applications.
+Due to the rapid growth of applications and hardware devices,
+OS development is increasingly burdened with implementing the ``legacy'' features and abstractions of the past generations, and can not easily change or deprecate any system interface which may impact applications.
+%One reason has been that an OS now has to always keep the system interface {\em compatible} against existing applications,
+%instead of just focusing on making new applications portable.
+%The amount of applications previously developed in an OS, such as Linux or Windows,
+%has grown to untraceable level.
+Any change of the system interface will take a long time before updating all the previous applications, potentially causing the adoption of a newly ported OS version to lag behind the development. %for adopting new hardware.
 %In a portable OS, application developers no longer have to program
 %against each physical machines,
 %but instead rely on a set of well-defined, consistent
@@ -209,11 +209,12 @@ Any change of the system interface can take a long time before updating all the 
 %application developers need to rely on compatibility as 
 %a ``contract'' between the two communities.
 %OS developers, to ensure that the future versions of the OS will faithfully implement the same system interfaces used in an application.
-After all, application developers need to trust an OS to reproduce consistent functionality for an application,
-as it is programmed and tested on certain machines.
+The key problem is, application developers need to trust an OS to reproduce consistent functionality for an application,
+as it is programmed and tested on the developers' machines.
 %on a specific version of the OS.
 %will behave consistently on the successors of the OS.
-It becomes an obligation of OS developers to preserve the compatibility, in order to ensure the stability of application execution.
+Preserving the compatibility of system interfaces
+becomes an obligation of OS developers, to ensure the stability of application deployment.
 
 For OS and hardware developers, preserving the compatibility can be a distraction to innovations.
 %For OS developers, maintaining compatibility is a valuable effort, 
@@ -1079,9 +1080,9 @@ Especially, the \syscall{fork}-style cloning has always been an unique feature t
 When a process clones a child process with \syscall{fork}, the child receives a copy of process state from the parent. The parent and child processes are mutually isolated (usually backed by copy-on-write paging), and can be cleanly tore down at process exit.
 
 
-Between the parent and child processes, there are several inter-process communication (IPC) mechanisms available for programming.
-The Linux IPC mechanisms combine the UNIX System V abstractions, including message queues and semaphores,
-and POSIX abstractions, including signaling, shared descriptors, and namespaces.
+Among multiple processes, there are several mechanisms of inter-process communication (IPC)  available for programming.
+The IPC in Linux combines the UNIX System V abstractions, including message queues and semaphores,
+and POSIX abstractions, including signaling and namespaces.
 The implementation of these mechanisms is idiosyncratic to Linux applications, and has to coordinate several global states across all processes.
 Figure~\ref{fig:overview:proc-example} shows a code example of
 two Linux programs (``\code{sh}'' and ``\code{kill}'')
@@ -1090,7 +1091,8 @@ running in parallel as part of a multi-process application and communicating wit
 %can happen in several occasions, including processes being terminated accidentally or deliberately, and one process calling the \syscall{kill} system call.
 The destination of signaling is determined by a unique process identifier (PID),
 shared among all processes.
-These global name states are parts of the POSIX namespaces, and are indispensable for most Linux multi-process applications.
+These global naming states are parts of the POSIX namespaces, which are indispensable 
+to most multi-process applications.
 
  
 %These {\em namespace} states must be shared in the whole OS space
@@ -1157,6 +1159,29 @@ kill(pid, SIGKILL);
 
 
 
+The feasibility of implementing IPC mechanisms in an OS used to rely on the presence of a coherent kernel space, but can be challenging when a new OS or hardware design makes the opposite assumption.
+Since coordination is necessary for multi-process applications, the easiest way is to store the states and namespace in the kernel memory accessible to all processes.
+Sharing kernel states, however, is prone to attacks in an OS with process sandboxing,
+or applications 
+sandboxed with isolation hardware, such as Intel SGX.
+These OS or application designs tend to avoid sharing a coherent kernel space,
+or simply don't trust the kernel.
+For example, with SGX, an enclave only trusts the Intel CPU, and cannot share memory with another enclave to store any trusted, global states.
+The only possible solution without introducing more OS functionality into enclaves is to export the encrypted states to the untrusted kernel, which will suffer significant overheads.
+
+
+Moreover, not all CPU architectures assume inter-connected memory with coherence.
+Several recent multi-possessor architectures choose not to have inter-connected memory, for the simplicity of implementation~\cite{gschwind2007,cascaval2002evaluation}.
+Barrelfish~\cite{baumann09barrelfish} demonstrates that
+the efficient way is actually to implement distributed OS nodes, which run on each CPU and coordinate shared states with inter-node message-passing.
+The distributed OS design resonates with the \graphene{} library OS, which uses RPC (remote procedure call) streams to implement IPC and POSIX namespaces.
+\graphene{} gives a more flexible option for building up compatibility against Linux multi-process applications. 
+
+
+
+
+
+\begin{comment}
 The implementation of Linux IPC mechanisms originally relies on storing global variables
 in a unified kernel space,
 but can be challenging for a hardware platform without coherent memory.
@@ -1174,8 +1199,7 @@ Distributing OS states across CPU cores without a unified memory space
 brings challenges to OS development,
 as well as significant overheads on any coordination-intensive
 system calls~\cite{baumann09barrelfish}.
-
-%Intel SGX in the encrypted enclave memory,
+\end{comment}
 
 
 
@@ -2629,15 +2653,18 @@ is safe to be released from the enclave.
 
 \section{Summary}
 
-This thesis contributes an open, practical design of a library OS,
+This thesis contributes an open, practical design of a library OS, called the \graphene{} library OS,
 to demonstrate the benefit on reusing unmodified Linux applications upon OS research prototypes or new hardware platforms.
 Compared with ad-hoc compatibility layers, \graphene{} shows that
 a full-featured library OS can be reused on various host platforms, as a highly-portable layer for compatibility.
-A library OS can adapt for the restrictions and
-limited hardware abstractions on a host platform, with a reasonable performance cost and memory footprint.
-The compatibility measurement
-can evaluate partial compatibility of an ongoing OS prototype, including \graphene{} itself. The evaluation can offer hints for OS developers to prioritize
-OS implementation and optimize for compatibility.
+\graphene{} can adapt to the restrictions and
+limited hardware abstractions on a host platform, with acceptable performance and memory footprint.
+This thesis further reasons about the sufficiency of a library OS
+for running general applications. The reasoning is based on a quantitative measurement which evaluates partial compatibility of system interfaces.
+\graphene{} prioritizes indispensable system calls over administrative or unpopular features,
+and thus can be compatible
+against a wide range of applications, from servers to language runtimes.
+
 
 \paragraph{Previous publications.}
 The initial design of the \graphene{} library OS is presented in \cite{tsai14graphene}, which emphasizes on enforcing security isolation between mutually-distrusting, multi-process applications.
