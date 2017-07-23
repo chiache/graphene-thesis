@@ -1176,12 +1176,13 @@ For example, on SGX, an enclave cannot share trusted memory with other enclaves.
 %The only possible solution without introducing more OS functionality into enclaves is to export the encrypted states to the untrusted kernel, which will suffer significant overheads.
 
 
-Moreover, not all architectures assume having inter-connected memory with coherence.
-Several recent multi-CPUs architectures choose not to inter-connect memory for the simplicity of implementation~\cite{gschwind2007,cascaval2002evaluation}.
-Barrelfish~\cite{baumann09barrelfish} demonstrates that
-the efficient way is to run distributed OS nodes on CPUs and to coordinate shared states with message-passing.
-The distributed design resonates with the \graphene{} library OS, which uses RPC (remote procedure call) streams to implement IPC and POSIX namespaces.
-\graphene{} can be a flexible option for building up compatibility against multi-process applications. 
+Moreover, not all architectures assume inter-connected, coherent memory.
+Several recent multi-CPUs architectures choose not to implement memory coherence for simplicity~\cite{gschwind2007,cascaval2002evaluation}.
+Barrelfish~\cite{baumann09barrelfish} demonstrates an efficient OS design, called multikernels, which runs distributed OS nodes on CPUs with inter-node coordination by message passing.
+The distributed OS design resonates with the \graphene{} library OS, which uses RPC (remote procedure call) streams to implement multi-process abstractions.
+%\graphene{} can be a flexible option for building up compatibility against multi-process applications.
+Since \graphene{} does not assume a coherent kernel space, it can become a flexible option
+for porting multi-process applications to a variety of OSes and architectures.
 
 
 
