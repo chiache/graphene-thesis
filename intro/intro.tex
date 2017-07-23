@@ -789,7 +789,7 @@ but can be engineered to be a more permanent, practical solution, with a balance
 %system library which implements the system interfaces with minimal host interfaces and assumptions---to improve the OS development model for adapting applications to new hardware platforms.  Using a \libos{} can minimize the effort of customizing the OS for a certain hardware platform. OS developers only need to implement a narrowed host ABI (application binary interface), which includes a set of OS features defined to be stateless and generic to most hardware platform. Above the host ABI, we demonstrate that a full-featured \libos{} can be built to support a major portion of the system API, implemented using only the OS features defined in the host ABI. The \libos{} is practical: it has reasonable performance overhead generally less than 1$\times$, and memory footprint to load the \libos{} with applications.
 
 
-Besides presenting the \graphene{} library OS, this thesis also studies the general principles
+This thesis also studies the general principles
 for preserving compatibility, from the perspectives of application developers and users.
 The study begins with building a reasonable measurement for
 application compatibility, with the consideration of developers' preference
@@ -1074,10 +1074,11 @@ with the \graphene{} library OS loaded inside the enclaves.
 \label{sec:intro:multiproc}
 
 
-One characteristic of a UNIX-style program is the opportunity of utilizing multiple processes, cloned by \syscall{fork} or \syscall{exec},
-to program self-contained sessions or commands.
-Especially, the \syscall{fork}-style cloning has always been an unique feature to UNIX-style OSes, such as Linux and BSD. 
-When a process clones a child process with \syscall{fork}, the child receives a copy of process state from the parent. The parent and child processes are mutually isolated (usually backed by copy-on-write paging), and can be cleanly tore down at process exit.
+One characteristic of a UNIX-style program is the utilization of multiple processes, cloned by \syscall{fork} or \syscall{exec},
+usually programmed for self-contained sessions or shell commands.
+Especially, \syscall{fork} is an unique feature in UNIX-style OSes, such as Linux and BSD. 
+When a process clones a child process with \syscall{fork}, the child receives a copy of the parent, with mutual isolation, mostly implemented with copy-on-write paging.
+The process state can be easily tore down at exit.
 
 
 Among multiple processes, there are several mechanisms of inter-process communication (IPC)  available for programming.
@@ -1091,8 +1092,8 @@ running in parallel as part of a multi-process application and communicating wit
 %can happen in several occasions, including processes being terminated accidentally or deliberately, and one process calling the \syscall{kill} system call.
 The destination of signaling is determined by a unique process identifier (PID),
 shared among all processes.
-These global naming states are parts of the POSIX namespaces, which are indispensable 
-to most multi-process applications.
+The naming states belong to the POSIX namespaces, which are indispensable 
+to multi-process applications.
 
  
 %These {\em namespace} states must be shared in the whole OS space
@@ -1153,14 +1154,15 @@ kill(pid, SIGKILL);
 
 \end{lstlisting}
 \end{minipage}
-\caption{Sample code for Linux applications using process cloning and inter-process communication (IPC), including \syscall{fork}, \syscall{execv} (i.e., a variant of \syscall{exec}), and signaling (i.e., \syscall{kill} and \syscall{wait}).}
+\caption{Sample code for Linux applications using process cloning and inter-process communication (IPC).}
 \label{fig:overview:proc-example}
 \end{figure*}
 
 
 
-The feasibility of implementing IPC mechanisms in an OS used to rely on the presence of a coherent kernel space, but can be challenging when a new OS or hardware design makes the opposite assumption.
-Since coordination is necessary for multi-process applications, the easiest way is to store the states and namespace in the kernel memory accessible to all processes.
+Implementing IPC mechanisms in an OS used to rely on a coherent kernel space, but can be challenging when an OS makes the opposite assumption.
+%Since coordination is necessary for multi-process applications, 
+The easiest design is to store the states and namespace in the kernel memory accessible to all processes.
 Sharing kernel states, however, is prone to attacks in an OS with process sandboxing,
 or applications 
 sandboxed with isolation hardware, such as Intel SGX.
@@ -1170,12 +1172,12 @@ For example, with SGX, an enclave only trusts the Intel CPU, and cannot share me
 The only possible solution without introducing more OS functionality into enclaves is to export the encrypted states to the untrusted kernel, which will suffer significant overheads.
 
 
-Moreover, not all CPU architectures assume inter-connected memory with coherence.
-Several recent multi-possessor architectures choose not to have inter-connected memory, for the simplicity of implementation~\cite{gschwind2007,cascaval2002evaluation}.
+Moreover, not all architectures assume inter-connected memory with coherence.
+Several recent multi-CPUs architectures choose not to inter-connect memory for the simplicity of implementation~\cite{gschwind2007,cascaval2002evaluation}.
 Barrelfish~\cite{baumann09barrelfish} demonstrates that
-the efficient way is actually to implement distributed OS nodes, which run on each CPU and coordinate shared states with inter-node message-passing.
-The distributed OS design resonates with the \graphene{} library OS, which uses RPC (remote procedure call) streams to implement IPC and POSIX namespaces.
-\graphene{} gives a more flexible option for building up compatibility against Linux multi-process applications. 
+the efficient way is to run distributed OS nodes on CPUs and to coordinate shared states with message-passing.
+The distributed design resonates with the \graphene{} library OS, which uses RPC (remote procedure call) streams to implement IPC and POSIX namespaces.
+\graphene{} can be a flexible option for building up compatibility against multi-process applications. 
 
 
 
@@ -2662,8 +2664,7 @@ limited hardware abstractions on a host platform, with acceptable performance an
 This thesis further reasons about the sufficiency of a library OS
 for running general applications. The reasoning is based on a quantitative measurement which evaluates partial compatibility of system interfaces.
 \graphene{} prioritizes indispensable system calls over administrative or unpopular features,
-and thus can be compatible
-against a wide range of applications, from servers to language runtimes.
+and thus can reuse a wide range of applications, from servers to language runtimes.
 
 
 \paragraph{Previous publications.}
