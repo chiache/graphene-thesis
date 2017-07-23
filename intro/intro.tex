@@ -1078,26 +1078,27 @@ with a trusted \graphene{} library OS instance.
 \label{sec:intro:multiproc}
 
 
-One characteristic of a UNIX-style program is the utilization of multiple processes, cloned by \syscall{fork} or \syscall{exec},
-usually programmed for self-contained sessions or shell commands.
-Especially, \syscall{fork} is an unique feature in UNIX-style OSes, such as Linux and BSD. 
-When a process clones a child process with \syscall{fork}, the child receives a copy of the parent, with mutual isolation, mostly implemented with copy-on-write paging.
-The process state can be easily tore down at exit.
+One characteristic of a UNIX program is the opportunity of utilizing multiple processes, created by either \syscall{fork} or \syscall{exec},
+to program self-contained sessions or commands in applications.
+Especially, \syscall{fork} is an unique feature in UNIX-style OSes, such as Linux and BSD,
+to clone a process into another child process, with isolation from the parent.
+%mostly with copy-on-write paging.
+%The process state can be easily tore down at exit.
+The multi-process abstractions are convenient for creating a temporary session for processing incoming requests or commands, and destroying the session without corrupting the parent process.
 
-
-Among multiple processes, there are several mechanisms of inter-process communication (IPC)  available for programming.
-The IPC in Linux combines the UNIX System V abstractions, including message queues and semaphores,
-and POSIX abstractions, including signaling and namespaces.
-The implementation of these mechanisms is idiosyncratic to Linux applications, and has to coordinate several global states across all processes.
+Between multiple processes, there are several mechanisms of inter-process communication (IPC)  available for programming.
+The Linux IPC combines the UNIX System V features, including message queues and semaphores,
+and POSIX abstractions, such as signaling and namespaces.
+%The implementation of these mechanisms is idiosyncratic to Linux applications, and has to coordinate several global states across all processes.
 Figure~\ref{fig:overview:proc-example} shows a code example of
 two Linux programs (``\code{sh}'' and ``\code{kill}'')
 running in parallel as part of a multi-process application and communicating with signals.
 %Signaling between the parent and child processes
 %can happen in several occasions, including processes being terminated accidentally or deliberately, and one process calling the \syscall{kill} system call.
-The destination of signaling is determined by a unique process identifier (PID),
-shared among all processes.
-The naming states belong to the POSIX namespaces, which are indispensable 
-to multi-process applications.
+The destination of signaling is determined by a unique process identifier (PID)
+known by all processes.
+These kinds of identifiers or names are globally shared, as part of the POSIX namespaces,
+among applications or processes visible to each other.
 
  
 %These {\em namespace} states must be shared in the whole OS space
