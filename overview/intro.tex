@@ -2,16 +2,24 @@
 %The compatibility of an OS is the ability to reuse the application code developed on the system interfaces.
 %By introducing an additional compatibility layer as the library OS,
 %the existing applications can be reused on a set of simpler, more adaptable interfaces.
-This chapter gives an overview of the \fixmedp{which OS?} OS design, \fixmedp{the flow here is wrong; do applications -> hosts} which facilitates the implementation of compatibility on host platforms \fixmedp{incompatible with makes more sense} incompatible to unmodified Linux applications.
-The chapter will first describe %a narrowed set of %system interfaces, a.k.a. the 
-a set of host \fixmedp{spell out ABI at the first appearance} ABIs,
-\fixmedp{this definition is confusing}
-including OS functions which export OS states to the hosts (\S\ref{sec:overview:host}).
+This chapter gives a overview of the \graphene{} library OS.
+The overview is focused on the design for improving OS compatibility against applications. For OS developers, \graphene{} targets on reducing the development effort 
+to port an OS to new hardware, or to build an OS prototype.
+%, \fixmedp{the flow here is wrong; do applications -> hosts} which facilitates the implementation %of compatibility on host platforms \fixmedp{incompatible with makes more sense} incompatible to unmodified Linux applications.
+Section~\ref{sec:overview:host} will describe
+the host ABI to implement on each host, and design principles for keeping the host ABI simple but sufficient to run a library OS with rich Linux functionality.
+%a narrowed set of %system interfaces, a.k.a. the 
+%a set of host \fixmedp{spell out ABI at the first appearance} ABIs,
+%\fixmedp{this definition is confusing}
+%including OS functions which export OS states to the hosts (\S\ref{sec:overview:host}).
 %on a host (i.e., an OS paired with a physical machine) in the OS design.
-The discussion then presents an overview of \graphene{},
+Section~\ref{sec:overview:libos} will describe the library OS design, and how it is built upon the simple host ABI, with reasonable performance overhead and security isolation model.
 %\graphene{} is
-a library OS built upon the narrowed host ABIs (\S\ref{sec:overview:libos}), to reuse unmodified Linux applications
-\fixmedp{maybe break into different sentence, or reorder it}
-on various hosts with either alternative kernels (e.g., Windows) or new hardware platforms (e.g., Intel SGX).
+%a library OS built upon the narrowed host ABIs (\S\ref{sec:overview:libos}), to reuse unmodified Linux applications
+%\fixmedp{maybe break into different sentence, or reorder it}
+%on various hosts with either alternative kernels (e.g., Windows) or new hardware platforms (e.g., Intel SGX).
 %(e.g., Intel SGX). 
 %, to improve the compatibility of the host.
+%More details of the host ABI and the library OS will be discussed in the following chapters.
+%The discussion will focus on the design principles followed by the whole \graphene{} library OS,
+%including 
