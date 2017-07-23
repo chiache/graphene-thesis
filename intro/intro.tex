@@ -1166,12 +1166,11 @@ Implementing IPC mechanisms in an OS used to rely on a coherent kernel space, bu
 %Since coordination is necessary for multi-process applications, 
 The easiest design is to store the states and namespace in the kernel memory accessible to all processes.
 Sharing kernel states, however, is prone to attacks in an OS with process sandboxing,
-or applications 
-sandboxed with isolation hardware, such as Intel SGX.
-These OS or application designs tend to avoid sharing a coherent kernel space,
-or simply don't trust the kernel.
-For example, with SGX, an enclave only trusts the Intel CPU, and cannot share memory with another enclave to store any trusted, global states.
-The only possible solution without introducing more OS functionality into enclaves is to export the encrypted states to the untrusted kernel, which will suffer significant overheads.
+or in an application
+isolated by hardware like Intel SGX.
+An isolated OS design tends to avoid sharing a fully-trusted, coherent kernel space shared with other applications.
+For example, on SGX, an enclave cannot share trusted memory with other enclaves.
+%The only possible solution without introducing more OS functionality into enclaves is to export the encrypted states to the untrusted kernel, which will suffer significant overheads.
 
 
 Moreover, not all architectures assume having inter-connected memory with coherence.
