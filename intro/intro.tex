@@ -1017,8 +1017,8 @@ Another forbidden instruction is \code{rdtsc}, which is restricted for ruling ou
 %or the old specifications have to be emulated in the new OSes.
 
 
-SGX also excludes OS services from the trust model, except functions which can be completely implemented in the user space (e.g. \syscall{malloc}).
-The absence of trustworthy OS services is an issue for both unmodified and partitioned applications.
+SGX also excludes OS services from the trust model, except functions which can be completely ported to user space (e.g. \syscall{malloc}).
+The absence of trusted OS services is an issue for porting an existing application.
 %However, the critical SGX restriction is
 %the lack of trusted OS services which an unmodified application can depend on.
 %The threat model of SGX excludes the OS from
@@ -1039,13 +1039,14 @@ The absence of trustworthy OS services is an issue for both unmodified and parti
 %whenever it calls a system interface. %, such as a POSIX function or a Linux system call.
 %Most of the applications heavily depend on the operating systems to faithfully implement the existing system call semantics.
 %Any supporting framework for running the existing applications on SGX must reproduce the semantics, under the circumstance that the framework cannot directly manage any hardware, but the host operating system can never be trusted.
-A potential solution is to build a thin redirection layer, which redirect the system interface
-from the untrusted OS~\cite{osdi16scone,shinde17panoply}.
-The problem, however, is in checking the results of redirected system interface results, since the OS is not trusted to faithfully implement OS services.
+Existing solutions combines a modified C library with applications, to redirect system interfaces
+to the untrusted OS~\cite{osdi16scone,shinde17panoply}.
+The problem, however, is in checking the results of system interfaces, because the OS is not trusted. % to faithfully implement OS services.
 %Checks against simple attacks are possible,
 %such as checking if returned pointers are valid to the enclave regions.
 %to \syscall{mmap} which points to existing memory regions that can be corrupted or can leak sensitive information
-Checking Linux system calls from an untrusted OS is subtle and challenging, because the system interface is not defined for the scenario of having an untrusted or compromised OS~\cite{checkoway13iago}.
+Previous work~\cite{checkoway13iago} shows that
+checking untrusted system interface results can be subtle, because the existing system interfaces are not designed for an untrusted or compromised OS.
 %because of the requirement of predicting the correct results of system calls.
 %This thesis compares these thin redirection layers
 %with the library OS approach,
@@ -1056,19 +1057,20 @@ Checking Linux system calls from an untrusted OS is subtle and challenging, beca
 %as difficult as implementing the system interfaces
 %pulling the implementation into enclaves.
 %, as an emulation of the real OS.
-As a result, porting an application to SGX will involve
-statically compiling the code against one of thin redirection layers, and
-restricting system interface to functions that are safely checked
-against an untrusted OS.
+%As a result, porting an application to SGX always involves
+%statically compiling the code against one of thin redirection layers, and
+%restricting system interface to functions that are safely checked
+%against an untrusted OS.
 
 
 
-In summary, the existing porting models of Intel SGX always requires modifying application binaries, and developers have to reason about the completeness of checks on the system interface for each application.
+In summary, the existing porting models of Intel SGX always requires modifying application binaries, and reasoning about the completeness of checking system interfaces.
 This thesis argues that, by introducing a library OS into enclaves,
-an narrowed, fixed enclave interface can be defined, to restrict interaction with the untrusted OS to services that can be explicitly checked.
-By implementing the \graphene{} host ABI upon the narrowed enclave interface,
-users can run unmodified Linux applications on SGX, such as an Apache web server or an OpenJDK runtime,
-with the \graphene{} library OS loaded inside the enclaves.
+the interaction with the untrusted OS can be restricted to OS services which have clear semantics for checking.
+%an narrowed, fixed enclave interface can be defined, to restrict interaction with the untrusted OS to services that can be explicitly checked.
+By implementing the host ABI inside an enclave,
+users can easily run an unmodified Linux application, such as an Apache server or an OpenJDK runtime,
+with a trusted \graphene{} library OS instance.
 
 
 
