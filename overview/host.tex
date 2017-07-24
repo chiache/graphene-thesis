@@ -20,7 +20,7 @@ leaving only the host ABI to interact with the host OS and hardware.
 
 
 
-The porting of the host ABI is specific to each ``host''. We define a host as an OS or a hypervisor which exports a consistent interface to applications or virtual machines.
+The porting of the host ABI is specific to each host. We define a {\em host} as an OS or a hypervisor which exports a consistent interface to applications or virtual machines.
 An OS kernel, such as Linux, BSD, or Windows, can be treated as a host, upon any physical machines where the kernel can run the applications.
 If an OS has mutated or tweaked the interface for a hardware platform,
 such as an SGX enclave 
@@ -200,8 +200,12 @@ and is capable of running a library OS for single-process, Linux applications, w
 %\graphene{} takes the high-level definitions of the \drawbridge{} and Bascule host ABIs, and customizes for general-purpose Linux applications and a wider range of hosts. 
 Although running Windows and Linux applications introduces
 a different set of challenges,
-we argue that the natures of the OS functions in Linux and Windows have no much differences. 
-During the development of \graphene{}, we do found several occasions in which we have to introduce new functions into the host ABI to deal with Linux-specific challenges, which will be further discussed in Section~\ref{sec:overview:host:functions} and Chapter~\ref{chap:abi}.
+the nature of the Linux and Windows APIs is actually quite similar, with some exceptions.
+During the development of \graphene{}, we found a few occasions in which we have to extend the host ABI to deal with Linux-specific challenges. The Linux-specific extensions will be further discussed in Section~\ref{sec:overview:host:functions} and Chapter~\ref{chap:abi}.
+
+
+\paragraph{Checkpoint and migration.}
+
 
 
 
@@ -220,6 +224,7 @@ The functions reflect the common functionality of most OSes, including Linux and
 %Although the same OS abstractions may be defined
 %as different idiosyncratic system interfaces on each host OSes,
 %\graphene{} takes into consideration of porting the host functions to either OSes, in the most effortless way possible.
+
 
 
 
@@ -340,35 +345,66 @@ but is much faster because it avoids copying the memory in the host kernels.
 \label{sec:overview:host:porting}
 
 
-The compatibility of \graphene{} relies on each host to implement the host ABI.
-The host ABI is defined for the simplicity of porting, as well as the sufficiency for implementing a library OS compatible to Linux.
-First of all, the number of host functions included in the host ABI
-is much smaller than the number of system calls in a commodity OS such as Linux. 
-The portability of the host ABI is experimented by
-the development of
-several ``classic'' \graphene{} ports, including Windows, Linux, OS X,
-\fixme{the last two are prospective}
-the L4 microkernel, and Barrelfish.
-For each port, the amount of code written for implementing the host ABI is at the order of magnitude of thousands of lines of code, which is much more manageable than implementing a flat translation layer for system interfaces.
-
-
-For each port of the host ABI, the OS developers implement a thin translation layer,
-or platform translation layer (PAL). The PAL must translate the host abstractions, to the system interface native to the target host. 
-The PAL must also be a dynamic loader, which implements the minimal loading feature included in the host ABI.
-For a host OS that does not support ELF binaries, the PAL must follow the binary format which the host OS accepts, such as the Portable Executable (PE) format on Windows.
-The PAL is the only layer in the user space which cannot be reused
-across different hosts. Besides the PAL, all of the other binaries in the user space are fully reusable, including the library OS, the supporting libraries, and the application executable.
+\graphene{} relies on each host to implement the host ABI, using the native system interfaces on the host.
+For each host, a platform translation layer (PAL)
+is loaded below the library OS, to translate each functions in the host ABI to native system interfaces.
+The development of a PAL is a effort paid per host, whereas the library OS is reusable on every hosts. %The simplicity of the host ABI can be also estimated by the effort of implementing a PAL for each host.
+Based on the simplicity of the host ABI, the PAL development is supposed to be straightforward and easy for average developers, except corner cases on a few eccentric hosts, such as Intel SGX.
 
 
 
-The host abstractions map to several common system calls in a commodity OS.
-For example, \funcname{StreamRead} and \funcname{StreamWrite} can directly map to the POSIX functions \funcname{pread} and \funcname{pwrite}, which are available in most OSes including Linux, BSD, OS X, and Windows.
-More than half of the functions in the host ABI can be counted toward this category.
-The rest of the host abstractions are either specific to Linux
-(e.g., TLS support),
-or belong to the POSIX functions that are not shared with commodity OSes
-(e.g., \funcname{mmap} on Windows).
-The PAL emulates these host abstractions, using existing system interfaces available on the host OS, unless the software emulation is fundamentally impossible (e.g., restricted by the system interfaces), or too expensive (e.g., high overhead from copying data).
+
+%The host ABI is defined for the simplicity of porting, as well as the sufficiency for implementing a library OS compatible to Linux.
+%First of all, the number of host functions included in the host ABI
+%is much smaller than the number of system calls in a commodity OS such as Linux. 
+\graphene{} is experimented with
+several ``classic'' hosts, including Windows, Linux, OSX, FreeBSD, and Linux with Intel SGX.
+For most of these hosts,
+implementing the host ABI is straightforward,
+%Most of the host ABI is straightforward to port
+%on these hosts, 
+because most OSes have exported a version of the POSIX API, or similar API.
+Few exceptions where the porting has been challenging
+are mostly caused by usual assumptions made in the host OSes.
+For example, the Windows API disallows directly resizing or protecting part of a memory region, which is essential to implementing the \syscall{munmap} and \syscall{mprotect} system calls.
+A workaround for porting the host ABI to Windows is to change the memory region
+at the physical page level,
+but requires running the PAL in administer permission.
+
+%In our experience, the development of a PAL is around ten thousand lines of code.
+
+%For each port, the amount of code written for implementing the host ABI is at the order of magnitude of thousands of lines of code, which is much more manageable than implementing a flat translation layer for system interfaces.
+
+
+Based on the experience in \graphene{},
+even a host ABI specialized for simplicity cannot guarantee to be portable on every hosts.
+It is possible that a host simply lacks the typical functionality
+provided in other OSes.
+As a principle, \graphene{} does not require each host to implement the whole host ABI,
+but designs the library OS to flexibly switch emulation strategies
+when a function is unavailable.
+For example, when the bulk IPC feature is not available on the host,
+the library OS can always switch back to the RPC-based IPC, with performance penalty.
+In the worst case, if there is no emulation strategies
+to compensate for the missing of a function,
+at least users can predict whether an application will be affected and thus cannot run on certain hosts.
+
+
+
+%For a host OS that does not support ELF binaries, the PAL must follow the binary format which the host OS accepts, such as the Portable Executable (PE) format on Windows.
+%The PAL is the only layer in the user space which cannot be reused
+%across different hosts. Besides the PAL, all of the other binaries in the user space are fully reusable, including the library OS, the supporting libraries, and the application executable.
+
+
+
+%The host abstractions map to several common system calls in a commodity OS.
+%For example, \funcname{StreamRead} and \funcname{StreamWrite} can directly map to the POSIX functions \funcname{pread} and \funcname{pwrite}, which are available in most OSes including Linux, BSD, OS X, and Windows.
+%More than half of the functions in the host ABI can be counted toward this category.
+%The rest of the host abstractions are either specific to Linux
+%(e.g., TLS support),
+%or belong to the POSIX functions that are not shared with commodity OSes
+%(e.g., \funcname{mmap} on Windows).
+%The PAL emulates these host abstractions, using existing system interfaces available on the host OS, unless the software emulation is fundamentally impossible (e.g., restricted by the system interfaces), or too expensive (e.g., high overhead from copying data).
 
 
 
@@ -378,11 +414,26 @@ The PAL emulates these host abstractions, using existing system interfaces avail
 \label{sec:overview:host:security}
 
 
-The security isolation of \graphene{} ensures that mutually distrusting applications cannot interfere with each other. The mechanism of isolation is comparable to running each applications in separate virtual machines.
-To ensure isolation, each host must restrict access from the applications or the library OS, to any unauthorized host abstractions.
-On most hosts, a reference monitor in the host kernel can enforce the access control on the host system interfaces, files, network addresses, and RPC streams.
-The only exception is the Intel SGX platform; in SGX, not only applications distrust each other, an application also assume the host kernel to be untrustworthy.
-In this case, an application running inside an enclave must enforce isolation internally using software techniques (e.g., encryption).
+To target multi-tenant environments, such as cloud,
+\graphene{} has to ensure at least complete security isolation between mutually-untrusted applications running on the same host.
+The security isolation of \graphene{} is comparable to running each application
+in a VM, featuring a fully-isolated guest OS.
+Similar to the virtual hardware interface isolating the VMs,
+the host ABI also enforces security isolation between library OS instances,
+according to the trust model of the applications.
+
+
+
+\graphene{} delegates the enforcement of security isolation to the hosts.
+The library OS and the application are mutually-trusted, as long as they are loaded in the same process.
+The host ABI decouples the implementation of OS functionality
+from the enforcement of security isolation.
+%To ensure isolation, each host must restrict access from the applications or the library OS, to any unauthorized host abstractions.
+On each host, a reference monitor will enforce security isolation policies assigned to the application, to control the access to the hardware abstractions managed by the host ABI, including files, network sockets, and RPC streams.
+
+
+
+
 
 
 %\graphene{} reduces the attack surface exposed to applications
