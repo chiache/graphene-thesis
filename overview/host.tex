@@ -22,11 +22,15 @@ and reuses both applications and the library OS implementation with more managea
 
 
 
-The porting of the host ABI is based on each ``host'', which can be defined as an OS or hypervisor with consistent interfaces to applications.
-A traditional, monolithic OS kernel, such as the Linux, BSD, or Windows kernel, can be treated as a host, upon physical machines where the kernel can consistently run the applications.
-If an OS must mutate the interface for specific hardware,
-such as a Linux kernel offering untrusted OS services to SGX enclaves,
-the combination of the OS and hardware is considered a specialized host.
+The porting of the host ABI is based on each ``host'', which can be defined as an OS or a hypervisor which exports a consistent interface to applications or virtual machines.
+A traditional, monolithic OS kernel, such as the Linux, BSD, or Windows kernel, can be treated as a host, upon all physical machines where the kernel can transparently run applications.
+If an OS has mutated the interface for specific hardware platform,
+such as an SGX enclave 
+running on an untrusted Linux kernel,
+the combination of the OS (Linux) and the hardware platform (SGX) is considered a specialized host to the library OS.
+The SGX port of the host ABI faces several unique challenges,
+which will be discussed in Chapter~\ref{chap:sgx}.
+
 
 \begin{comment}
 %\fixme{each sentense should be a paragraph; starting the 2nd sentence}
