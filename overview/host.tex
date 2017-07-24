@@ -22,14 +22,14 @@ and reuses both applications and the library OS implementation with more managea
 
 
 
-The porting of the host ABI is based on each ``host'', which can be defined as an OS or a hypervisor which exports a consistent interface to applications or virtual machines.
-A traditional, monolithic OS kernel, such as the Linux, BSD, or Windows kernel, can be treated as a host, upon all physical machines where the kernel can transparently run applications.
-If an OS has mutated the interface for specific hardware platform,
+The porting of the host ABI is specific to each ``host''. We define a host as an OS or a hypervisor which exports a consistent interface to applications or virtual machines.
+An OS kernel, such as Linux, BSD, or Windows, can be treated as a host, upon any physical machines where the kernel can run the applications.
+If an OS has mutated or tweaked the interface for a hardware platform,
 such as an SGX enclave 
 running on an untrusted Linux kernel,
-the combination of the OS (Linux) and the hardware platform (SGX) is considered a specialized host to the library OS.
-The SGX port of the host ABI faces several unique challenges,
-which will be discussed in Chapter~\ref{chap:sgx}.
+the combination of the OS (Linux) and the hardware platform (SGX) is considered a specialized host.
+The Linux-SGX port of the host ABI faces several unique challenges,
+which will be further discussed in Chapter~\ref{chap:sgx}.
 
 
 \begin{comment}
@@ -73,17 +73,33 @@ for any hosts.
 
 
 \paragraph{Simplicity of the host ABI.}
-To reduce the burden of OS developers, the definition of the host ABI targets on making it simple enough to port on any targeted hosts.
-The simplicity is subject to OS developers,
-but can be judged based on two primary principles.
-The first is to narrow the host ABI, by reducing the amount of functions and corner cases
-which OS developers have to implement.
-%Although the number of functions does not necessarily indicate complexity, removing redundant functions is always beneficial for simplicity.
-The other principle is the likelihood of finding similar features on the host, to be easily translated to functions in the host ABI.
-An observation to OS development is that similarity of system interfaces is common to most OSes.
-It is normal that OS developers will choose similar OS functions, for the clarity of application programming.
-As a result, most of the functions in the host ABI is unsurprising similar
-to common OS functions. For example, the \syscall{FileRead} and \syscall{FileWrite} functions in the host ABI are similar to \syscall{pread} and \syscall{pwrite} in POSIX, except some nuanced details like order of parameters.
+To reduce the burden of OS developers, the host ABI is designed to be simple enough to implement, on any targeted hosts.
+The simplicity of implementation is subjective and depends on the hosts,
+but can be improved based on two primary factors.
+The first is the narrowness of the host ABI, as the amount of functions and corner cases
+included in the definition.
+Although the narrowness does not directly indicate simplicity, it is beneficial to remove
+redundant OS functions or corner cases.
+The development of \graphene{} keeps the narrowness of the host ABI, by disciplinarily avoiding adding functions if possible.
+
+The other factor is to define a host ABI with functions which can be mapped to native host system interfaces with similar features.
+%the likelihood of finding similar features on the host, to be translated to functions in the host ABI.
+An observation to OS development is that
+%similarity of system interfaces is common among most OSes.
+most OS developers will choose similar system interfaces,
+to reduce the learning curve for programming.
+We can find lookalike functions in many OSes, such as \syscall{read} and \syscall{write} in Linux, BSD, and POSIX, and \syscall{ReadFile} and \syscall{WriteFile} in Windows (for regular files).
+The definition of the host ABI
+is based on observation of the native system interfaces from several potential hosts,
+such as Linux and Windows.
+%exported by the targeted hosts,
+%and defines the functions in the host ABI, to be easily translated to the native system interfaces.
+%The host ABI is essentially a subset of the common features from every potential hosts.
+As a result, most of the functions in the host ABI are straightforward to port on most OSes,
+with simple translation from the host system interfaces.
+
+%For example, the host ABI defines \syscall{StreamRead} and \syscall{StreamWrite} for accessing I/O streams, similar to .
+%xcept some nuanced details like order of parameters.
 
 
 % by including OS functions , such as \syscall{FileRead} and \syscall{FileWrite}, similar to the Linux system calls, \syscall{pread} and \syscall{pwrite}.
@@ -130,7 +146,8 @@ to the host ABI would be reasonably easy.
 
 
 \paragraph{Sufficiency of the host ABI.}
-The host ABI is responsible for exporting sufficient functionality for the library OS to request for hardware or OS abstractions which cannot be virtualized in user space.
+The host ABI is responsible for exporting sufficient functionality to the library OS,
+for requesting hardware or OS abstractions which cannot be implemented in user space.
 
 
 
