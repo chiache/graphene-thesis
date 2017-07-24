@@ -2,17 +2,15 @@
 \label{sec:overview:host}
 
 
-\graphene{} achieves compatibility by determining which OS features
-are essential to the reuse of applications, and defining a host ABI as a new boundary between OSes (or hypervisors) and applications.
-The role of the host ABI is to decouple the low-level OS functionality, such as abstracting hardware resources and operations, from reproducing the idiosyncrasy of system interfaces. 
+The \graphene{} approach to facilitating OS compatibility is to determine a small set of OS features which are essential to most applications, and define the host ABI.
+%The host ABI is a new boundary between OSes (or hypervisors) and applications.
+The host ABI decouples the low-level OS functionality, such as abstracting hardware resources and operations, from reproducing the idiosyncrasy of system interfaces for applications. 
 %OS developers only have to port the host ABI for an OS which needs a boost of compatibility.
-All the system interface implementation is absorbed
-into a para-virtualized library OS,
-using the host ABI to interact with the OSes and hardware designs
-lacking compatibility.
-The host ABI prevents OS developers
-from repeating the painful process of reproducing system interfaces,
-and reuses both applications and the library OS implementation with more manageable effort.
+\graphene{} moves the implementation of system interfaces
+into the user-space, para-virtualized library OS,
+leaving only the host ABI to interact with the host OS and hardware.
+
+
 
 
  
@@ -28,8 +26,8 @@ If an OS has mutated or tweaked the interface for a hardware platform,
 such as an SGX enclave 
 running on an untrusted Linux kernel,
 the combination of the OS (Linux) and the hardware platform (SGX) is considered a specialized host.
-The Linux-SGX port of the host ABI faces several unique challenges,
-which will be further discussed in Chapter~\ref{chap:sgx}.
+Especially, the Linux-SGX port of the host ABI (also called \graphenesgx{}) faces several unique challenges,
+which will be discussed in Chapter~\ref{chap:sgx}.
 
 
 \begin{comment}
@@ -73,30 +71,31 @@ for any hosts.
 
 
 \paragraph{Simplicity of the host ABI.}
-To reduce the burden of OS developers, the host ABI is designed to be simple enough to implement, on any targeted hosts.
-The simplicity of implementation is subjective and depends on the hosts,
-but can be improved based on two primary approaches.
-The first is to ensure the narrowness of the host ABI, as reducing the amount of functions and corner cases included in the definition.
-Although the narrowness does not directly indicate simplicity of porting, it is always beneficial to remove redundant OS functions or corner cases,
-to save the porting effort.
-The development of \graphene{} keeps the narrowness of the host ABI, by disciplinarily avoiding adding any functions,
-except the cases when the library OS fails to implement certain system calls,
-or suffers significant performance overheads.
+To reduce the burden of OS developers, the host ABI is designed to be as simple as possible to implement on any hosts.
+The simplicity of implementation is subjective to OS developers,
+but can be improved with two primary approaches.
+The first approach is to ensure the narrowness of the host ABI.
+Although the narrowness does not directly indicate ease of porting, removing redundant OS functions or corner cases
+can still reduce the porting effort.
+The development of \graphene{} disciplinarily avoiding adding any functions to the host ABI,
+unless the library OS cannot internally implement an OS feature.
 
-Another approach is to define functions which can be mapped to native system interfaces on the hosts with similar functionality.
+
+Another approach is to define functions which can be mapped to native system interfaces on the hosts.
 %the likelihood of finding similar features on the host, to be translated to functions in the host ABI.
 An observation of OS development is that
 %similarity of system interfaces is common among most OSes.
-many OSes export similar system interfaces, to shorten the learning curve for programming applications.
-We can find lookalike functions in many hosts, such as \syscall{read} in Linux, BSD, and POSIX, and \syscall{ReadFile} in Windows (for regular files).
+similar OS functions tend to exist in different OSes.
+%, to reduce the learning curve for programming applications.
+We can find lookalike functions in many host OSes, such as \syscall{read} in Linux, BSD, and POSIX, and \syscall{ReadFile} in Windows (for regular files).
 The definition of the host ABI
-is based on observations of various host system interfaces,
+is based on observations of the system interfaces in some of the important hosts,
 including Linux system calls and Windows API.
 %exported by the targeted hosts,
 %and defines the functions in the host ABI, to be easily translated to the native system interfaces.
 %The host ABI is essentially a subset of the common features from every potential hosts.
-We expect most of the host ABI are straightforward to port on most OSes,
-as most functions in the host ABI can be easily translated from the host system interfaces.
+We expect most of the host ABI are straightforward to port on most hosts,
+as most functions in the host ABI should be directly translatable from the host system interfaces.
 
 %For example, the host ABI defines \syscall{StreamRead} and \syscall{StreamWrite} for accessing I/O streams, similar to .
 %xcept some nuanced details like order of parameters.
@@ -147,105 +146,112 @@ to the host ABI would be reasonably easy.
 
 \paragraph{Sufficiency of the host ABI.}
 The host ABI is responsible for exporting sufficient functionality to the library OS,
-for requesting hardware or OS abstractions which cannot be implemented in user space.
-
-
-
-For sufficiency, the definition of the host ABI
+for requesting hardware or OS abstractions which cannot be easily virtualized in user space.
+For sufficiency, the host ABI
 %are demonstrated by the fact that
 %the exported host functions 
-intends to cover every categories of typical functions in an OS.
+covers a set of typical OS functions.
 %and a full-function library OS is implemented on top of them.
-In general, there are five categories of typical OS functions,
+The typical OS functions in most OSes
 %can be categorized into five types:
-including
-process, memory, I/O, files, network, security and protection~\cite{dhamdhere2007os-textbook}.
-Besides security and protection,
-the definition of the host ABI is closely related with hardware management,
-and offers the most basic abstractions for each category of OS functions.
+includes
+process creation, memory management, I/O (typically, files and network connection), security and protection~\cite{dhamdhere2007os-textbook}.
+%Besides security and protection,
+%the definition of the host ABI is closely related with hardware management,
+%and offers the most basic abstractions for each category of OS functions.
 %managing specific types of hardware,
 %and each contain a few basic abstractions
 %which can be expanded into other system interfaces.
-For example, the basic OS functions for memory management include
-allocating (\syscall{VirtMemAlloc}),
-protecting (\syscall{VirtMemProt}),
-and deallocating (\syscall{VirtMemFree}) memory regions. % at certain granularity
+%For example, the basic OS functions for memory management include
+%allocating (\syscall{VirtMemAlloc}),
+%protecting (\syscall{VirtMemProt}),
+%and deallocating (\syscall{VirtMemFree}) memory regions. % at certain granularity
 %(usually in pages).
-These basic functions can be used to implement other forms of memory allocation,
-such as growing heaps with \syscall{brk}
-or allocating thread-private stacks.
+%These basic functions can be used to implement other forms of memory allocation,
+%such as growing heaps with \syscall{brk}
+%or allocating thread-private stacks.
 %The definition of the \drawbridge{} host ABI is a hint, for creating a list of host abstractions necessary for the library OS, including streams, memory, threads, and processes. 
 %If the host ABIs are insufficient for implementing certain system interfaces, one may extend the host ABIs with the missing functions,
 %with the discipline to retain the simplicity of the host ABIs.
 %The extension to the host ABIs must be d, to keep the extension minimal, and to avoid adding redundant functions.
-The implementation of the \graphene{} library OS demonstrates that
-the host ABI is sufficient for implementing a significant portion of Linux system calls.
+%The implementation of the \graphene{} library OS demonstrates that
+%the host ABI is sufficient for implementing significant portion of Linux system calls.
+Linux defines multiple system calls with similar purposes.
+For example, both \syscall{mmap} and \syscall{brk} can allocate memory in a process:
+\syscall{mmap} allocates memory regions at page granularity, whereas \syscall{brk} grows a single, continuous heap space.
+\graphene{} shows
+that a basic OS function is sufficient to implement all the idiosyncratic variants in the Linux system interfaces. Both \syscall{mmap} and \syscall{brk} can be implemented using \syscall{VirtMemAlloc} in the host ABI, with bookkeeping of allocated memory regions in the library OS.
 
-A major part of 
-the host ABI is inherited from a prior work called \drawbridge{}~\cite{porter11drawbridge}, but not exactly verbatim.
+
+The definition of the host ABI in \graphene{} is based on a prior work ca
+\drawbridge{}~\cite{porter11drawbridge}.
 \drawbridge{} is a library OS for running single-process Windows applications
 in a lightweight, guest environment.
-\drawbridge{} demonstrates that its host ABI is sufficient
-for running a library OS in which 99.7\% of code comes from the Windows 7 source.
-The host ABIs of \drawbridge{} are later extended
-for running a Linux-based library OS called Bascule~\cite{baumann13bascule}.
-Both the \drawbridge{} and Bascule host ABIs have been
-ported to multiple hosts, including Windows, Linux, Barrelfish, and Intel SGX~\cite{porter11drawbridge,baumann14haven,mssql-on-linux,baumann13bascule}.
+\drawbridge{} 
+defines a host ABI, including 36 functions, to develop its library OS.
+%demonstrates that its host ABI is sufficient
+%for running a library OS in which 99.7\% of code comes from the Windows 7 source.
+%The host ABIs of \drawbridge{} are later extended
+%for running a Linux-based library OS called Bascule~\cite{baumann13bascule}.
+The \drawbridge{} host ABI
+is ported to multiple hosts, including Windows, Linux, Barrelfish, and Intel SGX~\cite{porter11drawbridge,baumann14haven,mssql-on-linux,baumann13bascule},
+and is capable of running a library OS for single-process, Linux applications, with a few host ABI changes~\cite{baumann13bascule}.
 %ill loads and links the rest of application binaries, just like the native Linux loader (i.e., \code{ld.so}).
-\graphene{} takes the high-level definitions of the \drawbridge{} and Bascule host ABIs, and customizes for general-purpose Linux applications and a wider range of hosts. 
+%\graphene{} takes the high-level definitions of the \drawbridge{} and Bascule host ABIs, and customizes for general-purpose Linux applications and a wider range of hosts. 
+Although running Windows and Linux applications introduces
+a different set of challenges,
+we argue that the natures of the OS functions in Linux and Windows have no much differences. 
+During the development of \graphene{}, we do found several occasions in which we have to introduce new functions into the host ABI to deal with Linux-specific challenges, which will be further discussed in Section~\ref{sec:overview:host:functions} and Chapter~\ref{chap:abi}.
 
 
 
-
-\subsection{Definition of host functions}
+\subsection{Functions in the host ABI}
 \label{sec:overview:host:functions}
 
 
 %\fixmedp{the beginning doesn't capture the whole paragraph.}
 %The host ABI shares several common abstractions with production OSes.
-The host functions of \graphene{}
-include a set of basic abstractions from the typical OS functions of an OS.
-The definition of the host functions
-should be unsurprising to average OS developers,
-making the implementation on a new host to be fairly straightforward.
-The host functions reflect the common OS abstractions defined in most mainstream OSes, such as Linux and Windows.
-Although the same OS abstractions may be defined
-as different idiosyncratic system interfaces on each host OSes,
-\graphene{} takes into consideration of porting the host functions to either OSes, in the most effortless way possible.
+The functions in the host ABI
+define the basic features needed from the hosts, to run the library OS.
+%The definition of the host functions
+%should be unsurprising to average OS developers,
+%making the implementation on a new host to be fairly straightforward.
+The functions reflect the common functionality of most OSes, including Linux and Windows.
+%Although the same OS abstractions may be defined
+%as different idiosyncratic system interfaces on each host OSes,
+%\graphene{} takes into consideration of porting the host functions to either OSes, in the most effortless way possible.
 
 
 
 
 %fixmedp{give more of the background}
-Table~\ref{tab:overview:abi} lists the \palcalls{} functions defined in the \graphene{} host ABI.
-27 functions are inherited
-from high-level definition of the \drawbridge{} host ABI,
+Table~\ref{tab:overview:abi} lists \palcalls{} functions defined in the host ABI of \graphene{}.
+Among these functions, 
+27 are inherited from the \drawbridge{} host ABI,
 including functions to managing I/O streaming (e.g., \syscall{StreamOpen}), memory allocation (e.g., \syscall{VirtMemAlloc}), scheduling processes and threads (e.g., \syscall{ThreadCreate}), and several miscellaneous functions (e.g., \syscall{ThreadCreate}).
-Most of the host functions only affect the OS or hardware states
-related to the process itself.
-For example, \syscall{VirtMemAlloc} can only allocate memory in the calling process,
-and cannot affect other processes running in parallel.
-Only I/O streaming functions export states to the host OS, and share states with other processes or library OSes.
-
-
-
-Only 8 functions are specifically extended for \graphene{}, in order to implement OS abstractions that are unique to Linux.
-The Linux abstractions include
+%Most of the host functions only affect the OS or hardware states
+%related to the process itself.
+%For example, \syscall{VirtMemAlloc} can only allocate memory in the calling process,
+%and cannot affect other processes running in parallel.
+%Only I/O streaming functions export states to the host OS, and share states with other processes or library OSes.
+Only 8 functions are extended by \graphene{}, in order to implement Linux-specific features.
+For example, unlike Windows or OSX, Linux generally
 %The host ABI is also complemented with several Linux-specific abstractions, such as
-handing hardware exceptions delivered as signals,
-and controlling 
-x86-specific segment registers (i.e., \code{FS}/\code{GS} registers)
-for supporting thread-local storage (TLS).
+delivers hardware exceptions to a process as signals .
+Linux also requires 
+the x86-specific segment registers (i.e., \code{FS}/\code{GS} registers)
+to determine the location of thread-local storage (TLS), which can be hard-coded in application binaries by a compilation mode of GCC.
+However, in Windows or OSX, the x86-specific segment registers are mostly ignored, and even frequently reset to avoid being manipulated by attackers.
 %The host ABI contains host functions (), which can be directly called from the library OS. \graphene{} shows that the host ABI is sufficient to implementing a large portion of the Linux system calls.
 %These functions are not defined in \drawbridge{}, the Windows-based library OS,
 %because these abstractions do not exist in Windows.
-The \drawbridge{} host ABI does not contain exception delivery because the feature is
-not commonly used in Windows applications.
-Moreover, the x86 segment registers cannot be modified in Windows
-because the OS assigns fixed values to these registers
-for the whole execution.
-Although \drawbridge{} excludes these abstractions, Bascule extends the host ABI to include similar functions,
-demonstrating that the extension is indeed necessary.
+%The \drawbridge{} host ABI does not contain exception delivery because the feature is
+%not commonly used in Windows applications.
+%Moreover, the x86 segment registers cannot be modified in Windows
+%because the OS assigns fixed values to these registers
+%for the whole execution.
+%Although \drawbridge{} excludes these abstractions, Bascule extends the host ABI to include similar functions,
+%demonstrating that the extension is indeed necessary.
 
 
 
@@ -253,7 +259,7 @@ demonstrating that the extension is indeed necessary.
 \begin{table}[htp!]
 \centering
 \input{abi-table}
-\caption{Overview of functions in the \graphene{} host ABI. The abstractions marked with the symbol $\dagger$ are introduced in the initial publication of \graphene{}~\cite{tsai14graphene} or later extended for this thesis, whereas the rest are inherited from \drawbridge{}~\cite{porter11drawbridge}.}
+\caption{Overview of the functions in the host ABI of \graphene{}. The ones marked with the symbol $\dagger$ are introduced in the initial publication of \graphene{}~\cite{tsai14graphene} or later extended for this thesis. The rest are inherited from \drawbridge{}~\cite{porter11drawbridge}.}
 \label{tab:overview:abi}
 \end{table}
 
@@ -262,47 +268,58 @@ demonstrating that the extension is indeed necessary.
 
 
 
-Beside the Linux-specific extension,
-the host functions also include two optional primitives for remote procedure call (RPC).
-RPC is critical for implementing the coordination of OS states
-across library OS instances.
-The basic form of RPC in \graphene{} is a pipe-like RPC byte stream, which a library OS can simply use to send messages.
-It is a common design choice
-to implement inter-process coordination through message-passing
-instead of shared memory, especially for hardware platforms that do not guarantee memory coherence~\cite{baumann09barrelfish}.
-A problem to the message-passing approach is the significant overheads
-on frequently exchanging distributed OS states.
-As an optimization, \graphene{} defines a bulk IPC mechanism
+The host ABI also include 5 functions for 
+remote procedure call (RPC),
+in order to implement Linux multi-process abstractions.
+The rationale of the multi-process support in \graphene{} is to reduce the complexity of inter-process communication in the host.
+A host to \graphene{} needs not to understand all the Linux-specific multi-process behaviors,
+but only sees a pipe-like, RPC stream for message passing between processes.
+To ensure performance to be acceptable,
+%RPC is critical for implementing the coordination of OS states
+%across library OS instances.
+%The basic form of RPC in \graphene{} is a pipe-like RPC byte stream, which a library OS can simply use to send messages.
+%It is a common design choice
+%to implement inter-process coordination through message-passing
+%instead of shared memory, especially for hardware platforms that do not guarantee memory coherence~\cite{baumann09barrelfish}.
+%A problem to the message-passing approach is the significant overheads
+%on frequently exchanging distributed OS states.
+\graphene{} defines an optional, bulk IPC feature
+in the host ABI
 as optional host functions,
-for host platforms that urgently require lowering the RPC overheads.
-Another extension is for
-%\funcname{StreamSendHandle} and \funcname{StreamRecvHandle}
-delegating opened stream handles to another process, through a connecting pipe.
-The feature is similar to sending file descriptors
-through UNIX sockets in Linux, and is used to share opened network sockets with the \syscall{fork}'ed processes.
-%Another RPC abstraction is a bulk IPC channel; a process can use \funcname{PhsyicalMemoryCommit} to commit a large chunk of memory to a bulk IPC channel, which \funcname{PhsyicalMemoryMap} can map into another process, as copy-on-write. The library OS uses bulk IPC as an optimization to \syscall{fork}.
-Despite that either of the RPC primitives
-is not necessary easy to implement on every hosts, the inclusion of these host functions is completely optional, and the library OS can always fall back to the message-passing approach.
+to send large chunks of memory across processes.
+The bulk IPC feature works similarly as sending the memory through RPC streams,
+but is much faster because it avoids copying the memory in the host kernels.
+
+
+%for host platforms that urgently require lowering the RPC overheads.
+%Another extension is for
+%%\funcname{StreamSendHandle} and \funcname{StreamRecvHandle}
+%delegating opened stream handles to another process, through a connecting pipe.
+%The feature is similar to sending file descriptors
+%through UNIX sockets in Linux, and is used to share opened network sockets with the \syscall{fork}'ed processes.
+%%Another RPC abstraction is a bulk IPC channel; a process can use \funcname{PhsyicalMemoryCommit} to commit a large chunk of memory to a bulk IPC channel, which \funcname{PhsyicalMemoryMap} can map into another process, as copy-on-write. The library OS uses bulk IPC as an optimization to \syscall{fork}.
+%Despite that either of the RPC primitives
+%is not necessary easy to implement on every hosts, the inclusion of these host functions is completely optional, and the library OS can always fall back to the message-passing approach.
 
 
 
-All the host functions are designed to appear as ``stateless''
-as possible to the library OS.
-Being stateless to the library OS means that
-a host function does not preserve any permanent state of certain host abstraction.
-A stateless function can recover
-from disconnection of the library OS, and be reconnected at any timing.
-The host functions can maintain temporary bookkeeping for the convenience of porting,
-but should not assume the bookkeeping states to be permanent.
-The principle of defining all the host functions to be stateless
-is primarily for two purposes:
-{\em migration} and {\em security isolation}.
-For migration, the fact that the library OS can disconnect freely from the host functions simplifies the implementation of the migration feature.
-Migration is also an important foundation to implementing \syscall{fork}, because the cloned process need to receive a snapshot of the parent process.
-For security isolation, 
-a stateless host function is easier to check,
-because the security monitor only has to verify each instance of host function calls,
-instead of tracing multiple host functions over a longer period of time.
+%All the host functions are designed to appear as ``stateless''
+%as possible to the library OS.
+%Being stateless to the library OS means that
+%a host function does not preserve any permanent state of certain host abstraction.
+%A stateless function can recover
+%from disconnection of the library OS, and be reconnected at any timing.
+%The host functions can maintain temporary bookkeeping for the convenience of porting,
+%but should not assume the bookkeeping states to be permanent.
+%The principle of defining all the host functions to be stateless
+%is primarily for two purposes:
+%{\em migration} and {\em security isolation}.
+%For migration, the fact that the library OS can disconnect freely from the host functions simplifies the implementation of the migration feature.
+%Migration is also an important foundation to implementing \syscall{fork}, because the cloned process need to receive a snapshot of the parent process.
+%For security isolation, 
+%a stateless host function is easier to check,
+%because the security monitor only has to verify each instance of host function calls,
+%instead of tracing multiple host functions over a longer period of time.
 
 %the functions to access each host abstraction must appear \fixmedp{clarify `stateless'} stateless to the host, except for the handles to identify the resources. Each call to the host functions is independent. The arguments given for each call must be always be absolute values, instead of relative values.
 %For example, the offset given to \funcname{StreamMap}, \funcname{StreamRead}, and \funcname{StreamWrite} (if the opened handle is a file) are offsets from the beginning of the file, and thus are irrelevant to how many bytes that are previously written or read.
@@ -357,7 +374,7 @@ The PAL emulates these host abstractions, using existing system interfaces avail
 
 
 
-\subsection{Host-specific security isolation}
+\subsection{Security isolation}
 \label{sec:overview:host:security}
 
 
