@@ -2,24 +2,31 @@
 \label{sec:overview:host}
 
 
-The \graphene{} approach to achieving compatibility is to single out a set of basic OS functions generally needed in applications,
-and define as a host ABI (application binary interface).
-The host ABI decouples the OS functionality for utilizing typical hardware resources,
-such as CPU, memory, and I/O devices,
-from the idiosyncrasy of reproducing the system interfaces of an OS standard, such as Linux. 
-For OS developers, the host ABI is the only component to customize for each OS or hardware option which needs a boost of compatibility. 
-The host ABI virtualizes the execution of the library OS,
-which is implemented specifically for the host ABI, similar to a fully paravirtualized, custom-made guest OS.
-The host ABI makes the development of the library OS, which absorbs most of the complexity for building a compatible system interface,
-as an one-time effort which other OS developers do not have to repeat. 
-Thus, the design of the host ABI is meant to reduce the OS developers' burden as much as possible, under the circumstance of not sacrificing too much functionality or performance.
+\graphene{} achieves compatibility by determining which OS features
+are essential to the reuse of applications, and defining a host ABI as a new boundary between OSes (or hypervisors) and applications.
+The role of the host ABI is to decouple the low-level OS functionality, such as abstracting hardware resources and operations, from reproducing the idiosyncrasy of system interfaces. 
+%OS developers only have to port the host ABI for an OS which needs a boost of compatibility.
+All the system interface implementation is absorbed
+into a para-virtualized library OS,
+using the host ABI to interact with the OSes and hardware designs
+lacking compatibility.
+The host ABI prevents OS developers
+from repeating the painful process of reproducing system interfaces,
+and reuses both applications and the library OS implementation with more manageable effort.
+
+
  
 
-The development of the host ABI is specific to each ``host'', which can be defined as an OS or hypervisor with a consistent interface to applications or virtual machines (definition used in the whole thesis).
-A monolithic OS kernel, such as the Linux, BSD, or Windows kernel, can be treated as a host, upon all the physical machines on which the kernel can consistently run applications.
+
+
+
+
+
+The porting of the host ABI is based on each ``host'', which can be defined as an OS or hypervisor with consistent interfaces to applications.
+A traditional, monolithic OS kernel, such as the Linux, BSD, or Windows kernel, can be treated as a host, upon physical machines where the kernel can consistently run the applications.
 If an OS must mutate the interface for specific hardware,
 such as a Linux kernel offering untrusted OS services to SGX enclaves,
-the combination of the OS and hardware is considered a specialized host to the library OS.
+the combination of the OS and hardware is considered a specialized host.
 
 \begin{comment}
 %\fixme{each sentense should be a paragraph; starting the 2nd sentence}
@@ -72,7 +79,7 @@ The other principle is the likelihood of finding similar features on the host, t
 An observation to OS development is that similarity of system interfaces is common to most OSes.
 It is normal that OS developers will choose similar OS functions, for the clarity of application programming.
 As a result, most of the functions in the host ABI is unsurprising similar
-to common OS functions. For example, the \syscall{FileRead} and \syscall{FileWrite} functions in the host ABIs are defined with little difference to the POSIX functions, \syscall{pread} and \syscall{pwrite}, except nuanced details like the order of parameters.
+to common OS functions. For example, the \syscall{FileRead} and \syscall{FileWrite} functions in the host ABI are similar to \syscall{pread} and \syscall{pwrite} in POSIX, except some nuanced details like order of parameters.
 
 
 % by including OS functions , such as \syscall{FileRead} and \syscall{FileWrite}, similar to the Linux system calls, \syscall{pread} and \syscall{pwrite}.
@@ -119,6 +126,9 @@ to the host ABI would be reasonably easy.
 
 
 \paragraph{Sufficiency of the host ABI.}
+The host ABI is responsible for exporting sufficient functionality for the library OS to request for hardware or OS abstractions which cannot be virtualized in user space.
+
+
 
 For sufficiency, the definition of the host ABI
 %are demonstrated by the fact that
