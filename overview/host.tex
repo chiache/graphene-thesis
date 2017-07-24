@@ -204,7 +204,15 @@ the nature of the Linux and Windows APIs is actually quite similar, with some ex
 During the development of \graphene{}, we found a few occasions in which we have to extend the host ABI to deal with Linux-specific challenges. The Linux-specific extensions will be further discussed in Section~\ref{sec:overview:host:functions} and Chapter~\ref{chap:abi}.
 
 
-\paragraph{Checkpoint and migration.}
+\paragraph{Checkpointing and migration.}
+The \graphene{} library OS shares several features of VMs, including the convenience of checkpointing a running application and migrating to other hosts.
+The migration feature is also the key to implementing copy-on-write forking for applications,
+on a host which disallows memory sharing (e.g., SGX).
+For a VM, checkpointing and migration is based on using the virtual hardware interface as a clean boundary for snapshotting the application and OS state.
+The host ABI in \graphene{} shares the same quality with the virtual hardware interface,
+as being as {\em stateless} as possible.
+The statelessness of the host ABI guarantees any states in the hosts are temporary to the applications and the library OS, and can be reproduced without any snapshotting in the hosts.
+
 
 
 
@@ -215,12 +223,12 @@ During the development of \graphene{}, we found a few occasions in which we have
 
 %\fixmedp{the beginning doesn't capture the whole paragraph.}
 %The host ABI shares several common abstractions with production OSes.
-The functions in the host ABI
-define the basic features needed from the hosts, to run the library OS.
+%The functions in the host ABI
+%define the basic features needed from the hosts, to run the library OS.
 %The definition of the host functions
 %should be unsurprising to average OS developers,
 %making the implementation on a new host to be fairly straightforward.
-The functions reflect the common functionality of most OSes, including Linux and Windows.
+%The host ABI reflects the common functionality of most OSes, including Linux and Windows.
 %Although the same OS abstractions may be defined
 %as different idiosyncratic system interfaces on each host OSes,
 %\graphene{} takes into consideration of porting the host functions to either OSes, in the most effortless way possible.
@@ -349,7 +357,7 @@ but is much faster because it avoids copying the memory in the host kernels.
 For each host, a platform translation layer (PAL)
 is loaded below the library OS, to translate each functions in the host ABI to native system interfaces.
 The development of a PAL is a effort paid per host, whereas the library OS is reusable on every hosts. %The simplicity of the host ABI can be also estimated by the effort of implementing a PAL for each host.
-Based on the simplicity of the host ABI, the PAL development is supposed to be straightforward and easy for average developers, except corner cases on a few eccentric hosts, such as Intel SGX.
+Based on the simplicity of the host ABI, the PAL development is supposed to be straightforward and easy for average developers, except corner cases on a few eccentric hosts, such as SGX.
 
 
 
@@ -358,7 +366,7 @@ Based on the simplicity of the host ABI, the PAL development is supposed to be s
 %First of all, the number of host functions included in the host ABI
 %is much smaller than the number of system calls in a commodity OS such as Linux. 
 \graphene{} is experimented with
-several ``classic'' hosts, including Windows, Linux, OSX, FreeBSD, and Linux with Intel SGX.
+several ``classic'' hosts, including Windows, Linux, OSX, FreeBSD, and Linux with SGX.
 For most of these hosts,
 implementing the host ABI is straightforward,
 %Most of the host ABI is straightforward to port
@@ -430,7 +438,11 @@ The host ABI decouples the implementation of OS functionality
 from the enforcement of security isolation.
 %To ensure isolation, each host must restrict access from the applications or the library OS, to any unauthorized host abstractions.
 On each host, a reference monitor will enforce security isolation policies assigned to the application, to control the access to the hardware abstractions managed by the host ABI, including files, network sockets, and RPC streams.
-
+The hosts need not to be aware of the system interfaces and coordination of the OS states
+inside of the library OS.
+The security isolation in the hosts
+is much more straightforward, simply based on monitoring the references
+to the host abstractions.
 
 
 
@@ -447,15 +459,24 @@ On each host, a reference monitor will enforce security isolation policies assig
 %system daemons or other shared system resources.
 %As a result, \graphene{} enforces security isolation similar to running applications in separate VMs---even
 %applications that span multiple processes.
-\graphene{} contributes a multi-process security model 
-based on the abstraction of a \emph{sandbox},
-or a set of mutually trusting processes.
-If a reference monitor exists, the reference monitor permits the processes within the same sandbox to communicate and exchange RPC messages, but disallows cross-sandbox communication.
-The current work focuses on all-or-nothing security isolation, although we expect
-this design could support
-controlled communication among mutually distrusting \liboses{}
-in future work.
 
+
+
+A host of \graphene{} will isolate applications in a {\em sandbox}, a container including one or multiple mutually trusting processes.
+For a multi-process application, \graphene{} creates multiple library OS instances,
+which will coordinate to construct a unified OS view.
+As the library OS instances can coordinate shared OS states using simple RPC streams,
+it is easy for the hosts to enforce security isolation.
+The reference monitor simply has to block any RPC streams crossing the sandbox boundary,
+to prevent applications in different sandboxes from interfering each other through manipulating IPC.
+%\graphene{} contributes a multi-process security model 
+%based on the abstraction of a \emph{sandbox},
+%or a set of mutually trusting processes.
+%If a reference monitor exists, the reference monitor permits the processes within the same sandbox to communicate and exchange RPC messages, but disallows cross-sandbox communication.
+The current design focuses on security isolation in an all-or-nothing fashion, although we do expect to extend the design for more sophisticated policies
+in the future.
+
+\begin{comment}
 The only host abstractions that are shared across processes and must be mediated by the host for isolation are files, network sockets, and RPC streams
 --- all other allowed host ABI modify only local process state, such as VMAs and threads.
 %Thus, the reference monitor need only mediate file access, socket and RPC stream creation.
@@ -489,11 +510,26 @@ dynamically detach from the parent's sandbox. The reference monitor prevents byt
 %that are not in the same sandbox.
 %and restricts external connections to remote URIs according to firewall rules in the manifest.
 When a process detaches from a sandbox, effectively splitting the sandbox, the host must closes all RPC streams that could bridge the two sandboxes.
+\end{comment}
+
+
 
 \paragraph{Threat model.}
-On a host with a reference monitor, the host OS and the reference monitor are both trusted, to mediate all system interfaces used to implement the host ABI. The host must check all access to any abstractions with effects outside of a process's internal state, such as an opened file, or a connected network socket.
-Processes inside the same sandbox mutually trust each other. The adversary can run arbitrary code inside of one or more processes within one or more sandboxes.
-The adversary can control all code in its processes, including the library OS and the host-specific PAL.
+For most of the \graphene{} hosts (except a SGX host),
+an application running inside \graphene{} fully trusts the the library OS,
+as well as the host OS or hypervisor
+for exporting the host ABI and enforcing security isolation.
+the application also trusts other library OS instances in the same sandbox.
+However, other applications or library OS instances running in a separate sandbox
+will not be trusted.
+Other sandboxes on the same host
+will be adversary to the hosts and benign application clients,
+by exploiting any vulnerabilities on the host ABI, or in the reference monitor.
+the \graphene{} design reduces the attack surface between the hosts and the library OS instances, to defend against a malicious application.
+
+%On a host with a reference monitor, the host OS and the reference monitor are both trusted, to mediate all system interfaces used to implement the host ABI. The host must check all access to any abstractions with effects outside of a process's internal state, such as an opened file, or a connected network socket.
+%Processes inside the same sandbox mutually trust each other. The adversary can run arbitrary code inside of one or more processes within one or more sandboxes.
+%The adversary can control all code in its processes, including the library OS and the host-specific PAL.
 %{\tt libLinux} and the \pal{}. 
 %We also assume a trusted reference monitor process running on the host kernel that 
 %launches \graphene{} applications and mediates all system calls with external effects,\fixmedp{define precisely}
@@ -506,6 +542,18 @@ The adversary can control all code in its processes, including the library OS an
 %and the reference monitor ensures
 %there is no writable intersection between sandboxes,
 %the adversary cannot interfere with any victim picoprocess.
+
+
+The threat model of \graphene{} on a SGX host (i.e., \graphenesgx{}) is similar to other hosts, except the applications running on SGX also distrust the host OS, hypervisor, or other system software.
+An untrusted OS or hypervisor
+holds a wide attack surface to invade applications or VMs,
+using Iago attacks~\cite{checkoway13iago}.
+The challenges to porting \graphene{} to SGX is not limited to patching the compatibility issues of enclaves, but also requires defending the applications and the library OS against potential Iago attacks.
+
+
+
+
+
 
 
 %%% The only processes allowed to run as standard kernel processes (non-\graphene{}) 
