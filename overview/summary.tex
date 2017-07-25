@@ -1,26 +1,21 @@
 \section{Summary}
 \label{sec:graphene:summary}
 
-The design concept of the \graphene{} library OS is centered around
-building a para-virtualized layer for reusing OS components,
-instead of building arbitrary compatibility layers for reproducing the system interface.
+The \graphene{} design is centered around
+building a para-virtualized layer, which can reuse the OS components for reproducing Linux system interfaces.
+%instead of building arbitrary compatibility layers for reproducing the system interface.
 %constantly porting the significant  of the existing system interface.
 %In \graphene{}, 
-The implementation of the system interface inside the \graphene{} library OS
-%building the system interface for the compatibility of applications
-is an one-time effort.
-%for OS developers.
-%Although implementing the existing system interfaces from Linux is still necessary for running unmodified Linux applications,
-%the \graphene{} implementation is reusable and thus can be seen as a one-time cost.
-%By reusing the library OS,
-The development effort can then be focused on porting the host ABI
-to individual hosts,
-whereas the library OS resolves the
-the compatibility issues for applications.
-The following chapters describe the design of each component of \graphene{}:
-Chapter~\ref{chap:abi} contains the formal definition of the host ABI;
-Chapter~\ref{chap:libos} describes the details of the library OS;
-Chapter~\ref{chap:linux} and \ref{chap:sgx} discusses more in depth on the implementation of the host ABI on Linux, Intel SGX, and other hosts.
+\graphene{} defines a host ABI, as a new boundary between the OS and user space.
+The host ABI is simple enough to port (containing \palcalls{} functions),
+and exports sufficient functionality for virtualizing a primary part of the system API components.
+A library OS is built upon the host ABI,
+and implements \graphenesyscalls{} Linux system calls, to reuse unmodified Linux applications.
+Using the host ABI, \graphene{} disconnects the complexity of reproducing system interfaces,
+from resolving host-specific challenges in OS development.
+
+%, and isolating applications from other malicious tenants.
+
 
 
 %\sysname{} extends library OS designs 
