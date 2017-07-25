@@ -3,13 +3,13 @@
 
 
 
-This chapter describes the formal definition of the host ABI, and discusses the rationale behind the definition, based on design principles of \graphene{}.
+This chapter describes the formal definition of the host ABI, and discusses the rationale behind the definition, based on the design principles of \graphene{}.
 %The host ABI
 %is designed to be simple enough to port to a new host,
 %and sufficient
-The host ABI is the key component
-in \graphene{} to 
-to simplify the OS development effort for building application compatibility.
+The host ABI is a key component
+to the \graphene{} design,
+to simplify the OS development effort for achieving or restoring compatibility.
 %, which reduces the porting effort for reusing existing applications. 
 %porting effort of a full-featured library OS, in order to reuse Linux applications.
 %The host ABI virtualizes the basic OS functions for implementing the necessary Linux personality
@@ -19,8 +19,8 @@ to simplify the OS development effort for building application compatibility.
 %The concept of the host ABI is to reduce the porting effort,
 %to simply implementing a small set of virtualized, basic OS functions.
 %The functions included in the current \graphene{} host ABI are mostly direct mappings to 
-The definition of the host ABI directly affects the development of the library OS, as well as  the complexity of implementing a host-specific platform adaption layer (PAL).
-The host ABI restricts the interaction between the library OS and the hosts, and thus impacts the performance and security isolation of the library OS.
+%The definition of the host ABI directly affects the development of the library OS, as well as  the complexity of implementing a host-specific platform adaption layer (PAL).
+%The host ABI restricts the interaction between the library OS and the hosts, and thus impacts the performance and security isolation of the library OS.
 %\graphene{} restricts the interaction between the library OS and the hosts
 %to the host ABI,
 %which is much smaller than the Linux system call table
@@ -28,11 +28,15 @@ The host ABI restricts the interaction between the library OS and the hosts, and
 %By simply porting the host ABI to a new host,
 %OS developers can virtualize and reuse the same library OS for running
 %applications without modifications.
-The host ABI is a layer for virtualizing the system call implementation,
-without complicating the porting of existing applications to innovative host OSes or hardware platforms.
+%The host ABI is a layer for virtualizing the system call implementation,
+%without complicating the porting of existing applications to innovative host OSes or hardware platforms.
+This chapter shows how to select the host ABI as a ``pinch point'' in a Linux-compatible OS, to virtualize OS components into the user space.
+
 
 
 \section{Basic Concepts}
+
+
 
 
 The host ABI is similar to a para-virtualization layer, which defines the entire host features
@@ -83,16 +87,4 @@ building a pluggable, host-independent library OS binary, and leveraging the com
 %can share OS resources with other picoprocesses, such as writing to the same file, sharing a network sockets, or connecting through a local RPC (remote-procedure call) stream.
 
 
-
-\subsection{Design principles}
-
-
-The design principles of the host ABI are summarized as follows:
-
-\begin{itemize}
-	
-\item 
-
-
-\end{itemize}
 
