@@ -4,29 +4,25 @@
 
 The \graphene{} approach to facilitating OS compatibility is to determine a small set of OS features which are essential to most applications, and define the host ABI.
 %The host ABI is a new boundary between OSes (or hypervisors) and applications.
-The host ABI decouples the low-level OS functionality, such as abstracting hardware resources and operations, from reproducing the idiosyncrasy of system interfaces for applications. 
+The host ABI separates the low-level, hardware-abstracting features, from reproducing the idiosyncrasy of system interfaces for applications. 
 %OS developers only have to port the host ABI for an OS which needs a boost of compatibility.
-\graphene{} moves the implementation of system interfaces
-into the user-space, para-virtualized library OS,
-leaving only the host ABI to interact with the host OS and hardware.
+\graphene{} moves the OS components which implements the system interfaces,
+into a user space, para-virtualized library OS,
+leaving only the host ABI as a narrowed interface to interact with the host OS and hardware.
 
 
 
 
  
 
-
-
-
-
-
-The porting of the host ABI is specific to each host. We define a {\em host} as an OS or a hypervisor which exports a consistent interface to applications or virtual machines.
+The \graphene{} library OS can be deployed on any ``host'' where the host ABI has been ported.
+We define a {\em host} as an OS or a hypervisor which exports a consistent interface to applications or virtual machines.
 An OS kernel, such as Linux, BSD, or Windows, can be treated as a host, upon any physical machines where the kernel can run the applications.
 If an OS has mutated or tweaked the interface for a hardware platform,
 such as an SGX enclave 
 running on an untrusted Linux kernel,
 the combination of the OS (Linux) and the hardware platform (SGX) is considered a specialized host.
-Especially, the Linux-SGX port of the host ABI (also called \graphenesgx{}) faces several unique challenges,
+Especially, the SGX port of the host ABI faces several unique challenges,
 which will be discussed in Chapter~\ref{chap:sgx}.
 
 
