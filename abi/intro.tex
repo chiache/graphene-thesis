@@ -3,15 +3,15 @@
 
 
 
-This chapter describes the formal definition of the host ABI, and 
-the design principles behind the selection of functions, for both simplicity of porting and sufficiency of supporting Linux applications.
+This chapter describes the formal definition of the \graphene{} host ABI, and 
+the design principles behind the selection of host ABI functions, for both simplicity of porting and sufficiency of implementing a rich of Linux functionality.
 
 
 
 
 
 
-\section{Design Principles}
+\section{Defining the host ABI}
 
 
 \begin{comment}
@@ -48,25 +48,53 @@ This chapter shows how to select the host ABI as a ``pinch point'' in a Linux-co
 
 
 
+The definition of the host ABI for a library OS
+is equivalent to finding a narrowed boundary inside an OS.
+The boundary will partition
+host-independent OS components (e.g., the system call table) into 
+the library OS, as a dynamically-linked library deployable
+on various hosts.
+The rationale behind the design is that not every OS components impact the compatibility against applications.
+Especially, in Linux, drivers (e.g., drivers for file systems, block devices, or network cards) are encapsulated under a virtual interface (e.g., a virtual file system)
+inside of the OS,
+with a set of device-independent functions
+accessed by the rest of the OS.
+The goal of the host ABI is to declare a ubiquitous virtual interface,
+which encapsulates the drivers and hardware-interfacing components of any hosts.
 
-The host ABI is similar to a para-virtualization layer, which defines the entire host features
-available for implementing the library OS.
-The traditional virtual machines reuse unmodified OS kernels on a virtual hardware interface.
-Unlike a virtual machine,
-the host ABI partitions OS components into the library OS, and retains only a set of basic OS functions to interact with the hosts.
-The functions defined in the host ABI
-are either API for requesting hardware resources, or convenient features, such as scheduling primitives, which commonly exist in many OSes.
-%The functions in the host ABIs are similar to
-%the UNIX-style API, or a small portion of POSIX,
-The host ABI is selected as a pinch point for OS virtualization,
-to recycle the virtualized Linux system call implementation, and to harvest the existing host OS functionality for porting the host ABI. 
-%as a leverage point for harvesting the OS functionality implemented on the hosts.
+
+
+
+At the high level,  the host ABI is similar to a para-virtualization interface to virtual machines.
+An instance of the \graphene{} library OS has many comparable traits to a virtual machine,
+including a guest OS view, sandboxing inside the OS, and VM migration.
+Therefore, many characteristics of a virtual interface to a VM and a hypervisor
+can be found in the definition of the host ABI.
+For example, 
+
+
+%layer, which defines the entire host features
+%available for implementing the library OS.
+%The traditional virtual machines reuse unmodified OS kernels on a virtual hardware interface.
+%Unlike a virtual machine,
+%the host ABI partitions OS components into the library OS, and retains only a set of basic OS functions to interact with the hosts.
+%The functions defined in the host ABI
+%are either API for requesting hardware resources, or convenient features, such as scheduling primitives, which commonly exist in many OSes.
+%%The functions in the host ABIs are similar to
+%%the UNIX-style API, or a small portion of POSIX,
+%The host ABI is selected as a pinch point for OS virtualization,
+%to recycle the virtualized Linux system call implementation, and to harvest the existing host OS functionality for porting the host ABI. 
+%%as a leverage point for harvesting the OS functionality implemented on the hosts.
 
 %The \graphene{} host ABI defines a set of {\em functions}, similar to the API of UNIX or POSIX.
 %The functions are directly called by the library OS, along with the arguments given either in the registers or on the stack.
 %A host-specific \graphene{} loader is responsible for resolving the linking, from the library OS to the host ABI.
 
 
+\section{Formal Definition}
+
+
+\subsection{Calling conventions and data structures}
 
 In general, the host ABI is defined as a set of function calls, with dynamic linking initialized at the creation of each process (or picoprocess).
 The platform adaption layers (PALs)
