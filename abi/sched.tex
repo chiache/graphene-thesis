@@ -1,4 +1,4 @@
-\section{Threads}
+\subsection{Threads}
 \label{sec:abi:thread}
 
 
@@ -35,10 +35,10 @@ bool ThreadDelayExecution (ulong microsec);
 
 
 
-\section{Scheduling}
+\subsection{Scheduling}
 
 
-\subsection*{Semaphores}
+\subsubsection*{Semaphores and events}
 
 \begin{paldef}
 HANDLE SemaphoreCreate (uint count, uint inital);
@@ -46,10 +46,6 @@ void SemaphoreRelease (HANDLE semaphore_handle);
 void SemaphoreDestroy (HANDLE semaphore_handle);
 \end{paldef}
 
-
-
-
-\subsection*{Synchronization and notification events}
 
 \begin{paldef}
 HANDLE SynchronizationEventCreate (void);
@@ -60,15 +56,12 @@ void EventDestroy (HANDLE event_handle);
 
 
 
-\subsection*{Stream events}
+\subsection*{Polling events}
 
 \begin{paldef}
 HANDLE StreamGetEvent (HANDLE stream_handle, uint event_flags);
 \end{paldef}
 
-
-
-\subsection*{Blocking for scheduling}
 
 \begin{paldef}
 HANDLE ObjectsWait (HANDLE *handles, uint nhandles,
@@ -78,7 +71,7 @@ HANDLE ObjectsWait (HANDLE *handles, uint nhandles,
 
 
 
-\section{Processes}
+\subsection{Processes}
 \label{sec:abi:proc}
 
 
@@ -86,10 +79,5 @@ HANDLE ObjectsWait (HANDLE *handles, uint nhandles,
 \begin{paldef}
 HANDLE ProcessCreate (const char *manifest,
                       const char **args, uint flags);
-\end{paldef}
-
-
-
-\begin{paldef}
 void ProcessExit (uint exit_value);
 \end{paldef}

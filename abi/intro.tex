@@ -44,27 +44,37 @@ This chapter shows how to select the host ABI as a ``pinch point'' in a Linux-co
 
 
 The definition of the host ABI for a library OS
-is equivalent to finding a narrowed boundary inside an OS.
+is equivalent to finding a new, narrowed boundary for partitioning inside an OS.
 The boundary will partition
-host-independent OS components (e.g., the system call table) into 
-the library OS, as a dynamically-linked library deployable
-on various hosts.
-The rationale behind the design is that not every OS components impact the compatibility against applications.
-Especially, in Linux, drivers (e.g., drivers for file systems, block devices, or network cards) are encapsulated under a virtual interface (e.g., a virtual file system)
-inside of the OS,
-with a set of device-independent functions
-accessed by the rest of the OS.
-The goal of the host ABI is to declare a ubiquitous virtual interface,
-which encapsulates the drivers and hardware-interfacing components of any hosts.
+the host-independent OS components (e.g., system calls, namespaces) into 
+a user-space, dynamically-linked library OS.
+%, as a dynamically-linked library which can be deployed
+to various hosts.
+The reasoning behind the \graphene{} design is based on the fact that not every part of an OS is crucial to achieving compatibility for applications.
+Specifically, drivers (e.g., drivers for file systems, block devices, or network cards) are usually encapsulated under a file-system-independent or device-independent interface (e.g., the Linux virtual file system).
+The goal of the host ABI in \graphene{} is to declare a ubiquitous virtual interface,
+which encapsulates all the drivers and other hardware-interfacing components in the OS or hypervisor of a host.
 
 
 
 
-At the high level,  the host ABI is similar to a para-virtualization interface to virtual machines.
+
+
+At the high level,  the host ABI is similar to a virtual interface to a para-virtualized virtual machine.
 An instance of the \graphene{} library OS has many comparable traits to a virtual machine,
 including a guest OS view, sandboxing inside the OS, and VM migration.
-Therefore, many characteristics of a virtual interface to a VM and a hypervisor
-can be found in the definition of the host ABI.
+Therefore, we find many characteristics of an VM useful in the definition of the host ABI:
+
+\begin{compactitem}
+
+\item the virtual interface to a VM and a hypervisor assumes the hypervisor to be mostly stateless,
+as most of the ISAs and hardware interfaces.
+The functions in the host ABI also assumes each host to be completely stateless.
+
+\item para-virtualization solution (e.g., Xen) can deduplicate OS components, such as  schedulers and page fault handlers, between a host and a guest,
+by modifying the guest OS to make hypercalls into the hypervisor.
+
+\end{compactitem}
 
 
 
