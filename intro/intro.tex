@@ -17,7 +17,7 @@ an OS is equivalent to
 %The \fixmedp{from the programmers' perspective} top-down view of an OS is 
 an extended machine or a ``virtual machine''~\cite{tanenbaum19os-textbook,dhamdhere2007os-textbook},
 on which they can expect a consistent {\em system interface} to program the usage of hardware,
-instead of directly interfacing hardware devices.
+instead of directly interfacing hardware components.
 %which hides the low-level details of the hardware.
  %~\cite[Ch.1]{tanenbaum19os-textbook}.
 %In an OS,
@@ -68,12 +68,13 @@ instead of directly interfacing hardware devices.
 %in order to fulfill complicated tasks on computer systems.
 %Ultimately, \fixmedp{this will be a better topic sentence} OSes simplify the programming of an application
 %to utilize a wide range of hardware.
-The presence of the OSes has an indisputable benefit on the advance of both applications and hardware devices, for reducing the friction against adopting new inventions.
+The presence of the OSes has an indisputable benefit on the advance of both software and hardware, by reducing the obstacle and friction during the deployment of new technologies.
 
 
 
-Specifically, many OSes emphasize on the quality of making applications {\em portable} across different hardware,
-simplifying the programming of a distributable application %an one-time effort
+Specifically, many OSes emphasize on the quality of making applications {\em portable} across different hardware.
+The portable OS design
+simplifies the programming of a distributable application %an one-time effort
 on limited hardware options available to the developers.
 %Many OSes offer the convenience of developing applications
 %that are not tied to specific hardware, or {\em application portability}.
@@ -152,17 +153,23 @@ The same assumption on application portability has been shared among many OS sta
 
 
 
-Unfortunately, in a modern OS, system interfaces are not only for the portability of future applications, but also to remain {\em compatible} with all existing applications.
-Due to the rapid growth of applications and hardware devices,
-OS development is increasingly burdened with implementing the ``legacy'' features and abstractions from the past generations, and loses the liberty to change or deprecate any system interface that may ruin compatibility.
+Unfortunately, %for a modern OS, system interfaces are not only for the portability of future applications, but also to remain {\em compatible} with all existing applications.
+due to the rapid growth of applications,
+OS development is increasingly burdened with 
+reproducing the features and abstractions from the past generations, for the {\em compatibility} against applications.
+A developed application
+executes 
+with dependency to the standing features and semantics
+described by system interfaces of an OS.
+%and loses the liberty of changing or deprecating system interfaces.
 %One reason has been that an OS now has to always keep the system interface {\em compatible} against existing applications,
 %instead of just focusing on making new applications portable.
 %The amount of applications previously developed in an OS, such as Linux or Windows,
 %has grown to untraceable level.
-The struggle for keeping the system interface compatible
+The struggle on keeping the system interface compatible against applications
 %Change of the system interface will take a long time before updating all the previous applications, potentially 
-potentially causes the adoption of new OS or hardware technologies
-to lag behind the development. %for adopting new hardware.
+potentially causes the adoption of an innovative OS or hardware design
+to lag behind other traditional solutions. %for adopting new hardware.
 %In a portable OS, application developers no longer have to program
 %against each physical machines,
 %but instead rely on a set of well-defined, consistent
@@ -212,14 +219,17 @@ to lag behind the development. %for adopting new hardware.
 %application developers need to rely on compatibility as 
 %a ``contract'' between the two communities.
 %OS developers, to ensure that the future versions of the OS will faithfully implement the same system interfaces used in an application.
-The key problem is, application developers need to trust an OS to reproduce consistent functionality for an application,
+System interfaces are essentially ``contracts'' between an OS and application developers,
+to prevent released applications from becoming obsolete after the OS has evolved.
+For the stability of software development,
+programmers need to trust the OS to reproduce consistent functionality and behavior for an application,
 as it is programmed and tested on the developers' machines.
 %on a specific version of the OS.
 %will behave consistently on the successors of the OS.
 %Maintaining the compatibility of system interfaces
 %is an obligation of OS developers, to ensure the stability of application deployment.
 
-For OS or hardware developers, achieving or preserving compatibility is often a distraction to innovations, even though compatibility is critical to system usability.
+For OS developers, compatibility is often a distraction to innovations, despite being a critical factor to whether an OS or hardware component is immediately deployable. %, even though compatibility is critical to system usability.
 %For OS developers, maintaining compatibility is a valuable effort, 
 %but also can be a distraction to innovations.
 %Normally it is simpler %not particularly difficult
@@ -236,8 +246,8 @@ The early UNIX systems are reportedly easy to implement and evolve, because
 the system interface is tailored
 for applications and hardware devices available at the time~\cite{ritchie78unix-retro}.
 %The problems lies in the complexity of 
-Compatibility is an issue
-when a new hardware design leaks out of the typical abstractions
+Preserving compatibility becomes a challenge
+when a hardware design leaks out of the typical abstractions
 encapsulated by an OS.
 When changing the system interface becomes unavoidable,
 %OS developers have to either extend the existing system interfaces
@@ -760,12 +770,20 @@ Windows applications.
 The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule} and Haven~\cite{baumann14haven}, to show the feasibility of implementing single-process, Linux functionality, and porting to Intel SGX.
 
 Established upon the previous work, \graphene{} holds the following key contributions:
-(1) reasoning about the portability and completeness of functionality;
-% of the host ABI and library OS design for both ;
-(2) a library OS with rich Linux functionality, including Linux/UNIX-specific challenges such as multi-process support;
-(3) demonstrating the practicality on balancing compatibility with performance and memory footprint;
-(4) reducing the attack surface to the host OS which enforces security isolation (more description in Section~\ref{sec:intro:security}).
-Overall, this thesis shows that a library OS is not only a temporary workaround for reusing applications, but can be engineered to be a more permanent, practical solution for OS compatibility. 
+First of all, \graphene{} explores and justifies the feasibility of building a library OS, for improving compatibility on various OSes or hardware platforms.
+%(1) Reasoning about the portability and completeness of functionality.
+% of the host ABI and library OS design for both
+Second, \graphene{} faithfully implements a rich of native Linux features, including several challenging features which are specific to Linux or UNIX,
+such as multi-process abstractions.
+Third, \graphene{} demonstrates the feasibility of engineering a practical library OS,
+with acceptable performance overhead,
+and memory footprint comparable to a Linux process.
+Last but not least, comparable to VMs, \graphene{} enforces security isolation
+between mutually-untrusted applications, on both application and OS states,
+with a narrowed attack surface to the host kernel (more in Section~\ref{sec:intro:security}).
+
+
+%Overall, this thesis shows that a library OS is not only a temporary workaround for reusing applications, but can be engineered to be a more permanent, practical solution for OS compatibility. 
 
 
 %nherited from a precursor \libos{} called \drawbridge{}~\cite{porter11drawbridge}.
