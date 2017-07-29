@@ -156,20 +156,20 @@ The same assumption on application portability has been shared among many OS sta
 Unfortunately, %for a modern OS, system interfaces are not only for the portability of future applications, but also to remain {\em compatible} with all existing applications.
 due to the rapid growth of applications,
 OS development is increasingly burdened with 
-reproducing the features and abstractions from the past generations, for the {\em compatibility} against applications.
-A developed application
-executes 
-with dependency to the standing features and semantics
+reproducing the features and abstractions, to be {\em compatible} with existing applications.
+Most native applications
+are built
+with dependency to certain OS features, and semantics
 described by system interfaces of an OS.
 %and loses the liberty of changing or deprecating system interfaces.
 %One reason has been that an OS now has to always keep the system interface {\em compatible} against existing applications,
 %instead of just focusing on making new applications portable.
 %The amount of applications previously developed in an OS, such as Linux or Windows,
 %has grown to untraceable level.
-The struggle on keeping the system interface compatible against applications
+%The struggle on preserving the system interfaces
 %Change of the system interface will take a long time before updating all the previous applications, potentially 
-potentially causes the adoption of an innovative OS or hardware design
-to lag behind other traditional solutions. %for adopting new hardware.
+%potentially causes the adoption of an innovative OS or hardware design
+%to lag behind other traditional solutions. %for adopting new hardware.
 %In a portable OS, application developers no longer have to program
 %against each physical machines,
 %but instead rely on a set of well-defined, consistent
@@ -219,11 +219,11 @@ to lag behind other traditional solutions. %for adopting new hardware.
 %application developers need to rely on compatibility as 
 %a ``contract'' between the two communities.
 %OS developers, to ensure that the future versions of the OS will faithfully implement the same system interfaces used in an application.
-System interfaces are essentially ``contracts'' between an OS and application developers,
-to prevent released applications from becoming obsolete after the OS has evolved.
+A system interface is essentially a ``contract'' between an OS and application developers,
+to prevent existing applications from becoming obsolete after an OS has evolved.
 For the stability of software development,
 programmers need to trust the OS to reproduce consistent functionality and behavior for an application,
-as it is programmed and tested on the developers' machines.
+as it is programmed and tested on their own machines.
 %on a specific version of the OS.
 %will behave consistently on the successors of the OS.
 %Maintaining the compatibility of system interfaces
@@ -990,7 +990,7 @@ For example,
 SGX forbids \code{cpuid} in case of combining with the hardware virtualization (VT),
 to avoid trapping to hypervisors.
 %, which is untrusted in the threat model of SGX.
-SGX also forbids \code{rdtsc} to rule out physical attacks on the Time Stamp Counter (TSC). 
+SGX also forbids \code{rdtsc}, in order to rule out potential physical attacks on the Time Stamp Counter (TSC). 
 %The application developers would have to remove these instructions from the applications in order to run inside an enclave.
 
 
