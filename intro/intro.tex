@@ -239,7 +239,7 @@ as it is programmed and tested on their own machines.
 
 
 The importance of system interfaces forces OS developers to keep the system interface of an OS compatible against applications,
-regardless of any challenges to developing OS support for new hardware.
+regardless of challenges to developing OS support for new hardware.
  %, in response to new hardware technologies.
 %which is often a distraction to innovations. %, despite being a critical factor to whether an OS or hardware component is immediately deployable. %, even though compatibility is critical to system usability.
 %For OS developers, maintaining compatibility is a valuable effort, 
@@ -356,11 +356,6 @@ in the order of millions of lines of code
 %in Windows 8.1, the core system libraries (e.g., \code{nt.dll}) export more than four thousand APIs;
 %, which includes the APIs exported by the core system libraries, contains more than four thousands interfaces;
 %even POSIX has raised the number of APIs to 1,191, in version 1003.1
-
-
-
-
-
 
 
 
@@ -587,18 +582,21 @@ The OS development process can be both painful and time-comsuming.
 \end{comment}
 
 
-
-OS developers often find it challenging to develop an OS prototype with compatibility against existing application,
-%Application compatibility also raises challenges for the development of a new OS prototype,
-especially when experimenting innovative OS designs~\cite{baumann09barrelfish,unikernels,zeldovich+histar,libra,peter14arrakis,belay14ix}.
-For practical reasons, 
-an OS prototype often chooses to adopt the system interface of a popular OS standard, such as POSIX or Linux, to reuse applications already under deployment.
+The problem for preserving the compatibility against applications is to reproduce
+the idiosyncrasy of a system interface,
+which is defined with certain hardware assumptions.
+For example, a monolithic OS, such as Linux or Windows, assumes a unified kernel, which mediates all operations from applications to request hardware resources and abstractions.
+Sometimes, an OS prototype is built for experimenting research ideas~\cite{baumann09barrelfish,unikernels,zeldovich+histar,libra,peter14arrakis,belay14ix},
+and may require compatibility against deployed applications.
+%often chooses to adopt the system interface of a popular OS standard, such as POSIX or Linux, to reuse applications already under deployment.
 %It is a practical move to implement system interfaces from a popular open OS such a Linux,
 %to demonstrate the benefits of using an OS prototype
 %on running certain native applications.
-An OS standard can contain up to hundreds or thousands of functions in the system interface~\cite{ieee-posix, linux-man-syscall},
-which is nearly impossible to fully implement from scratch.
-Sometimes, virtualization can help reusing a whole Linux kernel on a OS prototype~\cite{baumann09barrelfish}, but depends on hardware support like VT, and costs lots of memory to run an unmodified kernel~\cite{agarwal15container}.
+An OS can define a system interface with up to hundreds or thousands of functions~\cite{ieee-posix, linux-man-syscall}. %nearly impossible to fully implement from scratch.
+
+
+
+Although virtualization can help reusing a whole Linux kernel on a OS prototype~\cite{baumann09barrelfish}, but depends on hardware support like VT, and costs lots of memory to run an unmodified kernel~\cite{agarwal15container}.
 For an OS prototype which prefers not to run a whole Linux kernel, making it compatible against existing applications is a major challenge to moving the OS toward production.
 
 
