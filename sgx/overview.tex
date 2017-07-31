@@ -1,5 +1,5 @@
 \section{Shielding Linux Abstractions}
-\label{sec:overview}
+\label{sec:sgx:shield}
 
 This section discusses how \graphenesgx{}
 implements and shields the Linux ABI for applications in enclaves.
@@ -10,8 +10,8 @@ implements and shields the Linux ABI for applications in enclaves.
 %the components of the \graphenesgx{} framework designed for isolating single-process applications in \sgx{} enclaves, and the design of the OS shielding layer against the untrusted hosts.
 
 
-\subsection{Shielding Dynamic Loading}
-\label{sec:overview:linking}
+\subsection{Shielding dynamic loading}
+\label{sec:sgx:shield:linking}
 
 
 %\graphenesgx{} secures Linux COTS applications without any modification and recompilation.
@@ -107,7 +107,7 @@ to open the libraries.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=\linewidth]{architecture.pdf}
+\includegraphics[width=.75\linewidth]{architecture.pdf}
 \caption{The \graphenesgx{} architecture. The executable is position-dependent.
 %The enclave size is 16MB. % (highest at 0x10000000).
 The enclave includes an OS shield, a library OS, libc, and other user binaries.
@@ -291,8 +291,8 @@ undermining the integrity of the enclave.
 
 
 
-\subsection{Shielding Single-Process Abstractions}
-\label{sec:overview:basics}
+\subsection{Shielding host ABI}
+\label{sec:sgx:shield:abi}
 
 
 %\begin{figure*}
