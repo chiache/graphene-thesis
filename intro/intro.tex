@@ -86,11 +86,10 @@ from the choice of hardware.
 %The only exception is the portability across CPU architectures,
 %Otherwise, application developers would expect an application, built without dependency to %specific hardware, to be reusable in an OS regardless of what hardware users choose.
 %The same assumption on application portability has been shared among
-The same merit is shared by
+The merit is shared by
 Linux~\cite{linux-standard-base}, BSD~\cite{quarterman85bsd}, Windows~\cite{win-api},
 and POSIX~\cite{ieee-posix},
-to make application programming comprehensive and adaptable
-for hardware usage.
+to make an application more adaptable and distributable.
 
 
 
@@ -238,7 +237,11 @@ as it is programmed and tested on their own machines.
 \end{comment}
 
 
-The importance of system interfaces forces OS developers to keep the system interface of an OS compatible against applications,
+
+A prerequisite to programming a portable application
+is that the system interface must remain consistent, for compatibility against previously-developed applications.
+As hardware development will continues after application releases,
+OS developers are responsible for keeping the system interface compatible against existing applications,
 regardless of challenges to developing OS support for new hardware.
  %, in response to new hardware technologies.
 %which is often a distraction to innovations. %, despite being a critical factor to whether an OS or hardware component is immediately deployable. %, even though compatibility is critical to system usability.
@@ -253,16 +256,15 @@ regardless of challenges to developing OS support for new hardware.
 %The focus on convenience of application programming and portability in the OS design space ends up creating several millions-line-of-code OS artifacts,
 %including Linux and Windows.
 %iThe design of portable system interfaces can't avoid leaking new hardware or OS designs with unprecedented constraints. % or methods of operation.
-The early UNIX system interface is reportedly easy to implement, due to
+%The early UNIX system interface is reportedly easy to implement, due to
 %they only have a relatively small amount of hardware devices and applications to deal with, and 
-being tailored
-to existing applications and hardware devices~\cite{ritchie78unix-retro}.
+%being tailored
+%to existing applications and hardware devices~\cite{ritchie78unix-retro}.
 %The problems lies in the complexity of
 %due to rapid growth of applications and hardware products,
-For decades, the hardware technology has significantly grown.
+%For decades, the hardware technology has significantly grown.
 %OS development nowadays is increasingly burdened by implementing a compatible system interface,
-New hardware designs are leaking out of the encapsulation of system interface,
-and thus compromising compatibility.
+Compatibility issues emerge when a new hardware design leaks out of the encapsulation of hardware abstractions, while changing the system interface can disrupt the usability or portability of existing applications.
 %When the current system interface can no longer retain the portability of applications,
 %OS developers are forced to
 %
@@ -288,7 +290,7 @@ including changing the trusted nature of OS services (more discussion in Section
 %Especially, the size and subtlety of the Linux or Windows system interface
 %makes it unsuitable for adopting applications to SGX~\cite{checkoway13iago}, because SGX has fundamentally changed the nature of OS services.
 %Several recent publications mitigate part of the compatibility issue for deploying applications on SGX~\cite{baumann14haven,osdi16scone,shinde17panoply}.
-The extra effort on compatibility can delay the deployment of innovative hardware designs, or disrupt application usability on new physical machines.
+The extra effort on compatibility can delay the deployment of an innovative hardware product, or obstruct reusing an application on new physical machines.
 
 
 % in unfriendly for OS developers to make a system-wide change transparent to applications.
