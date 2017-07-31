@@ -213,7 +213,7 @@ The statelessness of the host ABI guarantees any states in the hosts are tempora
 
 
 
-\subsection{The host ABI functions}
+\subsection{Host OS functions}
 \label{sec:overview:host:functions}
 
 
@@ -234,7 +234,7 @@ The statelessness of the host ABI guarantees any states in the hosts are tempora
 
 
 %fixmedp{give more of the background}
-Table~\ref{tab:overview:abi} lists \palcalls{} functions defined in the host ABI of \graphene{}.
+Table~\ref{tab:overview:abi} lists \palcalls{} OS functions defined in the host ABI of \graphene{}.
 Among these functions, 
 27 are inherited from the \drawbridge{} host ABI,
 including functions to managing I/O (e.g., \syscall{StreamOpen}), memory allocation (e.g., \syscall{VirtMemAlloc}), scheduling processes and threads (e.g., \syscall{ThreadCreate}), and several miscellaneous functions (e.g., \syscall{ThreadCreate}).
@@ -248,7 +248,7 @@ For example, unlike Windows or OSX, Linux generally
 %The host ABI is also complemented with several Linux-specific abstractions, such as
 delivers hardware exceptions to a process as signals .
 Linux also requires 
-the x86-specific segment registers (i.e., \code{FS}/\code{GS} registers)
+the x86-specific segment registers (i.e., FS/GS registers)
 to determine the location of thread-local storage (TLS), which can be hard-coded in application binaries by a compilation mode of GCC.
 However, in Windows or OSX, the x86-specific segment registers are mostly ignored, and even frequently reset to avoid being manipulated by attackers.
 %The host ABI contains host functions (), which can be directly called from the library OS. \graphene{} shows that the host ABI is sufficient to implementing a large portion of the Linux system calls.
@@ -345,8 +345,8 @@ but is much faster because it avoids copying the memory in the host kernels.
 
 
 
-\subsection{Porting to different hosts}
-\label{sec:overview:host:porting}
+\subsection{PAL (platform adaption layer)}
+\label{sec:overview:host:pal}
 
 
 \graphene{} relies on each host to implement the host ABI, using the native system interfaces on the host.

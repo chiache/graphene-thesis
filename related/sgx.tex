@@ -1,4 +1,4 @@
-\section{OS Support for Security Hardware}
+\section{SGX and Isolated Execution}
 \label{sec:related:sgx}
 
 %\subsection{\sgx{} shielding systems for legacy applications}
@@ -7,8 +7,7 @@
 %
 
 
-\subsection{Protection against untrusted OSes}
-
+\paragraph{Protection against untrusted OSes.}
 Protecting applications from untrusted OSes predates hardware support. 
 %has been attempted for years by software approaches on commodity hardware.
 Virtual Ghost~\cite{criswell2014virtualghost} uses both compile-time and run-time monitoring to protect an application
@@ -22,15 +21,16 @@ Song et al.~\cite{songhdfi} extend each memory unit with an additional tag
 to enforce fine-grained isolation at machine word granularity in the HDFI system.
 %While these solutions focus on protecting applications from untrusted OS, Chen et  al.~\cite{chenshreds}, protects pieces of application from the rest of it by restricting access to only parts of memory from specific segments of threads.
 
-\subsection{Trusted execution hardware}
-
+\paragraph{Trusted execution hardware.}
 XOM~\cite{lie2003implementing} is the first hardware design for trusted execution on an untrusted OS,
 with memory encryption and integrity protection similar to \sgx{}. XOM supports containers of an application to be encrypted with a developer-chosen key. This encryption key is encrypted at design-time using a CPU-specific public key, and also used to tag cache lines that the containers are allowed to access.
-XOM realizes a similar trust model as \sgx{}, except a few details, such as lack of paging support, and supporting \syscall{fork} by sharing the encryption key across containers.
+XOM realizes a similar trust model as \sgx{}, except a few details, such as lack of paging support, and allowing \syscall{fork} by sharing the encryption key across containers.
 
 Besides \sgx{}, other hardware features have been introduced in recent years to enforce isolation for trusted execution.
-TrustZone~\cite{arm-trustzone} is introduced to the ARM processors predating the invention of \sgx{}.
-TrustZone creates an isolated environment shared by trusted kernel components to evade the attacks from privileged applications and compromised kernels.
+TrustZone~\cite{arm-trustzone} on ARM
+% is introduced to the ARM processors predating the invention of \sgx{}.
+creates an isolated environment for trusted kernel components. 
+% to evade the attacks from privileged applications and compromised kernels.
 Different from \sgx{}, TrustZone separates the hardware between the trusted and untrusted worlds,
 and builds a trusted path from the trusted kernel to other on-chip peripherals.
 IBM SecureBlue++~\cite{secureblue++} also isolates applications by encrypting the memory inside the CPU; SecureBlue++ is capable of nesting isolated environments, to isolate applications, guest OSes, hypervisors from each other.
@@ -39,11 +39,13 @@ IBM SecureBlue++~\cite{secureblue++} also isolates applications by encrypting th
 
 AMD is introducing a feature in future chips called SEV (Secure Encrypted Virtualization)~\cite{amd-sme},
 which extends nested paging with encryption.
-Unlike SGX, SEV is designed to run the whole virtual machines, whereas SGX is designed for 
+SEV is designed to run the whole virtual machines, whereas SGX is designed for 
 a piece of application code.
-SEV does not provide comparable integrity protection to SGX, as SEV does not protect register state or
-physical address mappings.
-\graphenesgx{} provides the best of both worlds: unmodified applications with strong confidentiality and integrity protections in hardware.
+%\fixme{added Mona's suggestion}
+SEV does not provide comparable integrity protection or the protection against replay attacks on SGX.
+%SEV integrity protection is not comparable to SGX, as SEV does not protect register state or
+%physical address mappings.
+\graphenesgx{} provides the best of both worlds: unmodified applications with confidentiality and integrity protections in hardware.
 %The TrustZone design is borrowed by AMD as Platform Security Processor (PSP) in the next-generation AMD CPUs~\cite{amd-psp}.
 %PSP can encrypt individual pages as the data leaves the CPU (i.e., Secure Memory Encryption)~\cite{amd-sme}, similar to the feature of \intel{} \sgx{}, \fixme{check this with Mona} but unlike SGX does not provide attestation of integrity.
 %\fixme{Mona suggests dropping this}AMD PSP also support running the whole virtual machine inside the isolated environment (i.e., Secure Encrypted Virtualization).
@@ -51,13 +53,15 @@ physical address mappings.
 
 
 
-Sanctum~\cite{costan2016sanctum} is a RISC-V processor prototype that targets a minimal and open design for the enclave feature.
-Sanctum also foils side channels, such as page fault address and cache timing, by virtualizing the page table and page fault handler inside each enclave.
+Sanctum~\cite{costan2016sanctum} is a RISC-V processor prototype 
+that features a 
+%that targets a 
+minimal and open design for enclaves.
+Sanctum also defends against some side channels, such as page fault address and cache timing, by virtualizing the page table and page fault handler inside each enclave.
+%\fixmedp{Check my edits}
 
 
-
-\subsection{\sgx{} frameworks and applications}
-
+\paragraph{\sgx{} frameworks and applications.}
 Besides shielding systems~\cite{baumann14haven,osdi16scone,shinde17panoply},
 %(discussed in \S\ref{sec:background:shielding-systems}),
 %many works leverage \sgx{}
@@ -88,23 +92,27 @@ Ryoan~\cite{hunt16ryoan} sandboxes a piece of untrusted code in the enclave
 to process secret data while preventing the loaded code from leaking secret data.
 %Ryoan confines the execution of a potentially malicious module, with Google Native Client (NaCl)~\cite{yee2009native}, a framework to provide language-level isolation of a piece of untrusted code. 
 %\fixme{add more sgx works if we have time.}
-Opaque~\cite{zheng2017opaque} uses a SGX-protected layer on the Spark framework, to generate oblivious relational operators that hide the access patterns of distributed queries.
+Opaque~\cite{zheng2017opaque} uses an SGX-protected layer on the Spark framework to generate oblivious relational operators that hide the access patterns of distributed queries.
 \sgx{} has also been applied to securing network functionality~\cite{shih2016s},
-inter-domain routing in Tor~\cite{kim2015first},
-and JavaScript execution in browsers~\cite{goltzsche17trustjs}.
+as well as inter-domain routing in Tor~\cite{kim2015first}.
+%and JavaScript execution in browsers~\cite{goltzsche17trustjs}.
 
 %\fixme{add more SGX works}
 %\fixmedp{Definitely worth trying to add all of the recent explosion of SGX stuff--especially stuff that uses Graphene!}
 
 
-Several improvements are also introduced to the SGX frameworks.
-Eleos~\cite{orenbach17eleos} eradicates the performance issue of enclave exits, by asynchronously servicing system calls outside of the enclaves, and enabling user-space memory paging.
-SGXBOUND~\cite{kuvaiskii17sgxbound} designs a software technique for bound-checking, with low memory overheads,
-to fit into the restricted EPC size.
-T-SGX~\cite{shih2017t-sgx} combines \sgx{} with Intel's Transactional Synchronization Extensions, to invoke a user-space handler for memory transactions aborted by page fault, to mitigate controlled-channel attacks.
+Several improvements to SGX frameworks have been recently developed, 
+%which are complementary to \graphenesgx{}'s contributions, and could 
+which can
+be integrated with applications on \graphenesgx{}.
+Eleos~\cite{orenbach17eleos} reduces the number of enclave exits
+by asynchronously servicing system calls outside of the enclaves, and enabling user-space memory paging.
+SGXBOUND~\cite{kuvaiskii17sgxbound} is a software technique for bounds-checking with low memory overheads,
+to fit within limited EPC size.
+T-SGX~\cite{shih2017t-sgx} combines \sgx{} with Transactional Synchronization Extensions, to invoke a user-space handler for memory transactions aborted by page fault, to mitigate controlled-channel attacks.
 SGX-Shield~\cite{seo2017sgx-shield} enables Address Space Layout Randomization (ASLR) in enclaves, with a scheme to maximize the entropy, and the ability to hide and enforce ASLR decisions.
 Glamdring~\cite{glamdring} uses data-flow analysis at compile-time, to automatically determine the partition boundary in an application.
-We believe these improvements are complementary to the design of \graphenesgx{}.
+%We believe these improvements are complementary to the design of \graphenesgx{}.
 
 
 %\paragraph{Code partitioning.}

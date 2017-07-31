@@ -1,114 +1,134 @@
-%\section{Background and Overview}
-%\label{sec:gsgx:background}
+\section{Background}
+\label{sec:sgx:background}
 
-%\subsection{\intel{} \sgx{} Enclaves}
-%\label{sec:graphene:background:sgx}
+This section summarizes \sgx{},
+and current design points for running or porting applications on \sgx{}.
+%and the legacy frameworks of porting 
+%including \haven{}~\cite{baumann14haven}, \scone{}~\cite{osdi16scone}, and Panoply~\cite{shinde17panoply}. 
+
+
+\subsection{SGX overview}
+\label{sec:sgx:background:sgx}
 
 %\begin{figure}[t!]
 %\centering
-%\includegraphics[width=5in]{graphene-sgx/figures/libosvssdk.pdf}
+%\includegraphics[width=\linewidth]{figures/libosvssdk.pdf}
 %\footnotesize
 %\vspace{-0.3in}
-%\caption[Comparison between libOS-based model and partitioned model for Intel SGX]
-%{Comparison between libOS-based model (e.g., \haven{} and \sysname{})
+%\caption{
+%Comparison between libOS-based model (e.g., \haven{} and \graphenesgx{})
 %and SDK-based (SDK for \sgx{}) model for migrating applications in enclaves.
 %Green (light) boxes are trusted components and red (dark) boxes are untrusted.
 %The libOS-based model often yields a larger TCB in the enclave,
 %while the SDK-based model requires developers to be responsible of
-%securing the enclave on the untrusted interface.}
+%securing the enclave on the untrusted interface.
+%}
 %\label{fig:libosvssdk}
 %\end{figure}
 
-\intel{} \sgx{} (Software Guard Extension)
-is a set of new x86/x86\_64 instructions
-introduced in the latest \intel{} \skylake{} processors,
-to create, interface and attest
-an isolated memory region (\emph{enclave}) inside applications' virtual memory.
-\sgx{} guarantee any data in an enclave
-stay encrypted in the DRAMs, using a secret key derived from
-the application's cryptographic measurements.
-The secret data store in the enclave memory
-can only be accessed within the code inside the enclave,
-and the code must be signed by the developers' private key.
-The use cases of \sgx{} mostly involve an enclave
-retrieving a signed attestation from the \intel{} processor,
-to exchange provisioning of information from trusted remote servers.
-The purpose is equivalent to
-expanding the execution from remote servers
-to untrusted hosts,
-to securely harness resources such as CPU cycles and DRAMs.
+The primary SGX abstraction is an \emph{enclave}: an isolated execution environment within the virtual address space of a process.
+The code and data in enclave memory do not leave the CPU
+package unencrypted; when memory contents are read back into cache,
+the CPU decrypts the contents, and checks the integrity of cache lines and the virtual-to-physical mapping.
+SGX also cryptographically measures the integrity of enclaves at start-up, and 
+provide attestation to remote systems or other enclaves.
+%Remote entities can identify the owners of enclaves by distinguishing the cryptographic measurements
+%generated with different signing keys.
 
-\sgx{} is an appealing tool for protecting small, highly sensitive execution, 
-against malicious or compromised OSes, hypervisors, or even hardware peripheral.
-For instance, \cite{hoekstra13sgx} show how SGX can be used
-to build a trusted path from a video chat application to a GPU and network card, which maintains confidentiality and integrity of the
-video stream, even if the OS is compromised.
-Similarly, because DRAM contents are encrypted, SGX can resist attacks such as cold-boot attacks~\cite{halderman09coldboot} or 
-malicious peripheral devices~\cite{hudson15thunderstrike}.
+%%% \sgx{} is a new feature on the 6th-genaration \intel{} CPUs.
+%%% it contains a set of new x86/64 instructions, to initiate, destroy, and attest isolated execution environments (i.e., enclaves) in the address space of applications.
+%%% When \sgx{} loads an application in an enclave,
+%%% the code and data of the application will remain encrypted in the main memory,
+%%% forbidding any mean to eavesdrop the application secrets.
+%is a set of new x86/x64 instructions introduced
+%to the latest \intel{} CPUs,
+%to bootstrap an isolated execution environment
+%inside applications' virtual memory address space.
+%\sgx{} creates a memory region
+%(generally referred as {\bf enclave}), storing both the code and data of the isolated execution,
+%which stays encrypted in DRAMs and only the CPU is capable of encryption and decryption.
+%The CPU derives the encryption key
+%from the cryptographic measurement of the initial state of enclave memory,
+%to allow remote entities to verify the soundness of execution and establish the trust
+%needed for provisioning sensitive data.
 
-\paragraph{A Partitioned Usage Model.}
-To secure an application with \sgx{},
-the common usage model requires the developers to partition the application into two parts:
-the trusted part which runs the sensitive execution in the enclave,
-and the untrusted part which loads and triggers the execution of the trusted parts.
-%Developers shall keep the trusted path as small and simple
-%Even if the trusted code only contains the simplest the logic,
-%the untrusted code is still needed to pass the input and output of the execution.
-The interaction between the trusted and untrusted parts is through \emph{untrusted interfaces}.
-Untrusted interfaces are defined by the developers, and include a few
-logical entry and exit points of the enclave.
-In the architectural level,
-an enclave only has exactly one hardware entry point and one exit point.
-The architecture forbids the untrusted part
-to willingly jump into any location of an enclave,
-to bypass or alter the valid behavior of the trusted part.
-The control flow of the execution is the enclave transfers to one of the logical entry points,
-based on the input parameter passed
-at the hardware entry point.
-%The control transfer from the hardware entry point to the logical entry points
-%is based on the operation code passed as an argument at enclave entry.
-
-With the partitioned usage model,
-the developers can minimize the trusted computing base (TCB) of the enclave,
-at their best effort,
-and restraint the behavior of the isolated execution.
-% that can only be triggered by the untrusted interface.
-The partitioning prevents unpredictable behaviors in the enclave,
-to compromise the confidentiality or integrity.
-The developers explicitly mark the sites in the application code
-to determine entry and exit of the enclave.
-%The untrusted and trusted code must explicitly call for enclave entry or exit
-%at the fixed sites in the application.
-
-%\intel{} \sgx{} ({\it Software Guard Extensions})
-%are a set of new x86/x64 instructions
-%introduced in the \intel{} Skylake processor family.
-%Using \sgx{}, an 
-%application can designate part of its virtual memory as an {\em enclave}.
-%The CPU guarantees that the contents of the enclave never leave the CPU package unencrypted.
-%The CPU also measures the integrity of a binary loaded into the enclave, and offers remote attestation,
-%similar to a TPM~\cite{TPM}.
-
-
-%%% create a protected memory region, called an {\em enclave}, inside it's virtual memory,
-%%% where it can load its security sensitive data with hardware-enforced isolation from the untrusted OS. 
-%%% The processor with \sgx{}
-%%% guarantees that any data loaded in enclave
-%%% stays encrypted in the DRAM, by using a secret key deterministically derived from the application's cryptographic measurement and the CPU secret. 
+\sgx{} enables a threat model where one only trusts the \intel{} CPUs and the 
+code running in the enclave(s).
+%whereas the rest of application, system software, off-CPU-package hardware devices and providers are untrusted. 
+\sgx{} protects applications from three different types of attacks on the same host, which are summarized in Figure~\ref{fig:sgx-threats}: untrusted application code inside the same process but outside the enclave; operating systems, hypervisors, and other system software;
+%\fixme{added Mona's suggestion}
+other applications on the same host; and off-chip hardware.
+A SGX enclave can also trust a remote service or enclave, and be trusted after inter-platform attestation~\cite{sgx-attestation}.
 
 
 
-% \sgx{} provides useful building blocks for secure applications, but does not
-%absolve the programmer of all responsibility for reasoning about end-to-end security.
-%Bugs in the application or supporting libraries can still disclose sensitive data from an enclave,
-%and porting code into SGX can be subtle.
-%
-%Fundamentally, this argues for writing enclave code in higher-level languages
-%(e.g., \java{}) that provide important 
-%safety properties, such as memory and type safety, that reduce or eliminate common vulnerabilities.
-%Ideally, one would formally verify security properties of enclave code~\cite{moat}; this verification is significantly aided by using 
-%higher-level languages amenable to formal reasoning.  Verification is significantly harder
-%with C/C++ or assembly languages.
+
+%%% \begin{compactenum}
+
+%%% \item {\bf Inside process memory:}
+%%% \sgx{} partitions the application process into two privilege levels, as the trusted part (in enclaves) which can access the whole process memory, and the untrusted part (outside enclaves) forbidden to access enclave memory.
+%%% %the privileged part (in the  enclave region) can access all process memory,
+%%% %while the unprivileged part (outside the enclave region) is limited to access only data that are not isolated by \sgx{}.
+
+%%% \item {\bf From hosting OSes or hypervisors:}
+%%% \sgx{} assumes that OSes and hypervisors can be compromised by either exploiting system vulnerabilities
+%%% or malicious system software installed by administrators.
+%%% Both types of compromise are legitimate threats to modern OSes, due to complexity of modern OSes and usage of public facilities like clouds.
+
+%%% %Operating systems or hypervisors
+%%% %that are either compromised by rootkits
+%%% %or deliberately modified by the host providers.
+%%% %An attacking host can access the raw data in DRAMs, or remap the
+%%% %physical pages to other contexts.
+
+%%% \item {\bf Physically from the hardware:}
+%%% One type of attacks that cannot be defended by software-based solutions~\cite{flicker, criswell2014virtualghost}
+%%% is from the attackers who have physical access to the hosts.
+%%% \sgx{} can resist attacks on the host hardware
+%%% including hacking peripheral devices like ethernet cards and connectors~\cite{hudson15thunderstrike}, tapping into buses, or eavesdroping DRAM data using Cold-boot attack~\cite{halderman09coldboot}.
+
+
+%%% \end{compactenum}
+
+
+%%% \sgx{} protects an application against unpredictable threats from both local and remote hosts.
+%%% \sgx{} establishes a trusted path
+%%% from one enclave to another,
+%%% providing end-to-end protection to both enclaves to
+%%% exchange data with confidentiality and integrity.
+%%% %, processing the data and returning the computation results with end-to-end protection.
+%%% We can further divide up the protection using \sgx{} into three elements:
+%The use cases of \sgx{} mostly involve the process that an enclave
+%retrieves a signed attestation from the processor,
+%to exchange provisioning of critical information from remote servers.
+%The purpose of such process is equivalent to
+%expanding the trusted execution
+%from remote servers
+%to untrusted hosts,
+%to harness resources such as CPU cycles and DRAMs.
+
+%%% \begin{compactenum}
+
+%%% \item {\bf Isolated execution:}
+%%% \sgx{} guarantees the execution initiated in an enclave
+%%% to be isolated from any part of the system except the enclave itself.
+%%% %any part of the system except the enclave itself can access the execution state. 
+%%% Achieved by the secrecy of encryption keys in \intel{} CPUs.
+
+%%% \item {\bf Attestation of integrity:}
+%%% Remote entities with a \sgx{}-enabled CPU can verify the integrity of an enclave, using the \intel{} Attestation Services (ISV)~\cite{isv}.
+%%% %for its integrity of running the exact code that it is given.
+%%% Achieved by the uniqueness of CPU keys to sign the cryptographic measurement of enclaves.
+
+%%% \item {\bf Authentication:}
+%%% Remote entities can identify the owners of enclaves by distinguishing the cryptographic measurements generated with different signing keys.
+
+
+%%% %explicitly launched for processing the specific tasks, regardless of the identicality of execution.
+%%% %That is, two mutually distrusting users can launch the same execution in  separate enclaves, yet be able to distinguish by the measurements as MACs (Message Authentication Code) signed by the users' private keys.
+
+%%% \end{compactenum}
+
 
 %One must note that \sgx{} only promises the integrity of application binaries
 %initially loaded in enclaves.
@@ -129,65 +149,349 @@ to determine entry and exit of the enclave.
 %which must trust the loaded application as a whole.
 %Except for the cases in which the whole applications must be secured,
 %\haven{} actually downgrades the trustworthiness of enclaves.
-%Figure~\ref{fig:gsgx:libosvssdk} shows the comparison of the two models.
+%Figure~\ref{fig:libosvssdk} shows the comparison of the two models.
 
-\paragraph{Using A Library OS.}
- 
-The partitioned usage model
-restricts the risk of the isolated execution being
-compromised by the untrusted host,
-yet requires the developers to
-cleanly split a part of the application
-and inject entry and exit points at wherever interaction is needed.
-Moreover, the developers are responsible
-for validating and examining the soundness of the partitioned application,
-to ensure every execution paths in the enclave
-that are affected by the untrusted entities
-are carefully checked and sanitized.
-Porting a legacy application to a partitioned model
-requires developers to have substantial familiarity to the application code,
-as well as the principles for
-developing unexploitable,
-well-controlled execution in the enclave.
-%be familiar with
-%the mechanism of enclave entry and exit,
-%and always bear the security of the isolated execution in mind.
-%For developers that are not expert to architecture and security issues,
-%pursuing the partitioned model may need significant efforts.   
-When the sensitive execution to be isolated in the enclave
-becomes considerably complex,
-the effort for porting and validating the execution
-quickly becomes unacceptably expensive.
 
-\emph{Haven}~\cite{baumann14haven}
-shows a \emph{non-partitioned usage model},
-for loading whole, unmodified applications and supporting libraries
-into enclaves.
-The non-partitioned model allows application to be run in the enclave as it is, without any porting effort.
-To support the non-partitioned model,
-a key requirement is to support the system APIs needed by
-the application and supporting libraries,
-right inside the enclave.
-Essentially, the execution not only is forbidden to access any host system APIs
-(i.e., using {\tt syscall} or {\tt sysenter} instructions)
-in the enclave,
-but also unsafe to rely on the untrusted host
-to provide system APIs.
-A \libos{}, on the other hand, supports system APIs as in-memory function calls,
-and mediates all input and output
-during interaction with the untrusted host.
-For instance, Haven supports unmodified Windows applications in enclaves,
-using \drawbridge{} \libos{}~\cite{porter11drawbridge}
-to handle all the Windows API calls.
+%%% By synthesizing and streamlining these three elements (i.e., isolation, attestation and authentication),
+%%% \sgx{} provides a promising build block to securing applications
+%%% from unpreditable security threats.
 
-At the low level, the non-partitioned model still requires partitioning, but instead of the applications,
-it is the \libos{} itself that needs to be partitioned.
-More precisely, The \pal{} that provides host ABI to the \libos{} is the component that is split across the two sides of the enclave boundary,
-while the \libos{}, alone with the isolated application
-and its supporting libraries,
-are dynamically loaded.
-The partitioned \pal{} interacts with the host through a fixed, narrow untrusted interface,
-to access host resources if necessary.
-%interacts with a \libos{}-specific untrusted interface,
-%which is the only trusted interface needed to be defined,
-%and will never be extended no matter which application is loaded.
+%developing applications
+%that are resistant to unpreditable, unavoidable threats.
+%Users expect \sgx{} to build up a wall for protecting the sensitive data, even against a catastrophic scenario like a complete takeover of the infrastructure.  
+
+%\fixmedp{Explain how to read the figures in the captions. What do colors and shading mean?}
+%
+%\fixme{Disabled the whole discussion about SDK. dp: ok with me, but probably drop from figure} 
+\begin{comment}
+\subsection{The legacy framework (The \sdk{})}
+
+{\bf Intel's \sgx{} SDK} (software development kit) for Linux~\cite{intel-sgx-sdk} is the official framework
+for programming \sgx{} execution within Linux applications.
+\sdk{} includes the components of two phases:
+a {\bf compile-time utility} to generate a valid executable for running inside enclave,
+and a {\bf run-time framework} to trigger the hardware-enforced isolated execution.
+The two-phased design is based on the assumption that compilation of applications
+is controlled by trusted, security experts,
+to retain the trustworthiness of isolation model when running on untrusted OSes.
+
+
+The work flow of \sgx{} programming using \sdk{} is as follows:
+\begin{compactenum}
+\item At the build-time (on trusted hosts), developers create a self-contained, static executable as the initial code and data after enclave creation.
+We refer the executable as an ``enclave image''.
+The enclave image is statically links with the enclave infrastructure, which provides enclave APIs (e.g., retrieving attestation) and a extremely small set of POSIX functions (e.g., {\tt memset()}).
+After linking, the compile-time utility signs the executable and inserts the enclave signature structure
+({\tt SIGSTRUCT}) in the application code.
+\item At the execution-time (on untrusted hosts), the enclave image is taken by the framework. The user-space driver then requests enclave creation with the kernel driver, through {\tt ioctl()} to a pseudo-device {\tt /dev/isgx}.
+The kernel driver creates and initializes an enclave using the authenticated signature structure,
+and a token exchanged from an architectural enclave, {\tt AESMD}, for ensuring the validity of enclave. 
+\end{compactenum}
+
+
+
+
+
+%During the compile time,
+%the developers create a self-contained, static binary, as the initial image of an run-time enclave (an ``enclave image'').
+%\sdk{} provides the infrastructural libraries (libsgx) for static linking, which contain enclave APIs and few POSIX functions.
+%A signing tool of \sdk{} will generates a valid enclave signature
+%derived from the enclave image.
+%Both the static linking and signing must happen on a trusted, development machine.
+
+
+%After generating the enclave image, developers then ship it with the rest of application,
+%to untrusted hosts (\sgx{}-enabled)
+%where the \sdk{} run-time framework is installed.
+%The run-time framework provides both kernel and user-space drivers,
+%to interface \sgx{} hardware using the new x86 instructions (e.g., {\tt ECREATE}, {\tt EADD}, {\tt EENTER}).
+%The framework also includes an architectural enclave (AESM), for validating the enclave attributes (and generating a run-time token),
+%and a kernel EPC (enclave page cache) driver that manages paging for all running enclaves.
+
+
+
+% includes both compile-time and run-time components:
+%for the compile time, the SDK provides all the infrastructure libraries,
+%which the applications statically link with,
+%and a signing tool that generates the enclave signatures for hardware validation.
+%The run-time framework then takes the signed enclave binaries,
+%and uses the kernel and user-space drivers to initiate the isolated execution in enclaves.
+
+
+
+\sdk{} centers the whole programming model based on the concept of partitioning an application,
+and isolating only minimum application code in enclaves.
+The partitioning minimizes the risk of compromising the enclaves,
+due to smaller trusted computing base (TCB) and less opportunity of omitting security glitches.
+With this model,
+developers are expected
+to identify the part of an application that performs the sensitive operations,
+and define an validated interface to
+the sensitive part and rest of the application.
+\sdk{} encourages partitioning by reducing the difficulty of defining and accessing the interface---a language tool automatically generates the interface code with extra argument-sanitizing code.
+The generated interface code essentially filters input and output of the enclave,
+and prevents randomly copying memory across the enclave boundary, leaking or corrupting internal data.
+
+
+%The Intel SDK has its limitations. The infrastructure of the SDK provides APIs in enclaves for accessing SGX features (e.g., attestation), as well as a small set of POSIX APIs
+%(\roughly{}10 functions, such as {\tt printf} and {\tt memset}).
+
+
+Despite that \sdk{} attempts to alleviate the difficulty of partitioning for SGX,
+porting a piece of application code that is sophisticated and interactive to the rest of application
+is still a significant cost to pay.
+In general, developers want to find a reasonable granularity of partitioning---a ``sweet spot'' that partitions the application code neither too small nor too large, 
+to nicely balance between frequency of enclave exits and risk of introducing incompatible code.
+For an application written in C/C++, partitioning is cumbersome especially if the application is poorly modularized.
+
+
+Unfortunately, the limited POSIX support in the \sdk{} infrastructure really strikes
+the opportunity of fine-grained partitioning.
+The lack of POSIX APIs in the infrastructure is fundamental, due to the restriction
+on OS interaction from the enclaves.
+The missing APIs encapsulates system calls, which can expose the enclave to some risky OS interaction model, such as {\bf Iago Attacks}~\cite{checkoway13iago}.
+
+%In conclusion, this work targets on completing the API support, either at POSIX level or system calls,
+%while retaining the isolation model.
+%The platform can assist developers to refocus on partitioning applications for minimizing the risks.
+
+\end{comment}
+
+\subsection{SGX framework design space}
+\label{sec:sgx:background:design}
+
+This subsection summarizes the principal design choices facing any 
+framework for running applications on SGX.  We explain the decisions in
+recent systems for SGX applications, and the trade-offs in this space.
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=\linewidth]{sgx.pdf}
+\caption{The threat model of \sgx{}. \sgx{} protects applications
+from three types of attacks:
+in-process attacks from outside of the enclave,
+attacks from OS or hypervisor, and attacks from off-chip hardware.}
+% Red (dark) boxes are untrusted components and green (light) boxes are trusted.}
+%For each enclave, \sgx{} establishes the chain of trust from the \intel{} CPU.
+%Enclaves across physical machines or even infrastructures can remotely attest the integrity of execution, using the signatures generated and signed by the CPU.
+%Green (light) boxes and arrows represent the trusted components and operations, and red (dark) boxes and arrows represent the otherwise.
+\label{fig:sgx-threats}
+\end{figure}
+
+\paragraph{How much functionality to pull into the enclave?}
+At one extreme, a library OS like Haven~\cite{baumann14haven} pulls most
+of the application-supporting code of the OS into the enclave.
+On the other extreme, thin ``shim'' layers, like SCONE~\cite{osdi16scone} and Panoply~\cite{shinde17panoply} 
+wrap an API layer such as the system call table.
+Pulling more code into the enclave increases the size of the TCB,
+but can reduce the size and complexity of the interface, and attack surface, 
+between the enclave
+and the untrusted OS.
+
+The impact of this choice on performance
+largely depends on two issues. First, entering or exiting the enclave 
+is expensive; if the division of labor reduces enclave border crossings, 
+it will improve performance.
+The second is the size of the Enclave Page Cache (EPC),
+limited to 128MB on version 1 of SGX.
+If a large supporting framework tips the application's working set size
+past this mark, the enclave will incur expensive swapping.
+
+
+\paragraph{Shielding complexity.}
+SGX hardware can isolate an application from an untrusted OS, but 
+SGX alone can't protect an application that  requires
+functionality from the OS.  {\em Iago attacks}~\cite{checkoway13iago}
+are semantic attacks from the untrusted OS against the application, where an unchecked system call return 
+value or effect compromises the application.
+Iago attacks can be subtle and hard to comprehensively detect, at least with the current
+POSIX or Linux system call table interfaces.
+
+Thus, any SGX framework must provide some {\em shielding} support, to 
+validate or reject inputs from the untrusted OS.  
+The complexity of shielding is directly related to the interface complexity:
+inasmuch as a library OS or shim can reduce the size or complexity of the 
+enclave API, 
+the risks of a successful Iago attack are reduced.
+
+\paragraph{Application code complexity.}
+Common example applications for SGX in the literature 
+amount to a simple network service running a TLS
+library in the enclave, putting minimal demands on a shim layer. 
+Even modestly complex applications, such as the R runtime and a simple
+analytics package, require dozens of system calls providing wide-ranging functionality, 
+including \syscall{fork} and \syscall{execve}.
+For these applications, the options for the user or developer become: 
+(1) modifying the application to require less of the runtime; (2) opening and shielding more 
+interfaces to the untrusted OS; (3) pulling more functionality into a shim or a library OS.
+The goal of this paper is to provide an efficient baseline, based on (3),
+so that users can quickly run applications on SGX, and developers can 
+explore (1) or (2) at their leisure.
+
+\paragraph{Application partitioning.} An application can have multiple
+enclaves, or put less important functionality outside of the enclave.
+For instance, a web server can keep cryptographic keys in an enclave,
+but still allow client requests to be serviced outside of the enclave.
+Similarly, a privilege-separated or multi-principal application might create a separate enclave for
+each privilege level.
+
+This level of analysis is application-specific, and beyond the focus of this paper.
+%which is on running unmodified applications in enclaves.
+However, partitioning a complex application into multiple enclaves
+can be good for security. In support of this goal,
+\graphenesgx{} can run smaller pieces of code, such as a library, in an enclave, as well as
+coordinate shared state across enclaves.
+
+%* Partitioned vs. unpartitioned app?
+
+%** Right choice depends a lot on whether the app has multiple principals or security concerns.
+
+\begin{comment}
+\fixmedp{Did a first cut at 2.2; needs to integrate the figure (or drop it).  I didn't know what to write for 2.3 yet.  I left the old text below for now (if there is anything you really want to save), but it needs to go away}
+
+\subsection{Open Challenges}
+
+\fixmedp{Here, I would give a taste of some of the issues we solve and why they are hard, like dynamic loading (and maybe fork or IPC).  Keep it short, a few paragraphs.}
+\end{comment}
+
+%\begin{figure}[t!]
+%\centering
+%\includegraphics[width=\linewidth]{figures/sdkvslibos.pdf}
+%\caption{Comparison of the code integrity model among different \sgx{} frameworks, including the \sdk{}, \haven{} and \scone{}.}
+%%Green (light) boxes and arrows represent the trusted components
+%%and operations, and red (dark) boxes and arrows represent the otherwise.
+%%Patterned blocks represent the code and data included in the initial measurements of the enclaves.}
+%\label{fig:sdkvslibos}
+%\end{figure}
+
+
+\begin{comment}
+\subsection{\sgx{} shielding systems}
+\label{sec:background:shielding-systems}
+
+
+
+
+The current \sgx{} shielding systems, such as \haven{}~\cite{baumann14haven}, \scone{}~\cite{osdi16scone}, and Panoply~\cite{shinde17panoply}, enforce end-to-end isolation to
+legacy applications without partitioning.
+A \sgx{} shielding system preserves the trusted computing base (TCB)
+of an application, and further increases it with a shielding layer to defend against the untrusted OSes.
+By avoiding application partitioning,
+%model of quarantining an unmodified, COTS application in an \sgx{} enclave.
+a shielding system minimizes the effort of reprogramming the applications for \sgx{} execution, often with recompilation or packaging the binaries in an encrypted enclave.
+%to merely recompiling or packaging the application code before signing it off for enclave execution.
+%These \libos{}es internalize OS features into the enclave, to maintain a fixed-size,
+%narrow interface to the untrusted host OSes.
+%Porting applications using a \sgx{} \libos{} is vastly different from the programming model of \sdk{}---no programming effort is needed when porting with a \sgx{} \libos{}, and applications are isolated without partitioning.
+In the following paragraphs, we compare the current shielding systems with the \graphenesgx{} approach.
+
+\haven{}~\cite{baumann14haven} uses a \libos{} called \drawbridge{} in each enclave
+to shield a single-process \emph{Windows} application from the untrusted host OS.
+\haven{} absorbs the implementation of system APIs (i.e., Win32 APIs) from the host OS,
+%\haven{} uses \drawbridge{}~\cite{porter11drawbridge} as the backbone of its enclave infrastructure, 
+and exports a narrow enclave interface on which untrusted inputs are carefully filtered to defend against the Iago-type attacks.
+Adding a \libos{} to each enclave causes a bloat of TCB---for \haven{}, the size of a \libos{} binary and shielding layer is \roughly{}200MB.
+\haven{} has to establish the trust and integrity in all these binaries loaded into an enclave. Except that the shielding layer is a part of the enclave since its creation, \haven{} enforces the integrity of both the \libos{} and the isolated application,
+by storing all binaries on an encrypted virtual disk and relying a remote, trusted server to provision the key for decryption.
+\haven{} builds a trusted path from a remote server to local cloud machines,
+to securely bootstrap application execution inside the enclaves.
+%Other minor comparison between \haven{} and this work: the development and evaluation of \haven{}, at publication, is based on a simulated architecture.
+%On the contrast, \graphenesgx{} is a released open-source platform, tested by many developers from institutes and corporations. \fixme{maybe bring up TCB?}
+
+
+
+\scone{}~\cite{osdi16scone} isolates Linux micro-services in enclaves as a container-like environment.
+After a brief attempt of building a \libos{} like \haven{},
+\scone{} chooses a different approach of shielding the system API usage in applications, by designing shielding strategies based on each API.
+\scone{} stacks the application on top of file-system and network shielding libraries, and extends a standard library C (musl~\cite{musl}) to securely exit the enclave for system calls.
+Within the \sgx{}-aware Libc, \scone{} carefully filters the inputs from the host system calls, as the defend against known Iago attacks.
+For instance, \scone{} ensures that pointers given to and returned by a host system call will point to addresses outside the enclave,
+to prevent the host OS to manipulate pointers and cause memory corruption in the enclave.
+\scone{} also authenticates or encrypts file or network streams
+based on configurations given by the developers.
+
+
+%The \libos{} implementation in \scone{} is based on musl~\cite{musl} and LKL (Linux kernel library)~\cite{lkl}.
+%The design of a SCONE enclave (or Secure Container) has similarity
+%with a basic block of \graphenesgx{}:
+%they both validate input files based on cryptographic methods, and are fully configurable at a per-file basis.
+%However, \graphenesgx{} supports a more complete set of Linux system APIs.
+%The APIs that \graphenesgx{} especially contributes over \scone{} are the Linux multi-process APIs, including copy-on-write {\tt fork()}, {\tt exec()}, signals, and system V IPC (message queues and semaphores).
+
+Panoply~\cite{shinde17panoply} further reduces the TCB of a shielding system over the SCONE approach, by excluding both a \libos{} and \libc{} from enclaves.
+Instead, Panoply uses a shim layer shielding a portion of the POSIX API. The shim layer yields about 20 KLoC as its TCB (trusted computing base), which is much smaller than libc and/or a library OS.
+% in other shielding systems.
+As Panoply delegates the libc functions outside the enclave, its shim library defends the supported POSIX API,
+including 91 {\em safe} functions and 163 {\em wild (unsafe)} functions.
+Panoply also supports multi-process API including \fork{}, \exec{}, signaling, and sharing untrusted memory with inline encryption.
+Compared to \graphenesgx{}, Panoply has made some different design decisions in supporting multi-process API,
+including supporting fork by copying memory on-demand with statically determining memory access,
+and using secured messaging for inter-process negotiating instead of coordinating over an encrypted RPC stream.
+
+
+
+
+\subsection{Comparison and security implications}
+
+\fixme{need to drop the SDK discussion, revisit the security claims, and discuss Iago attacks in details.}
+
+Figure~\ref{fig:sdkvslibos} shows the comparison between \haven{}, \scone{}, Panoply, and \graphenesgx{}.
+%The \sdk{} model uses a static MAC of the enclave code and data, given to the \sgx{} driver for bootstrapping the isolated execution.
+The \haven{} model only initiates enclaves with the OS shield layer,
+which unpacks the enclave binaries from a virtual disk---decrypted using a provisioned key.  
+The \scone{} model extends the \sdk{} model---it statically links the application binaries with the shielding library, creating a static enclave image verifiable by its MAC. The \sdk{} and \scone{} model retain more flexibility in deploying and integrating \sgx{} enclaves by focusing on the code integrity rather than encryption.
+
+The key concerns that affects users choosing among these solutions are {\bf trusted computing base (TCB) size} and {\bf attack surface}.
+However, since all these solutions are based on different design decisions, assumption and requirements, the comparison of TCB size and attack surface is often imprecise and inconclusive.
+
+\paragraph{TCB size.}
+Most studies measure the TCB size of a system by the total LoC (lines of code) written for all the trusted components, or the size (in bytes) of all the trusted binaries.
+The comparison of TCB size is only meaningful when two systems have comparable system features,
+and are order-of-magnitude different in term of LoC or binary size.
+For instance, the comparison of TCB size between \haven{} and \scone{} is never an apples-to-apples comparison.
+The implemented system features and personalities
+in these two systems are fundamentally different, and \haven{} supports a much larger fraction of Windows features than the fraction of Linux features supported by \scone{}.
+
+We argue that the only occasion that the reduction of TCB size
+can be convincingly demonstrated is when a design has partitioned a system into isolated components,
+or removed unreachable execution paths.
+For instance, the \sdk{} promotes application partitioning for \sgx{};
+it requires additional partitioning effort but is effective for confining the TCB size.
+By statically linking the application binaries
+with the shielding layers and standard C library, \scone{} offers more opportunities in stripping the Libc and shield code of unused APIs, and thus reducing its TCB size.
+
+
+
+\paragraph{Attack surface.}
+
+Most studies estimate the severity of having an attack surface by the size of interface to the trusted and untrusted components.
+The experience of \scone{} provides an important insight for estimating attack surface: the narrowness of interface is not proportional to the difficulty of defending against incoming attacks.
+An interface overloaded with too many features or semantics can become a major source of vulnerabilities.
+
+%\subsection{The \graphene{} Library OS}
+%
+%\graphene{}~\cite{tsai14graphene} introduces a \libos{} design that supports
+%both single-process and multi-process Linux applications,
+%but retains a narrow host interface (43 functions) as a vantage point for enforcing security isolation.
+%The main contribution of \graphene{} is an distributed implementation of the POSIX namespace coordination,
+%to support Linux multi-process abstractions across \libos{} instances.
+%All the multi-process abstractions in \graphene{} is implemented using simple pipe-like RPC streams,
+%without relying on any host memory sharing support.
+%Based on this design, \graphene{} can easily isolate mutually untrusting applications,
+%by blocking the RPC streams between unrelated applications.
+%
+%
+%
+%The design decisions made by \graphene{} are important keys to the \graphenesgx{} framework.
+%First, the host interface contains mostly internal abstractions, and three external ones including files, network connections, and RPC streams.
+%The simplicity of the host interface facilitates shielding the \libos{}
+%from risky OS interaction.
+%Moreover, \graphene{} implements multi-process abstractions across instances without memory sharing.
+%\graphenesgx{} can rely on the distributed POSIX implementation
+%to support multi-process applications across multiple enclaves, by coordination over validated RPC streams.
+
+
+\end{comment}
+
+
+

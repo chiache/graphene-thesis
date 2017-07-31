@@ -211,7 +211,7 @@ However, because system interfaces have different values for users, they cannot 
 A frequently used system interface should be considered more important for compatibility than a rarely used one.
 \end{comment}
 
-\section{\UsageMetric{}}
+\subsection{\UsageMetric{}}
 
 System developers can benefit from an importance metric for APIs,
 which can in turn guide optimization efforts, deprecation decisions,
@@ -300,7 +300,7 @@ This is calculated as follows:
 \end{comment}
 
 
-\section{\CompatMetric{}}
+\subsection{\CompatMetric{}}
 
 We also measure compatibility at the granularity of an OS,
 which we call \compatmetric{}.
@@ -447,7 +447,7 @@ By assuming independence of package installation, we can calculate the probabili
 %% dp:Meh
 %\subsection{Justifying the Practicability of the Metric}
 
-\section{Data Collection via Static Analysis}
+\section{Data Collection}
 \label{sec:measure:analysis}
 
 We use static binary analysis to identify the system call footprint of a binary.  This approach has the advantages
@@ -513,7 +513,11 @@ language native interface (e.g.,JNI, Perl XS) are not considered in our study.
 %\label{fig:package-popularity}
 %\end{figure}
 
-\subsection{Limitations}
+
+\input{framework}
+\input{eval}
+
+\section{Limitations}
 
 %\fixmedp{Make sure we explain these:  the fact that the new metrics cannot distinguish between APIs that are critical to a small population, in that their functionality cannot be provided any other way, because they are new APIs not yet widely adopted, or because they are old APIs that are no longer used or were never used.}
 

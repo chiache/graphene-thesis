@@ -1,0 +1,157 @@
+\section{Motivation}
+
+Intel SGX introduces a number of essential hardware features that allow an application
+to protect itself from the host OS, hypervisor, BIOS, and other software.
+With SGX, part or all of an application can run in an {\em enclave}.
+Enclave features include confidentiality and integrity protection
+for the enclave's virtual address space;
+restricting control flow into well-defined entry points for an enclave;
+integrity checking memory contents at start time;
+and remote attestation.
+SGX is particularly appealing in cloud computing, as users 
+might not fully trust the cloud provider.
+That said, for any sufficiently-sensitive application, using SGX may be prudent,
+even within one administrative domain,
+as the security track record of commodity operating systems is not without blemish.
+Thus, a significant number of users would benefit from running applications on SGX as soon as possible.
+
+Unfortunately, applications do not ``just work'' on SGX.
+SGX imposes a number of restrictions on enclave code 
+that require application changes
+or a layer of indirection. % to work around.
+Some of these restrictions are motivated by security, such as disallowing system calls
+inside of an enclave, so that system call results can be sanitized by {\em shielding code} in the enclave before use.
+%Other restrictions are subtle interactions with unrelated other features, such
+%as disallowing the {\tt cpuid} instruction to ensure clear semantics when SGX is combined
+%with VT (one mode of VT ensures that using {\tt cpuid} will trap to the hypervisor).
+%Intel's SGX SDK includes a limited C library, which is missing a number of features by design.
+Our experience with supporting a rich array of applications on SGX, including web servers, language runtimes, and
+command-line programs,
+%databases (not all are evaluated in this paper), 
+is that
+a number of software components,
+orthogonal to the primary functionality of the application,
+rely on faithful emulation of arcane Linux system call semantics, such as \syscall{mmap} and \syscall{futex};
+any SGX wrapper library must either reproduce these semantics, or large swaths of code unrelated to security
+must be replaced.
+Although this paper focuses on SGX, we note that a number of vendors are developing similar, but not identical,
+hardware protection mechanisms, including IBM's SecureBlue++~\cite{secureblue++} and AMD SEV~\cite{amd-sme}---each
+with different idiosyncrasies.
+Thus, the need to adapt applications to use hardware security features
+will only increase in the near term.
+
+As a result, there is an increasingly widespread belief that 
+adopting SGX necessarily involves significant code changes to applications.
+Although Haven~\cite{baumann14haven} showed that a library OS
+could run unmodified applications on SGX, this work pre-dated availability of SGX hardware.
+Since then, several papers have argued that the library OS approach is impractical for SGX,
+both in performance overhead and trusted computing base (TCB) bloat, and that one must instead refactor one's application for SGX.
+For instance, a feasibility analysis in the \scone{} paper
+concludes that ``On average, the library OS increases the TCB size by $5\times$, the service latency by $4\times$,
+and halves the service throughput''~\cite{osdi16scone}.
+Shinde et al.~\cite{shinde17panoply} argue that using a library OS, including libc, increases TCB size by two orders of magnitude over
+a thin wrapper. % layer, called Panoply.
+
+
+This paper demonstrates that these concerns are greatly exaggerated:
+one can use a library OS
+to quickly deploy applications in SGX, gaining immediate security benefits without crippling performance cost or TCB bloat.
+We present a port of the \graphene{} library OS~\cite{tsai14graphene} to SGX, called \graphenesgx{},
+and show that the performance overheads are comparable to the range of overheads
+presented in \scone{};  the authors of Panoply also note that \graphenesgx{}
+is actually 5-10\% faster than \panoply{}~\cite{shinde17panoply}.
+Arguments about TCB size are more nuanced, and a significant amount of the discrepancies
+arise when comparing incidental choices like libc implementation (e.g., musl vs.\ glibc).
+\graphene{}, not including libc, adds 53 kLoC to the application's TCB, which is comparable to
+\panoply{}'s 20 kLoC or \scone{}'s 97 kLoC. % 
+Our position is that the primary reduction to TCB comes from either compiling out
+unused library functionality, as in a unikernel~\cite{unikernels} and measured by our prior work~\cite{tsai16apistudy};
+or further partitioning an application into multiple enclaves with fewer
+OS requirements.
+%, such as just
+%terminating a TLS connection in the enclave.
+When one normalizes for functionality required by the code in the enclave, the design choice between a library OS or a smaller shim does not have
+a significant impact on TCB size.
+
+To be clear, SGX-specific coding has benefits, but we must not let the perfect be the enemy of the good.
+For example, privilege separating a complex application into multiple enclaves may be a good idea
+for security~\cite{flicker,Provos:2003:PPE:1251353.1251369,shinde17panoply}, and replacing particularly expensive operations can improve performance on SGX.
+%Our experience with supporting a rich array of applications on SGX, including web servers, language runtimes, and
+%databases (not all are evaluated in this paper), is that
+%a number of software components orthogonal to the primary functionality of the application
+%rely on faithful emulation of arcane semantics of Linux system calls, such as {\tt mmap} and {\tt futex}.
+The goal of \graphene{} is to bring up rich applications on SGX quickly, and then let developers
+optimize code or reduce the TCB as needed.
+
+\graphenesgx{} runs unmodified Linux binaries on SGX; to this end,
+this paper also contributes a number of usability enhancements,
+%\fixme{check this}
+including integrity support for dynamically-loaded libraries,
+%remote attestation,
+enclave-level forking, and secure inter-process communication (IPC).
+Users need only configure features and cryptographically sign the configuration.
+\graphenesgx{} is also useful as a tool to accelerate SGX research.
+%\graphenesgx{} has been open-sourced since June 2016\footnote{Available at https://github.com/oscarlab/graphene}.
+Although our focus is unmodified applications, \graphenesgx{} can also run smaller pieces of
+code in an enclave, as in a partitioned application.
+Several papers already compared against or extended 
+\graphenesgx{}~\cite{shinde17panoply, orenbach17eleos, kim2017enhancing}
+%\fixmedp{I think there are more - Chia-Che please check recent google scholar activity}\fixme{these are all I can find; others are all just citing Graphene as related work}, 
+and we are aware of ongoing projects using \graphenesgx{}.
+%One published paper has already benchmarked against Graphene-SGX~\cite{shinde17panoply},
+%and we are aware of a number of concurrent submissions to other conferences that
+%use Graphene as either a building block or comparison point for software that uses SGX.
+%In a short time, Graphene-SGX has already had significant use outside of this group,
+%Has already been benchmarked in published papers by other groups.
+%We are aware of several concurrent submissions to other conferences that are
+%buiding extensions to Graphene
+
+
+\begin{comment}
+The contributions of this paper are:
+\begin{compactitem}
+
+\item A framework, called \graphenesgx{}, to isolate unmodified, Linux  applications in enclaves.
+%providing sufficient Linux compatibility and complete isolation from the untrusted OS.
+%A platform (referred to as ``\graphenesgx{}'' for the rest of paper) as basic blocks of porting application binaries under SGX isolation,
+%and reusing most of the legacy code and supporting libraries to minimize the development effort.
+%\graphenesgx{} extends the \graphene{} \libos{} to support Linux features upon a narrow interface to untrusted hosts.
+
+\item Several usability enhancements for SGX, including
+  dynamic loading, \syscall{fork}, and IPC.
+
+%  \graphenesgx{} narrows the enclave interfaces until the security of each enclave entries can be studied and reasoned about.
+%The primary challenges include enforcing attestable application integrity and isolating multi-process abstractions (e.g., fork, IPC, namespaces).
+%\fixmedp{huh?}
+
+%\graphenesgx{} shields \shieldsyscallnum{} Linux system calls for applications,
+%by authenticating the inputed resource (e.g., files) to the host interface.
+%Especially, \graphenesgx{} shields multi-process system calls, including \fork{}, \exec{}, signaling, namespaces, and system V IPC, 
+%for applications that span across multiple enclaves.
+
+\item A thorough evaluation of the performance of unmodified applications on \graphenesgx{}, indicating
+  that the costs of a feature-rich library OS on SGX are in-band with purportedly lighter-weight solutions
+  that require application changes.  For example, lighttpd throughput and latency on \graphenesgx{} are comparable
+  to a Linux process.
+  Overheads are generally under $2\times$ (cf.\ \scone{} overheads up to $1.6\times$ on comparable workloads).
+  In a few cases, \graphenesgx{} overheads are higher, but these are internal to the library OS
+  or fundamental to enclave limitations, %initialization costs or memory limitations,
+  not because the application is unmodified.
+%  \fixmedp{Any more specific nuggets here?}
+  
+
+  %Based on the experience of deploying \graphenesgx{} in systems, we identify several challenges in running COTS applications in enclaves, including performance factors and security issues. \fixmedp{vague}
+
+%\graphenesgx{} realizes a deployment model (as shown in Figure~\ref{fig:deploy-model}) that transits Linux COTS applications to \sgx{},
+%without the individual effort of porting the applications.
+%\graphenesgx{} divides up the three goals of \sgx{}: isolating execution, attesting code integrity and authenticating trusted enclaves---\graphenesgx{} centralizes the effort of bootstrapping the isolation, and assists developers to accomplish the other two goals.
+\end{compactitem}
+\end{comment}
+
+
+
+%I think the story here is that fears of the costs of library OSes are greatly exaggerated, and the performance is fine + it is easy to use.  Although SGX has a lot of limits, it doesn't have to be hard to bring up code on SGX (or other upcoming secure HW platforms) quickly.
+%* Yes, you can do better with custom code in swift or whatever, but a lot of people benefit from thunking code down and having it "just work" with protection
+%To this end, we also contribute usability enhancements, like dynamic linking, remote attestation, ipc, fork, etc.
+%We contribute a measurement of a relatively mature SGX libos on real hardware.
+%Shit works, lots of people are using Graphene.
