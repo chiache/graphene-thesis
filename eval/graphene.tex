@@ -71,7 +71,8 @@ Overheads are relative to Linux.}
 \label{tab:graphene:startup}
 \end{table}
 
-\subsection{Process Migration and Application Startup}
+\subsection{Process migration and startup}
+\label{sec:eval:graphene:startup}
 
 %A key feature of VMs is the ability to move a running application to a new system.
 \graphene{} supports migration of an application from a \picoproc{} on one machine
@@ -94,8 +95,8 @@ Similarly, checkpointing and restoring a 4 MB application on \graphene{} is 1--4
 
 %\fixmedp{Error bars on mem usage graphs missing}
 
-\subsection{Memory Footprint}
-\label{sec:graphene:eval:mem}
+\subsection{Memory footprint}
+\label{sec:eval:graphene:memory}
 
 We begin by measuring the minimal memory footprint of a simple ``hello world'' program 
 on Linux (352 KB) and \graphene{} (1.4 MB).
@@ -217,7 +218,7 @@ Unixbench  & 0.55 & .00 & 0.55 & .00 &  0 \% & 1.49 & .00 & 192 \%  \\\hline
 
 
 \subsection{Application performance}
-\label{sec:graphene:eval:perf}
+\label{sec:eval:graphene:apps}
 
 Table~\ref{tab:graphene:apps} lists 
 execution time of our {\em unmodified} 
@@ -275,7 +276,7 @@ to bridged networking.
 
 
 \subsection{Micro-benchmarks}
-\label{sec:graphene:eval:micro}
+\label{sec:eval:graphene:mbench}
 
 In order to understand the overheads of individual system calls,
 Table~\ref{tab:graphene:lmbench} lists 
@@ -535,7 +536,7 @@ when a producer/consumer pattern were detected were particularly helpful.
 
 %We validate that the \graphene{} host can dynamically move a \picoproc{} into a new sandbox, and that the \graphene{} handles this transparently to the application. In this test case, the host forcibly disconnects all streams between two guests after execution begins. Both library OSes behave as if the other \picoproc{} terminated, delivering exit notifications, closing application-visible pipes. The \picoproc{} which was not already leader for IPC coordination  assumes this role in the new sandbox. Thus, we show that \graphene{} gracefully handles dynamic sandboxing or disconnection of collaborating \picoprocs{}.
 
-\subsection{Security Study}
+\subsection{Security study}
 
 Demonstrating security is always challenging, as it requires exploring all possible attacks.
 We instead offer statistics that indicate an overall reduction in attack surface,
@@ -566,7 +567,7 @@ In our design, only trusted applications such as system utilities can run as a n
 %For example, a malicious process in a VM could hog system resources on purpose (e.g, continuously computing the factorial of a number to waste CPU cycles) to affect performance/availability of another VM system. 
 
 
-\paragraph{Isolation Experiments.}
+\paragraph{Isolation experiments.}
 This subsection tests whether \graphene{} meets its goal of providing equivalent isolation
 to a VM.
 We conducted an evaluation of the security of the isolation mechanisms in \graphene{} and analyzed whether a malicious \graphene{} \picoproc{} could 
@@ -592,7 +593,7 @@ In our last experiment, \picoproc{} 1 attempts to obtain secrets from \picoproc{
 
 %This attack involves correlating a web browser’s data resident size (inspected via the {\tt proc} file system) to the web sites visited by a user. 
 %Since the proc file system is accessed as though it was part of the normal file system, any access to it has to go through the system  open command.
-\paragraph{Analysis of Linux Vulnerabilities.}
+\paragraph{Analysis of Linux vulnerabilities.}
 \graphene{} restricts \picoprocs{} to 15\% of the system call table.
 To evaluate the impact on system security,
 we \emph{manually} analyzed
@@ -672,7 +673,7 @@ these results indicate that moving the system call table into
 the application has the potential to substantially reduce exploitable 
 system vulnerabilities.
 
-\paragraph{New Opportunities.}
+\paragraph{New opportunities.}
 To explore new use cases of the \graphene{} sandboxing model, we modified the 
 Apache {\tt mod\_\-auth\_\-basic.so} module to call the new library OS function
 {\tt sandbox\_create} after user authentication.
