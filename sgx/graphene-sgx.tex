@@ -1,0 +1,295 @@
+%\documentclass[10pt, twocolumn, nocopyrightspace]{sigplanconf}
+\documentclass[letterpaper,twocolumn,10pt]{article}
+\usepackage{usenix,epsfig,endnotes}
+
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
+
+\usepackage{balance}
+
+% comment out the following line when submitting
+%\def \oscardebug{}
+%\def \oscardraft{}
+
+% rubber: paper letter
+
+% $Id$
+\setlength{\paperheight}{11in}
+
+% natbib package in sigplanconf class file conflicts with cite package
+\usepackage{paralist}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{rotating}
+\usepackage{multirow}
+\usepackage{listings}
+\lstset{language=C}
+\usepackage[hyphens]{url}
+\usepackage{comment}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage[sort]{natbib}
+\usepackage{paralist}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage{titling}
+
+\renewcommand{\ttdefault}{cmtt}
+
+\begin{document}
+
+%% disable hyperref draft mode for submission
+
+% No copyright block for submission
+%\makeatletter
+%\let\@copyrightspace\relax5
+%\makeatother
+
+%\setlength{\columnsep}{.33in}
+
+% Use the following at camera-ready time to suppress page numbers.
+% Comment it out when you first submit the paper for review.
+\ifx \oscardraft \undefined
+\pagestyle{empty}
+\makeatletter
+  \let\ps@plain\ps@empty
+\makeatother
+\fi
+
+%\pagenumbering{arabic}
+
+%\singlespace
+%% To make table entries readable
+\newcommand\T{\rule{0pt}{2.0ex}}
+\newcommand\B{\rule[-0.9ex]{0pt}{0pt}}
+
+% Squeeze space
+%\renewcommand{\baselinestretch}{0.99}
+%\addtolength{\belowcaptionskip}{-10pt}
+%\addtolength{\abovecaptionskip}{-5pt}
+%\newcommand{\tabpar}[2]{
+%    \begin{center} \begin{tabular}{#1} #2 \end{tabular} \end{center}}
+
+%% \newcommand{\by}[2]{\mbox{#1$\times$#2}}
+
+%% \newcommand{\wunits}[2]{\mbox{#1\,#2}}
+%% \newcommand{\um}{\mbox{$\mu$m}}
+%% \newcommand{\xum}[1]{\wunits{#1}{\um}}
+%% \newcommand{\xnm}[1]{\wunits{#1}{nm}}
+%% \newcommand{\sig}[1]{${\tt #1}$}
+%% \newcommand{\sigb}[1]{$\overline{{\tt #1}}$}
+
+% Make list indentation tight\
+\setdefaultleftmargin{1em}{0em}{}{}{}{}
+
+\ifx \oscardebug \undefined
+\newcommand{\fixme}[1]{{}}
+\newcommand{\fixmedp}[1]{{}}
+\else
+\newcommand{\fixme}[1]{{\bf\textcolor{red}{ [ FIXME Ts: #1 ]}}}
+\newcommand{\fixmedp}[1]{{\bf\textcolor{red}{ [ FIXME dP: #1 ]}}}
+\fi
+
+\ifx \oscardebug \undefined
+\newcommand{\note}[1]{{}}
+\else
+\newcommand{\note}[1]{{\bf\textcolor{blue}{ [ NOTE: #1 ]}}}
+\fi
+
+\ifx \oscardraft \undefined
+\newcommand{\edit}[1]{{#1}}
+\newenvironment{edits}{}{}
+\else
+\newcommand{\edit}[1]{{\textcolor{blue}{#1}}}
+\newenvironment{edits}{\color{blue}}{\color{black}}
+\fi
+
+% MW adding. To compile without the red, either:
+% (1) comment in the following line:
+%\def\noeditingmarks{} % or
+% (2) compile with a line like:
+%    $ latex '\def\noeditingmarks{} \input osdi08
+% Also, might be easier to convert your macros to this format. (I like
+% having the comments in another color and also being able to turn them
+% all off with one command.)
+\begin{comment}
+\newcommand{\textred}[1]{\textcolor{red}{#1}}
+\ifx\noeditingmarks\undefined
+    \newcommand{\pgwrapper}[2]{\textred{#1: #2}}
+\else
+    \newcommand{\pgwrapper}[2]{}
+\fi
+\newcommand{\mw}[1]{\pgwrapper{MW}{#1}}
+\end{comment}
+
+\newcommand{\intel}{Intel}
+\newcommand{\sgx}{SGX}
+\newcommand{\sdk}{Intel SDK}
+\newcommand{\libos}{library OS}
+\newcommand{\libc}{libc}
+\newcommand{\sysname}{Graphene-SGX}
+\newcommand{\graphene}{Graphene}
+\newcommand{\haven}{Haven}
+\newcommand{\drawbridge}{Drawbridge}
+\newcommand{\scone}{SCONE}
+\newcommand{\panoply}{Panoply}
+
+\newcommand{\enclavecallnum}{28}
+\newcommand{\palcallnum}{36}
+\newcommand{\shieldsyscallnum}{145}
+
+\newcommand{\funcname}[1]{{\tt #1}}
+\newcommand{\syscall}[1]{{\tt #1}}
+
+\newcommand{\roughly}{$\sim$}
+
+%%%%%%%%%%%%%%SPACING HACKS%%%%%%%%%%%%%%%
+
+% get the top of the title to exactly 1inch from the top of page
+\setlength{\droptitle}{-.55in}     % Eliminate the default vertical space
+%%\addtolength{\droptitle}{-4pt}   % Only a guess. Use this for adjustment
+
+% reduce the spacing before \paragraph{} commands: (tweak the number before \@plus)
+%% \makeatletter
+%% \renewcommand{\paragraph}{%
+%%   \@startsection{paragraph}{4}%
+%%   {\z@}{0.5ex \@plus 1ex \@minus .2ex}{-1em}%
+%%   {\normalfont\normalsize\bfseries}%
+%% }
+%% \makeatother
+
+%% Eliminate widows and orphans if needed 
+
+% reduce the penalties for page breaks in middle of paragraphs
+%% \clubpenalty=10
+%% \widowpenalty=10
+%% \interlinepenalty=10 %hyphens
+%% \brokenpenalty=10    %hyphens
+
+%% \def\topfraction{0.9}
+%% \def\bottomfraction{0.9}
+%% \def\textfraction{0.1}
+
+
+% minimize spacing between paragraphs
+%% \setlength{\parskip}{0pt}
+%% \setlength{\parsep}{0pt}
+%% \setlength{\headsep}{0pt}
+%\setlength{\topskip}{0pt}
+%\setlength{\topmargin}{0pt}
+%\setlength{\topsep}{0pt}
+%\setlength{\partopsep}{0pt}
+
+%% \addtolength{\voffset}{.3125in}
+%% \addtolength{\textheight}{-.0625in}
+%% \addtolength{\textwidth}{-.0625in}
+
+%\def\name#1{#1}%
+%\def\defname#1#2{\expandafter\def\csname #1\endcsname{\name{#2}}\ignorespaces}%
+%\thispagestyle{empty}
+%% compress the space between title and authorlist
+%\numberofauthors{1}
+%\authorinfo{names}{Stony Brook}{emails}
+%\author{Anonymous submission to SOSP 2013, please do not distribute. Paper \#162, \pageref*{LastPage} pages total.}
+%\author{Anonymous submission to EuroSys 2013, please do not distribute.}
+
+%\titlebanner{Draft, please do not distribute}        % These are ignored unless
+%\preprintfooter{Draft, please do not distribute}   % 'preprint' option specified.
+
+\def\longconferencenames{}
+\input{../conferences}
+
+%% DP: Note there is a hack in sig-alternate class file to squeeze space under the title for submission.
+%\title{Graphene for Shielding: Decentralizing Hardware-Assisted Isolated Execution for Multi-Process Applications}
+%\title{Shielding Unmodified Linux Multi-Process Applications with a Multi-Enclave Library OS using Intel SGX}
+%\title{Isolating Legacy Applications in Multi-Enclave Environment Using \sysname{} Library OS}
+%\title{Shelter the Civilians---Securing Linux COTS Applications with Intel SGX}
+\title{Graphene-SGX: A Practical Library OS for Unmodified Applications on SGX}
+
+%\author{Anonymous submission to Security\&Privacy 2017, please do not distribute.}
+\author{
+{\rm Chia-Che Tsai}\\
+Stony Brook University
+\and
+{\rm Donald E. Porter}\\
+University of North Carolina at Chapel Hill \\ and Fortanix
+\and
+{\rm Mona Vij}\\
+Intel Corporation
+} % end author
+
+%\vspace{-20pt}}
+\date{\vspace{-4ex}} %% compress the space between authorlist and text
+%\date{}
+
+\newcommand{\subtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+    \begin{center}\large#1\end{center}
+    \vskip0.5em}%
+}
+
+%\subtitle{\bf Draft \today: Please do not distribute}
+
+\maketitle
+
+
+
+\titleformat{\section}[block]{
+  \fontsize{12}{15}\bfseries}{%
+  \thesection}{%
+  1em}{%
+  }{%
+  }%
+  
+\titlespacing*{\section}
+{0pt}{1.5ex plus .1ex}{1ex plus .1ex}
+
+\titleformat{\subsection}[block]{
+  \fontsize{12}{14}\bfseries}{%
+  \thesubsection}{%
+  1em}{%
+  }{%
+  }%
+  
+\titlespacing*{\subsection}
+{0pt}{1.5ex plus .1ex}{1ex plus .1ex}
+
+\titlespacing*{\paragraph}
+{0pt}{.5ex plus .1ex}{1ex plus .1ex}
+
+
+\setdefaultitem{\normalfont\bfseries\textendash}{}{}{}
+
+\setdefaultleftmargin{1.5em}{3em}{}{}{}{}
+
+\setlength{\abovecaptionskip}{3pt minus 1pt}
+\setlength{\belowcaptionskip}{-7pt}
+
+% Use the following at camera-ready time to suppress page numbers.
+% Comment it out when you first submit the paper for review.
+%\thispagestyle{empty}
+
+\input{abstract}
+\input{intro2}
+%\input{intro}
+\input{background}
+\input{security}
+\input{overview}
+\input{multiproc}
+\input{impl}
+%\input{examples}
+\input{eval}
+\input{related}
+\input{conclusion}
+\input{acks}
+
+%\input{acknowledgements}
+\bibliographystyle{abbrv}
+\balance
+\bibliography{../bibliography}
+
+%\theendnotes
+\end{document}

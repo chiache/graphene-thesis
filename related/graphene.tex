@@ -1,4 +1,4 @@
-\section{Compatibility and Security Isolation}
+\section{Library OSes}
 
 
 \begin{comment}
@@ -11,9 +11,7 @@ Library OSes can be viewed as extreme paravirtualization---attempting
 to find the most ideal interface between guest and host. %abstractions of hardware without also baking-in host semantics.
 \end{comment}
 
-\subsection{Library OSes}
-
-
+\paragraph{Previous library OSes.}
 This work extends previous library OSes~\citep{porter11drawbridge,xax,unikernels,baumann13bascule,osv},
 which focused on single-process applications,
 to support coordination abstractions required 
@@ -88,8 +86,7 @@ that uses Linux host system calls. % to emulate this functionality.
 UML is best described as  an alternative approach to paravirtualization~\citep{barham03xen},
 and, unlike a library OS, does not deduplicate functionality.
 
-\subsection{Distributed Coordination APIs}
-
+\paragraph{Distributed coordination APIs.}
 Distributed operating systems, such as LOCUS~\citep{locus83sosp,fleisch86locus}, Amoeba~\citep{mullender90amoeba,cheriton89naming} and  
 Athena~\citep{champine90athena} required a consistent namespace for process identifiers and other IPC abstractions
 across physical machines.
@@ -181,8 +178,7 @@ Graphene's cross-process signal delivery is 4.6$\times$ slower than native, wher
 %% Our work contributes  an implementation of distributed naming inside the library OS, facilitating security isolation, 
 %% and application-transparent detachment.
 
-\subsection{Migration and security isolation}
-
+\paragraph{Migration and security isolation.}
 Researchers have added checkpoint and migration support to Linux~\citep{linux-cr}
 by serializing kernel data structures to a file
 and reloading them later.  

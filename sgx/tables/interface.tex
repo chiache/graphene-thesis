@@ -1,65 +1,29 @@
 \footnotesize
-\begin{tabular}{lc>{\palign[\tt]{l}}p{4.5in}}
-\hline
+\begin{tabular}{>{\raggedleft\arraybackslash}p{.15\linewidth}>{\raggedright\arraybackslash\ttfamily}p{.85\linewidth}}
+Entry \& Cloning (4) :
+& start\_enclave([in] UINT parent\_fd); clone\_process([out] STRING app, [in] UINT child\_fd); \\
 \addlinespace
-Classes & \# & {\normalfont\bf Untrusted Interface Functions} \\
+Scheduling (2) :
+& pause\_thread(); wake\_one\_thread([out] thread\_id); \\
 \addlinespace
-\hline
-Entries / Exits & 3 & 
-start\_enclave
-exit\_enclave
-start\_thread
-\\
-\hline
-Memory & 2 &
-map\_untrusted
-unmap\_untrusted
-\\
-\hline
-Scheduling & 4 &
-sleep
-schedule
-futex
-gettime
-\\
-\hline
-Cloning & 2 &
-clone\_thread
-clone\_process
-\\
-\hline
-Files & 8 &
-file\_open
-file\_mkdir
-file\_rename
-file\_delete
-file\_truncate
-file\_write
-file\_read
-file\_readdir
-\\
-\hline
-Sockets & 8 &
-sock\_listen
-sock\_accept
-sock\_connect
-socketpair
-sock\_send
-sock\_receive
-sock\_shutdown
-sock\_setopt
-\\
-\hline
-File Descriptors & 3 &
-fd\_close
-fd\_size
-fds\_poll
-\\
-\hline
-Misc & 3 &
-print\_debug
-load\_gdb
-cpuid
-\\
-\hline
+Files (4) :
+& file\_open([out] STRING filename, [in] UINT file\_fd); \\
+& file\_setlength([out] UINT file\_fd, [out] ULONG size); \\
+& file\_rename([out] STRING old\_filename, [out] new\_filename); \\
+& file\_readdir([out] UINT dir\_fd, [in] STRING[] filenames); \\
+\addlinespace
+Sockets (4) :
+& sock\_listen([out] UINT family, [out] STRING ip, [in] UNIT server\_fd); \\
+& sock\_accept([out] UINT server\_fd, [in] UNIT connection\_fd); \\
+& sock\_connect([out] UINT family, [out] STRING ip, [in] UNIT connection\_fd); \\
+\addlinespace
+Pipes (1) :
+& pipe\_create([in] UINT pipe\_fd\_in, [in] UINT pipe\_fd\_out); \\
+\addlinespace
+Streams (4) :
+& stream\_read([out] UINT fd, [out] ULONG offset, [out] ULONG size, [in] BYTE[] data); \\
+& stream\_write([out] UINT fd, [out] ULONG offset, [out] ULONG size, [out] BYTE[] data); \\
+& stream\_poll([out] UINT[] polling\_fds, [in] UINT polled\_fd); \\
+& stream\_share([out] UINT pipe\_fd, [out] UINT[] sending\_fds, [in] UINT[] received\_fds); \\
+& stream\_close([in] UINT fd); \\
 \end{tabular}
