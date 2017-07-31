@@ -1,0 +1,85 @@
+\section{Threat Model}
+\label{sec:threat}
+
+In this section, we discuss the threat model of \sysname{},
+including the adversaries,
+and the components that must be trusted.
+
+\paragraph{Adversaries}
+We assume the same adversaries as other \sgx{} enclaves.
+Any part of the system stacks, including the OSes,
+device drivers, hypervisors, and even hardware,
+such DRAM, GPU, buses, and peripheral devices, can be malicious
+and attempt to attack the enclaves.
+%The only trusted component is the CPU package, including L2 and L3 caches.
+The attackers can perform any form of
+online and offline attacks.
+We also assume the attackers own all information
+about \sgx{} hardware implementation, as well as every part of our solution.
+
+We focus on the adversaries that target on
+exploiting vulnerabilities in the isolated applications.
+The attackers can manipulate any input to the application interfaces,
+or the untrusted interfaces of the enclaves.
+%Attackers may apply any techniques that compromise a regular privileged applications to compromise enclaves.
+The vulnerabilities that attackers can exploit may not only fall in applications, but also in the infrastructures,
+such as the libOS, the \java{} VM, JNIs and low-level interface to architecture.
+
+%The only adversaries that are not addressed in \sysname{} are
+%attackers exploiting {\em side channels} and
+%{\em denial-of-service attacks}.
+%Side channels, or even controlled channels, is a known problem of \sgx{} enclave
+%and we expect to solve the problem in the future with
+%stronger architectural support.
+%Denial-of-service attacks are often considered benign for enclaves,
+%because it only affect the ability of an untrusted host to legally access
+%critical resources.
+
+\paragraph{Trusted Components}
+We trust any components loaded inside an enclave,
+including the infrastructure (details discussed in Section~\ref{sec:implementation}), %(low-level interface, the libOS, \jvmname{}),
+all supporting classes and their JNI,
+and other resources or classes provisioned from remote hosts.
+%All trusted components must be verified by either \sgx{} hardware or the infrastructure against their cryptographical measurements or checksums.
+The implementation of \sgx{} hardware is also trusted to be invulnerable,
+and use adversary-resistant key generators that cannot be compromised
+by online or offline techniques.
+We also assume \intel{} CPUs are resistant to direct, physical attack to the CPU packages, either to modify or peek into the chips.
+
+\fixmets{Now JIT'ed code is not giving me error, but in case it fails later, we have to flip this discussion.}
+We support running \java{} application both with and without JIT optimization.
+Running \java{} application with JIT optimization
+improve the performance of execution,
+but can cause massive increase of the TCB of enclaves.
+In case that JIT optimization is enabled in the enclaves,
+the JIT compilers (\java{} VMs often have multiple JIT compilers, e.g., \jvmname{} has two) must be trusted by the users,
+to always generate correct and invulnerable binary code.
+
+
+%Note that in \sysname{} we disable JIT compiler that used to improve \java{} execution performance.
+%The choice of disabling runtime compilation is due to the concerns that
+%JIT compiler may largely extend the TCB because it must be trusted,
+%and any bugs in different versions of compilers
+%may causes code behaviors than what developers have tested and expect.
+%Another practical reason is concerning the complexity and
+%resources required for running a \java{} compiler with library OS in an %enclave.
+%However, we consider these limitations to be not fundamental to the approach, and we keep compiler support in \sysname{} as a future work.
+
+
+
+%In term of architecture, we trust the implementation of \sgx{} hardware,
+%to maintain invulnerable implementation of \sgx{} instructions,
+%and using adversary-resistant key generators that cannot be compromised
+%by attacker using online or offline techniques.
+%The CPU must keep enclave contents encrypted in DRAM and low-level caches that are shared by multiple cores.
+%We also assume \intel{} CPUs are resistant to direct, physical attack to the CPU packages, either to modify or peek into the packages.
+
+%\sysname{} protects confidentiality and integrity of provisioned security critical data in the trusted part of an application written in a high level managed language like JAVA.
+% from the privileged operating system and the untrusted part of the same application. 
+%\sysname{} assumes that the \sgx{} instructions are implemented correctly in the processor, and the SDK do not contain exploitable bugs to leak information. In addition, \sysname{} trusts the Graphene LibOS and the JVM running in the enclave with the trusted part of the application to not leak information. Thus, the security of the provisioned data is limited by the correctness of the processor, \sgx{}, Graphene LibOS, and JVM. \sysname{} also trusts the trusted part of the application to not leak information explicitly. \sysname{} prevents the trusted part of an application from implicitly leaking information.
+
+%Threats that we do not cover
+%\sysname{} inherits the threat model of \sgx{}~\cite{sgx}.
+%The adversary controls the cloud provider's complete stack, OS, hypervisor, BIOS, system management mode, platform firmware, and device firmware. The adversary can also probe the memory and manipulate the I/O, but cannot read secret present in the processor.
+%\sysname{} do not defend against attack vectors such as side-channel, covert-channel and control-channel~\cite{control-channel}. Denial of Service (DOS) attack is not part of \sysname's threat model. Even if the OS never schedules the enclave program or the untrusted part of the application is manipulated to never enter the enclave, no provisioned secret is leaked outside the enclave.
+

@@ -1,0 +1,71 @@
+\section{Implementation Details}
+\label{sec:implementation}
+
+In this section, we discuss in detail about how the framework of \sysname{}
+is implemented. 
+
+\paragraph{The \graphene{} \libos{} ported to \sgx{}}
+Similar to Drawbridge~\cite{porter11drawbridge}
+in Haven~\cite{baumann14haven},
+\graphene{}~\cite{tsai14graphene} maps a larger number of Linux system APIs
+to a narrow, portable host interface.
+Library OSes like Drawbridge and Haven unlock the platform limitations of \sgx{} and
+allows many applications to be ported to enclave painlessly.
+%The untrusted interface of \graphene{} \libos{} after porting to \sgx{}
+%is mostly identical to the original host interface,
+%therefore \graphene{} has a finite  bound on interface for the enclave.
+
+%\graphene{} uses checksums to verify the integrity of applications.
+%The checksums are collected by a compile-time Signer tool of \graphene{}.
+%The Signer tool ensures the integrity of the file checksums
+%by including them as part of the enclave's measurement.
+%Even if the same \libos{} is used
+%to run the applications,
+%different binaries in the enclaves yield different measurements. 
+%Such a design decouples the problem of distributing 
+%and guaranteeing code integrity for each application, as the enclave integrity is based on the integrity of the application --- not just the libOS.
+ 
+\sysname{} makes minor modifications to \graphene{} to allow
+the enclave to run
+in the same process as the the untrusted \jvm{}.
+The trusted and untrusted VM share a ring buffer (as shown in Figure~\ref{fig:runtime} for communication during control transfer,
+but the ring buffer itself is not trusted. The \sysname{} framework encrypts tainted security-sensitive data before passing the data on the ring buffer.
+ 
+\paragraph{Control transfer at enclave entry}
+
+\sysname{} transparently transfers the control from the untrusted classes to trusted classes --- triggering enclave entry in the process ---
+by intercepting the trusted classes's method or constructor invocation by untrusted classes.
+\sysname{} intercepts classes in two ways:
+(a) For an entry class that has finite entry points,
+\sysname{} creates a wrapper class that redirects all constructors and static methods.
+(b) For other trusted classes, \sysname{} adds the redirection calls only when a reference is returned by the enclave. %\fixmebj{Is this correct?}
+%(b) For other trusted classes, the interception is installed when a reference of 
+%object is returned to the untrusted classes.
+On future access of the object in the enclave, a proxy object is created to trigger the interception, using CGLib.
+
+When the control transfers between the trusted and untrusted classes,
+the arguments and return values of the methods
+are stored in the ring buffer.
+\sysname{} relies on serialization and deserialization to safely transfer object in and out of the enclave.
+When \sysname{} deserializes an object, the \jvm{} perform type-checking sanitize the input. % the members.
+
+%After \sysname{} transfers the arguments, the \jvm{} thread that
+%invoke the intercepted  method does not directly enter the enclave.
+%On the other hand, several enclave threads that are pre-created during the enclave creation that are block-waiting on the ring buffer.
+%One of the enclave threads consumes the queued job, invokes the method,
+%and returns to block-waiting for more new requests.
+%No variable on the stack has to be persistent for the enclave threads,
+%and only instances of the trusted classes are persisted across enclave entry and exit.
+
+%Moreover, upon enclave entry and exit, the objects that can be safely transferred in or out of the enclave must be serialized / deserialized.
+%However, not all classes implement the interface {\tt Serializable},
+%especially when the classes contain internal states that cannot be simply interpreted.
+%But, \sysname{} assumes that the types of all arguments and return objects must be {\tt Serializable}. 
+
+\paragraph{Limitations}
+As we leverage dependency tracking for automated partition, there are few corner cases that the Shredder cannot gracefully handle.
+Because CGLib creates subclasses of objects when intercepting them,
+it requires the intercepted object to be never finalized.
+If a trusted class is also a final class, developers have to manually modify the class definition. Even though final attribute prevents further extension of the class, we argue that the application developer who is building the enclave can safely remove the final attribute as the \sysname{} signs the enclave jar.
+
+ We also do not let trusted classes make method or constructor invocation of the untrusted classes, as the untrusted classes may be able to influence and interfere with the execution of trusted classes. Moreover, we only consider the provisioned code and data as security-sensitive. Even though this limits the usage scenarios, we argue that for any right usage of \sgx{} hardware, these limitations are not disruptive.
