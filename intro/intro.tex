@@ -3,8 +3,8 @@
 
 
 Operating systems simplify the programming of an application to utilize a wide range of hardware.
-A main purpose of a modern, UNIX-style OS
-is to encapsulate the low-level hardware resources and operations for applications~\cite{ritchie74unix}.
+A main purpose of a UNIX-style OS
+is to encapsulate the low-level hardware resources and abstractions~\cite{ritchie74unix}, in programmable system interfaces.
 %In modern computer systems, an operating system plays a key role
 %of abstracting the hardware for applications. % that are designed to run on a wider range of hardware platforms.
 %\fixmedp{be more direct}
@@ -12,12 +12,12 @@ is to encapsulate the low-level hardware resources and operations for applicatio
 %The abstraction of OSes reduces the burden of average developers
 %to program the interface of a physical machine.
 %abstract the hardware for applications. %rely on operating systems for abstracting the hardware in OS services.
-From the perspective of application developers,
+For application developers,
 an OS is equivalent to 
 %The \fixmedp{from the programmers' perspective} top-down view of an OS is 
 an extended machine or a ``virtual machine''~\cite{tanenbaum19os-textbook,dhamdhere2007os-textbook},
-on which they can expect a consistent {\em system interface} to program the usage of hardware,
-instead of directly interfacing hardware components.
+with a consistent system interface
+which hides the idiosyncrasy of physical hardware interfaces.
 %which hides the low-level details of the hardware.
  %~\cite[Ch.1]{tanenbaum19os-textbook}.
 %In an OS,
@@ -68,22 +68,33 @@ instead of directly interfacing hardware components.
 %in order to fulfill complicated tasks on computer systems.
 %Ultimately, \fixmedp{this will be a better topic sentence} OSes simplify the programming of an application
 %to utilize a wide range of hardware.
-The presence of the OSes has an indisputable benefit on the advance of both software and hardware, by reducing the obstacle and friction during the deployment of new technologies.
-
-
-
-Specifically, many OSes emphasize on the quality of making applications {\em portable} across different hardware.
-The portable OS design
-simplifies the programming of a distributable application %an one-time effort
-on limited hardware options available to the developers.
+%The encapsulation of system interfaces
+%accelerates the advance of both software and hardware technologies, by making them easier to 
+%be deployed within the system stack.
+Most system interfaces are defined to be portable to physical machines
+with different hardware configurations,
+such as CPU models, memory sizes, and I/O devices,
+and thus makes applications also portable.
+%The portable OS design
+%simplifies the programming of a distributable application %an one-time effort
+%on limited hardware options available to the developers.
 %Many OSes offer the convenience of developing applications
 %that are not tied to specific hardware, or {\em application portability}.
-Application portability requires an OS to export a system interface
-independent from hardware configurations, such as CPU models, memory sizes, and types of I/O devices.
-The only exception is the portability across CPU architectures,
-since most OSes restrict applications to be compiled with a choice of ISA (instruction set architecture), such as x86 or powerpc.
-Otherwise, application developers would expect an application, built without dependency to specific hardware, to be reusable in an OS regardless of what hardware users choose.
-The same assumption on application portability has been shared among many OS standards, including POSIX~\cite{ieee-posix}, Linux~\cite{linux-standard-base}, BSD~\cite{quarterman85bsd}, and Windows~\cite{win-api}. 
+Although most OSes still restrict applications to be compiled with a choice of ISA (instruction set architecture), such as x86 or powerpc,
+the programming of system interfaces is mostly independent
+from the choice of hardware devices.
+%Application portability requires an OS to export a system interface
+%independent from hardware configurations,
+%such as different CPU models, memory of different capacity, and various I/O devices.
+%The only exception is the portability across CPU architectures,
+%Otherwise, application developers would expect an application, built without dependency to %specific hardware, to be reusable in an OS regardless of what hardware users choose.
+%The same assumption on application portability has been shared among
+Most OSes,
+including Linux~\cite{linux-standard-base}, BSD~\cite{quarterman85bsd}, Windows~\cite{win-api},
+and any POSIX-compliant OSes~\cite{ieee-posix},
+share the merit of improving the reusability, portability, and distribution
+of application code,
+due to the definition of system interfaces.
 
 
 
@@ -152,7 +163,7 @@ The same assumption on application portability has been shared among many OS sta
 %A portable OS decouples application development with choice of hardware.
 
 
-
+\begin{comment}
 Unfortunately, %for a modern OS, system interfaces are not only for the portability of future applications, but also to remain {\em compatible} with all existing applications.
 due to the rapid growth of applications,
 OS development is increasingly burdened with 
@@ -228,8 +239,14 @@ as it is programmed and tested on their own machines.
 %will behave consistently on the successors of the OS.
 %Maintaining the compatibility of system interfaces
 %is an obligation of OS developers, to ensure the stability of application deployment.
+\end{comment}
 
-For OS developers, compatibility is often a distraction to innovations, despite being a critical factor to whether an OS or hardware component is immediately deployable. %, even though compatibility is critical to system usability.
+
+Due to the relevance of system interfaces to application programming, the development of an OS is often bound by
+system interface definitions,
+for the compatibility against existing applications.
+ %, in response to new hardware technologies.
+%which is often a distraction to innovations. %, despite being a critical factor to whether an OS or hardware component is immediately deployable. %, even though compatibility is critical to system usability.
 %For OS developers, maintaining compatibility is a valuable effort, 
 %but also can be a distraction to innovations.
 %Normally it is simpler %not particularly difficult
@@ -241,26 +258,45 @@ For OS developers, compatibility is often a distraction to innovations, despite 
 %The focus on convenience of application programming and portability in the OS design space ends up creating several millions-line-of-code OS artifacts,
 %including Linux and Windows.
 %iThe design of portable system interfaces can't avoid leaking new hardware or OS designs with unprecedented constraints. % or methods of operation.
-The early UNIX systems are reportedly easy to implement and evolve, because
+The early UNIX systems are reportedly easy to implement, because
 %they only have a relatively small amount of hardware devices and applications to deal with, and 
 the system interface is tailored
-for applications and hardware devices available at the time~\cite{ritchie78unix-retro}.
-%The problems lies in the complexity of 
-Preserving compatibility becomes a challenge
-when a hardware design leaks out of the typical abstractions
-encapsulated by an OS.
-When changing the system interface becomes unavoidable,
+for applications, CPUs, RAMs, and I/O devices available at the time~\cite{ritchie78unix-retro}.
+%The problems lies in the complexity of
+However, %due to rapid growth of applications and hardware products,
+OS developers are increasingly burdened by compatibility,
+due to new hardware designs which leak out of the typical abstractions encapsulated by the current system interfaces.
+%When the current system interface can no longer retain the portability of applications,
+%OS developers are forced to
+%
+%extend the system interface.
+%s, OS developers cannot extend the system interfaces
+%without ensuring that existing applications will be updated accordingly.
+%Compatibility requires preserving the OS functions defined in a system interface,
+%which are indispensable to applications.
+The additional effort for retaining or restoring compatibility will delay the deployment of a hardware technology, or disrupt an application on new machines.
+%If OS developers must extend the system interfaces for a new hardware device,
 %OS developers have to either extend the existing system interfaces
 %to support new hardware,
 %or implement a transparent layer which compensate for the distinction.
-it would almost certainly delay the timing when users can benefit from the new hardware designs.
-A classic example is the Intel SGX (software guard extensions) technology~\cite{intelsgx},
-which allows applications to protect themselves from untrusted OSes and administrators,
-but requires changing the applications to defend against malicious OS services.
-From the experience of porting applications to SGX,
-we can observe the challenges for preserving compatibility on innovative hardware.
-The size and subtlety of system interface in an OS is also unfriendly for OS developers to make a system-wide change transparent to applications.
-More details about SGX porting are discussed in Section \ref{sec:intro:sgx}.
+%the extension won't benefit existing applications without application modifications.
+%it would almost certainly delay the timing when users can benefit from the new hardware designs.
+A classic example %of a disruptive hardware design
+is Intel SGX (software guard extensions)~\cite{intelsgx},
+which assists applications to protect themselves from malicious OSes and administrators,
+but raises several compatibility issues,
+including changing the trusted nature of OS services (more discussed in Section~\ref{sec:intro:sgx}).
+%Despite the benefits of SGX on application protection,
+%SGX requires changing the applications to defend against malicious OS services,
+%and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
+%Especially, the size and subtlety of the Linux or Windows system interface
+%makes it unsuitable for adopting applications to SGX~\cite{checkoway13iago}, because SGX has fundamentally changed the nature of OS services.
+%Several recent publications mitigate part of the compatibility issue for deploying applications on SGX~\cite{baumann14haven,osdi16scone,shinde17panoply}.
+
+% in unfriendly for OS developers to make a system-wide change transparent to applications.
+
+
+
 
 
 
@@ -554,9 +590,9 @@ The OS development process can be both painful and time-comsuming.
 
 
 
-OS developers also find it challenging to develop a new OS prototype with compatibility against existing application,
+OS developers often find it challenging to develop an OS prototype with compatibility against existing application,
 %Application compatibility also raises challenges for the development of a new OS prototype,
-especially for the purpose of experimenting innovative OS concepts~\cite{baumann09barrelfish,unikernels,zeldovich+histar,libra,peter14arrakis,belay14ix}.
+especially when experimenting innovative OS designs~\cite{baumann09barrelfish,unikernels,zeldovich+histar,libra,peter14arrakis,belay14ix}.
 For practical reasons, 
 an OS prototype often chooses to adopt the system interface of a popular OS standard, such as POSIX or Linux, to reuse applications already under deployment.
 %It is a practical move to implement system interfaces from a popular open OS such a Linux,
