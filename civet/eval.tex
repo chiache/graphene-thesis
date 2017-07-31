@@ -1,0 +1,363 @@
+\section{Evaluation}
+\label{sec:eval}
+
+%\fixmets{1.5 page}
+
+This section evaluates the \tcbsize{}, memory footprint, startup time,
+porting efforts and execution latency break-downs of partitioned applications using the \sysname{} framework.
+We drive this evaluation 
+%with the case studies (\S\ref{sec:case-study}),
+%as well as with
+with both \staticphase{} and \dynamicphase{} perspectives.
+%with both macro- and micro-benchmark:
+%using Java Microbenchmark Harness (JMH) Suite~\cite{jmh}.
+The evaluation is based on the use cases described in \S\ref{sec:case-study}.
+%the micro-benchmark contains a collection of single-purpose,
+%common workloads, including dummy ``Hello World'' programs, computation-bound execution, and server-type applications.
+The experiments are organized around
+the following critical questions
+about the partitioning strength and performance overhead of \sysname{}:
+%We organize the evaluation around the following questions:
+\begin{compactenum}
+\item What is the \tcbsize{} of the security-sensitive workloads in our use cases? How many classes and methods will be loaded into an enclave, for a partitioned and non-partitioned applications?
+\item What are the break-downs of execution overhead and resource cost using the \dynamicframework{}? What is \sysname{}'s overhead on the startup time, in-enclave and overall memory footprint, and latency for accessing in-enclave objects?
+%, I/O throughput and computation overhead?
+%\item What are the performance overheads of \java VM on \sysname{} relative to a native Linux process or \graphene{} in \sgx{}?
+%\item What additional overheads are added by the phosphor instrumentation?
+%\item How effective is the \sysname{}'s Shredder?
+%\item What is the effect of \sysname{} on TCB?
+%\item What is the performance overhead of \sgx{} isolation for case studies?
+\end{compactenum}
+
+We collect all experiment results on a
+Dell Optiplex 790 Desktop.
+The CPU is a 4-core 3.20 GHz Intel Core i5-6500 CPU. %, enabled with \sgx{} using updated BIOS.
+There is 8GB RAM on the machine, and 128MB is dedicated to the Enclave Page Cache (EPC).
+%8 GB RAM, and a 512GB, 7200 RPM ATA disk.
+Our host system runs Ubuntu 14.04.3 LTS server with Linux kernel version 4.2.0-25.
+The development of \sysname{} uses 
+OpenJDK version 1.7.0\_101,
+Phosphor version 0.0.2~\cite{phosphor},
+Intel \sgx{} Linux SDK~\cite{intel-sgx-linux} and driver v1.6~\cite{intel-sgx-linux-driver},
+and \graphene{} v0.4beta with \sgx{} enabled~\cite{graphene-sgx}.
+%Adding more detail of KVM environment
+%Unless otherwise noted, \sysname{} measurements include the Phosphor instrumentation.
+
+
+For the prototype, we use 1GiB enclaves in our \dynamicframework{}.
+Intel{} \sgx{} Linux driver supports large
+enclaves up to several TiB;
+the driver swaps out unused enclave pages
+to split all the physical pages of EPC across concurrent enclaves.  
+The enclave size is proportional to the creation time,
+because the driver has to swap in all the pages so that the CPU can measure the page contents.
+The driver can swap out the pages after the creation if the enclave memory is underutilized, but the enclave code cannot allocate more virtual memory space in the enclave.
+
+
+%We use an unmodified but tuned \jvmname{} \jvm{} in the enclave.
+The details of build-time and run-time tuning for our in-enclave VM are described in \S\ref{sec:concept:loading}.
+Without customization for \sgx{},
+many design decisions within the \jvmname{} \jvm{} are not tailored to optimize for enclaves.
+For instance, most language runtimes including \jvmname{} assumes physical memory
+to be assigned lazily by the host OSes.
+However, an \sgx{} enclave requires each virtual page to be backed by a physical page at least once during the enclave creation.  
+Since \jvmname{} expects to over-allocate in-enclave
+memory during the execution,
+the initial size of the enclave has to be large enough to contain any future allocation.
+At best, we manage to fit all of our use cases into an 1GB enclave,
+and leave further reduction of the enclave footprint as a future work.
+
+
+%The \sysname{} framework runs in an 1GB size enclave. Without any modification to the \jvm{}, 1GB is the minimal enclave size without further downgrade on stability and efficiency.
+
+
+\subsection{Partitioned \tcbsize{}}
+
+We evaluate the TCB (trusted computing base) of running an \java{} application
+inside an enclave,
+and compare the partitioned version of the application
+with running the whole application in an enclave, non-partitioned.
+We measure the TCB using \emph{\tcbsize}:
+For native binaries implemented in C or C++, we calculate the line of code in each projects, and the size of the built binaries;
+For \java{} code, we calculate the number of classes and methods that the \jvm{} explicitly loads during the run-time.
+
+
+During the \dynamicphase{}, all components inside the enclave must be trusted.
+The in-enclave components of \sysname{} includes its \dynamicframework{} classes, the supporting classes, the \jvmname{} \jvm{}, and the Phosphor library for information flow control.
+The \staticphase{} components, including the \statictool{}, the Phosphor instrumentation tool, and the \graphene{} signing tool, all have to run on a trusted host and also be completely trusted.
+%The overall runtime TCB size for a partitioned \java{} application includes the 
+%framework infrastructure---\sysname{} runtime classes, the \graphene{} \libos{}, the \jvm{}, and the Phosphor library---and the shredded application.
+%
+%The \graphene{} \libos{}, 
+%the \jvm{}, \sysname{} runtime framework and the Phosphor library as shown in the 
+The overall \tcbsize{} of the \sysname{} name is listed in
+Table~\ref{tab:common-tcb}.
+% The \sysname{} Shredder tool is also trusted and 
+%adds 1,604 lines of code to the TCB.
+The total \tcbsize{} of \sysname{} at \dynamicframework{} is 21.6 MB, which is order of magnitude smaller than using the Haven system (\roughly{}209 MB) with the \jvmname{} \jvm{} (\roughly{}15 MB).
+%In addition to the common runtime TCB, each case study adds more code to the TCB.
+%The total amount of code trusted in \sysname{} is estimated as \roughly{}2.7M\loc{}.
+
+\begin{table}[t!b!]
+\caption{Overall \tcbsize{} (measured in \loc{}) for a partitioned application, within both \staticphase{} and \dynamicphase{} components.
+The \staticphase{} component (\statictool{}) is assumed to run on a trusted host.}
+\label{tab:common-tcb}
+\small
+\centering
+\begin{tabular}{p{2in}rr}
+\hline
+\addlinespace[2pt]
+{\bf \dynamicphase{} components} & {\bf k\loc{}} & Size (MB)\\
+\addlinespace[2pt]
+\hline
+Unmodifed supporting libraries ({\tt libc}, {\tt libstdc++}, etc)
+& 2,046 & 4.7 \\
+The \graphene{} \libos{}
+& 36 & 1.1 \\
+The OpenJDK \jvm{} (binary only) 
+& 605 & 15.3  \\
+Phosphor library
+&  46 & 0.5 \\
+\sysname{} run-time classes
+&   1.6 & 0.03  \\
+\hline
+\addlinespace[2pt]
+Total & 2,749 & 21.6 \\
+\addlinespace[2pt]
+\hline
+\hline
+\addlinespace[2pt]
+{\bf \staticphase{} components} & {\bf k\loc{}} & Size (MB)\\
+\addlinespace[2pt]
+\hline
+\sysname{} \statictool{}
+&   1.7 & 0.03  \\
+The \graphene{} signing tool (Python)
+&   0.15 &  \\
+\hline
+\end{tabular}
+\end{table}
+
+%~\fixmebj{Reiterate TCB is for performance and memory constraints.}
+
+For an application, the \sysname{} \dynamicphase{}
+reduces the \tcbsize{} by
+partitioning the application, so that only a subset of the application's original \java{} classes
+will be loaded by the in-enclave \jvm{}.
+The reduction of \java{} classes and methods by partitioning indicates
+actual reduction of TCB,
+because the partitioning has restricted the number of execution paths
+within the trusted components.
+
+
+
+%The goal of the \sysname{} Shredder is to cleanly partition the trusted classes and objects while keeping the TCB small. 
+Table~\ref{tab:case-tcb} shows the number of classes and methods that the in-enclave \jvmname{} \jvm{} loads,
+for both the partitioned and non-partitioned versions of our use cases.
+The ``No-op'' example is a dummy \java{} application with no classes partitioned into an enclave.
+With the No-op example, there are 544 classes and 3.06k methods loaded into the enclave,
+and they are all dependencies of \dynamicframework{}.
+For the two use cases we discussed in \S\ref{sec:case-study}, SSH and Hadoop,
+The partitioned versions have reduced 22\% and 17\%, respectively, of the trusted classes.
+If we calculate the number of methods of the trusted classes,
+the partitioned versions have reduced 47\% for SSH and 57\% for Hadoop.
+We observe that a majority of the trusted classes in the partitioned applications are abstract or interface classes, which have fewer implemented methods.
+
+Table~\ref{tab:case-tcb} also shows the line of code or configuration written by programmers to guide the application partitioning.
+For SSH, the programmers only have to list the entry classes
+as well as classes that are dynamically loaded (e.g., the {\tt AES} class of BouncyCastle), 
+and annotates the code for declassification.
+The total effort for partitioning the SSH client/server is only 18 LoC.
+For Hadoop, we introduce a more elaborate framework for loading encrypted classes, at a total of 800 LoC.
+These negligible or lightweight efforts are much easier than making inline modifications to the source code.
+
+% we measure effectiveness of Shredder by the number of classes, and methods
+%actually loaded by the Class Loader in the \jvm{}.
+%We compare the size of loaded code with
+%the total number of classes, methods and lines of code that are loadable from the related JAR packages.
+%The experiment results show that, the \sysname{} Shredder reduces 45--57\% of loaded methods in the trusted partitions. % We calculate the number of loaded methods by walking the complete lists of methods in every loaded classes.
+%Note that, when the partition is not performing any task (``no-op''),
+%\sysname{} can contribute to \roughly{}1\% increase of the loaded classes,
+%due to the dependency of \sysname{} itself.
+%Moreover, if we consider the amount of code loadable by the \jvm{},
+%in a non-partitioned model,
+%the number of loadable classes is around 18--447 thousands,
+%and up to 4 million lines of code can add to the application TCB.
+%The \sysname{} Shredder effectively reduces the loadable \loc{} by \roughly{}80\%.
+
+
+%We also determine the upper-bound for the TCB to run in a Haven-like environment (column U) and the lower-bound to only add classes and methods that are security sensitive to the TCB (column L). We observe that while \sysname{} can further reduce the TCB with finer-grained partitioning, the TCB is orders of magnitude smaller than running the whole \java{} application.
+
+%\begin{table}[t!b!]
+%\small
+%\centering
+%\tabcolsep=5pt
+%\begin{tabular}{>{\centering\arraybackslash}p{0.5in}>{\raggedleft\arraybackslash}p{0.4in}>{\raggedleft\arraybackslash}p{0.4in}>{\raggedleft\arraybackslash}p{0.4in}>{\raggedleft\arraybackslash}p{0.4in}>{\raggedleft\arraybackslash}p{0.45in}}
+%\hline
+%\addlinespace[2pt]
+%\multicolumn{6}{c}{{\bf Partitioned by \sysname{}}} \\
+%\hline
+%\addlinespace[2pt]
+%{\bf App} & \multicolumn{2}{c}{{\bf Loaded by \jvm{}}} & \multicolumn{3}{c}{{\bf All loadable from JARs}}  \\
+% & classes & methods & classes & methods & \loc{} \\
+%No-op   &   544 & 3.06k & 2.7k & 23k &    388k \\
+%SSH     &   972 & 7.12k & 3.7k & 24k &    399k \\
+%Hadoop  & 2,472 & 13.65k &10.4k & 92k &  1,349k \\
+%%SDM    &       & & & & &   \\
+%\hline
+%\addlinespace[2pt]
+%\multicolumn{6}{c}{{\bf Non-partitioned, in native \jvmname{} \jvm{}}} \\
+%\hline
+%\addlinespace[2pt]
+%{\bf App} & \multicolumn{2}{c}{{\bf Loaded by \jvm{}}} & \multicolumn{3}{c}{{\bf All loadable from JARs}}  \\
+% & classes & methods &  classes & methods & \loc{} \\
+%No-op  &  537 & 6.72k  & 17.8k & 138k &  2.06M \\
+%SSH    & 1,233 & 13.2k  & 19.1k & 149k & 2.21M   \\
+%Hadoop & 2,976 &  31.7k & 447k & 300k & 4.20M  \\
+%%SDM    & & & &  &   \\
+%\hline
+%\end{tabular}
+%\caption{Effectiveness of the \sysname{} design-time Shredder on reducing the partitioned size, based on the case studies discussed in \S\ref{sec:case-study}.	 %For each property and case study, S represents Shredder, U represents upper-bound, and L represents lower-bound. Lower is better.
+%{\bf No-op} represents a do-nothing application that can be loaded into a regular \jvm{} or partitioned by \sysname{}.}
+%\label{tab:case-tcb}
+%\end{table}
+
+
+\begin{table}[t!b!]
+\caption{The reduction of \tcbsize{} by partitioning application, and the partitioning effort---lines of code or configuration written by programmers to guide the partitioning.
+The two examples ({\bf SSH} and {\bf Hadoop}) are discussed in \S\ref{sec:case-study}.	 %For each property and case study, S represents Shredder, U represents upper-bound, and L represents lower-bound. Lower is better.
+{\bf No-op} represents the \tcbsize{} of \sysname{}'s in-enclave components only.}
+\small
+\centering
+\tabcolsep=5pt
+\begin{tabular}{>{\centering\arraybackslash}p{0.4in}>{\raggedleft\arraybackslash}p{0.4in}>{\raggedleft\arraybackslash}p{0.45in}>{\raggedleft\arraybackslash}p{0.5in}>{\raggedleft\arraybackslash}p{0.45in}>{\raggedleft\arraybackslash}p{0.5in}}
+\hline
+\addlinespace[2pt]
+{\bf App} & \multicolumn{3}{c}{{\bf Partitioned with \sysname{}}} & \multicolumn{2}{c}{{\bf Non-partitioned}}  \\
+ & effort (LoC) & classes & methods & classes & methods \\
+No-op   &   - &   544 & 3.06k & - & - \\
+SSH     &  18 &   972 & 7.12k & 1,233 & 13.2k \\
+Hadoop  & 800 & 2,472 & 13.65k & 2,976 & 31.7k \\
+%SDM    & &       & & & & &   \\
+\hline
+\end{tabular}
+\label{tab:case-tcb}
+\end{table}
+
+
+\subsection{Performance overheads}
+\label{sec:eval:microbench}
+
+We run micro-benchmark on both native OpenJDK VM and \sysname{}, to compare the overhead of adopting \sysname{} on executing \java{} applications.
+Figure~\ref{tab:perf} shows the results of start-up time, latency of allocating an in-enclave object across the partition, 
+latency of invoking an in-enclave object, and the highest memory footprint.
+For the stability of the experiment, we disable the \java{} JIT optimization in all settings.
+
+
+\begin{table*}[t]
+\caption{The start-up time, latency for allocating or invoking in-enclave objects between the partitions. For the native \jvm{}, the cross-partition latency are evaluated without partitioning (direct invocation). We compare the data between a Native \jvm{} (OpenJDK), Civet, and Civet with Phosphor. JIT compiler is turned off in all settings. For all numbers, Lower is better.}
+%\footnotesize
+\centering
+\begin{tabular}{lrrrrrrrr}
+\hline
+\addlinespace[2pt]
+ & \multicolumn{2}{c}{{\bf Native OpenJDK VM}} & \multicolumn{3}{c}{{\bf \sysname{}}} & \multicolumn{3}{c}{{\bf \sysname{}+Phosphor}} \\
+ & & {\footnotesize +/-} & &  {\footnotesize +/-} & Overhead &  & {\footnotesize +/-} & Overhead \\
+\hline
+\addlinespace[2pt]
+Start-up time &  0.06 \hspace{0.5em}\asec{}  & 0.00 \hspace{0.5em}\asec{} & 7.92 \hspace{0.5em}\asec{} & 0.03 \hspace{0.5em}\asec{} & 127 $\times$ & 9.01 \hspace{0.5em}\asec{} & 0.01 \hspace{0.5em}\asec{} & 145 $\times$ \\
+Cross-partition allocation &  145.00 \nsec{}  & 4.15 \nsec{} & 1.59 \usec{} & 0.03 \usec{} & 11K $\times$ & 4.85 \usec{} & 0.73 \usec{} & 33K $\times$ \\
+Cross-partition call       & 66.13 nS & 5.83 nS & 0.71 \usec{} & 0.05 \usec{} & 10K $\times$ & 4.02 \usec{} & 0.28 \usec{} & 60K $\times$ \\
+\addlinespace[2pt]
+\hline
+\addlinespace[2pt]
+Memory footprint & \multicolumn{2}{r}{32.046 M}&  \multicolumn{2}{r}{1.232 G} & 38 $\times$ & \multicolumn{2}{r}{1.334 G} & 41 $\times$ \\
+%Partition mem footprint &  &  &  &  &  &  &  &  &  &  &  \\
+\addlinespace[2pt]
+\hline
+\end{tabular}
+\label{tab:perf}
+\end{table*}
+
+The experiment results show a non-trivial, 127--145 $\times$ overhead on
+the start-up time. % of run-time environment.
+The overhead on bootstrapping the \sysname{} run-time component
+is dominated by the latency of creating an 1GB \sgx{} enclave.
+As described earlier, 1GB is the smallest enclave size
+that we can fit in our use cases and \sysname{}'s in-enclave components.
+For the future work, we anticipate many feasible strategies to reduce the enclave size, such as replacing with a more memory-saving \jvm{}, or reimplementing a \sgx{}-aware \jvmname{}.
+
+
+Another source of overhead falls on accessing in-enclave objects
+from the untrusted classes.
+%triggering the entrance of enclaves.
+For the native \jvm{}, with no partitioning, the latency of directly invoking a constructor or method
+on any classes is merely 60--145 nanoseconds.
+However, for \sysname{}, triggering the allocation or invocation of in-enclave objects involves serialization of input, entry of the enclave,
+and creation of correspondent proxy objects. The latency of allocating and calling an in-enclave object is 10k--60k $\times$ to direct invocation.
+%Depending on the workload, the frequency of accessing in-enclave object should be reduced to minimum.
+
+%In addition, the memory footprint of the \sysname{} framework is dominated by the enclave size for running a \jvm{}.
+%%reduced at best effort.
+%Since we configure the enclave size at 1GB, 1GB worth of physical memory is populated at the enclave creation.
+%Currently OpenJDK VM does not economically utilize enclave memory
+%---much space is preallocated as object heaps.
+
+
+We consider the overheads on start-up time and cross-partition invocation 
+to be acceptable;
+The start-up time is an one-time cost, and all consequential invocation to the same set of trusted classes, by the same application, will share the enclave until it is destroyed. 
+The cross-partition invocation is still as fast as less than 5\usec{},
+and its cost can be negligible if each invocation has packed a significant amount of workload, such as encrypting a data block.  
+
+%\begin{table*}[t]
+%\small
+%\centering
+%\begin{tabular}{lrrrrrrrrrrr}
+%\hline
+%\addlinespace[2pt]
+% & \multicolumn{2}{c}{{\bf Native \jvm{}}} &  \multicolumn{3}{c}{{\bf \graphene{}+\sgx{}}} & \multicolumn{3}{c}{{\bf \sysname{}}} & \multicolumn{3}{c}{{\bf \sysname{}+Ph}} \\
+%				
+% & & {\footnotesize +/-} &  & {\footnotesize +/-} & \%O&  &  {\footnotesize +/-} & \%O&  & {\footnotesize +/-} & \%O \\
+% \hline
+% \addlinespace[2pt]
+%Allocate 50M Strings &  &  &  &  &  &  &  &  &  &  &  \\
+%AES Encryption &  &  &  &  &  &  &  &  &  &  &  \\
+%\addlinespace[2pt]
+% \hline
+%\end{tabular}
+%\caption{Microbench 2
+%}
+%\label{tab:microbench}
+%\end{table*}
+
+
+%\begin{table}[t!b!]
+%	\footnotesize
+%	\centering
+%	\begin{tabular}{lrr}
+%		\hline
+%		{\bf Component} & {\bf Time (in \footnotesize $\mu$s)} & {\bf Confidence Interval}\\
+%		\hline\\
+%		%		\sysname{} design-time-tool & & \\
+%		EENTER &  &  \\
+%		EEXIT &  &  \\
+%		Page fault &  &  \\
+%		\hline
+%	\end{tabular}
+%	\caption{\sgx{} enclave overheads.}
+%	\label{tab:sgx}
+%\end{table}
+
+%Here, we compare the overhead of \sysname{} compared to Native Linux without any 
+%isolation assurances. We divide this analysis into two parts: (a)Inherent to running \graphene{} in \sgx{}, and (b) Inherent to \sysname{} framework and information flow enforcement.
+
+%\paragraph{\sgx{} overhead}
+%The first two columns of Table ~\ref{tab:perf} --- Native Linux and \graphene{} --- shows the overhead of isolating any application in \sgx{} is about \fixmebj{XX}\%. \sgx{} adds an additional \fixmebj{XX}\% overhead on the memory footprint. The startup time indicates the cost of creating an enclave is \fixmebj{XX}\%. 
+%In addition, we also measure the \sgx{} enclave enter time (EENTER) and enclave exit time (EEXIT) as shown in Table ~\ref{tab:sgx}. This is the cost of context switching to and from the enclave. The page fault measurement shows the time taken to load memory in the enclave.
+
+%\paragraph{\sysname{} overhead}
+%We also measure the overhead of the \sysname{} runtime framework as well as the 
+%overhead due to instrumentation done by the Phosphor information flow tracking library in Table ~\ref{tab:perf}, we observe that the overhead caused by the \sysname{} framework to seamlessly access remote objects and methods inside the enclave is much smaller than that is inherent to \sgx{}. The Phosphor instrumentation further slows the application down by \fixmebj{XX}\% --- this is the cost of information flow tracking and preventing information leakage. 
+%%The performance of the case studies is degraded but is maintained at an acceptable level.
+

@@ -1,0 +1,29 @@
+\section{Automatic Partitioning of JAVA Applications}
+\label{sec:partitioning}
+\sysname{} reduces the TCB of a security critical 
+application by automatically partitioning the 
+application into trusted and untrusted parts. It is not 
+easy for a novice developer to find the right 
+partitioning boundary. As a result, the developer may 
+include classes, which are not necessary for operation, 
+in the trusted part. These extra classes may expose new 
+attack vectors, reducing the security of the enclave. 
+\sysname{} provides an enclave image utility to help 
+the developer partition the code with minimum effort. 
+The developer only needs to identify the classes that 
+represent the secure objects.
+
+The enclave image utility calculates the transitive 
+closure of dependencies of the secure object classes.
+The tool traverses all the imported classes by secure 
+classes and marks them as secure too. The tool keeps 
+traversing the newly added secure classes until there 
+is no new class to be marked secure. It not only 
+follows the user-defined classes but also the system 
+classes to create a list of all the secure classes.
+
+The utility then replaces the references of secure classes in the untrusted part with proxy stubs to make a remote method call instead of direct method invocation. The tool uses Phosphor information  flow tracking library to instrument the secure classes so that the information flow can be tracked at runtime as explained in Section ~\ref{sec:info-leak}. The output of the tool is an instrumented secure classes JAR and another JAR containing untrusted code with proxy stubs.
+
+The enclave image tool then packages the Graphene LibOS, JVM, JNI, and the instrumented trusted JAR together, and generates the enclave object by cryptographically signing the package using its private key and \fixmebj{XX} algorithm. The untrusted JAR and the enclave object are deployed together in the cloud machine with \sgx{} capability. 
+
+Thus, the automatic partition tool reduces the attack vectors exposed in the enclave, and removes the burden of the developer to create the partition boundary by finding the entry/exit points. This enforces a strict smallest possible TCB for the secure application.

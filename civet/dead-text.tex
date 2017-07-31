@@ -1,0 +1,44 @@
+\begin{comment}
+%- Haven, VC3
+%Shielding Applications from an Untrusted Cloud with Haven
+Researchers are actively working on developing secure solutions for \sgx{}.
+Baumann etal., built a system named 
+Haven~\cite{baumann14haven} to defend complete windows applications of cloud users against 
+privileged code and physical attacks by leveraging 
+the \sgx{} hardware. Haven solves the problem of 
+enclave plaintext code by using a separate encrypted 
+disk and, like Graphene-SGX library OS~\cite{graphene-sgx}, which uses 
+Graphene~\cite{tsai14graphene}
+for Linux, Haven uses Drawbridge~\cite{porter11drawbridge} 
+LibOS. However, instead of partitioning the 
+application into trusted and untrusted parts, Haven 
+places trust in the whole application. As a 
+result, a vulnerability in any part of the 
+application code can cause information leakage. 
+While, Haven design causes the TCB to be 
+unnecessarily huge, \sysname{} carefully 
+categorizes the minimum parts of the application 
+as trusted, which runs in the enclave, effectively 
+reducing the TCB and attack vectors.
+
+%Intel SDK
+On the other hand, Intel provides the SDK to build 
+\sgx{} compatible applications in C/C++ by compiling 
+the trusted part of the application using the 
+\intel{} C/C++ Compiler. Such partitioned 
+applications have very small TCB --- the trusted part 
+of the application and the hardware --- but 
+partitioning is limited to only C/C++ applications. 
+Moreover, the partitioning of applications need to be 
+done manually by an expert, which is a cumbersome and 
+error-prone process. A lot of user applications are 
+developed in higher level languages like JAVA. 
+\intel{} \sgx{} SDK cannot support such applications. 
+\sysname{} helps JAVA developers to automatically 
+partition their JAVA applications and provides 
+infrastructure to seamlessly interact between the 
+trusted and untrusted parts without rewriting the 
+whole application. The design of \sysname{} can be 
+extended to other high level object oriented 
+languages.
+\end{comment}

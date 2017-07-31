@@ -1,0 +1,177 @@
+\begin{abstract}
+
+  Application partitioning is a technique to move sensitive data or code into
+  a protected environment, such as an SGX enclave.
+  Partitioning larger existing applications requires subtle reasoning that can be aided with static
+  analysis and dynamic, language-level techniques.
+  For instance, in-enclave code may include a library that memoizes results in the out-of-enclave heap.
+  Using a managed, type-safe language like Java in SGX also brings the benefits of partitioning to a large body of 
+  existing code. %, as well as help the developer with language-level analysis tools.
+  Unfortunately, running Java partitions in SGX introduces a number of technical
+  challenges, many of which arise from resource and system ABI constraints.
+  To our knowledge, no prior work has even run a complete Java application in an enclave,
+  much less partitioned a Java application to run a piece of application logic in the enclave.
+%  That said, no amount of application-level analysis can protect against
+%  a compromised OS, without 
+  Thus, a number of technical challenges must be addressed to unlock
+  the benefit to developers of combining managed languages with hardware such as SGX.
+
+
+%% \fixmets{Streamlined the argument for combining Java and SGX. Check if this makes sense.}
+%% %%There have been significant, but separated %often mutually exclusive,
+%% There have been significant, but often mutually exclusive
+%% advances in hardware and language-level tools for partitioning applications
+%% into multiple security contexts or privilege levels.
+%% %Developers who build security-sensitive applications
+%% %often face the dilemma of choosing between
+%% %managed language features and hardware protections with language restrictions.
+%% Developers either 
+%% use a hardware solution, such as \intel{} \sgx{},
+%% to isolate a piece of consolidated code %small piece of native binary code
+%% from an untrusted OS, %but the developer
+%% %must reason carefully about potential information flows that could leak data from the enclave, as well as other vulnerabilities in the code.
+%% %On the other hand, in
+%% or choose to program in a managed type-safe language, such as Java, 
+%% %the developer has 
+%% which has a wealth of tools and properties for 
+%% improving code security and application partitioning.
+%% %from type-checking to 
+%% %more advanced tools to secure control and information flows.
+%% The use of hardware
+%% and language-level tools for partitioning are often complementary by concept but incompatible in reality.
+%% %mutually exclusive,
+%% %due to the limitations in combining the technologies.
+%% %This paper observes that these language and hardware security tools 
+%% %should complement each other, but are often mutually exclusive.
+%% For instance, no language-level analysis %of an application
+%% can protect an application against a compromised OS.
+%% However, it is fundamentally challenging to
+%% factor the protection of \sgx{} into the analysis of a managed type-safe language like \java{}.
+%Running a managed language in an enclave is difficult, and language tools
+%currently do not factor the hardware capabilities of \sgx{} or similar hardware into their analyses.
+
+
+%Similarly, the \sgx{} hardware imposes restrictions on loading \java{} classes 
+%with \jvm{}s;
+%the \java{} language also lacks sensible APIs for using \sgx{} hardware.
+%to wrap the semantic of interfaces with the 
+
+%but are not sufficient to defend against a compromised OS or hypervisor.
+%but the developer must partition the application 
+%and harden the code inside the enclave.
+%Managed languages, such as \java{},
+%offer a wealth of language-level support for 
+%but are not sufficient to defend against a compromised OS or hypervisor.
+%The two approaches are often mutually-exclusive:
+%we are unaware of any prior work thas has run a \jvm{} inside of an enclave at all,
+%For \sgx{} and \java{},
+%there is no prior work that has run a \jvm{} inside an enclave,
+%much less integrated enclaves into the language's analysis tools.
+%\fixmedp{check my claim. Too strong, or justified?}
+%\fixmets{Since we are generalizing, we should only claim this is the case for sgx vs. Java. BTW, I prefer showing more certainty when making claims.}
+
+
+%Application developers can place a library and sensitive data
+%in an \intel{} \sgx{} enclave,
+%but only if the library is a native binary, generally written in C.
+%but must relies on developers to design invulnerable code.
+
+%more advanced tools for detecting information flows.
+
+%These language-level tools can be invaluable in ensuring a correct application partitioning
+%and overall application correctness.
+%Unfortunately, the most security-sensitive developers must choose between
+%hardware and language security tools.
+
+
+%% Using \intel{} \sgx{} enclaves, applications can
+%% protect their most critical components from untrusted system stacks.
+%% Language support for \sgx{} enclaves is a missing feature of existing \java{} Virtual Machines.
+%% Using a managed language like \java{}
+%% provides an opportunity to improve the weakest link of the enclave security---
+%% application vulnerabilities that lead to information leakage.
+%% \java{} language has effective framework to trace information flows, and provides type safety
+%% to prevent memory access vulnerabilities in the enclave.
+%% In addition, modularization in \java{} classes allows automatically partitioning
+%% an application into enclave components,
+%% minimizing the classes included in the enclave's trusted computing base.
+
+This paper presents {\em \sysname{}},
+a system that integrates \java{} language tools for partitioning applications
+with run-time support for isolated execution in \sgx{} enclaves.
+%\fixmedp{Any reason we can't do more than one partition in the enclave?}
+%\fixmets{For an application, there is only one partition: the secure-sensitive part. We can create more than one instances in an enclave.}
+%and which can execute a portion of the \java{} application in 
+%a \java{} utility, runtime framework and API,
+%that helps developers design isolated application components,
+%and minimizes the attack vectors.
+\sysname{} includes both \staticphase{} and \dynamicphase{} components.
+The \staticphase{} tool, {\em \statictool{}}, uses code reachability analysis
+to determine the minimal required \java{} classes for the isolated execution,
+and helps the developer understand the complete partition interface. % between the application partitions.
+%\sysname{} helps the developers generate an enclave image
+%with minimal required \java{} classes for the protected code, reducing the TCB. %required for isolated execution.
+%%\sysname{} includes language-level information flow control at the 
+%%enclave border, protecting against unexpected exfiltration of secret
+%%data due to application vulnerabilities.
+The \dynamicphase{} framework, {\em \dynamicframework{}}, then launches the isolated execution of the enclave image
+(a signed JAR archive) in an enclave when the untrusted part calls the interface.
+Throughout the execution, \sysname{} enforces end-to-end isolation
+on any object instantiated inside the enclave,
+and leverages language-level information flow control to determine whether an object contains no sensitive information before the object is released from the enclave.
+%to protect against unexpected ex-filtration of secret
+%data. % due to application vulnerabilities.
+%\fixmebj{How about this?}
+%\fixmedp{Is this best-effort?  Only for explicit flows?  The 
+%preceding sentence should be crisper}
+%identifies information flow at the enclave border,
+%preventing enclave secrets
+%from being leaked due to any vulnerabilities.
+%with minimal classes needed for the isolated computation,
+%and narrowest interface for interaction.
+%Second, the framework effectively prevents information leakage
+%by forbidding any objects tainted by information flow to leave the enclave.
+%In \sysname{},
+%trusted servers may provision secure objects and classes,
+%preserving security policy information. \fixmedp{Don't understand the previous sentence}
+%\fixmedp{Do we want to say anything about contributing techniques to get good performance?}
+%To secure \java{} applications, 
+%With both the \staticphase{} and \dynamicphase{} language support,
+\sysname{} also creates language-level abstractions of and extensions \sgx{},
+such as attestation and provisioning, simplifying cumbersome aspects of this hardware
+for developers.
+%extends the security properties (e.g., data confidentiality) and features (e.g., attestation and provisioning)
+%of \sgx{}, %hardware protection to cover \java{} classes dynamically loaded by the \jvm{},
+%and encapsulates cumbersome aspects of interfacing with the hardware architecture
+%keeps the work of bootstrapping and interfacing with 
+%from application developers.
+%As a proof-of-concept of using advanced language-level tools,
+%we use \sysname{} %strengthens hardware protection
+%to identify and remove 
+%by filtering 
+%implicit information flows that would leak secrets from an enclave
+ % that leaks secrets
+%in our test applications.
+%\fixmedp{all of them?  Or just one?}\fixmets{I think this technique applies to all test cases.} % error-prone applications. 
+%Finally, the API allows components in enclaves to be seamlessly provisioned with
+%secure objects or classes by trusted servers,
+%and to preserve their security policy information.
+%with security guarantees extended from their sources.
+%\sysname{} is evaluated with \jvmname{} on the latest 
+%We evaluate \sysname{} % with several case studies 
+%on the latest \intel{} Skylake processor.
+%Evaluation shows good performance on
+%Our overheads are low, 
+%adding \fixmedp{xx}\% overhead on an isolated cryptographic library used in SSH client/server,
+%and \fixmedp{xx}\% overhead on Hadoop jobs that run a secret, provisioned algorithm.
+We demonstrate the usage of \sysname{} with two applications: a SSH server with an isolated cryptographic library to protect its host key,
+and a Hadoop framework capable of securely executing jobs using any secret, provisioned algorithm.
+%\sysname{} reduces the developer effort required to partition the application code,
+%resulting in a smaller 
+%and the result of integration is highly generalizable to other managed languages.
+%~\fixmebj{Always replace TCB with code footprint size to indicate that we are only talking about size of code - not attack vectors.}
+%\fixmets{find a better term for TCB size}
+%~\fixmebj{Always replace managed languages with managed type-safe languages.}
+%\fixmets{accurately separate managed language and type-safety: managed language causes the challenges, and type-safety improves the security properties; Java happens to be both.
+%}
+\end{abstract}
