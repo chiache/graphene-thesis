@@ -1,1 +1,473 @@
-\section{Evaluation}
+\section{Graphene on SGX}
+\label{sec:eval:sgx}
+
+%This section will shows the evaluation results of the \graphenesgx{} framework,
+%in term of performance, security, and compatibility to Linux.
+
+%\subsection{Performance Evaluation}
+\label{sec:eval:perf}
+
+
+We evaluate the performance overhead on running unmodified Linux applications.
+%Unlike the existing \sgx{} shielding systems which focuses on cloud-based systems or microservices,
+\graphenesgx{} is designed to be general-purpose, supporting a broad range of
+server and command-line applications. 
+%, including both server and desktop workloads.
+%\fixmedp{I wouldn't really call gcc or R ``desktop''}
+We use unmodified Linux applications, either in binary form 
+from an Ubuntu installation, or compiled from original source code using the default configurations
+(Apache, Lighttpd, and NGINX are compiled from source). %\fixmedp{which apps are compiled?}
+Depending on the workload, we measure application throughput or latency.
+%According to the types of workloads, we design experiments to evaluate whether \graphenesgx{} can support applications with acceptable throughput or latency.
+
+%All applications in our experiments are real, unmodified Linux applications,
+%either directly taken from a disk with Ubuntu installation,
+%or compiled using the default configuration given by the developers.
+%No source code modification or change of compilation environment is required in the experiments.
+%In our experiments, we either test on application binaries taken off-the-shelf from the Ubuntu {\tt APT} repositories,
+%or applications that are built from the default configurations
+%provided by the developers.
+%Either source code modification or adjustment of the compilation environment is avoided in the setup of experiments.
+%Our evaluation simulates the realistic results of running unmodified Linux applications in \graphenesgx{}.
+%running Linux COTS applications on commodity hardware.
+
+In order to differentiate SGX-specific overheads 
+from Graphene overheads,
+%, which also
+%runs on a Linux host without SGX, 
+we use both
+Linux processes and \graphene{} on a Linux host without SGX as baselines
+for comparison.
+%Since a large portion of the \libos{} design is inherited from the \graphene{} \libos{},
+%the performance impact of adopting \graphenesgx{} is largely affected by the design choices made in \graphene{}.
+%In order to show the performance impact of \graphenesgx{} over \graphene{}, we use both native Linux and \graphene{} on a Linux host as the baselines for comparison.
+Note that \graphene{} includes two optional kernel extensions:
+one that creates a reference monitor to protect the host kernel from 
+the library OS, and one that optimizes fork by 
+with copy-on-write for large (page-sized) RPC messages.
+%implementing a multi-page RPC
+%abstraction.
+Neither of these extensions are currently supported in \graphenesgx{}.
+%so we measure baseline Graphene with these disabled.
+% can be optionally run with a reference monitor for security isolation, and a bulk IPC abstraction for fork optimization.
+%Since neither of the features is ported in \graphenesgx{},
+%we mostly compare \graphenesgx{} to \graphene{} with these two features disabled,
+%to show a more meaningful comparison.
+
+% Put figures at the front
+\begin{figure*}[t!]
+\centering
+
+\begin{minipage}{.3\textwidth}
+\centering
+\includegraphics[width=\linewidth]{sgx/lighttpd-throughput-latency}\\
+{\bf (a) Lighttpd (25 threads)}
+\end{minipage}
+\begin{minipage}{.3\textwidth}
+\centering
+\includegraphics[width=\linewidth]{sgx/apache-throughput-latency}\\
+{\bf (b) Apache (5 processes)}
+\end{minipage}
+\begin{minipage}{.3\textwidth}
+\centering
+\includegraphics[width=\linewidth]{sgx/nginx-throughput-latency}\\
+{\bf (c) NGINX (event-driven)}
+\end{minipage}
+
+\caption{Throughput versus latency of web server workloads, including Lighttpd, Apache, and NGINX, on native Linux, \graphene{}, and \graphenesgx{}.}
+\label{fig:server-throughput-latency}
+\end{figure*}
+
+
+\fixmedp{RA asks for a limitations section; I don't think we should do this, but the expensive stuff (events, fork, open) we should add as much as we can about what, if anything,  can be done about it, and what can't without more hardware}
+
+\begin{figure*}[t!]
+\centering
+
+\begin{minipage}{.42\textwidth}
+\centering
+\includegraphics[width=\linewidth]{sgx/r-overhead}\\
+{\bf (a) R}
+\end{minipage}
+\begin{minipage}{.25\textwidth}
+\centering
+\includegraphics[width=\linewidth]{sgx/gcc-overhead}\\
+{\bf (b) GCC}
+\end{minipage}
+\begin{minipage}{.25\textwidth}
+\centering
+\includegraphics[width=\linewidth]{sgx/curl-overhead}\\
+{\bf (c) CURL}
+\end{minipage}
+
+\caption{Performance overhead on desktop applications, including latency of R, execution time of GCC compilation, download time with CURL. The evaluation compares native Linux, \graphene{}, and \graphenesgx{}. {\bf Enclave creation time is deducted from the GCC execution time.}}
+\label{fig:desktop-overhead}
+\end{figure*}
+
+
+\paragraph{Experimental setup.}
+
+We experiment on a Dell Optiplex 790 Small-Form Desktop,
+with 4-core 3.20 GHz Intel Core i5-6500 CPU with \sgx{} enabled,
+8 GB RAM, and a 512GB, 7200 RPM ATA disk.
+The host operating system of our experiment is Ubuntu 14.04.3 LTS (server version) with Linux kernel version 4.2.0-25.
+We use version 1.8 of 
+the Intel \sgx{} Linux SDK~\cite{intel-sgx-linux-sdk} and driver~\cite{intel-sgx-linux-driver}.
+%We measure version 0.4beta of \graphene{}.
+
+%Adding more detail of KVM environment
+%Unless otherwise noted, \graphenesgx{} measurements include the Phosphor instrumentation.
+
+\subsection{Server applications}
+
+One deployment model for SGX is to host network services
+on an untrusted cloud provider's hardware.
+%To measure this case, 
+We measure three widely-used Linux web servers, including {\bf Lighttpd}~\cite{lighttpd}, {\bf Apache}~\cite{apache}, and {\bf NGINX}~\cite{nginx}.
+%, to evaluate the performance of server-type workloads in \graphenesgx{}.
+%These applications are all sophisticated, non-trivial workloads, and are constantly being used for commercial purposes.
+%We test these applications to evaluating significantly different execution patterns, to benchmark the performance of \graphenesgx{} under each circumstances.
+%Also, we do not explicitly configure these servers to secure their payloads using the HTTPS protocol.\fixme{if have time, maybe try again with HTTPS}
+For each workload, we use ApacheBench~\cite{apachebench} to download the web pages on a separate machine
+over Gigabit LAN. %\fixmedp{more specific?}
+%across a high-speed \fixmedp{Can you say
+%more specifically the specs, like 10 GBps or whatever; also, if this is the same vlan, I might just describe this as being on a LAN, minimizing interference} University network.
+The concurrency of ApacheBench is gradually increased during the experiment, to test the both the per-request latency and the overall throughput of the server.
+Figure~\ref{fig:server-throughput-latency} shows the throughput versus latency of these server applications
+in \graphenesgx{}, \graphene{} and Linux. 
+Each workload is discussed below.
+
+{\bf Lighttpd}~\cite{lighttpd} is a web server designed to be light-weight, yet robust enough for commercial uses. 
+Lighttpd is multi-threaded; we test with 25 threads to process HTTP requests. 
+By default, Lighttpd uses the \syscall{epoll\_wait} system call to poll listening sockets.
+At peak throughput and load,  both \graphene{} and \graphenesgx{} have marginal overhead on either latency or throughput of the Lighttpd server.
+The overheads of \graphene{} are more apparent when the system
+is more lightly loaded, at 
+%When Lighttpd is not overloaded, \graphenesgx{} causes 
+35--48\% higher response time, or 22--33\% lower throughput. 
+Without SGX, \graphene{} induces 
+11--15\% higher latency or 13-17\% lower throughput over Linux;
+the remaining overheads are attributable to SGX---either hardware or our OS shield.
+%platform adaptation layer (PAL) code.
+
+\fixmedp{Some more detailed analysis would be nice.}
+%Only part of this overhead is contributed by the library OS implementation, since using \graphene{} without \sgx{} causes only 
+
+%\fixmedp{Why did you comment this out?  Let's discuss: Does it really make sense to have two points at the same  x-axis value?  Perhaps the axes should be inverted?  I'm not really sure about the methodology, but something about the line doubling back on itself seems wrong.  Maybe you want to separate these and show throughput vs. load, and a CDF of latencies?}
+
+
+{\bf Apache}~\cite{apache} is one of the most popular production web servers. We test Apache using 5 preforked, worker processes to service HTTP requests,
+in order to 
+to evaluate the efficiency of \graphenesgx{} across enclaves.
+%n server, 
+%In the experiment, the Apache server creates 5 preforked processes which coordinate on processing HTTP requests.
+This application uses IPC extensively---the preforked processes of a server use a system V IPC semaphore to synchronize on each connection.
+%When receiving a connection, the preforked processes of Apache will coordinate among themselves using the system V IPC semaphores.
+Regardless of the workload, the response time on \graphenesgx{} is 12--35\% higher than Linux, due to the overhead of coordination across enclaves over encrypted RPC streams.
+The peak throughput achieved by Apache running in \graphenesgx{} is 26\% lower than running in Linux.
+In this workload, most of the overheads are SGX-specific, such as entering or exiting enclaves when accessing the RPC streams, as non-SGX Graphene
+generally has only 2--8\% overhead compared to Linux.
+
+%The enclave restriction \fixmedp{Huh?} is the main contributor to this overhead, as \graphene{} generally only causes 2--8\% overhead.
+
+\fixmedp{Check the lightttp graph; the lines are right on top of each other, and dont' look 22\% apart to me.  Some of this may be the scale of the y axis}
+
+{\bf NGINX}~\cite{nginx} is a relatively new web server designed for high programmability, to be used as a building block to implement different services.
+Unlike the other two web servers, NGINX is event-driven and mostly configured as single-threaded.
+%When running as a simple HTTP server, NGINX uses an event-driven model instead of multi-threading/multi-processing to handle incoming requests.
+\graphenesgx{} currently only supports synchronous I/O at the enclave boundary,
+and so, under load, it cannot as effectively overlap I/O and computation
+as other systems that have batched and asynchronous system calls.
+%Asynchronous system calls and events in general are less mature features of
+%\graphenesgx{}, and, 
+On this workload, both \graphene{} and \graphenesgx{} 
+perform worse than Linux once sufficiently loaded.
+%We observe that both \graphene{} and \graphenesgx{} tend to perform poorly in an event-driven server.
+The peak throughput of \graphenesgx{} is 1.5$\times$ lower than Linux;
+without SGX, Graphene only reaches 79\% of Linux's peak throughput.
+%\fixmedp{Maybe shout out to eleos, or cite other work}
+We expect that using tools like Eleos~\cite{orenbach17eleos} to reduce exits
+would help this workload; in future work, we will improve
+asynchronous I/O in \graphenesgx{}.
+
+%\graphenesgx{} causes 17--90\% more response time when the server is not overloaded,
+%but up to 1.5$\times$ at the peak throughput.
+%If we compare the peak throughput with native Linux, \graphenesgx{} is 70\% less.
+%\graphene{} also suffers the same performance pattern, as the throughput drops dramatically after reaching 79\% of the peak throughput of NGINX in Linux.
+%The reason of the slowdown is that the host interface of \graphene{} and \graphenesgx{} only supports synchronous IO, so implementing asynchronous IO will be less efficient. This limitation is a trade-off to the portability of \graphene{}.
+%\fixmedp{Didn't get the portability point; please spell out what you meant, if important}
+
+
+\subsection{Command-Line Applications}
+
+\begin{figure*}[t!]
+\centering
+
+\begin{minipage}{.3\textwidth}
+\centering
+\includegraphics[width=\linewidth]{sgx/open-latency}\\
+{\bf (a) Open a file}
+\end{minipage}
+\begin{minipage}{.3\textwidth}
+\centering
+\includegraphics[width=\linewidth]{sgx/read-latency}\\
+{\bf (b) Read a file}
+\end{minipage}
+\begin{minipage}{.3\textwidth}
+\centering
+\includegraphics[width=\linewidth]{sgx/fork-latency}\\
+{\bf (c) Fork a process}
+\end{minipage}
+
+\caption{Latency of some expensive system calls in \graphenesgx{}, including opening and reading a secured (authenticated) file, and forking a new process. The results are compared with native Linux and \graphene{}.}
+\label{fig:syscall}
+\end{figure*}
+
+
+We also evaluate the performance of a few commonly-used command-line applications.
+%, to evaluate the performance of \graphenesgx{} on PCs instead of servers and clouds.
+Three off-the-shelf applications are tested in our experiments:
+{\bf R} for statistical computing~\cite{r-project}; {\bf GCC}, the general GNU C compiler~\cite{gcc}; {\bf CURL}, the default command-line web client on UNIX~\cite{curl}.
+These applications are chosen because they are frequently used by Linux users,
+and each of them potentially  be used 
+in an enclave to handle sensitive data---either on a server or a client
+machine.
+% can realize profitable scenarios of using enclaves on desktop machines.
+
+
+
+We evaluate the latency or execution time of these applications. 
+%, because desktop users tend to care more about responsiveness than throughput.
+In our experiments, both R and CURL have internal timing features to measure the wall time
+of individual operations or executions.
+%However, for other applications like GCC which does not include internal timing, evaluating the execution time can be influenced by many factors.
+On a Linux host, the time to start a library OS is higher than a simple 
+process, but significantly lower than booting a guest OS in a VM, or closer to
+starting a container. 
+Prior work measured Graphene (non-SGX) start time at 641 $\mu$s~\cite{tsai14graphene}, whereas starting an empty Linux VM and a Linux container takes 10.3s and 200 $\mu$s, respectively~\cite{agarwal15container}. 
+%average memory footprint of an empty Linux VM, with memory deduplication, is about 96MB, . 
+
+
+On SGX, the enclave creation time is significantly higher (starting a 16MB enclave takes 1--2s), although most of this is a fixed cost that any application framework
+will pay to run in an enclave.
+%For library OSes, the time for creating and initializing an enclave is not trivial, because it is similar to booting an lightweight OS.
+% a significant part of the start-up time
+% of an application is more significant, because creating enclaves is expensive.
+%We consider the enclave creation time as a fixed cost for any application running in \graphenesgx{},
+%and acceptable to users as long as it is responsive.
+Enclave creation time is primarily a function of the size of 
+an enclave, which must be specified at creation time because it affects the enclave signature. %\fixmedp{although can't it grow with eadd?}.  
+Since the enclave creation time is related to the enclave size, and unrelated to the workload,
+we deduct the enclave creation time from the execution time of GCC in Figure~\ref{fig:desktop-overhead}. \fixmedp{I think it might be better to show this as a stacked bar instead of just removing it.  Opaquely subtracting this cost doesn't seem right.  Let's discuss}
+
+{\bf R}~\cite{r-project} is a script language engine often used for
+data processing and statistical computation.
+With enclaves, users can process sensitive data on an
+OS they don't trust.
+We use an R benchmark suite developed by Urbanek el al.~\cite{r-benchmark-25}, which includes 15 CPU-bound workloads such as matrix computation and number processing.
+\graphenesgx{} slows down by less than 100\% on the majority of the workloads, excepts the ones which involve allocation and garbage collection: ({\tt matrix1} creates and destroys matrices, and both {\tt FFT} and {\tt hilbert} involve heavy garbage collection.)
+Aside from garbage collection, these R benchmarks do not frequently interact with the host.
+We further note that  \graphene{} is as efficient as Linux on all workloads, 
+and these overheads appear to be SGX-specific.
+%\fixmedp{Check this pontification}
+In our experience, garbage collection and memory management code in managed language runtime
+systems tends to be written with assumptions that do not match enclaves,
+such as a large, sparse address space or that memory can be demand paged 
+nearly for free (SGX version 1 requires all memory to be mapped
+at creation); a useful area for future work would be to design
+garbage collection strategies that are optimized for enclaves.
+%we believe the overheads on \graphenesgx{} are contributed by enclaves.
+ 
+{\bf GCC}~\cite{gcc} is a widely-used C compiler.
+By supporting GCC in enclaves, developers could compile closed-source applications on customers' machines,
+without leaking the source code.
+GCC composes of multiple binaries, including {\tt cc1} (compiler), {\tt as} (assembler), and {\tt ld} (linker).
+Therefore, GCC requires \syscall{fork} and \syscall{execve}, and is a multi-process program.
+We benchmark GCC using large single C source files collected by MIT~\cite{gcc-benchmark}.
+We test the compilation of thee source files with varied sizes: {\tt gcc.c} (500 kLoC), {\tt oggenc.c} (50 kLoC), and {\tt gzip.c} (5 kLoC).
+Each compilation has a fixed enclave creation time in \graphenesgx{}, which is about 1--2 seconds per enclave. We deduct the creation time of all enclaves  to gain more meaningful results, but do not hide rest of the overhead on fork.
+\fixmedp{Also not comfortable with this; add a bar?}
+In general, GCC in \graphenesgx{} is 1--5$\times$ slower than GCC on native Linux. 
+\fixmedp{This really needs some profiling if possible}
+The overhead of \graphene{} on GCC is marginal.
+ 
+
+
+
+{\bf CURL}~\cite{curl} is a command-line  web downloader.
+\graphenesgx{} can make CURL into a secure downloader that attests both server and client ends.
+We evaluate the total time of downloading large files (from 1MB to 1GB) from another machines (running with Apache server) over Gigabit LAN.
+%across high-speed university network\fixmedp{more specific, as above}.
+Compared to  \graphene{} having marginal overhead on CURL,
+\graphenesgx{} adds 7--61\% overhead to the downloading time of CURL, due to the latency of I/O across enclaves.
+
+
+\subsection{Micro-benchmarks}
+
+
+In this section we evaluate a few system operations that are heavily impacted by the \graphenesgx{} design.
+%To shield dynamic loading and process creation,
+%\graphenesgx{} uses computationally-expensive cryptographic techniques \fixmedp{more specific?} to verify enclave inputs.
+% under the circumstance that the host OS cannot be trusted.
+%As a trade-off to the security, the performance will be affected
+%by additional cryptographic computation.
+We measure the \syscall{open}, \syscall{read}, and \syscall{fork} system calls
+using LMbench 2.5~\cite{McVoy:lmbench}.
+A primary source of the overheads to these system calls is the cost of shielding applications, by applying run-time checks or validating the inputs.
+Cryptographic techniques are used, at (1) validating the file against the signed hash, at \syscall{open}, (2) checking the file chunks against the Merkle tree, at \syscall{read}, and (3) establishing a TLS connection over inter-enclave RPC, at \syscall{fork}.
+%opening a integrity-sensitive file for the first time, 
+% or using cryptographic techniques, such as secure hashing, to verify the inputs.
+% microbenchmarking specific system calls: 
+% system calls,
+%with different application settings.
+%The microbenchmark is part of the LMBench 2.5 test suite
+%\fixmedp{maybe merge this in the above paragraph, which feels a little coy}
+%For instance, in order to shield dynamic loading, \graphenesgx{} checks each binary file against the secure hashes in the manifest,
+%when the file is opened for the first time---after the whole file is copied into the enclave.
+%\fixmedp{This happens after they are copied into enclave, memory right?}
+%The verification happens when opening the file for the first time (often by the 
+%After \graphenesgx{} validates the file, we generate a series of hashes of the file in chunks, as a merkle tree.
+%to prevent verifying the whole file again when later randomly reading a part of the file.
+%\fixmedp{So is this for the case when a file is swapped out?  I'm confused here - some details are missing}
+%The latency of opening and reading an authenticated file in \graphenesgx{} is dominated by SHA256 and SHA512 calculation.
+The remaining overheads contribute to exiting the enclave for host system calls, and bringing memory into the EPC (enclave page cache) and later the cache where the memory is decrypted by the CPU.
+
+
+Figure~\ref{fig:syscall}(a)
+shows the overhead for authenticating files in \syscall{open}.
+Depending on the file size, the overhead on \syscall{open} is 642$\times$ (64KB file) to 28,000$\times$ (4MB file).
+We note that this is where enclaves are at a disadvantage, as \syscall{open} 
+normally does not need to read file content; whereas here \graphenesgx{} uses \syscall{open}
+as a point at which to validate file content.
+For a subsequent \syscall{open}, when the Merkle tree is already generated, the overhead of simply exiting enclave for \syscall{open}, and searching the file list in manifest, is about 10$\times$.
+%\fixmedp{why?}
+
+
+One might be able to optimize further for cases where only portions of a large file are accessed
+with incremental hashing.  However, in the common case where nearly all of the file is accessed,
+these costs are difficult to avoid when using an untrusted file system.
+Another opportunity 
+is to push Merkle tree creation offline, when manifests are created.
+\fixmedp{I think the second idea has legs...}
+
+
+%This is an inevitable cost, because normal \funcname{open} on trusted OSes
+%need not to access file content.
+%After verifying the file, \graphenesgx{} buffers the chunk hash values, to skip whole-file verification when the file is reopened.
+
+Figure~\ref{fig:syscall}(b)
+shows the overhead for authenticating files in \syscall{read}.
+Since the whole file has been verified at \syscall{open}, the sequential \syscall{read} only verifies the chunks of files it is reading from untrusted memory.
+Reads from data cached in enclave memory are cheaper.\fixmedp{right? can we say how much cheaper?  Maybe add separate bars for both cases?}
+ Therefore, \syscall{read} is actually much cheaper than \syscall{open}.
+Depending on the size of blocks being read, the overhead is 2.8$\times$ (64-byte read) to 138$\times$ (4KB read).
+If the file is exempted from authentication,
+\graphenesgx{} only copy the file content into the buffer, and the overhead reduces to 48\% (64-byte read) to 74\% (4KB read).
+\fixmedp{Consider doing larger buffers, say up to 64k or even 4 MB}
+
+%\fixmedp{In the legend for 7b, unsecure should be insecure}
+
+
+Figure~\ref{fig:syscall}(c) shows the overhead on forking a process.
+As described in \ref{sec:multiproc}, the latency of \syscall{fork} in \graphenesgx{} is affected by three factors:
+creation of a new enclave, local attestation of the integrity, and duplicating the process state over an encrypted RPC stream.
+Combining these factors, \syscall{fork} is one of the most expensive calls in \graphenesgx{}.
+%, but at least it is supported natively on the current hardware.
+Our evaluation shows that the latency of forking a process is around 1.3 seconds (16MB process) to 2.7 seconds (128MB process), but can be more expensive if the parent process uses more memory.
+The trend matches the performance of \graphene{} without the bulk IPC optimization.
+\fixmedp{If you want, some thoughts on how this might be improved in the future would be nice...  One good suggestion is recycling enclaves, or pre-forking so measurements can be done in parallel}
+%Due to the overhead on \funcname{fork}, \graphenesgx{} is not suitable for fork-intensive workloads like Bash scripts
+%if performance is critical.
+
+%\fixmedp{I assume 5.4 isn't done yet}
+
+
+
+\subsection{TCB Size and Shielded Functionality}
+
+In this section we measure the increase in TCB size of \graphenesgx{},
+%in lines of code, 
+as well as 
+%compare the TCB size increased by \graphenesgx{} to an unmodified application, in lines of code, and 
+the OS functionality shielded by the framework.
+We compare to SCONE{} and PANOPLY, using
+%For SCONE and Panoply, we use 
+numbers reported in their papers. 
+%The conventional One generally assumes 
+A smaller TCB is generally easier to review or possibly verify,
+and is assumed to have fewer vulnerabilities.
+%more implies lower burden for code review or formal verification, and less risk of writing exploitable code.
+%For instance, Panoply argues that, because its use cases are typically smaller than 20kLoC, including both the application logic and Panoply itself, it is within the realm of future, automated verification~\cite{shinde17panoply}.
+
+\fixmedp{Reviewer B asks for memory footprint, which isn't a bad idea}
+
+\begin{table}
+\footnotesize
+\centering
+\bgroup
+\def\arraystretch{1.2}
+\setlength{\tabcolsep}{0.5em}
+\begin{tabular}{>{\raggedright\arraybackslash}p{9em}>{\raggedleft\arraybackslash\bf}p{7em}>{\raggedleft\arraybackslash}p{4.5em}>{\raggedleft\arraybackslash}p{4.5em}}
+Components                    & \graphenesgx{}  & SCONE     & PANOPLY  \\
+\hline
+libc (ld, libm, pthread)      &  1,292 &   88 & --      \\
+                              & (glibc-2.19) & (musl)   &          \\
+Library OS                    &     34 &  --      & --     \\
+PAL / OS Shield               &     22 &   99 & 10  \\
+\hline
+Total                         &  1,348 &  187 & 10  \\
+\hline
+\end{tabular}
+\egroup
+\caption{TCB size (in thousands of lines of code) of \graphenesgx{}, SCONE{}, and PANOPLY.}
+\label{tab:tcb-size}
+\end{table}
+
+Table~\ref{tab:tcb-size} lists the lines of code in each components within the TCB of \graphenesgx{}, SCONE{}, and PANOPLY.
+By comparing the total TCB size, \graphenesgx{} is 9$\times{}$ larger than SCONE{}, and 134$\times{}$ larger than PANOPLY.
+However, the primary difference is the selection of libc: 
+for maximum compatibility, \graphene{} uses glibc.
+SCONE{} uses the smaller musl libc, which lacks some features of glibc.
+%it would be easy to use the smaller, and incomplete, musl libc.
+%SCONE uses 
+% Linux applications, \graphenesgx{} chooses to use a minimally-modified glibc, whereas SCONE uses the much more lightweight musl and 
+PANOPLY excludes libc from its TCB,
+% \fixmedp{what is their rationale, again? Check this}
+to fit into the range of automated formal verification,
+as they shield at the libc interface.
+In principle, \graphene{} could easily support musl as well as glibc for applications
+that do not need the additional features of glibc.
+We also see the benefit of removing unused code from 
+libraries, especially in an unsafe language,
+similar to the approach taken in unikernels~\cite{unikernels}.
+On balance, 
+this choice of libc implementation is largely orthogonal to the issue
+of how general-purpose the shields are.
+
+%We argue that the choice of libc is orthogonal to the design of \graphenesgx{}; one can statically compile the applications against musl or glibc if TCB size is a concern, or given plenty of time, trim the libc functionality to bare minimum. 
+
+If we focus on the TCB size of the library OS and the OS shields, 
+\graphenesgx{} is 
+%library OS and PAL in \graphenesgx{}, with the shielding layer of SCONE, we are 
+44\% smaller than SCONE{}. 
+We cannot analyze the size of SCONE{}, which is closed source.
+%, although
+%we suspect
+%Although it is unclear what is in the implementation of SCONE, because it is not yet open-sourced, we believe the largest portion of their TCB contributes to the cryptography library.
+PANOPLY has a smaller TCB in its shield, but same order of magnitude, although Panoply only shields 91 POSIX functions out of 256 currently supported by PANOPLY \fixmedp{The better number is how many total functions}.
+
+All three of these compatibility layers or shields are within the same
+order of magnitude in code size, and the differences are likely 
+correlated with different ranges of supported functionality.
+A recent study indicates that only order-of-magnitude differences in code
+size correlate with reported CVE vulnerabilities; within the same order-of-magnitude,
+the data is inconclusive that there is a meaningful difference in risk~\cite{security-metric}.
+Thus, generality does not necessarily come with 
+a greater risk. % is not a clear relationship between risk 
+
+% data only correlates
+%with differences in code size when 
+
+%Besides the choice of libc, we argue that the TCB size of a library OS or a shim shielding layer is actually correlated with the functionality that it supports or shields. Because none of the three frameworks have completely shielded the whole Linux system call table or POSIX, it is unclear how much code has to be added in the future. \graphenesgx{} also shows that one can always engineer a library OS with a small TCB, if most code is not reused from a monolithic OS kernel like Windows or Linux.
+%A recent study of the CVE database also points out that having a larger TCB does not necessarily indicate more vulnerabilities, even when the difference is more than two order-of-magnitude. 
+
