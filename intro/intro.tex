@@ -71,7 +71,7 @@ to hide the idiosyncrasy of hardware interfaces.
 %The encapsulation of system interfaces
 %accelerates the advance of both software and hardware technologies, by making them easier to 
 %be deployed within the system stack.
-In many OSes, system interfaces are defined to be portable on physical machines
+In many OSes, system interfaces are defined to be portable across physical machines
 with various hardware configurations,
 including different CPU models, memory sizes, and I/O devices,
 to make applications more distributable.
@@ -91,9 +91,8 @@ from the choice of hardware products.
 %The same assumption on application portability has been shared among
 Linux~\cite{linux-standard-base}, BSD~\cite{quarterman85bsd}, Windows~\cite{win-api},
 and POSIX~\cite{ieee-posix}
-share the merit of portability and distributability
-of applications,
-thanks to the system interfaces.
+share the merit of making the hardware usage in an application both comprehensive and adaptable,
+thanks to the encapsulation of system interfaces.
 
 
 
@@ -241,8 +240,8 @@ as it is programmed and tested on their own machines.
 \end{comment}
 
 
-The importance of system interfaces forces OS developers to keep the system interfaces compatible against applications,
-despite facing challenges on adopting new hardware.
+The importance of system interfaces on application forces OS developers to retain the system interfaces compatible for applications,
+despite of challenges in developing OS support for new hardware abstractions.
  %, in response to new hardware technologies.
 %which is often a distraction to innovations. %, despite being a critical factor to whether an OS or hardware component is immediately deployable. %, even though compatibility is critical to system usability.
 %For OS developers, maintaining compatibility is a valuable effort, 
@@ -258,12 +257,12 @@ despite facing challenges on adopting new hardware.
 %iThe design of portable system interfaces can't avoid leaking new hardware or OS designs with unprecedented constraints. % or methods of operation.
 The early UNIX systems are reportedly easy to implement, because
 %they only have a relatively small amount of hardware devices and applications to deal with, and 
-their system interfaces are tailored
-to the applications, CPUs, RAMs, and I/O devices available at the time~\cite{ritchie78unix-retro}.
+the system interfaces are tailored
+to the limited amount of applications, CPUs, RAMs, and I/O devices available at the time~\cite{ritchie78unix-retro}.
 %The problems lies in the complexity of
-However, %due to rapid growth of applications and hardware products,
-OS development nowadays is increasingly burdened by compatibility issues,
-due to new hardware designs which leak out of the typical abstractions encapsulated by the current system interfaces.
+%due to rapid growth of applications and hardware products,
+OS development nowadays is increasingly burdened by implementing a compatible system interface,
+on new hardware designs which leak out of the abstractions encapsulated by the system interface.
 %When the current system interface can no longer retain the portability of applications,
 %OS developers are forced to
 %
@@ -272,16 +271,16 @@ due to new hardware designs which leak out of the typical abstractions encapsula
 %without ensuring that existing applications will be updated accordingly.
 %Compatibility requires preserving the OS functions defined in a system interface,
 %which are indispensable to applications.
-The additional effort for retaining or restoring compatibility will delay the deployment of a hardware technology, or disrupt an application on new machines.
+The additional effort for retaining the compatibility can delay the deployment of a new hardware technology, or disrupt an application on new machines.
 %If OS developers must extend the system interfaces for a new hardware device,
 %OS developers have to either extend the existing system interfaces
 %to support new hardware,
 %or implement a transparent layer which compensate for the distinction.
 %the extension won't benefit existing applications without application modifications.
 %it would almost certainly delay the timing when users can benefit from the new hardware designs.
-A classic example %of a disruptive hardware design
+A running example used in this thesis %of a disruptive hardware design
 is Intel SGX (software guard extensions)~\cite{intelsgx},
-which assists applications to protect themselves from malicious OSes and administrators,
+a new Intel CPU feature which assists applications to protect themselves from malicious OSes and administrators,
 but raises several compatibility issues,
 including changing the trusted nature of OS services (more discussion in Section~\ref{sec:intro:sgx}).
 %Despite the benefits of SGX on application protection,
