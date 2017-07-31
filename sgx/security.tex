@@ -1,5 +1,5 @@
-\section{\graphenesgx{} Design Overview}
-\label{sec:threat}
+\section{Design Overview}
+\label{sec:sgx:overview}
 
 This section discusses the threat model,
 how \graphenesgx{} defends against attacks from the untrusted OS,
@@ -11,7 +11,7 @@ and how users configure policies for defenses.
 %\subsection{Single-process, Linux COTS applications}
 
 \subsection{Threat model}
-
+\label{sec:sgx:overview:threat}
 
 \graphenesgx{} follows a typical threat model for \sgx{} applications.
 The following components are untrusted:
@@ -45,7 +45,11 @@ are vulnerabilities common to all SGX frameworks, and
 are beyond the scope of this work.
 %\edit{Denial-of-service attacks by blocking CPU, memory, or IO resources are also beyond our scope.}
 
+
+
 \subsection{User policy configuration}
+\label{sec:sgx:overview:config}
+
 
 Before an application is first executed using \graphenesgx{}, 
 the user must make certain policy decisions.  
@@ -172,6 +176,8 @@ The {\tt AESMD} enclave is secured by a private key owned by \intel{} and the co
 
 
 \subsection{Multi-process applications}
+\label{sec:sgx:overview:multiproc}
+
 
 \begin{figure}[t!]
 \centering
@@ -206,7 +212,7 @@ securing these abstractions from the OS is straightforward.
 \graphenesgx{} adds: %The primary pieces we add for multi-processing support are:
 (1) the ability for enclaves to authenticate each other via local attestation,
 and thereby establish a secure channel,
-and (2) a mechanism to securely fork into a new enclave, adding the child to the enclave group (\S\ref{sec:multiproc}).
+and (2) a mechanism to securely fork into a new enclave, adding the child to the enclave group (see Section \ref{sec:sgx:shield:multiproc}).
 
 
 %% \graphenesgx{} spans a multi-process application across multiple enclaves.
