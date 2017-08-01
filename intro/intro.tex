@@ -4,7 +4,7 @@
 
 Operating systems simplify the programming of an application, to utilize a wide range of hardware.
 A UNIX-style OS
-encapsulates hardware resources and abstractions~\cite{ritchie74unix}, using a programmable system interface exposed to applications.
+encapsulates hardware resources and abstractions~\cite{ritchie74unix}, in a system interface programmable inside applications.
 %In modern computer systems, an operating system plays a key role
 %of abstracting the hardware for applications. % that are designed to run on a wider range of hardware platforms.
 %\fixmedp{be more direct}
@@ -71,25 +71,27 @@ encapsulates hardware resources and abstractions~\cite{ritchie74unix}, using a p
 %The encapsulation of system interfaces
 %accelerates the advance of both software and hardware technologies, by making them easier to 
 %be deployed within the system stack.
-A system interface is portable across hardware configurations, including CPU models, memory sizes, and I/O devices, to broadly reuse applications.
+A system interface can be portable across machines with different hardware---from CPU models (besides instruction sets), memories, to I/O devices---to facilitate reuse of applications.
 %The portable OS design
 %simplifies the programming of a distributable application %an one-time effort
 %on limited hardware options available to the developers.
 %Many OSes offer the convenience of developing applications
 %that are not tied to specific hardware, or {\em application portability}.
-Besides OS restrictions for an application to be compiled with a choice of CPU architecture (e.g., x86),
-a system interface is mostly independent
-from the choice of hardware.
+%Besides OS restrictions for an application to be compiled with a choice of CPU architecture (e.g., x86),
+%a system interface is mostly independent
+%from the choice of hardware.
+Therefore, applications can be programmed against a hardware-independent, extended machine specified by the system interface~\cite{dhamdhere2007os-textbook},
+instead of individual physical machines.
 %Application portability requires an OS to export a system interface
 %independent from hardware configurations,
 %such as different CPU models, memory of different capacity, and various I/O devices.
 %The only exception is the portability across CPU architectures,
 %Otherwise, application developers would expect an application, built without dependency to %specific hardware, to be reusable in an OS regardless of what hardware users choose.
 %The same assumption on application portability has been shared among
-The merit is shared by
-Linux~\cite{linux-standard-base}, BSD~\cite{quarterman85bsd}, Windows~\cite{win-api},
-and POSIX~\cite{ieee-posix},
-to make applications adaptable and widely distributable.
+Many modern OSes share the merit of application portability,
+including Linux~\cite{linux-standard-base}, BSD~\cite{quarterman85bsd}, Windows~\cite{win-api},
+and POSIX~\cite{ieee-posix}.
+%to make applications adaptable and widely distributable.
 
 
 
@@ -291,21 +293,21 @@ Unless the OS development can be transparent to applications, the adoption of a 
 
 
 
-As an extreme case, a hardware may change the assumptions which a system interface depends on, causing compatibility issues in many applications.
-A classic example %of a disruptive hardware design
+As extreme cases, some hardware are designed to change the assumptions which the OS and system interface depends on, and affect compatibility with applications.
+An example %of a disruptive hardware design
 is {\bf SGX (software guard extensions)}~\cite{intelsgx},
-a new Intel CPU feature which allows applications to protect themselves from malicious OSes and administrators.
+an Intel CPU feature which allows applications to protect themselves from malicious OSes and administrators.
 SGX raises several compatibility issues, including changing the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
 Another example is an asymmetric multiprocessing architecture,
-or an architecture without inter-connected memories~\cite{gschwind2007,cascaval2002evaluation}. 
+or an architecture without inter-connected, coherent memories~\cite{gschwind2007,cascaval2002evaluation}. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
 %and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
 %Especially, the size and subtlety of the Linux or Windows system interface
 %makes it unsuitable for adopting applications to SGX~\cite{checkoway13iago}, because SGX has fundamentally changed the nature of OS services.
 %Several recent publications mitigate part of the compatibility issue for deploying applications on SGX~\cite{baumann14haven,osdi16scone,shinde17panoply}.
-These extreme cases mostly happen on innovative, or research-purpose hardware,
-which contribute by exploring opportunities of tweaking the inherited assumptions in OS and hardware development.
+These extreme cases mostly happen on cutting-edge, or research hardware,
+which explore the opportunity of tweaking OS or hardware assumptions.
 
 
 
@@ -596,8 +598,8 @@ The key challenge to maintaining the compatibility is to reproduce
 the idiosyncratic behavior and semantic
 of a system interface.
 The goal of OS development is to bridge the "semantic gap" between the system interface and the low-level hardware abstractions~\cite{tanenbaum19os-textbook}.
-The definition of a long-lasting system interface, such as Linux system calls or POSIX API, is influenced by the design of plenty pre-existing hardware,
-and thus is difficult to change for a disruptive hardware design.
+The design of a long-lasting system interface, such as Linux system calls or POSIX API, is influenced by the design of plenty of pre-existing hardware,
+and thus is difficult to change for a disruptive hardware.
 %For example, a monolithic OS, such as Linux or Windows, assumes a unified kernel, which mediates all operations from applications to request hardware resources and abstractions.
 Also, an OS prototype built from scratch
 can redefine a system interface which accommodates a new hardware, or optimizes for it~\cite{baumann09barrelfish,peter14arrakis,belay14ix}.
@@ -615,10 +617,10 @@ building a translation or emulation layer for reproducing the former OS behavior
 The translation (or emulation) of a system interface
 can benefit from virtualizing the upper layers of OS components,
 or the whole OS. 
-A key insight is to reduce the ad-hoc development effort for translating on a specific hardware or OS interface, by reusing a virtualized OS implementation.
+A key insight is to reduce the ad-hoc development effort for translating on a specific hardware or host interface, by reusing a virtualized OS implementation.
 Virtualization separates the translation of an idiosyncratic system interface,
 using an intermediate interface which drops the assumptions
-from both the system interface and the underlying hardware or OS interface.
+from both the system interface and the underlying hardware or OS.
 A common solution is to run a virtual machine with an unmodified OS kernel, upon a virtual hardware interface.
 The virtual hardware interface 
 assumes a generic, standard hardware configuration, %including CPU architecture, memory and I/O devices, 
@@ -627,8 +629,9 @@ A virtual machine conveniently reuses existing OS implementation
 for reproducing the system interface,
 but relies on the assumption that the CPU architecture has virtualization support,
 such as Intel VT (virtualization technology).
-As an alternative to a virtual machine, OS developers can partition a OS design,
-using a "host interface" with simpler specification and assumption than virtual hardware.
+As an alternative to a virtual machine, OS developers can partition an OS instead of reusing the whole OS,
+using a "pinch point" found inside the OS implementation,
+with even simpler specification and assumption than a virtual hardware interface.
 
 %Although virtualization can help reusing a whole Linux kernel on a OS prototype~\cite{baumann09barrelfish}, but depends on hardware support like VT, and costs lots of memory to run an unmodified kernel~\cite{agarwal15container}.
 %For an OS prototype which prefers not to run a whole Linux kernel, making it compatible against existing applications is a major challenge to moving the OS toward production.
@@ -2767,22 +2770,15 @@ with a study of the Linux API usage among Ubuntu users and applications.
 \section{Organization}
 
 The rest of this thesis is organized as follows:
-\begin{compactitem}
-\item Chapter~\ref{chap:overview} describes the overview of Graphene and design principles.
-\item Chapter~\ref{chap:abi} formally defines the host ABI.
-\item Chapter~\ref{chap:libos} describes the library OS.
-%, which reproduce a rich of Linux features and personality.
-\item Chapter~\ref{chap:linux} describes the host ABI on Linux.
-%and the enforce of security isolation.
-\item Chapter~\ref{chap:sgx} describes the host ABI on SGX.
-%to the Intel SGX platform,
-%and the shielding of Linux functionality from untrusted hosts.
-\item Chapter~\ref{chap:eval} evaluates the performance of \graphene{},
-with a security study.
-\item Chapter~\ref{chap:metric} evaluates the compatibility of \graphene{}.
-%, and evaluate \graphene{} against other ad-hoc translation layers.
-\item Chapter~\ref{chap:study} uses metrics of API importance to study Linux and POSIX.
-%to study the API usage in Linux and POSIX.
-\item Chapter~\ref{chap:related} discusses the related work.
-\item Chapter~\ref{chap:conclusion} concludes the thesis.
-\end{compactitem}
+Chapter~\ref{chap:overview} describes the overview of Graphene (including the host ABI and the library OS) and the design principles behind the implementation.
+Chapter~\ref{chap:abi} formally defines the host ABI.
+Chapter~\ref{chap:libos} discusses the library OS in details.
+Chapter~\ref{chap:linux} describes the PAL (platform-adaption layer) on Linux, as an example of implementing the host ABI and security isolation between library OS instances.
+Chapter~\ref{chap:sgx} discusses SGX-specific challenges to application porting, and the PAL implementation inside a SGX enclave.
+Chapter~\ref{chap:eval} evaluates the performance and memory footprint of \graphene{} and \graphenesgx{},
+and presents a security study of \graphene{}.
+Chapter~\ref{chap:metric} presents a quantitative metric for compatibility,
+to evaluate the completeness of Linux functionality in \graphene{}.
+Chapter~\ref{chap:study} uses the metrics of API importance, to study the usage of Linux and POSIX interfaces.
+Chapter~\ref{chap:related} discusses the related work.
+Chapter~\ref{chap:conclusion} concludes.
