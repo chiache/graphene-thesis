@@ -792,32 +792,31 @@ expensive to implement on
 
 
 
-This thesis describes an OS design and general principles for reducing the development effort devoted to achieving or preserving OS compatibility, especially for new hardware designs or different OSes.
+This thesis describes an OS design which resolves compatibility issues, for either a new hardware or a OS prototype.
 %implementation of compatibility in an OS, in case the OS developers intend to extend the OS for new hardware.
-The key to the OS design
 %reducing the difficulty of retaining compatibility
-is to reduce the complexity of system interface which has to be reproduced, to achieve compatibility against existing applications.
+%is to reduce the complexity of system interface which has to be reproduced, to achieve compatibility against existing applications.
 %when extending the OS implementation.
-This thesis demonstrates that OS developers need not to implement
+This thesis demonstrates that OS developers need not to repeat the implementation of
 the whole system interface,
-but a simple {\em host ABI (application binary interface)}.
+but develop a simple host ABI for virtualizing OS components.
 % when the goal is to retain the compatibility for a certain amount of applications, on an unconventional physical machine.
 %For the OS design, this thesis presents a narrow system interface to each hosts,
 %or {\em host ABI}.
 %to be implemented for each host platforms.
-The host ABI is the key to facilitating the compatibility in an OS.
-The host ABI must
-contain typical OS functions needed by every applications,
-but be simple enough for porting.
+%the key to facilitating the compatibility in an OS.
+%The host ABI must
+%contain typical OS functions needed by every applications,
+%but be simple enough for porting.
 %defined to be completely independent from the physical machines,
 %and contain abstractions that are easy to implement in most commodity OSes.
-Above the host ABI, this thesis proposes using a {\em library OS}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels}
-to reproduce the system interfaces for applications.
+Above the host ABI, we proposes using a {\bf library OS}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
+to reproduce a system interface for applications.
 %that the existing applications imperatively depend on.
 %A \libos{} is different from a translation layer which maps one set of system interfaces to another, nor is it the same as wrapper functions for formerly defined interfaces.
 %A \libos{} implements an operating system instance separated from the host, upon a standalone host interfaces similar to a set of virtualized hardware interfaces, or para-virtualized hypercalls.
-To make the library OS practical enough to benefit OS research,
-this thesis targets the compatibility against commercial-use, popular Linux applications, including servers, command-line programs, and language runtimes.
+%To make the library OS practical enough to benefit OS research,
+This thesis targets the compatibility against commercially-used, popular Linux applications, including server-type applications, command-line programs, and language runtimes.
 %This thesis shows that the defined host ABI is sufficient to implement a rich of OS functionality for reusing the said applications.
 
 
@@ -826,7 +825,7 @@ this thesis targets the compatibility against commercial-use, popular Linux appl
 %using a host interface defined with simplicity and minimal assumptions. This \libos{} design, alone with the host interface, is potentially stackable on various operating systems, to benefit both backward and forward compatibility.
 
 
-This thesis present \graphene{}, a library OS for running unmodified Linux applications on various host OS and hardware options, including the running example, Intel SGX.
+Based on this OS design, we present {\bf \graphene{}}, a library OS for running unmodified Linux applications on various OSes and hardware, including SGX as a running example.
 %This thesis shows the embodiment of an OS design as the \graphene{} library OS.
 %The  library OS can run a wide range of unmodified Linux applications,
 %including server-type applications, command-line programs, and language runtimes, on a set of host OSes and hardware platforms.
@@ -844,7 +843,7 @@ such as multi-process abstractions.
 Third, \graphene{} demonstrates the feasibility of engineering a practical library OS,
 with acceptable performance overhead,
 and memory footprint comparable to a Linux process.
-Last but not least, comparable to VMs, \graphene{} enforces security isolation
+Last but not least, comparable to a virtual machine, \graphene{} enforces security isolation
 between mutually-untrusted applications, on both application and OS states,
 with a narrowed attack surface to the host kernel (more in Section~\ref{sec:intro:security}).
 
