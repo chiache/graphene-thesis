@@ -836,16 +836,16 @@ The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule} and
 
 Established upon the previous work, \graphene{} holds the following key contributions:
 \begin{compactenum}
-\item \graphene{} explores and justifies the feasibility of building a library OS, for improving compatibility on various OSes or hardware platforms.
+\item \graphene{} explores and justifies the feasibility of building a library OS for resolving compatibility issues on various OSes and hardware.
 %(1) Reasoning about the portability and completeness of functionality.
 % of the host ABI and library OS design for both
-\item \graphene{} faithfully implements a rich of native Linux features, including several challenging features which are specific to Linux or UNIX,
+\item \graphene{} faithfully implements a rich of native Linux system calls, including several challenging features which are specific to Linux or UNIX,
 such as multi-process abstractions.
-\item \graphene{} demonstrates the feasibility of engineering a practical library OS,
-with acceptable performance overhead,
-and memory footprint comparable to a Linux process.
-\item comparable to a virtual machine, \graphene{} enforces security isolation
-between mutually-untrusted applications, on both application and OS states,
+\item \graphene{} shows it possible to engineer a library OS
+with practical performance overhead,
+and memory footprint close to a Linux process.
+\item Comparable to a VM, \graphene{} can enforce strong security isolation
+between mutually-untrusted applications,
 with a narrowed attack surface to the host kernel (more in Section~\ref{sec:intro:security}).
 \end{compactenum}
 
@@ -2766,23 +2766,23 @@ with a study of the Linux API usage among Ubuntu users and applications.
 
 \section{Organization}
 
-The organization of this thesis is presented as follows:
-\placeholder{}
-%\begin{compactitem}
-%\item \S\ref{chap:graphene}
-%describes the \graphene{} approach for supporting multi-process, Linux applications %in mutually isolated \picoprocs{}, or enclaves.
-%\item \S\ref{chap:civet}
-%presents the ongoing work of partitioning
-% \java{} applications to isolate the most sensitive execution
-% in enclaves.
-% \item \S\ref{chap:syspop}
-% discusses new, fractal measurements for evaluating importance of system APIs and completeness of prototype systems,
-% based on a study of Linux API usage and compatibility.
-% %\item \S\ref{chap:dcache}
-% %explains a fast-path design for optimizing the hit latency for looking up in Linux's egacy file system directory cache.
-% \item \S\ref{chap:proposal}
-% lists the proposed tasks for the fulfillment of thesis.
-% \item \S\ref{chap:related}
-% describes the former works and publications related to
-% this thesis.
-% \end{compactitem}
+The rest of this thesis is organized as follows:
+\begin{compactitem}
+\item Chapter~\ref{chap:overview} describes the overview of Graphene and design principles.
+\item Chapter~\ref{chap:abi} formally defines the host ABI.
+\item Chapter~\ref{chap:libos} describes the library OS.
+%, which reproduce a rich of Linux features and personality.
+\item Chapter~\ref{chap:linux} describes the host ABI on Linux.
+%and the enforce of security isolation.
+\item Chapter~\ref{chap:sgx} describes the host ABI on SGX.
+%to the Intel SGX platform,
+%and the shielding of Linux functionality from untrusted hosts.
+\item Chapter~\ref{chap:eval} evaluates the performance of \graphene{},
+with a security study.
+\item Chapter~\ref{chap:metric} evaluates the compatibility of \graphene{}.
+%, and evaluate \graphene{} against other ad-hoc translation layers.
+\item Chapter~\ref{chap:study} uses metrics of API importance to study Linux and POSIX.
+%to study the API usage in Linux and POSIX.
+\item Chapter~\ref{chap:related} discusses the related work.
+\item Chapter~\ref{chap:conclusion} concludes the thesis.
+\end{compactitem}
