@@ -4,7 +4,7 @@
 
 Operating systems simplify the programming of an application, to utilize a wide range of hardware.
 A UNIX-style OS
-encapsulates hardware resources and abstractions~\cite{ritchie74unix}, using a programmable system interface exposed to applications.
+encapsulates hardware resources and abstractions~\cite{ritchie74unix}, in a system interface programmable inside applications.
 %In modern computer systems, an operating system plays a key role
 %of abstracting the hardware for applications. % that are designed to run on a wider range of hardware platforms.
 %\fixmedp{be more direct}
@@ -71,25 +71,27 @@ encapsulates hardware resources and abstractions~\cite{ritchie74unix}, using a p
 %The encapsulation of system interfaces
 %accelerates the advance of both software and hardware technologies, by making them easier to 
 %be deployed within the system stack.
-A system interface is portable across hardware configurations, including CPU models, memory sizes, and I/O devices, to broadly reuse applications.
+A system interface can be portable across machines with different hardware---from CPU models (besides instruction sets), memories, to I/O devices---to facilitate reuse of applications.
 %The portable OS design
 %simplifies the programming of a distributable application %an one-time effort
 %on limited hardware options available to the developers.
 %Many OSes offer the convenience of developing applications
 %that are not tied to specific hardware, or {\em application portability}.
-Besides OS restrictions for an application to be compiled with a choice of CPU architecture (e.g., x86),
-a system interface is mostly independent
-from the choice of hardware.
+%Besides OS restrictions for an application to be compiled with a choice of CPU architecture (e.g., x86),
+%a system interface is mostly independent
+%from the choice of hardware.
+Therefore, applications can be programmed against a hardware-independent, extended machine specified by the system interface~\cite{dhamdhere2007os-textbook},
+instead of individual physical machines.
 %Application portability requires an OS to export a system interface
 %independent from hardware configurations,
 %such as different CPU models, memory of different capacity, and various I/O devices.
 %The only exception is the portability across CPU architectures,
 %Otherwise, application developers would expect an application, built without dependency to %specific hardware, to be reusable in an OS regardless of what hardware users choose.
 %The same assumption on application portability has been shared among
-The merit is shared by
-Linux~\cite{linux-standard-base}, BSD~\cite{quarterman85bsd}, Windows~\cite{win-api},
-and POSIX~\cite{ieee-posix},
-to make applications more adaptable and distributable.
+Many modern OSes share the merit of application portability,
+including Linux~\cite{linux-standard-base}, BSD~\cite{quarterman85bsd}, Windows~\cite{win-api},
+and POSIX~\cite{ieee-posix}.
+%to make applications adaptable and widely distributable.
 
 
 
@@ -238,11 +240,11 @@ as it is programmed and tested on their own machines.
 
 
 
-A prerequisite to programming a portable application
-is that the system interface must remain consistent, for compatibility against previously-developed applications.
-As hardware development will continues after applications are released,
-OS developers are responsible for keeping the system interface compatible against existing applications,
-regardless of challenges to developing OS support for new hardware.
+A prerequisite to programming a portable application in an OS
+is to have a consistent
+system interface which is {\bf compatible} with previously-developed applications.
+As hardware development will continue after an application is released, OS developers must maintain the compatibility of system interface,
+while developing OS support for new hardware. %, to ensure portability of applications. 
  %, in response to new hardware technologies.
 %which is often a distraction to innovations. %, despite being a critical factor to whether an OS or hardware component is immediately deployable. %, even though compatibility is critical to system usability.
 %For OS developers, maintaining compatibility is a valuable effort, 
@@ -264,7 +266,10 @@ regardless of challenges to developing OS support for new hardware.
 %due to rapid growth of applications and hardware products,
 %For decades, the hardware technology has significantly grown.
 %OS development nowadays is increasingly burdened by implementing a compatible system interface,
-Compatibility issues emerge when a new hardware design leaks out of the encapsulation of hardware abstractions, while changing the system interface can disrupt the usability or portability of existing applications.
+Developing an OS with compatibility is challenging when a new hardware leaks out of the abstractions encapsulated by the system interface.
+If an OS developer has to extend the system interface
+to facilitate the programming of new hardware, the extension will be difficult to benefit existing applications.
+%Changing or extending a system interface can disrupt the usability of existing applications.
 %When the current system interface can no longer retain the portability of applications,
 %OS developers are forced to
 %
@@ -279,25 +284,30 @@ Compatibility issues emerge when a new hardware design leaks out of the encapsul
 %or implement a transparent layer which compensate for the distinction.
 %the extension won't benefit existing applications without application modifications.
 %it would almost certainly delay the timing when users can benefit from the new hardware designs.
-A running example in this thesis %of a disruptive hardware design
-is SGX (software guard extensions)~\cite{intelsgx},
-a new Intel CPU feature which assists applications to protect themselves from malicious OSes and administrators,
-but raises several compatibility issues,
-including changing the trusted nature of OS services (more discussion in Section~\ref{sec:intro:sgx}).
+%The extra effort on compatibility can delay the deployment of an innovative hardware product, or obstruct reusing an application on new environments.
+System interface extensions for new hardware are common in most OSes under active development,
+usually as opcodes for \syscall{ioctl} in a POSIX-style OS,
+or system call options, such as the \code{MAP\_HUGETLB} flags for \syscall{mmap}.
+Unless the OS development can be transparent to applications, the adoption of a new hardware will lag behind the invention, due to lack of compatible OS support with existing applications.
+
+
+
+
+As extreme cases, some hardware are designed to change the assumptions which the OS and system interface depends on, and affect compatibility with applications.
+An example %of a disruptive hardware design
+is {\bf SGX (software guard extensions)}~\cite{intelsgx},
+an Intel CPU feature which allows applications to protect themselves from malicious OSes and administrators.
+SGX raises several compatibility issues, including changing the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
+Another example is an asymmetric multiprocessing architecture,
+or an architecture without inter-connected, coherent memories~\cite{gschwind2007,cascaval2002evaluation}. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
 %and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
 %Especially, the size and subtlety of the Linux or Windows system interface
 %makes it unsuitable for adopting applications to SGX~\cite{checkoway13iago}, because SGX has fundamentally changed the nature of OS services.
 %Several recent publications mitigate part of the compatibility issue for deploying applications on SGX~\cite{baumann14haven,osdi16scone,shinde17panoply}.
-The extra effort on compatibility can delay the deployment of an innovative hardware product, or obstruct reusing an application on new environments.
-
-
-% in unfriendly for OS developers to make a system-wide change transparent to applications.
-
-
-
-
+These extreme cases mostly happen on cutting-edge, or research hardware,
+which explore the opportunity of tweaking OS or hardware assumptions.
 
 
 
@@ -584,22 +594,47 @@ The OS development process can be both painful and time-comsuming.
 \end{comment}
 
 
-The problem for preserving the compatibility against applications is to reproduce
-the idiosyncrasy of a system interface,
-which is defined with certain hardware assumptions.
-For example, a monolithic OS, such as Linux or Windows, assumes a unified kernel, which mediates all operations from applications to request hardware resources and abstractions.
-Sometimes, an OS prototype is built for experimenting research ideas~\cite{baumann09barrelfish,unikernels,zeldovich+histar,libra,peter14arrakis,belay14ix},
-and may require compatibility against deployed applications.
+The key challenge to maintaining the compatibility is to reproduce
+the idiosyncratic behavior and semantic
+of a system interface.
+The goal of OS development is to bridge the "semantic gap" between the system interface and the low-level hardware abstractions~\cite{tanenbaum19os-textbook}.
+The design of a long-lasting system interface, such as Linux system calls or POSIX API, is influenced by the design of plenty of pre-existing hardware,
+and thus is difficult to change for a disruptive hardware.
+%For example, a monolithic OS, such as Linux or Windows, assumes a unified kernel, which mediates all operations from applications to request hardware resources and abstractions.
+Also, an OS prototype built from scratch
+can redefine a system interface which accommodates a new hardware, or optimizes for it~\cite{baumann09barrelfish,peter14arrakis,belay14ix}.
+%and may require compatibility against deployed applications.
 %often chooses to adopt the system interface of a popular OS standard, such as POSIX or Linux, to reuse applications already under deployment.
 %It is a practical move to implement system interfaces from a popular open OS such a Linux,
 %to demonstrate the benefits of using an OS prototype
 %on running certain native applications.
-An OS can define a system interface with up to hundreds or thousands of functions~\cite{ieee-posix, linux-man-syscall}. %nearly impossible to fully implement from scratch.
+%An OS can define a system interface with up to hundreds or thousands of functions~\cite{ieee-posix, linux-man-syscall}. %nearly impossible to fully implement from scratch.
+However, to be compatible with existing applications,
+building a translation or emulation layer for reproducing the former OS behavior and semantic, upon either an adapted system interface or an OS prototype, is still necessary.
 
 
 
-Although virtualization can help reusing a whole Linux kernel on a OS prototype~\cite{baumann09barrelfish}, but depends on hardware support like VT, and costs lots of memory to run an unmodified kernel~\cite{agarwal15container}.
-For an OS prototype which prefers not to run a whole Linux kernel, making it compatible against existing applications is a major challenge to moving the OS toward production.
+The translation (or emulation) of a system interface
+can benefit from virtualizing the upper layers of OS components,
+or the whole OS. 
+A key insight is to reduce the ad-hoc development effort for translating on a specific hardware or host interface, by reusing a virtualized OS implementation.
+Virtualization separates the translation of an idiosyncratic system interface,
+using an intermediate interface which drops the assumptions
+from both the system interface and the underlying hardware or OS.
+A common solution is to run a virtual machine with an unmodified OS kernel, upon a virtual hardware interface.
+The virtual hardware interface 
+assumes a generic, standard hardware configuration, %including CPU architecture, memory and I/O devices, 
+which is compatible with the unmodified OS (e.g., Linux kernel) in a virtual machine.
+A virtual machine conveniently reuses existing OS implementation
+for reproducing the system interface,
+but relies on the assumption that the CPU architecture has virtualization support,
+such as Intel VT (virtualization technology).
+As an alternative to a virtual machine, OS developers can partition an OS instead of reusing the whole OS,
+using a "pinch point" found inside the OS implementation,
+with even simpler specification and assumption than a virtual hardware interface.
+
+%Although virtualization can help reusing a whole Linux kernel on a OS prototype~\cite{baumann09barrelfish}, but depends on hardware support like VT, and costs lots of memory to run an unmodified kernel~\cite{agarwal15container}.
+%For an OS prototype which prefers not to run a whole Linux kernel, making it compatible against existing applications is a major challenge to moving the OS toward production.
 
 
 \begin{comment}
@@ -760,32 +795,31 @@ expensive to implement on
 
 
 
-This thesis describes an OS design and general principles for reducing the development effort devoted to achieving or preserving OS compatibility, especially for new hardware designs or different OSes.
+This thesis describes an OS design which resolves compatibility issues, for either a new hardware or a OS prototype.
 %implementation of compatibility in an OS, in case the OS developers intend to extend the OS for new hardware.
-The key to the OS design
 %reducing the difficulty of retaining compatibility
-is to reduce the complexity of system interface which has to be reproduced, to achieve compatibility against existing applications.
+%is to reduce the complexity of system interface which has to be reproduced, to achieve compatibility against existing applications.
 %when extending the OS implementation.
-This thesis demonstrates that OS developers need not to implement
+This thesis demonstrates that OS developers need not to repeat the implementation of
 the whole system interface,
-but a simple {\em host ABI (application binary interface)}.
+but develop a simple host ABI for virtualizing OS components.
 % when the goal is to retain the compatibility for a certain amount of applications, on an unconventional physical machine.
 %For the OS design, this thesis presents a narrow system interface to each hosts,
 %or {\em host ABI}.
 %to be implemented for each host platforms.
-The host ABI is the key to facilitating the compatibility in an OS.
-The host ABI must
-contain typical OS functions needed by every applications,
-but be simple enough for porting.
+%the key to facilitating the compatibility in an OS.
+%The host ABI must
+%contain typical OS functions needed by every applications,
+%but be simple enough for porting.
 %defined to be completely independent from the physical machines,
 %and contain abstractions that are easy to implement in most commodity OSes.
-Above the host ABI, this thesis proposes using a {\em library OS}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels}
-to reproduce the system interfaces for applications.
+Above the host ABI, we proposes using a {\bf library OS}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
+to reproduce a system interface for applications.
 %that the existing applications imperatively depend on.
 %A \libos{} is different from a translation layer which maps one set of system interfaces to another, nor is it the same as wrapper functions for formerly defined interfaces.
 %A \libos{} implements an operating system instance separated from the host, upon a standalone host interfaces similar to a set of virtualized hardware interfaces, or para-virtualized hypercalls.
-To make the library OS practical enough to benefit OS research,
-this thesis targets the compatibility against commercial-use, popular Linux applications, including servers, command-line programs, and language runtimes.
+%To make the library OS practical enough to benefit OS research,
+This thesis targets the compatibility against commercially-used, popular Linux applications, including server applications, command-line programs, and language runtimes.
 %This thesis shows that the defined host ABI is sufficient to implement a rich of OS functionality for reusing the said applications.
 
 
@@ -794,7 +828,7 @@ this thesis targets the compatibility against commercial-use, popular Linux appl
 %using a host interface defined with simplicity and minimal assumptions. This \libos{} design, alone with the host interface, is potentially stackable on various operating systems, to benefit both backward and forward compatibility.
 
 
-This thesis present \graphene{}, a library OS for running unmodified Linux applications on various host OS and hardware options, including the running example, Intel SGX.
+Based on this OS design, we present {\bf \graphene{}}, a library OS for running unmodified Linux applications on various OSes and hardware, including SGX as a running example.
 %This thesis shows the embodiment of an OS design as the \graphene{} library OS.
 %The  library OS can run a wide range of unmodified Linux applications,
 %including server-type applications, command-line programs, and language runtimes, on a set of host OSes and hardware platforms.
@@ -804,18 +838,19 @@ Windows applications.
 The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule} and Haven~\cite{baumann14haven}, to show the feasibility of implementing single-process, Linux functionality, and porting to Intel SGX.
 
 Established upon the previous work, \graphene{} holds the following key contributions:
-First of all, \graphene{} explores and justifies the feasibility of building a library OS, for improving compatibility on various OSes or hardware platforms.
+\begin{compactenum}
+\item \graphene{} explores and justifies the feasibility of building a library OS for resolving compatibility issues on various OSes and hardware.
 %(1) Reasoning about the portability and completeness of functionality.
 % of the host ABI and library OS design for both
-Second, \graphene{} faithfully implements a rich of native Linux features, including several challenging features which are specific to Linux or UNIX,
+\item \graphene{} faithfully implements a rich of native Linux system calls, including several challenging features which are specific to Linux or UNIX,
 such as multi-process abstractions.
-Third, \graphene{} demonstrates the feasibility of engineering a practical library OS,
-with acceptable performance overhead,
-and memory footprint comparable to a Linux process.
-Last but not least, comparable to VMs, \graphene{} enforces security isolation
-between mutually-untrusted applications, on both application and OS states,
+\item \graphene{} shows it possible to engineer a library OS
+with practical performance overhead,
+and memory footprint close to a Linux process.
+\item Comparable to a VM, \graphene{} can enforce strong security isolation
+between mutually-untrusted applications,
 with a narrowed attack surface to the host kernel (more in Section~\ref{sec:intro:security}).
-
+\end{compactenum}
 
 %Overall, this thesis shows that a library OS is not only a temporary workaround for reusing applications, but can be engineered to be a more permanent, practical solution for OS compatibility. 
 
@@ -838,19 +873,21 @@ with a narrowed attack surface to the host kernel (more in Section~\ref{sec:intr
 %system library which implements the system interfaces with minimal host interfaces and assumptions---to improve the OS development model for adapting applications to new hardware platforms.  Using a \libos{} can minimize the effort of customizing the OS for a certain hardware platform. OS developers only need to implement a narrowed host ABI (application binary interface), which includes a set of OS features defined to be stateless and generic to most hardware platform. Above the host ABI, we demonstrate that a full-featured \libos{} can be built to support a major portion of the system API, implemented using only the OS features defined in the host ABI. The \libos{} is practical: it has reasonable performance overhead generally less than 1$\times$, and memory footprint to load the \libos{} with applications.
 
 
-This thesis also studies the general principles
-for improving compatibility, from the perspectives of applications and users.
-The study begins with building a quantitative measurement
-for compatibility, with the consideration of system interface usage in applications,
+\paragraph{Compatibility evaluation and study.}
+This thesis studies the compatibility requirement in Linux and POSIX
+from the perspectives of applications and users.
+The study begins with building a metric for compatibility,
+weighted by the API usage in applications,
 and application importance (or popularity).
 %for measuring and implementing compatibility. The design principle applies to either a commodity OS, a newly-built OS prototype, or the \graphene{} library OS.
 %This thesis shows that the compatibility against the existing applications, in an OS, can be measured and incrementally improved by scientific approach.
 %Using a metric that is weighted by the usage of system interfaces in a large sample of commonly used applications, as well as the popularity of the sampled applications,
-Using the measurement,
-OS developers can prioritize the implementation of a system interface based on indispensability,
-and evaluate an in-progress OS prototype.
-The study also shows that most applications do not require at least half of the Linux system interface,
-which is either for administrative use (e.g., shutting down the machine), or just unpopular among applications.
+Using the metric,
+OS developers can quantitatively determine the priority in implementing a system interface,
+and evaluate the developed results.
+The study shows that most applications do not require
+half of the Linux system calls,
+which are either for administrative use (e.g., halting the machine), or unpopular among applications.
 
 
 %estimate the portion of potentially affected users when changing or deprecating a system interface, or evaluate the probably for existing applications to work on a new OS prototype. By measuring the partial compatibility of an OS prototype against a commodity operating system, the OS developers can prioritize the implementation of more ``important'' system interfaces, or ones that can potentially resurrect the most existing applications, instead of reimplementing every features and corner cases of the system interfaces.
@@ -993,7 +1030,7 @@ Intel SGX~\cite{intelsgx} are new extensions to the six-generation Intel CPUs,
 %Using SGX, application developers 
 which can
 protect signed application code from attacks in compromised OSes, hypervisors, and other system software.
-In the isolated environment of SGX, or {\em enclaves}, applications can securely utilize the
+In the isolated environment of SGX, or {\bf enclaves}, applications can securely utilize the
 resources of an untrusted host,
 such as a public cloud machine for rent, or a client machine,
 with both confidentiality and integrity.
@@ -2710,45 +2747,39 @@ is safe to be released from the enclave.
 
 \section{Summary}
 
-This thesis contributes an open, practical design of a library OS, called the \graphene{} library OS,
-to demonstrate the benefit on reusing unmodified Linux applications upon OS research prototypes or new hardware platforms.
-Compared with ad-hoc compatibility layers, \graphene{} shows that
-a library OS with rich Linux functionality (\graphenesyscalls{} system calls) can be reused on various host platforms, as a highly-portable layer for compatibility.
+This thesis contributes an open, practical, library OS design, called \graphene{},
+which demonstrates benefit on reusing unmodified Linux applications, upon new hardware or OS prototypes.
+Compared with ad-hoc translation layers,
+a library OS with a rich of Linux functionality (\graphenesyscalls{} system calls implemented) can be reused on various host platforms, as an adaptable layer with compatibility.
 \graphene{} can adapt to the restrictions and
-limited hardware abstractions on a host platform, with acceptable performance and memory footprint.
+limited hardware abstractions on a host, with acceptable performance and memory footprint.
 This thesis further reasons about the sufficiency of a library OS
-for running general applications. The reasoning is based on a quantitative measurement which evaluates partial compatibility of system interfaces.
+for running frequently-reused applications. The reasoning is based on a metric which can evaluate the partial compatibility of a system interface.
 \graphene{} prioritizes indispensable system calls over administrative or unpopular features,
-and thus can reuse a wide range of applications, from servers to language runtimes.
+to reuse a wide range of applications, from server applications to language runtimes.
 
 
 \paragraph{Previous publications.}
-The initial design of the \graphene{} library OS is presented in \cite{tsai14graphene}, which emphasizes on enforcing security isolation between mutually-distrusting, multi-process applications.
+The initial design of the \graphene{} library OS is presented in \cite{tsai14graphene}, which emphasizes on security isolation, between mutually-untrusted applications.
 A later publication~\cite{tsai17graphene-sgx} focuses on porting the host ABI
 to Intel SGX, and demonstrates the security benefit 
-over a thin redirection layer, and the usability feature for running unmodified applications.
-\cite{tsai16apistudy} presents the compatibility measurement for API compatibility,
-with a study of the Linux system API usage among Ubuntu users and applications.
+over a thin redirection layer, and the usability feature to run unmodified applications.
+\cite{tsai16apistudy} presents the compatibility metrics for compatibility,
+with a study of the Linux API usage among Ubuntu users and applications.
 
 \section{Organization}
 
-The organization of this thesis is presented as follows:
-\placeholder{}
-%\begin{compactitem}
-%\item \S\ref{chap:graphene}
-%describes the \graphene{} approach for supporting multi-process, Linux applications %in mutually isolated \picoprocs{}, or enclaves.
-%\item \S\ref{chap:civet}
-%presents the ongoing work of partitioning
-% \java{} applications to isolate the most sensitive execution
-% in enclaves.
-% \item \S\ref{chap:syspop}
-% discusses new, fractal measurements for evaluating importance of system APIs and completeness of prototype systems,
-% based on a study of Linux API usage and compatibility.
-% %\item \S\ref{chap:dcache}
-% %explains a fast-path design for optimizing the hit latency for looking up in Linux's egacy file system directory cache.
-% \item \S\ref{chap:proposal}
-% lists the proposed tasks for the fulfillment of thesis.
-% \item \S\ref{chap:related}
-% describes the former works and publications related to
-% this thesis.
-% \end{compactitem}
+The rest of this thesis is organized as follows:
+Chapter~\ref{chap:overview} describes the overview of Graphene (including the host ABI and the library OS) and the design principles behind the implementation.
+Chapter~\ref{chap:abi} formally defines the host ABI.
+Chapter~\ref{chap:libos} discusses the library OS in details.
+Chapter~\ref{chap:linux} describes the PAL (platform-adaption layer) on Linux, as an example of implementing the host ABI and security isolation between library OS instances.
+Chapter~\ref{chap:sgx} discusses SGX-specific challenges to application porting, and the PAL implementation inside a SGX enclave.
+Chapter~\ref{chap:eval} evaluates the performance and memory footprint of \graphene{} and \graphenesgx{},
+and presents a security study of \graphene{}.
+Chapter~\ref{chap:metric} presents a quantitative metric for compatibility,
+to evaluate the completeness of Linux functionality in \graphene{}.
+Chapter~\ref{chap:study} presets a study of the Linux API importance, to give an insight about prioritizing API implementation.
+%uses the metrics of API importance, to study the usage of Linux interfaces in applications.
+Chapter~\ref{chap:related} discusses the related work.
+Chapter~\ref{chap:conclusion} concludes the thesis.
