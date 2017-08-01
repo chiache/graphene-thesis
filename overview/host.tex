@@ -2,28 +2,40 @@
 \label{sec:overview:host}
 
 
-The \graphene{} approach to facilitating OS compatibility is to determine a small set of OS features which are essential to most applications, and define the host ABI.
+\graphene{} facilitates compatibility
+by partitioning an OS,
+at a host ABI which contains
+only OS abstractions
+that are essential to applications.
+%and minimal specifications for the host OSes and hardware.
 %The host ABI is a new boundary between OSes (or hypervisors) and applications.
 The host ABI separates the low-level, hardware-abstracting features, from reproducing the idiosyncrasy of system interfaces for applications. 
 %OS developers only have to port the host ABI for an OS which needs a boost of compatibility.
-\graphene{} moves the OS components which implements the system interfaces,
-into a user space, para-virtualized library OS,
-leaving only the host ABI as a narrowed interface to interact with the host OS and hardware.
+\graphene{} moves the OS components which implements the Linux system interface,
+into an in-process, para-virtualized library OS,
+leaving only the host ABI to request hardware resources
+from the host OSes.
 
 
 
 
  
+The host ABI defines the interaction between the library OS and a specific host.
+%The \graphene{} library OS can be deployed on any ``host'' where the host ABI has been ported.
+We define a {\bf host} as an OS or a hypervisor
+which exports consistent features and interfaces, to an applications or a VM
+running above the host.
+In general, an OS kernel, such as Linux, BSD, or Windows, is considered a host to the library OS, due to portability across physical machines.
+A hardware like SGX (software guard extensions)
+creates a special host on top of Linux or Windows,
+with unique interfaces and specifications regarding the host OSes.
 
-The \graphene{} library OS can be deployed on any ``host'' where the host ABI has been ported.
-We define a {\em host} as an OS or a hypervisor which exports a consistent interface to applications or virtual machines.
-An OS kernel, such as Linux, BSD, or Windows, can be treated as a host, upon any physical machines where the kernel can run the applications.
-If an OS has mutated or tweaked the interface for a hardware platform,
-such as an SGX enclave 
-running on an untrusted Linux kernel,
-the combination of the OS (Linux) and the hardware platform (SGX) is considered a specialized host.
-Especially, the SGX port of the host ABI faces several unique challenges,
-which will be discussed in Chapter~\ref{chap:sgx}.
+%If an OS has mutated or tweaked the interface for a hardware platform,
+%such as an SGX enclave 
+%running on an untrusted Linux kernel,
+%the combination of the OS (Linux) and the hardware platform (SGX) is considered a specialized host.
+%Especially, the SGX port of the host ABI faces several unique challenges,
+%which will be discussed in Chapter~\ref{chap:sgx}.
 
 
 \begin{comment}
