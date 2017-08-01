@@ -89,7 +89,7 @@ from the choice of hardware.
 The merit is shared by
 Linux~\cite{linux-standard-base}, BSD~\cite{quarterman85bsd}, Windows~\cite{win-api},
 and POSIX~\cite{ieee-posix},
-to make applications more adaptable and distributable.
+to make applications adaptable and widely distributable.
 
 
 
@@ -238,11 +238,11 @@ as it is programmed and tested on their own machines.
 
 
 
-A prerequisite to programming a portable application
-is that the system interface must remain consistent, for compatibility against previously-developed applications.
-As hardware development will continues after applications are released,
-OS developers are responsible for keeping the system interface compatible against existing applications,
-regardless of challenges to developing OS support for new hardware.
+A prerequisite to programming a portable application in an OS
+is to have a consistent
+system interface which is {\bf compatible} with previously-developed applications.
+As hardware development will continue after an application is released, OS developers must maintain the compatibility of system interface,
+while developing OS support for new hardware. %, to ensure portability of applications. 
  %, in response to new hardware technologies.
 %which is often a distraction to innovations. %, despite being a critical factor to whether an OS or hardware component is immediately deployable. %, even though compatibility is critical to system usability.
 %For OS developers, maintaining compatibility is a valuable effort, 
@@ -264,7 +264,10 @@ regardless of challenges to developing OS support for new hardware.
 %due to rapid growth of applications and hardware products,
 %For decades, the hardware technology has significantly grown.
 %OS development nowadays is increasingly burdened by implementing a compatible system interface,
-Compatibility issues emerge when a new hardware design leaks out of the encapsulation of hardware abstractions, while changing the system interface can disrupt the usability or portability of existing applications.
+Developing an OS with compatibility is challenging when a new hardware leaks out of the abstractions encapsulated by the system interface.
+If an OS developer has to extend the system interface
+to facilitate the programming of new hardware, the extension will be difficult to benefit existing applications.
+%Changing or extending a system interface can disrupt the usability of existing applications.
 %When the current system interface can no longer retain the portability of applications,
 %OS developers are forced to
 %
@@ -279,25 +282,30 @@ Compatibility issues emerge when a new hardware design leaks out of the encapsul
 %or implement a transparent layer which compensate for the distinction.
 %the extension won't benefit existing applications without application modifications.
 %it would almost certainly delay the timing when users can benefit from the new hardware designs.
-A running example in this thesis %of a disruptive hardware design
-is SGX (software guard extensions)~\cite{intelsgx},
-a new Intel CPU feature which assists applications to protect themselves from malicious OSes and administrators,
-but raises several compatibility issues,
-including changing the trusted nature of OS services (more discussion in Section~\ref{sec:intro:sgx}).
+%The extra effort on compatibility can delay the deployment of an innovative hardware product, or obstruct reusing an application on new environments.
+System interface extensions for new hardware are common in most OSes under active development,
+usually as opcodes for \syscall{ioctl} in a POSIX-style OS,
+or system call options, such as the \code{MAP\_HUGETLB} flags for \syscall{mmap}.
+Unless the OS development can be transparent to applications, the adoption of a new hardware will lag behind the invention, due to lack of compatible OS support with existing applications.
+
+
+
+
+As an extreme case, a hardware may change the assumptions which a system interface depends on, causing compatibility issues in many applications.
+A classic example %of a disruptive hardware design
+is {\bf SGX (software guard extensions)}~\cite{intelsgx},
+a new Intel CPU feature which allows applications to protect themselves from malicious OSes and administrators.
+SGX raises several compatibility issues, including changing the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
+Another example is an asymmetric multiprocessing architecture,
+or an architecture without inter-connected memories~\cite{gschwind2007,cascaval2002evaluation}. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
 %and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
 %Especially, the size and subtlety of the Linux or Windows system interface
 %makes it unsuitable for adopting applications to SGX~\cite{checkoway13iago}, because SGX has fundamentally changed the nature of OS services.
 %Several recent publications mitigate part of the compatibility issue for deploying applications on SGX~\cite{baumann14haven,osdi16scone,shinde17panoply}.
-The extra effort on compatibility can delay the deployment of an innovative hardware product, or obstruct reusing an application on new environments.
-
-
-% in unfriendly for OS developers to make a system-wide change transparent to applications.
-
-
-
-
+These extreme cases mostly happen on innovative, or research-purpose hardware,
+which contribute by exploring opportunities of tweaking the inherited assumptions in OS and hardware development.
 
 
 
@@ -584,22 +592,46 @@ The OS development process can be both painful and time-comsuming.
 \end{comment}
 
 
-The problem for preserving the compatibility against applications is to reproduce
-the idiosyncrasy of a system interface,
-which is defined with certain hardware assumptions.
-For example, a monolithic OS, such as Linux or Windows, assumes a unified kernel, which mediates all operations from applications to request hardware resources and abstractions.
-Sometimes, an OS prototype is built for experimenting research ideas~\cite{baumann09barrelfish,unikernels,zeldovich+histar,libra,peter14arrakis,belay14ix},
-and may require compatibility against deployed applications.
+The key challenge to maintaining the compatibility is to reproduce
+the idiosyncratic behavior and semantic
+of a system interface.
+The goal of OS development is to bridge the "semantic gap" between the system interface and the low-level hardware abstractions~\cite{tanenbaum19os-textbook}.
+The definition of a long-lasting system interface, such as Linux system calls or POSIX API, is influenced by the design of plenty pre-existing hardware,
+and thus is difficult to change for a disruptive hardware design.
+%For example, a monolithic OS, such as Linux or Windows, assumes a unified kernel, which mediates all operations from applications to request hardware resources and abstractions.
+Also, an OS prototype built from scratch
+can redefine a system interface which accommodates a new hardware, or optimizes for it~\cite{baumann09barrelfish,peter14arrakis,belay14ix}.
+%and may require compatibility against deployed applications.
 %often chooses to adopt the system interface of a popular OS standard, such as POSIX or Linux, to reuse applications already under deployment.
 %It is a practical move to implement system interfaces from a popular open OS such a Linux,
 %to demonstrate the benefits of using an OS prototype
 %on running certain native applications.
-An OS can define a system interface with up to hundreds or thousands of functions~\cite{ieee-posix, linux-man-syscall}. %nearly impossible to fully implement from scratch.
+%An OS can define a system interface with up to hundreds or thousands of functions~\cite{ieee-posix, linux-man-syscall}. %nearly impossible to fully implement from scratch.
+However, to be compatible with existing applications,
+building a translation or emulation layer for reproducing the former OS behavior and semantic, upon either an adapted system interface or an OS prototype, is still necessary.
 
 
 
-Although virtualization can help reusing a whole Linux kernel on a OS prototype~\cite{baumann09barrelfish}, but depends on hardware support like VT, and costs lots of memory to run an unmodified kernel~\cite{agarwal15container}.
-For an OS prototype which prefers not to run a whole Linux kernel, making it compatible against existing applications is a major challenge to moving the OS toward production.
+The translation (or emulation) of a system interface
+can benefit from virtualizing the upper layers of OS components,
+or the whole OS. 
+A key insight is to reduce the ad-hoc development effort for translating on a specific hardware or OS interface, by reusing a virtualized OS implementation.
+Virtualization separates the translation of an idiosyncratic system interface,
+using an intermediate interface which drops the assumptions
+from both the system interface and the underlying hardware or OS interface.
+A common solution is to run a virtual machine with an unmodified OS kernel, upon a virtual hardware interface.
+The virtual hardware interface 
+assumes a generic, standard hardware configuration, %including CPU architecture, memory and I/O devices, 
+which is compatible with the unmodified OS (e.g., Linux kernel) in a virtual machine.
+A virtual machine conveniently reuses existing OS implementation
+for reproducing the system interface,
+but relies on the assumption that the CPU architecture has virtualization support,
+such as Intel VT (virtualization technology).
+As an alternative to a virtual machine, OS developers can partition a OS design,
+using a "host interface" with simpler specification and assumption than virtual hardware.
+
+%Although virtualization can help reusing a whole Linux kernel on a OS prototype~\cite{baumann09barrelfish}, but depends on hardware support like VT, and costs lots of memory to run an unmodified kernel~\cite{agarwal15container}.
+%For an OS prototype which prefers not to run a whole Linux kernel, making it compatible against existing applications is a major challenge to moving the OS toward production.
 
 
 \begin{comment}
