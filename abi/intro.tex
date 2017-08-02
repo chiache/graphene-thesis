@@ -118,7 +118,7 @@ The host ABI does not
 rely on the system call convention;
 every call that enters a PAL is strictly a function call,
 as the library OS is programmed.
-Linking the library OS and PAL is beneficial for keeping the bootstrapping procedure flexible,
+Linking the library OS and PAL is beneficial for keeping the bootstrapping procedure adaptible,
 especially for a host like SGX,
 which requires all trusted code to execute in one context.
  
@@ -126,11 +126,15 @@ which requires all trusted code to execute in one context.
 
 In \graphene{}, the role of PAL is similar to a system library,
 which translates a user-level calling convention,
-to a different convention used in the native system interface of the host.
+to the calling convention used by the native, host system interface.
 For example, a PAL running on a Linux host
-is equivalent to a simplified version of standard C library, with wrappers to
-translate functions to Linux system calls.
-Besides, the Linux PAL also works as a simple dynamic loader, similar to \code{ld.so}.
+is equivalent to a simplified version of standard C library, which contains wrappers to
+translate functions to system calls.
+Besides, the Linux PAL also works as
+a dynamic loader,
+similar to a simplified \code{ld.so},
+to bootstrap the dynamic linking between the host ABI
+and the library OS.
 
 
 
@@ -209,11 +213,33 @@ and requires the PAL to implement an ad-hoc linking scheme for the library OS as
 \paragraph{Returning error codes.}
 For explicity, a function in the host ABI only returns two types of results:
 a non-zero number or pointer if the function succeeds, or zero if it fails.
-Unlike the Linux call convention, the host ABI does not return negative values as error codes (e.g., returning \code{-EINVAL}).
-Instead, the host ABI threats failures of function calls
-as an exception, and allows the library OS to handle the failures by assigning a handler.
-The design is to avoid confusion
-for interpreting the return values from the host ABI.
+Unlike the Linux call convention, the host ABI does not return negative values as error codes (e.g., \code{-EINVAL}).
+Instead, the host ABI delivers the failure of a function call
+as an exception, with the library OS capturing the failure by an assigned exception handler.
+The design is to avoid confusing
+the interpretation of return values from the host ABI.
+
+
+
+\paragraph{Dynamic linking vs static linking.}
+\graphene{} dynamic links the application, library OS, and PAL
+in a process.
+Dynamic linking ensures the complete reuse of an unmodified application,
+as well as an unmodified library OS implementation.
+\graphene{} allows the binaries of application, library OS, and PAL to be deployed individually to the users,
+and be swapped with different implementations.
+The dynamic linking of applications is a prerequisite
+to running most of the Linux applications without modification or recompilation.
+
+
+
+However, there are cases where static linking is preferred on a host (e.g., SGX), and recompilation is acceptable to the users.
+Compiling the applications, library OS, and potential a PAL
+into a single binary is similar to the technique of unikernels~\cite{unikernels},
+which has the benefit of compiling out unnecessary code and execution paths
+from the binary. 
+Theoretically, it is possible for \graphene{} to statically link an application with the library OS and a PAL,
+but this technique is out of the scope of this thesis.
 
 
 
