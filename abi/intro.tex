@@ -50,47 +50,65 @@ This chapter shows how to select the host ABI as a ``pinch point'' in a Linux-co
 \end{comment}
 
 
-
-
-The definition of the host ABI for a library OS
-is equivalent to finding a new, narrowed boundary inside an OS for partitioning.
-The host ABI partitions
-high-level, host-independent OS components (e.g., system calls, namespaces), into 
-a dynamically-linked library OS in the user space.
+The host ABI is defined with partitioning in mind.
+Defining the host ABI 
+is equivalent as finding a new boundary inside the OS,
+to partition
+upper-level, application-facing OS components (e.g., system calls, namespaces), into 
+a library OS.
 %, as a dynamically-linked library which can be deployed
 %to various hosts.
-The rationale behind the decision of partitioning the OS is based on the fact that not every OS component is equally important to achieving compatibility, for applications which need to be ported across hosts.
-Specifically, drivers (e.g., drivers for file systems, block devices, or network cards)
-in the Linux kernels are usually encapsulated under a virtualized, in-kernel interface (e.g., the Linux virtual file system),
-to simplify the development of the rest of the kernel.
-The goal of the host ABI in \graphene{} is to declare a similar, but more ubiquitous virtual interface,
-which encapsulates the drivers and hardware-interfacing components
-in an OS or a hypervisor,
-to isolate the host distinctions from the library OS.
+%The rationale behind the partitioning is based on the fact that not every OS component is equally important to compatibility, for applications which need to be ported across hosts.
+When an OS is extended for a new hardware,
+these OS components usually remain unchanged, or are predominantly reused.
+Partitioning
+into a library OS further guards these OS components from any potential changes for adopting a cutting-edge or research hardware.
+On the other hand,
+drivers (e.g., drivers for file systems, block devices, or network cards)
+and architecture-specific instructions
+should be stay encapsulated inside the host OS.
+%in the Linux kernels are usually encapsulated under a virtualized, in-kernel interface (e.g., the Linux virtual file system),
+%to simplify the development of the rest of the kernel.
+A goal for defining the host ABI is to declare a ubiquitous interface,
+which encapsulates all hardware and OS distinctions,
+to virtualize the library OS to run consistently on various hosts.
 
 
 
 
+The host ABI also shares several characteristics of a virtual hardware interface for running a VM.
+When a VM is used for compatibility, the hypervisor exposes
+a set of generic, virtual hardware,
+which the VM can control with the same drivers.
+To avoid additional porting effort, the virtual hardware are close to the typical commodity hardware.
+For example, a virtual ethernet card in VMWare workstation or QEMU
+is fully compatible to an Intel E1000 device.
+The host ABI does not mimic a commodity hardware, but is meant to be translatable from a common host system interface. 
+As a result, the host ABI contains the
+typical OS features and interfaces, similar to the API of early UNIX systems.
 
 
 
-At a high level,  the host ABI is comparable to a virtual hardware interface to VMs.
-A library OS has many traits similar to a VM,
+Unlike the hypervisor, the host ABI does not intend to reuse an unmodified OS implementation.
+Instead, the host ABI expects the library OS
+to be rewritten using the abstractions defined in the host ABI,
+similar to a 
+para-virtualizated VM.
+However, compared to an actual para-virtualized VM,
+\graphene{} further deduplicates several OS components,
+including CPU scheduler, page fault handler, filesystem, and network stack,
+between the library OS and the host.
+Another difference is that the host ABI is called by normal function calls, whereas para-virtualization relies on hypercalls.
+Overall, we can put the \graphene{} library OS and VMs on a spectrum,
+as VMs try to reuse most code from an OS and relies on existing hardware interfaces,
+whereas the \graphene{} library OS
+is partitioned and customized,
+using a specialized interface as the host ABI.
 
-including an isolated, guest OS view inside the VM, sandboxing at both application and OS level, and migration of a whole guest OS.
-Due to the similarity between a library OS and a VM,
-many characteristics of a virtual hardware interface between a hypervisor and a VM
-are useful in defining the host ABI
-for a library OS.
-For example, for the convenience of migrating a whole VM,
-a virtual hardware interface is mostly stateless to both the host CPUs and the hypervisors.
-\graphene{} adopts the idea of a stateless host interface,
-and designs every function 
 
 
-
-para-virtualization solution (e.g., Xen) can deduplicate OS components, such as  schedulers and page fault handlers, between a host and a guest,
-by modifying the guest OS to make hypercalls into the hypervisor.
+%ion solution (e.g., Xen) can deduplicate OS components, such as  schedulers and page fault handlers, between a host and a guest,
+%by modifying the guest OS to make hypercalls into the hypervisor.
 
 
 
