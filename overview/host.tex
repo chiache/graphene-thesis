@@ -88,7 +88,7 @@ for any hosts.
 
 %The host ABI is defined with partitioning in mind.
 The host ABI 
-determines a boundary, which partitions OS components %, such as system calls and namespaces,
+determines a boundary which partitions several upper-level OS components, %, such as system calls and namespaces,
 into a library OS,
 %, as a dynamically-linked library which can be deployed
 %to various hosts.
@@ -97,21 +97,26 @@ into a library OS,
 %these OS components usually remain unchanged, or are predominantly reused.
 %Partitioning
 %into a library OS further guards these 
-to isolate the potential OS customization on specific hardware. %any potential changes for adopting new hardware.
-Similar examples of isolation
-exist in traditional OSes, but without partitioning:
-For example, the Linux virtual file system (VFS) defines an internal interface
-to encapsulate the operations
-of file system drivers.
+in order to isolate the host idiosyncrasy. % on specific hardware. %any potential changes for adopting new hardware.
+%Similar isolation
+%exists in traditional OSes, but without partitioning:
+The strategy
+is also used in OSes:
+An example is the Linux virtual file system (VFS), an internal interface
+which encapsulates operations of file system drivers.
 %On the other hand,
 %drivers (e.g., drivers for file systems, block devices, or network cards)
 %and architecture-specific instructions
 %stay encapsulated in the host OS.
 %in the Linux kernels are usually encapsulated under a virtualized, in-kernel interface (e.g., the Linux virtual file system),
 %to simplify the development of the rest of the kernel.
-A purpose of host ABI
-is to define a more ubiquitous interface
-for encapsulating both OS and hardware idiosyncrasy on a wide range on hosts.
+Similar to VFS,
+the host ABI is intended
+to be a more ubiquitous interface,
+which encapsulates
+any host-specific behavior and semantic
+inside the host OS.
+%for encapsulating both OS and hardware idiosyncrasy on a wide range on hosts.
 %declares a ubiquitous system interface, to encapsulate both OS and hardware abstractions
 %for the library OS.
 
@@ -139,7 +144,7 @@ similar to a
 para-virtualizated VM.
 %Compared to an actual para-virtualized VM,
 Moreover, \graphene{} deduplicates OS components,
-including scheduler, page fault handler, filesystem, and network stack,
+such as scheduler, page fault handler, filesystem, and network stack,
 between the host and the library OS.
 %Another difference is that the host ABI is called by normal function calls, whereas para-virtualization relies on hypercalls.
 Overall, we can put the \graphene{} library OS and VMs on a spectrum:
