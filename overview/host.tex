@@ -11,12 +11,12 @@ that are essential to applications.
 %The host ABI is a new boundary between OSes (or hypervisors) and applications.
 The host ABI separates the low-level, hardware management features, from the idiosyncrasy of system interface. 
 \graphene{} moves the upper layer of OS components,
-including the system calls and namespaces, into an in-process, virtualized library OS,
+including the system calls and namespaces, into an library OS,
 leaving the host ABI 
 as a narrowed interface to the host OSes and hardware.
-The host ABI intends to minimize the development effort on each host OS or hardware
-to mitigate the interface distinctions,
-to simply porting the OS abstractions defined in the host ABI.
+%The host ABI intends to minimize the development effort on each host OS or hardware
+%to mitigate the interface distinctions,
+%to simply porting the OS abstractions defined in the host ABI.
 
 
 
@@ -24,15 +24,19 @@ to simply porting the OS abstractions defined in the host ABI.
 
 
  
-The host ABI defines the interaction between the library OS and a specific host.
+%The host ABI defines the interaction between the library OS and a specific host.
 %The \graphene{} library OS can be deployed on any ``host'' where the host ABI has been ported.
 We define a {\bf host} as an OS or a hypervisor
-which exports consistent features and interfaces, to an applications or a VM
-running above the host.
-In general, an OS kernel, such as Linux, BSD, or Windows, is considered a host to the library OS, due to portability across physical machines.
-A hardware like SGX (software guard extensions)
-creates a special host on top of Linux or Windows,
-with unique interfaces and specifications regarding the host OSes.
+which run an application or a VM
+on a physical machine.
+For example, a commodity OS, such as Linux, BSD, or Windows, can be a host to the library OS,
+with portability on different hardware.
+An innovative hardware abstraction like SGX (software guard extensions)
+imposes unique assumptions and restrictions
+on a commodity OS,
+%creates a special host on top of Linux or Windows,
+%with unique interfaces and specifications regarding the host OSes.
+and thus creates a special host above the OS.
 
 %If an OS has mutated or tweaked the interface for a hardware platform,
 %such as an SGX enclave 
@@ -82,32 +86,103 @@ for any hosts.
 \end{comment}
 
 
+%The host ABI is defined with partitioning in mind.
+The host ABI 
+determines a boundary which partitions several upper-level OS components, %, such as system calls and namespaces,
+into a library OS,
+%, as a dynamically-linked library which can be deployed
+%to various hosts.
+%The rationale behind the partitioning is based on the fact that not every OS component is equally important to compatibility, for applications which need to be ported across hosts.
+%When an OS is extended for a new hardware,
+%these OS components usually remain unchanged, or are predominantly reused.
+%Partitioning
+%into a library OS further guards these 
+in order to isolate the host idiosyncrasy. % on specific hardware. %any potential changes for adopting new hardware.
+%Similar isolation
+%exists in traditional OSes, but without partitioning:
+The strategy
+is also used in OSes:
+An example is the Linux virtual file system (VFS), an internal interface
+which encapsulates operations of file system drivers.
+%On the other hand,
+%drivers (e.g., drivers for file systems, block devices, or network cards)
+%and architecture-specific instructions
+%stay encapsulated in the host OS.
+%in the Linux kernels are usually encapsulated under a virtualized, in-kernel interface (e.g., the Linux virtual file system),
+%to simplify the development of the rest of the kernel.
+Similar to VFS,
+the host ABI is intended
+to be a more ubiquitous interface,
+which encapsulates
+any host-specific behavior and semantic
+inside the host OS.
+%for encapsulating both OS and hardware idiosyncrasy on a wide range on hosts.
+%declares a ubiquitous system interface, to encapsulate both OS and hardware abstractions
+%for the library OS.
+
+
+
+
+The host ABI shares several characteristics of a virtual hardware interface for running a VM.
+A hypervisor usually export a generic, but backward-compatible
+virtual hardware interface,
+%a set of generic, virtual hardware,
+%which the VM can control with the same drivers.
+to port an unmodified OS into a VM.
+%by exporting interfaces close to commodity hardware.
+%To avoid additional porting effort, the virtual hardware are close to the typical commodity hardware.
+For example, a virtual ethernet card in VMware workstation or QEMU
+emualates an Intel E1000 device.
+%The host ABI does not mimic a commodity hardware, but is meant to be translatable from a common host system interface. 
+%As a result, the host ABI contains the
+%typical OS features and interfaces, similar to the API of early UNIX systems.
+However, unlike a virtual hardware interface, the host ABI does not reuse a whole, unmodified OS.
+Instead, the host ABI expects the library OS
+to be rewritten and
+customized for the host ABI,
+similar to a 
+para-virtualizated VM.
+%Compared to an actual para-virtualized VM,
+Moreover, \graphene{} deduplicates OS components,
+such as scheduler, page fault handler, filesystem, and network stack,
+between the host and the library OS.
+%Another difference is that the host ABI is called by normal function calls, whereas para-virtualization relies on hypercalls.
+Overall, we can put the \graphene{} library OS and VMs on a spectrum:
+while a VM tries to reuse most of an OS and runs on a virtual hardware interface,
+a library OS
+is partitioned and customized
+for running on a narrowed host ABI.
+
+
+
+
 \paragraph{Simplicity of the host ABI.}
-To reduce the burden of OS developers, the host ABI is designed to be as simple as possible to implement on any hosts.
-The simplicity of implementation is subjective to OS developers,
-but can be improved with two primary approaches.
-The first approach is to ensure the narrowness of the host ABI.
-Although the narrowness does not directly indicate ease of porting, removing redundant OS functions or corner cases
-can still reduce the porting effort.
-The development of \graphene{} disciplinarily avoiding adding any functions to the host ABI,
-unless the library OS cannot internally implement an OS feature.
-
-
-Another approach is to define functions which can be mapped to native system interfaces on the hosts.
+To reduce the burden of OS developers, the host ABI is designed to simple to port on a new host.
+The amount of porting effort is subjective to OS developers,
+but can be reduced with two strategies:
+the first is to narrow the size of the host ABI;
+Although narrowness does not indicate simplicity, removing redundant OS functions or corner cases
+makes porting easier.
+%The development of \graphene{} disciplinarily avoiding adding any functions to the host ABI,
+%unless the library OS cannot internally implement an OS feature.
+The second strategy is to include functions which can be directly mapped to OS functions exported by the host.
 %the likelihood of finding similar features on the host, to be translated to functions in the host ABI.
 An observation of OS development is that
 %similarity of system interfaces is common among most OSes.
 similar OS functions tend to exist in different OSes.
 %, to reduce the learning curve for programming applications.
-We can find lookalike functions in many host OSes, such as \syscall{read} in Linux, BSD, and POSIX, and \syscall{ReadFile} in Windows (for regular files).
-The definition of the host ABI
-is based on observations of the system interfaces in some of the important hosts,
-including Linux system calls and Windows API.
+We can find system call lookalikes in many OSes: for example, \syscall{read} in Linux, BSD, and POSIX
+looks similar to \syscall{ReadFile} in Windows, except the data types.
+%The definition of the host ABI
+%is based on observations of the system interfaces in some of the important hosts,
+%including Linux system calls and Windows API.
 %exported by the targeted hosts,
 %and defines the functions in the host ABI, to be easily translated to the native system interfaces.
 %The host ABI is essentially a subset of the common features from every potential hosts.
-We expect most of the host ABI are straightforward to port on most hosts,
-as most functions in the host ABI should be directly translatable from the host system interfaces.
+%We expect %the host ABI defined with simplicity in mind
+%to be straightforward to port on most hosts,
+Most functions in the host ABI can be easily translated to host system interfaces
+in various styles.
 
 %For example, the host ABI defines \syscall{StreamRead} and \syscall{StreamWrite} for accessing I/O streams, similar to .
 %xcept some nuanced details like order of parameters.
@@ -229,7 +304,7 @@ The statelessness of the host ABI guarantees any states in the hosts are tempora
 
 
 
-\subsection{Host OS functions}
+\subsection{Host functions}
 \label{sec:overview:host:functions}
 
 
@@ -250,7 +325,7 @@ The statelessness of the host ABI guarantees any states in the hosts are tempora
 
 
 %fixmedp{give more of the background}
-Table~\ref{tab:overview:abi} lists \palcalls{} OS functions defined in the host ABI of \graphene{}.
+Table~\ref{tab:overview:abi} lists \palcalls{} functions defined in the host ABI of \graphene{}.
 Among these functions, 
 27 are inherited from the \drawbridge{} host ABI,
 including functions to managing I/O (e.g., \syscall{StreamOpen}), memory allocation (e.g., \syscall{VirtMemAlloc}), scheduling processes and threads (e.g., \syscall{ThreadCreate}), and several miscellaneous functions (e.g., \syscall{ThreadCreate}).

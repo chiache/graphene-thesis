@@ -1,9 +1,14 @@
 This chapter describes the formal definition of the host ABI.
-The host ABI contains a simplified specification defining which OS and hardware abstractions should be implemented by the hosts. %, in order to implement the library OS.
-This chapter shows
-how the design principles of \graphene{}, including simplicity, sufficiency, and security isolation,
-determine the definition of the host ABI,
-and presents a general guideline for extending the host ABI, for a missing library OS feature.
+The host ABI contains a specification of which OS and hardware abstractions should be implemented by a hosts, %, in order to implement the library OS.
+inside a host-specific
+PAL (platform adaption layer).
+%which translates the host ABI
+%to host OS features.
+This chapter shows how the host ABI is initially defined and extended,
+based on design principles of \graphene{}. %, including simplicity and sufficiency.
+%and security isolation.
+%determine the definition of the host ABI,
+%as a guideline to adding host features.
 %with new abstractions.
 
 
@@ -15,100 +20,55 @@ and presents a general guideline for extending the host ABI, for a missing libra
 
 
 
-\section{Defining The Host ABI}
-
-
-\begin{comment}
-This chapter describes the formal definition of the host ABI, and discusses the rationale behind the definition, based on the design principles of \graphene{}.
-%The host ABI
-%is designed to be simple enough to port to a new host,
-%and sufficient
-The host ABI is a key component
-to the \graphene{} design,
-to simplify the OS development effort for achieving or restoring compatibility.
-%, which reduces the porting effort for reusing existing applications. 
-%porting effort of a full-featured library OS, in order to reuse Linux applications.
-%The host ABI virtualizes the basic OS functions for implementing the necessary Linux personality
-%inside the library OS.
-%The definition of the host ABI determines the complexity of porting,
-%as well as the performance overheads and resource costs for running the library OS.
-%The concept of the host ABI is to reduce the porting effort,
-%to simply implementing a small set of virtualized, basic OS functions.
-%The functions included in the current \graphene{} host ABI are mostly direct mappings to 
-%The definition of the host ABI directly affects the development of the library OS, as well as  the complexity of implementing a host-specific platform adaption layer (PAL).
-%The host ABI restricts the interaction between the library OS and the hosts, and thus impacts the performance and security isolation of the library OS.
-%\graphene{} restricts the interaction between the library OS and the hosts
-%to the host ABI,
-%which is much smaller than the Linux system call table
-%and much easier to port.
-%By simply porting the host ABI to a new host,
-%OS developers can virtualize and reuse the same library OS for running
-%applications without modifications.
-%The host ABI is a layer for virtualizing the system call implementation,
-%without complicating the porting of existing applications to innovative host OSes or hardware platforms.
-This chapter shows how to select the host ABI as a ``pinch point'' in a Linux-compatible OS, to virtualize OS components into the user space.
-\end{comment}
-
-
-The host ABI is defined with partitioning in mind.
-Defining the host ABI 
-is equivalent as finding a new boundary inside the OS,
-to partition
-upper-level, application-facing OS components (e.g., system calls, namespaces), into 
-a library OS.
-%, as a dynamically-linked library which can be deployed
-%to various hosts.
-%The rationale behind the partitioning is based on the fact that not every OS component is equally important to compatibility, for applications which need to be ported across hosts.
-When an OS is extended for a new hardware,
-these OS components usually remain unchanged, or are predominantly reused.
-Partitioning
-into a library OS further guards these OS components from any potential changes for adopting a cutting-edge or research hardware.
-On the other hand,
-drivers (e.g., drivers for file systems, block devices, or network cards)
-and architecture-specific instructions
-should be stay encapsulated inside the host OS.
-%in the Linux kernels are usually encapsulated under a virtualized, in-kernel interface (e.g., the Linux virtual file system),
-%to simplify the development of the rest of the kernel.
-A goal for defining the host ABI is to declare a ubiquitous interface,
-which encapsulates all hardware and OS distinctions,
-to virtualize the library OS to run consistently on various hosts.
 
 
 
 
-The host ABI also shares several characteristics of a virtual hardware interface for running a VM.
-When a VM is used for compatibility, the hypervisor exposes
-a set of generic, virtual hardware,
-which the VM can control with the same drivers.
-To avoid additional porting effort, the virtual hardware are close to the typical commodity hardware.
-For example, a virtual ethernet card in VMWare workstation or QEMU
-emualates an Intel E1000 device.
-The host ABI does not mimic a commodity hardware, but is meant to be translatable from a common host system interface. 
-As a result, the host ABI contains the
-typical OS features and interfaces, similar to the API of early UNIX systems.
-
-
-
-Unlike the hypervisor, the host ABI does not intend to reuse an unmodified OS implementation.
-Instead, the host ABI expects the library OS
-to be rewritten using the abstractions defined in the host ABI,
-similar to a 
-para-virtualizated VM.
-However, compared to an actual para-virtualized VM,
-\graphene{} further deduplicates several OS components,
-including CPU scheduler, page fault handler, filesystem, and network stack,
-between the library OS and the host.
-Another difference is that the host ABI is called by normal function calls, whereas para-virtualization relies on hypercalls.
-Overall, we can put the \graphene{} library OS and VMs on a spectrum,
-as VMs try to reuse most code from an OS and relies on existing hardware interfaces,
-whereas the \graphene{} library OS
-is partitioned and customized,
-using a specialized interface as the host ABI.
 
 
 
 %ion solution (e.g., Xen) can deduplicate OS components, such as  schedulers and page fault handlers, between a host and a guest,
 %by modifying the guest OS to make hypercalls into the hypervisor.
+
+
+
+%The strategies for defining the host ABI in \graphene{}
+%can be summarized as follows:
+%First, \graphene{} inherits most host OS functions from \drawbridge{}~\cite{porter11drawbridge},
+%with minor extensions. % for implementing Linux system calls.
+%\graphene{} and \drawbridge{} share a similar motivation: reusing unmodified applications across host platforms.
+%%\drawbridge{} 
+%%tries to reuse Windows code
+%%in most of its library OS implementation.
+%%As a result, most functions defined in the \drawbridge{} host ABI have certain level of similarity with 
+%%the Windows API.
+%%such as the scheduling primitives.
+%%\drawbridge{} makes the decision
+%%primarily for maximally reusing the Windows OS code in the library OS.
+%Although inheriting the host ABI from \drawbridge{} 
+%is mostly an engineering decision
+%in \graphene{},
+%this strategy covers the typical UNIX-style OS features,
+%with a definition largely distinct from Linux system calls in style.
+%
+%
+%
+%Second,
+%\graphene{} adds several host functions for
+%extending the library OS features which are unique to Linux.
+%For example, 
+%use of x86 segment registers (FS/GS) is necessary for Linux applications hard-coded with
+%direct TLS (thread-local storage) references.
+%The segment registers can only be written in ring 0;
+%although a user-ring instruction, \code{WRFSGSBASE}, can also write to the registers,
+%the feature is not opt-in on x86.
+%Therefore, adding a 
+
+
+
+
+
+
 
 
 
@@ -131,15 +91,50 @@ using a specialized interface as the host ABI.
 %A host-specific \graphene{} loader is responsible for resolving the linking, from the library OS to the host ABI.
 
 
-\section{Formal Definition}
+%\section{Formal Definition}
+%
+%
+%This section formally defines the calling convention, data types, and functions
+%in the host ABI.
+%The host ABI
+%specifies the scope of PAL development,
+%and the host features required by the library OS.
+%%The definition specifies the research problem
+%%in the development of \graphene{},
+%%which is the translation between the Linux system interface, the host ABI, and various host interfaces.
+%
 
 
-This section describes the formal definition of calling convention, data types, and functions
-in the host ABI.
+
+\section{Subroutine Calling Convention}
 
 
 
-\subsection{Calling convention}
+The host ABI assumes a similar calling convention
+as a user library.
+\graphene{} dynamically links an application with the library OS and the host-specific PAL,
+and unifies them into a single executable running inside a process.
+The host ABI does not
+rely on the system call convention;
+every call that enters a PAL is strictly a function call,
+as the library OS is programmed.
+Linking the library OS and PAL is beneficial for keeping the bootstrapping procedure adaptible,
+especially for a host like SGX,
+which requires all trusted code to execute in one context.
+ 
+
+
+In \graphene{}, the role of PAL is similar to a system library,
+which translates a user-level calling convention,
+to the calling convention used by the native, host system interface.
+For example, a PAL running on a Linux host
+is equivalent to a simplified version of standard C library, which contains wrappers to
+translate functions to system calls.
+Besides, the Linux PAL also works as
+a dynamic loader,
+similar to a simplified \code{ld.so},
+to bootstrap the dynamic linking between the host ABI
+and the library OS.
 
 
 
@@ -147,8 +142,9 @@ in the host ABI.
 
 
 
-The formal definition of the host ABI assumes that 
-the library OS accesses the host ABI as function calls.
+
+
+
 
 
 
@@ -159,13 +155,23 @@ the library OS accesses the host ABI as function calls.
 
 
 
-The host ABI follows the Linux calling convention,
-which, on the x86 architecture, passes function arguments in general-purpose registers (i.e., \code{rdi}, \code{rsi}, \code{rdx}, \code{rcx}, \code{r8}, and \code{r9}).
-Moreover, the host ABI assumes the library OS is compiled into a ELF binary, and includes a simplified dynamic-loading feature for loading the code of the library OS.
-The choice of calling convention is based on
-the applications which \graphene{} has targeted---unmodified Linux binaries compiled in the ELF format.
-Using the Linux calling convention for the library OS
-improve the opportunity of leveraging compiler optimizations for symbol resolution (e.g., using hashing), or even statically compiling an application with the library OS. 
+The host ABI inherit the Linux calling convention,
+for the convenience of development.
+The primary target of architecture in \graphene{} is x86-64;
+in the x86-64 Linux call convention,
+%The host ABI follows the Linux calling convention,
+%which, on the x86 architecture, passes 
+function arguments are passed in general-purpose registers, i.e., \code{rdi}, \code{rsi}, \code{rdx}, \code{rcx}, \code{r8}, and \code{r9}, in that order.
+The host ABI also assumes the library OS to be compiled in ELF (extensible linking format).
+The decision is to match the calling conventions
+of application, library OS, and PAL,
+to allow a commodity C compiler to improve the linking procedure.
+For example, the GNU C Compiler (GCC) can optimize function name comparison
+using hashing,
+which can be simply adopted by the PAL
+if it shares a linking scheme with the library OS.
+Another benefit is to simplify the debugging with GDB, because GDB only recognizes one calling convention at a time.
+
 
 
 %If the library OS and the hosts share the same calling convention, the PAL can directly call
@@ -191,6 +197,53 @@ improve the opportunity of leveraging compiler optimizations for symbol resoluti
 
 
 
+\paragraph{Translating calling conventions.}
+For a host with a different calling convention from Linux,
+the PAL is responsible for translating the calling convention between the host ABI and the host system interface.
+For example,
+in Windows, function arguments are passed in a different order among general-purpose registers,
+and thus require the Windows-specific PAL
+to swap the register values when the library OS calls the host ABI.
+Windows or OSX also accepts a different type of binary format,
+and requires the PAL to implement an ad-hoc linking scheme for the library OS as an ELF binary.
 
-\subsection{Data types}
+
+
+
+\paragraph{Returning error codes.}
+For explicity, a function in the host ABI only returns two types of results:
+a non-zero number or pointer if the function succeeds, or zero if it fails.
+Unlike the Linux call convention, the host ABI does not return negative values as error codes (e.g., \code{-EINVAL}).
+Instead, the host ABI delivers the failure of a function call
+as an exception, with the library OS capturing the failure by an assigned exception handler.
+The design is to avoid confusing
+the interpretation of return values from the host ABI.
+
+
+
+\paragraph{Dynamic linking vs static linking.}
+\graphene{} dynamic links the application, library OS, and PAL
+in a process.
+Dynamic linking ensures the complete reuse of an unmodified application,
+as well as an unmodified library OS implementation.
+\graphene{} allows the binaries of application, library OS, and PAL to be deployed individually to the users,
+and be swapped with different implementations.
+The dynamic linking of applications is a prerequisite
+to running most of the Linux applications without modification or recompilation.
+
+
+
+However, there are cases where static linking is preferred on a host (e.g., SGX), and recompilation is acceptable to the users.
+Compiling the applications, library OS, and potential a PAL
+into a single binary is similar to the technique of unikernels~\cite{unikernels},
+which has the benefit of compiling out unnecessary code and execution paths
+from the binary. 
+Theoretically, it is possible for \graphene{} to statically link an application with the library OS and a PAL,
+but this technique is out of the scope of this thesis.
+
+
+
+
+
+
 
