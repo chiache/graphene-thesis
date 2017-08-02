@@ -240,11 +240,11 @@ as it is programmed and tested on their own machines.
 
 
 
-A prerequisite to programming a portable application in an OS
-is to have a consistent
-system interface which is {\bf compatible} with previously-developed applications.
-As hardware development will continue after an application is released, OS developers must maintain the compatibility of system interface,
-while developing OS support for new hardware. %, to ensure portability of applications. 
+A prerequisite to programming a portable application
+is to have a consistent system interface which stays compatible as applications are previously programmed.
+Because an OS can be constantly under extension for supporting new hardware,
+OS developers are responsible of maintaining a compatible system interface to keep applications valid.
+%while developing OS support for new hardware. %, to ensure portability of applications. 
  %, in response to new hardware technologies.
 %which is often a distraction to innovations. %, despite being a critical factor to whether an OS or hardware component is immediately deployable. %, even though compatibility is critical to system usability.
 %For OS developers, maintaining compatibility is a valuable effort, 
@@ -266,9 +266,13 @@ while developing OS support for new hardware. %, to ensure portability of applic
 %due to rapid growth of applications and hardware products,
 %For decades, the hardware technology has significantly grown.
 %OS development nowadays is increasingly burdened by implementing a compatible system interface,
-Developing an OS with compatibility is challenging when a new hardware leaks out of the abstractions encapsulated by the system interface.
-If an OS developer has to extend the system interface
-to facilitate the programming of new hardware, the extension will be difficult to benefit existing applications.
+OS developers usaully face challenges
+when a new hardware leaks out of the abstractions encapsulated by the system interface.
+If OS developers have to extend the system interface
+to facilitate the programming of a new hardware, 
+the OS loses the compatibility for existing applications 
+to utilize this hardware.
+%the extension will be difficult to benefit existing applications.
 %Changing or extending a system interface can disrupt the usability of existing applications.
 %When the current system interface can no longer retain the portability of applications,
 %OS developers are forced to
@@ -285,20 +289,30 @@ to facilitate the programming of new hardware, the extension will be difficult t
 %the extension won't benefit existing applications without application modifications.
 %it would almost certainly delay the timing when users can benefit from the new hardware designs.
 %The extra effort on compatibility can delay the deployment of an innovative hardware product, or obstruct reusing an application on new environments.
-System interface extensions for new hardware are common in most OSes under active development,
-usually as opcodes for \syscall{ioctl} in a POSIX-style OS,
-or system call options, such as the \code{MAP\_HUGETLB} flags for \syscall{mmap}.
-Unless the OS development can be transparent to applications, the adoption of a new hardware will lag behind the invention, due to lack of compatible OS support with existing applications.
+Extensions to a system interface are usually in the form of \syscall{ioctl} operations in a POSIX-style OS,
+or new system call options such as the \code{MAP\_HUGETLB} flags for \syscall{mmap}.
+Unless a new hardware can be transparently adopted in an OS,
+applications will lag behind the OS to be deployed on the hardware.
+%the OS development can be transparent to applications, the adoption of a new hardware will lag behind the invention, due to lack of compatible OS support with existing applications.
 
 
 
 
-As extreme cases, some hardware are designed to change the assumptions which the OS and system interface depends on, and affect compatibility with applications.
+As an extreme case, some hardware make unusual design decisions which contradicts OS or application assumptions,
+thus affecting the OS's ability to stay
+compatible against applications.
+The hardware are usually cutting-edge inventions or research prototypes.
+Researchers design
+these hardware
+to explore opportunities of tweaking existing assumptions,
+in seek of revolutionary results.
+%making the implementation of a compatible system interface
+%even more challenging.
 An example %of a disruptive hardware design
 is {\bf SGX (software guard extensions)}~\cite{intelsgx},
 an Intel CPU feature which allows applications to protect themselves from malicious OSes and administrators.
 SGX raises several compatibility issues, including changing the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
-Another example is an asymmetric multiprocessing architecture,
+Another example is an asymmetric multiprocessing architecture~\cite{},
 or an architecture without inter-connected, coherent memories~\cite{gschwind2007,cascaval2002evaluation}. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
@@ -306,8 +320,7 @@ or an architecture without inter-connected, coherent memories~\cite{gschwind2007
 %Especially, the size and subtlety of the Linux or Windows system interface
 %makes it unsuitable for adopting applications to SGX~\cite{checkoway13iago}, because SGX has fundamentally changed the nature of OS services.
 %Several recent publications mitigate part of the compatibility issue for deploying applications on SGX~\cite{baumann14haven,osdi16scone,shinde17panoply}.
-These extreme cases mostly happen on cutting-edge, or research hardware,
-which explore the opportunity of tweaking OS or hardware assumptions.
+For these hardware, compatibility issues are likely to be a distraction, which researchers cannot avoid for commercializing the hardware.
 
 
 
