@@ -123,10 +123,10 @@ A hypervisor usually export a generic, but backward-compatible
 virtual hardware interface,
 %a set of generic, virtual hardware,
 %which the VM can control with the same drivers.
-to eliminate the virtualization effort for porting a VM.
+to port an unmodified OS into a VM.
 %by exporting interfaces close to commodity hardware.
 %To avoid additional porting effort, the virtual hardware are close to the typical commodity hardware.
-For example, a virtual ethernet card in VMWare workstation or QEMU
+For example, a virtual ethernet card in VMware workstation or QEMU
 emualates an Intel E1000 device.
 %The host ABI does not mimic a commodity hardware, but is meant to be translatable from a common host system interface. 
 %As a result, the host ABI contains the
@@ -299,7 +299,7 @@ The statelessness of the host ABI guarantees any states in the hosts are tempora
 
 
 
-\subsection{Host OS functions}
+\subsection{Host functions}
 \label{sec:overview:host:functions}
 
 
@@ -320,7 +320,7 @@ The statelessness of the host ABI guarantees any states in the hosts are tempora
 
 
 %fixmedp{give more of the background}
-Table~\ref{tab:overview:abi} lists \palcalls{} OS functions defined in the host ABI of \graphene{}.
+Table~\ref{tab:overview:abi} lists \palcalls{} functions defined in the host ABI of \graphene{}.
 Among these functions, 
 27 are inherited from the \drawbridge{} host ABI,
 including functions to managing I/O (e.g., \syscall{StreamOpen}), memory allocation (e.g., \syscall{VirtMemAlloc}), scheduling processes and threads (e.g., \syscall{ThreadCreate}), and several miscellaneous functions (e.g., \syscall{ThreadCreate}).
