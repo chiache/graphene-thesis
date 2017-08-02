@@ -3,18 +3,22 @@
 
 
 \graphene{} facilitates compatibility
-by partitioning an OS,
+by partitioning an OS
 at a host ABI which contains
-only OS abstractions
+OS abstractions
 that are essential to applications.
 %and minimal specifications for the host OSes and hardware.
 %The host ABI is a new boundary between OSes (or hypervisors) and applications.
-The host ABI separates the low-level, hardware-abstracting features, from reproducing the idiosyncrasy of system interfaces for applications. 
-%OS developers only have to port the host ABI for an OS which needs a boost of compatibility.
-\graphene{} moves the OS components which implements the Linux system interface,
-into an in-process, para-virtualized library OS,
-leaving only the host ABI to request hardware resources
-from the host OSes.
+The host ABI separates the low-level, hardware management features, from the idiosyncrasy of system interface. 
+\graphene{} moves the upper layer of OS components,
+including the system calls and namespaces, into an in-process, virtualized library OS,
+leaving the host ABI 
+as a narrowed interface to the host OSes and hardware.
+The host ABI intends to minimize the development effort on each host OS or hardware
+to mitigate the interface distinctions,
+to simply porting the OS abstractions defined in the host ABI.
+
+
 
 
 
