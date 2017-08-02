@@ -110,12 +110,37 @@ based on design principles of \graphene{}. %, including simplicity and sufficien
 
 
 
+The host ABI assumes a similar calling convention
+as a user library.
+\graphene{} dynamically links an application with the library OS and the host-specific PAL,
+and unifies them into a single executable running inside a process.
+The host ABI does not
+rely on the system call convention;
+every call that enters a PAL is strictly a function call,
+as the library OS is programmed.
+Linking the library OS and PAL is beneficial for keeping the bootstrapping procedure flexible,
+especially for a host like SGX,
+which requires all trusted code to execute in one context.
+ 
+
+
+In \graphene{}, the role of PAL is similar to a system library,
+which translates a user-level calling convention,
+to a different convention used in the native system interface of the host.
+For example, a PAL running on a Linux host
+is equivalent to a simplified version of standard C library, with wrappers to
+translate functions to Linux system calls.
+Besides, the Linux PAL also works as a simple dynamic loader, similar to \code{ld.so}.
 
 
 
 
-The formal definition of the host ABI assumes that 
-the library OS accesses the host ABI as function calls.
+
+
+
+
+
+
 
 
 
@@ -126,13 +151,23 @@ the library OS accesses the host ABI as function calls.
 
 
 
-The host ABI follows the Linux calling convention,
-which, on the x86 architecture, passes function arguments in general-purpose registers (i.e., \code{rdi}, \code{rsi}, \code{rdx}, \code{rcx}, \code{r8}, and \code{r9}).
-Moreover, the host ABI assumes the library OS is compiled into a ELF binary, and includes a simplified dynamic-loading feature for loading the code of the library OS.
-The choice of calling convention is based on
-the applications which \graphene{} has targeted---unmodified Linux binaries compiled in the ELF format.
-Using the Linux calling convention for the library OS
-improve the opportunity of leveraging compiler optimizations for symbol resolution (e.g., using hashing), or even statically compiling an application with the library OS. 
+The host ABI inherit the Linux calling convention,
+for the convenience of development.
+The primary target of architecture in \graphene{} is x86-64;
+in the x86-64 Linux call convention,
+%The host ABI follows the Linux calling convention,
+%which, on the x86 architecture, passes 
+function arguments are passed in general-purpose registers, i.e., \code{rdi}, \code{rsi}, \code{rdx}, \code{rcx}, \code{r8}, and \code{r9}, in that order.
+The host ABI also assumes the library OS to be compiled in ELF (extensible linking format).
+The decision is to match the calling conventions
+of application, library OS, and PAL,
+to allow a commodity C compiler to improve the linking procedure.
+For example, the GNU C Compiler (GCC) can optimize function name comparison
+using hashing,
+which can be simply adopted by the PAL
+if it shares a linking scheme with the library OS.
+Another benefit is to simplify the debugging with GDB, because GDB only recognizes one calling convention at a time.
+
 
 
 %If the library OS and the hosts share the same calling convention, the PAL can directly call
@@ -155,6 +190,33 @@ improve the opportunity of leveraging compiler optimizations for symbol resoluti
 %Using the host ABI, the library OS can  llocate a memory region inside the current picoprocess, or create a handle that is only accessible by the current picoprocess.
 %Only functions related with stream I/O
 %can share OS resources with other picoprocesses, such as writing to the same file, sharing a network sockets, or connecting through a local RPC (remote-procedure call) stream.
+
+
+
+\paragraph{Translating calling conventions.}
+For a host with a different calling convention from Linux,
+the PAL is responsible for translating the calling convention between the host ABI and the host system interface.
+For example,
+in Windows, function arguments are passed in a different order among general-purpose registers,
+and thus require the Windows-specific PAL
+to swap the register values when the library OS calls the host ABI.
+Windows or OSX also accepts a different type of binary format,
+and requires the PAL to implement an ad-hoc linking scheme for the library OS as an ELF binary.
+
+
+
+
+\paragraph{Returning error codes.}
+For explicity, a function in the host ABI only returns two types of results:
+a non-zero number or pointer if the function succeeds, or zero if it fails.
+Unlike the Linux call convention, the host ABI does not return negative values as error codes (e.g., returning \code{-EINVAL}).
+Instead, the host ABI threats failures of function calls
+as an exception, and allows the library OS to handle the failures by assigning a handler.
+The design is to avoid confusion
+for interpreting the return values from the host ABI.
+
+
+
 
 
 
