@@ -1,0 +1,39 @@
+\ifx \debug \undefined
+
+\newcommand{\issue}[2]{{}}
+
+\else
+
+\newcommand{\thechapterorsection}{%
+  \ifnum\value{section}=0 %
+    Chapter \thechapter
+  \else
+    Section \thesection
+  \fi
+}
+
+\newcommand{\issue}[2]{{\todo[caption=Issue #1 -- \thechapterorsection: #2, fancyline, color=blue!40, list]{
+  \begin{minipage}{\textwidth}
+  \begin{spacing}{1.0}
+    {\tt Writing issue #1: #2}
+  \end{spacing}
+  \end{minipage}\vspace{-1.25em}
+}}\hspace{-.25em}} 
+
+\noindent
+{\Huge\bf Writing Plan}
+\vspace*{2\baselineskip}
+
+\noindent
+{\large Access the following Google Doc:}\\
+{\normalsize\url{https://docs.google.com/a/cs.stonybrook.edu/document/d/1Wk4dk2mgFPXlB_3hRwfPiyQdBI16B9eT4xA5qpJ24iA/edit?usp=sharing}}
+
+\begingroup
+\let\cleardoublepage\relax
+\let\clearpage\relax
+\listoftodos[]
+\endgroup
+
+\newpage
+
+\fi
