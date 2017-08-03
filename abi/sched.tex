@@ -2,76 +2,68 @@
 \label{sec:abi:thread}
 
 
-\begin{paldef}
-HANDLE ThreadCreate (void *callback, void *arg,
-                     uint flags);
-\end{paldef}
-
-
+\subsection*{Creating a thread}
 
 \begin{paldef}
+HANDLE ThreadCreate (void *start, void *arg, uint flags);
 void ThreadExit (void);
 \end{paldef}
 
 
 
-\begin{paldef}
-void ThreadYield (void);
-\end{paldef}
 
-
+\subsection*{Scheduler}
 
 \begin{paldef}
+bool ThreadDelay     (ulong delay_microsec);
+void ThreadYield     (void);
 void ThreadInterrupt (HANDLE thread_handle);
 \end{paldef}
 
 
 
+
+
+
+
+\section{Scheduling primitives}
+
+
+\subsection*{Semaphores}
+
 \begin{paldef}
-bool ThreadDelayExecution (ulong microsec);
+HANDLE SemaphoreCreate  (uint max_count, uint inital);
+void   SemaphoreRelease (HANDLE semaphore_handle);
+void   SemaphoreDestroy (HANDLE semaphore_handle);
 \end{paldef}
 
 
-
-
-
-\subsection{Scheduling}
-
-
-\subsubsection*{Semaphores and events}
-
-\begin{paldef}
-HANDLE SemaphoreCreate (uint count, uint inital);
-void SemaphoreRelease (HANDLE semaphore_handle);
-void SemaphoreDestroy (HANDLE semaphore_handle);
-\end{paldef}
+\subsection*{Events}
 
 
 \begin{paldef}
 HANDLE SynchronizationEventCreate (void);
-HANDLE NotificationEventCreate (void);
-void EventSet (HANDLE event_handle);
+HANDLE NotificationEventCreate    (void);
+void EventSet     (HANDLE event_handle);
 void EventDestroy (HANDLE event_handle);
 \end{paldef}
 
 
 
-\subsection*{Polling events}
-
-\begin{paldef}
-HANDLE StreamGetEvent (HANDLE stream_handle, uint event_flags);
-\end{paldef}
+\subsection*{Polling multiple events}
 
 
 \begin{paldef}
-HANDLE ObjectsWait (HANDLE *handles, uint nhandles,
-                    ulong timeout);
+HANDLE ObjectsWait    (HANDLE *handles, uint nhandles,
+                       ulong timeout);
+HANDLE StreamGetEvent (HANDLE stream_handle,
+                       uint event_flags);
 \end{paldef}
 
 
 
 
-\subsection{Processes}
+\section{Processes}
 \label{sec:abi:proc}
 
 
@@ -80,4 +72,42 @@ HANDLE ObjectsWait (HANDLE *handles, uint nhandles,
 HANDLE ProcessCreate (const char *manifest,
                       const char **args, uint flags);
 void ProcessExit (uint exit_value);
+\end{paldef}
+
+
+
+\subsection*{Sharing a handle}
+
+
+\begin{paldef}
+void   RpcSendHandle (HANDLE rpc_handle, HANDLE cargo);
+HANDLE RpcRecvHandle (HANDLE rpc_handle);
+\end{paldef}
+
+
+
+\subsection*{Bulk IPC (physical memory store)}
+
+
+\begin{paldef}
+HANDLE PhysicalMemoryStoreOpen (uint index);
+\end{paldef}
+
+
+
+\begin{paldef}
+bool  PhysicalMemoryCommit (HANDLE store_handle,
+                            void *addr, ulong size);
+void *PhysicalMemoryMap (HANDLE store_handle,
+                         void *expect_addr, ulong size,
+                         uint protection);
+\end{paldef}
+
+
+\subsection*{Sandboxing}
+
+
+\begin{paldef}
+bool SandboxSet (const char *sandbox_manifest,
+                 bool sandbox_rpc);
 \end{paldef}

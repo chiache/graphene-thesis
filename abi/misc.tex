@@ -1,2 +1,53 @@
-\subsection{Miscelleneous}
+\section{Miscellaneous}
 \label{sec:abi:misc}
+
+
+
+
+\subsection*{FS/GS segment registers}
+
+
+
+\begin{paldef}
+void SegmentRegisterSet (uint register, ulong *value);
+\end{paldef}
+
+
+
+\subsection*{Exception handling}
+
+
+
+\begin{paldef}
+typedef void (*EXCEPTION_HANDLER)
+            (void *exception_obj, EXCEPTION_INFO info);
+\end{paldef}
+
+
+
+\begin{paldef}
+bool ExceptionSetHandler  (uint exception,
+                           EXCEPTION_HANDLER handler);
+void ExceptionReturn      (void *exception_obj);
+\end{paldef}
+
+
+
+
+\subsection*{Other miscellaneous features}
+
+
+
+\begin{paldef}
+ulong SystemTimeQuery (void);
+\end{paldef}
+
+
+\begin{paldef}
+ulong RandomBitsRead (void *buffer, ulong size);
+\end{paldef}
+
+
+\begin{paldef}
+ulong ICacheFlush (void *addr, ulong size);
+\end{paldef}

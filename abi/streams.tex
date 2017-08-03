@@ -122,49 +122,34 @@ ulong StreamRead  (HANDLE stream_handle, ulong offset,
 ulong StreamWrite (HANDLE stream_handle, ulong offset,
                    ulong size, const void *buffer);
 void *StreamMap   (HANDLE stream_handle,
-                   void *expect_addr, uint protect,
+                   void *expect_addr, uint protection,
                    ulong offset, ulong size);
 \end{paldef}
 
 
 
-\subsubsection*{Querying stream attributes}
+\subsection*{Querying metadata}
 
 \begin{paldef}
-bool StreamAttrQuery (const char *stream_uri,
-                      STREAM_ATTRS attributes);
 bool StreamAttrQuerybyHandle (HANDLE stream_handle,
-                              STREAM_ATTRS attributes);
+                              STREAM_ATTRS attrs);
+bool StreamAttrQuery (const char *stream_uri,
+                      STREAM_ATTRS attrs);
+
 \end{paldef}
 
 
 
-\subsubsection*{Setting stream lengths and attributes}
+\subsection*{Truncating a file or flushing a stream}
 
 
 \begin{paldef}
-bool StreamSetLength (HANDLE stream_handle,
-                      ulong length);
+bool StreamSetLength (HANDLE stream_handle, ulong size);
+void treamFlush (HANDLE stream_handle);
 \end{paldef}
 
 
-\begin{paldef}
-bool StreamAttrSetbyHandle (HANDLE stream_handle,
-                            STREAM_ATTRS attributes);
-\end{paldef}
-
-
-
-
-\subsubsection*{Flushing a stream}
-
-
-\begin{paldef}
-bool StreamFlush (HANDLE stream_handle);
-\end{paldef}
-
-
-\subsection*{Waiting for a listening stream}
+\subsection*{Listening on a server}
 
 
 \begin{paldef}
@@ -172,10 +157,10 @@ HANDLE StreamWaitforClient (HANDLE stream_handle);
 \end{paldef} 
 
 
-\subsubsection*{Deleting or shutting down a stream}
-
+\subsection*{\graphene{}-specific stream I/O features}
 
 \begin{paldef}
-HANDLE StreamDelete (HANDLE stream_handle,
-                     uint delete_flags);
+void StreamDelete (HANDLE stream_handle, uint direction);
+bool StreamAttrSetbyHandle (HANDLE stream_handle,
+                            STREAM_ATTRS attrs);
 \end{paldef}
