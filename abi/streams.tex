@@ -98,16 +98,16 @@ An interesting option is the choice of file permission (\code{share\_flags}), si
 from the host.
 Setting the file permission in the host
 is mostly a usability feature: 
-an application can run more smoothly by if some file permissions are externalized.
+an application can run more smoothly if some file permissions are externalized.
 For example, a compilor can create an executable with the execution (X) permission, so that the consecutive building script can run the executable.
 The host ABI also externalizes the file permission
 which specifies specify whether a file can be shared with other applications.
 
 
 \syscall{StreamOpen} returns a {\bf stream handle}. A stream handle is similar to a file descriptor in the POSIX API,
-but mostly defined as a pointer to a stream-specific data structure.
-The definition of stream handles is up to the implementation of PAL,
-and the library OS simply references the stream handles as identifiers for opened I/O streams.
+but defined as a pointer to a stream-specific data structure on most hosts.
+The definition of stream handles is up to the implementation of PAL;
+the library OS will simply reference the stream handles as identifiers for opened I/O streams.
 
 
 
@@ -164,3 +164,11 @@ void StreamDelete (HANDLE stream_handle, uint direction);
 bool StreamAttrSetbyHandle (HANDLE stream_handle,
                             STREAM_ATTRS attrs);
 \end{paldef}
+
+
+
+\paragraph{Character devices.}
+
+
+
+\paragraph{Directories.}
