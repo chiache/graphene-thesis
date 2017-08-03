@@ -70,7 +70,7 @@ the idiosyncratic behavior and semantic
 of a system interface.
 The goal of OS development is to bridge the "semantic gap" between the system interface and the low-level hardware abstractions~\cite{tanenbaum19os-textbook}.
 The design of a long-lasting system interface, such as Linux system calls or POSIX API, is influenced by the design of plenty of pre-existing hardware,
-and thus is difficult to change for a disruptive hardware.
+and thus is difficult to change for another disruptive hardware.
 %For example, a monolithic OS, such as Linux or Windows, assumes a unified kernel, which mediates all operations from applications to request hardware resources and abstractions.
 Also, an OS prototype built from scratch
 can redefine a system interface which accommodates a new hardware, or optimizes for it~\cite{baumann09barrelfish,peter14arrakis,belay14ix}.
@@ -92,15 +92,17 @@ A key insight is to reduce the ad-hoc development effort for translating on a sp
 Virtualization separates the translation of an idiosyncratic system interface,
 using an intermediate interface which drops the assumptions
 from both the system interface and the underlying hardware or OS.
-A common solution is to run a virtual machine with an unmodified OS kernel, upon a virtual hardware interface.
+A common solution is to run a VM (virtual machine) with an unmodified OS kernel, upon a virtual hardware interface.
 The virtual hardware interface 
-assumes a generic, standard hardware configuration, %including CPU architecture, memory and I/O devices, 
-which is compatible with the unmodified OS (e.g., Linux kernel) in a virtual machine.
-A virtual machine conveniently reuses existing OS implementation
-for reproducing the system interface,
-but relies on the assumption that the CPU architecture has virtualization support,
+assumes generic, standard virtual hardware, %including CPU architecture, memory and I/O devices, 
+which are compatible with an unmodified OS (e.g., Linux kernel) in the virtual machine.
+The caveat for a VM
+%A virtual machine conveniently reuses existing OS implementation
+%for reproducing the system interface,
+is that it still relies on an assumption
+that the CPU architecture has virtualization support,
 such as Intel VT (virtualization technology).
-As an alternative to a virtual machine, OS developers can partition an OS instead of reusing the whole OS,
+As an alternative to a VM, OS developers can partition an OS instead of reusing the whole OS,
 using a "pinch point" found inside the OS implementation,
 with even simpler specification and assumption than a virtual hardware interface.
 
@@ -192,6 +194,8 @@ This section shows two examples in which developing a compatible OS for existing
 \subsection{Unmodified applications on SGX}
 \label{sec:intro:sgx}
 
+
+\issue{1.1.b}{need clarifying the specification}
 %One of the motivating examples, for using \libos{} to improve application compatibility,
 %is the support of unmodified Linux application
 %on the platform of Intel (SGX)~\cite{intelsgx}.
