@@ -43,6 +43,23 @@
 \renewcommand*{\ttdefault}{lmtt}
 
 
+\newcommand{\thechapterorsection}{%
+  \ifnum\value{chapter}=0
+    Abstract
+  \else
+    \ifnum\value{section}=0 %
+      Chapter \thechapter
+    \else
+      \ifnum\value{subsection}=0 %
+        Section \thesection
+      \else
+        Section \thesubsection
+      \fi
+    \fi
+  \fi
+}
+
+
 \ifx \debug \undefined
 \newcommand{\placeholder}[0]{{}}
 \newcommand{\fixme}[1]{{}}
@@ -50,7 +67,7 @@
 \else
 \usepackage[textsize=footnotesize,textwidth=1.3in,shadow,colorinlistoftodos]{todonotes}
 \WarningFilter{latex}{Marginpar on page}
-\newcommand{\placeholder}[0]{\todo[inline, size=\normalsize, color=yellow!40, nolist]{\bf To be written.}}
+\newcommand{\placeholder}[0]{\todo[caption=\thechapterorsection, inline, size=\normalsize, color=yellow!40, list]{\bf To be written.}}
 \newcommand{\fixme}[2][]{{\todo[#1, fancyline, nolist]{
   \begin{minipage}{\textwidth}
   \begin{spacing}{1.0}
@@ -294,7 +311,8 @@ This page is optional.
 \input{sgx/sgx}
 %\input{civet/civet}
 \input{eval/eval}
-\input{syspop/syspop}
+\input{metric/metric}
+\input{study/study}
 %\input{future/proposal}
 %\input{future/future}
 \input{related/related}
@@ -302,7 +320,7 @@ This page is optional.
 
 \newpage
 \begin{appendices}
-\input{syspop/defs}
+\input{metric/defs}
 \end{appendices}
 
 \newpage
