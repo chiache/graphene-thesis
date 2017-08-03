@@ -1,7 +1,7 @@
 \ifx \debug \undefined
 
 \newcommand{\issue}[2]{{}}
-
+\newcommand{\issuedone}[2]{{}}
 \else
 
 \newcommand{\thechapterorsection}{%
@@ -12,13 +12,15 @@
   \fi
 }
 
-\newcommand{\issue}[2]{{\todo[caption=Issue #1 -- \thechapterorsection: #2, fancyline, color=blue!40, list]{
+\newcommand{\issue}[3][red!40]{{\todo[caption=Issue #2 -- \thechapterorsection:  #3, fancyline, color=#1, list]{
   \begin{minipage}{\textwidth}
   \begin{spacing}{1.0}
-    {\tt Writing issue #1: #2}
+    {\tt Writing issue #2: #3}
   \end{spacing}
   \end{minipage}\vspace{-1.25em}
 }}\hspace{-.25em}} 
+
+\newcommand{\issuedone}[2]{\issue[green!40]{#1}{#2 (DONE)}}
 
 \noindent
 {\Huge\bf Writing Plan}
@@ -27,6 +29,8 @@
 \noindent
 {\large Access the following Google Doc:}\\
 {\normalsize\url{https://docs.google.com/a/cs.stonybrook.edu/document/d/1Wk4dk2mgFPXlB_3hRwfPiyQdBI16B9eT4xA5qpJ24iA/edit?usp=sharing}}
+
+\vspace*{-4\baselineskip}
 
 \begingroup
 \let\cleardoublepage\relax
