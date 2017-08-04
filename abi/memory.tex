@@ -32,17 +32,19 @@ as long as the requested areas align to
 %by retrieving the system setting using \syscall{getpagesize}.
 Specifically, the Linux dynamic loader (i.e., \code{ld.so}) %, an ubiqutous user-space component in Linux,
 uses \syscall{mmap} to map a binary file to a large memory area,
-and later divides the mapping into 4KB-aligned code and data segments.
+and then divides the mapping into 4KB-aligned code and data segments.
 To implement the Linux memory API,
 the memory management scheme of the host ABI
 must be at least as fine-grained as 4KB pages.
 
 
-The host ABI for memory management is defined as a simplified version of the Linux memory API:
-\syscall{VirtMemAlloc} is similar to \syscall{mmap}, except it only creates anonymous mappings;
-also, \syscall{VirtMemProtect} and \syscall{VirtMemFree}
-are mostly equivalent to
-\syscall{mprotect} and \syscall{munmap}, respectively.
+The host ABI for memory management is defined as follows:
+as \syscall{mmap},
+\syscall{VirtMemAlloc} creates anonymous, non-file memory mappings in a process;
+\syscall{VirtMemProtect} protects a memory region;
+and \syscall{VirtMemFree} frees the physical pages of a memory region.
+
+
 
 
 \begin{paldef}
@@ -54,8 +56,9 @@ bool  VirtMemProtect (void *addr, ulong size,
 \end{paldef}
 
 
-\syscall{VirtMemAlloc}, \syscall{VirtMemProtect}, and \syscall{VirtMemFree}
-delegate physical memory management to the hosts.
+By defining \syscall{VirtMemAlloc}, \syscall{VirtMemProtect}, and \syscall{VirtMemFree}, \graphene{}
+delegates physical memory management to the hosts.
+
 
 
 
