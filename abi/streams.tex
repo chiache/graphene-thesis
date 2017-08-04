@@ -48,7 +48,7 @@ which resemble the POSIX API:
 \syscall{StreamOpen}, \syscall{StreamRead}, and \syscall{StreamWrite}
 share the specfication with \syscall{open}, \syscall{read}, and \syscall{write};
 \syscall{StreamAttrQuery} and \syscall{StreamAttrQuerybyHandle} return file and I/O metadata, similar to \syscall{stat} and \syscall{fstat};
-both \syscall{StreamMap} and \syscall{mmap} maps a regular file into memory, for reading or writing data.
+both \syscall{StreamMap} and \syscall{mmap} maps regular files into the application memory. %, for reading or writing data.
 The POSIX-style host ABI
 simplifies the porting above
 similar system interfaces.
@@ -78,21 +78,29 @@ the host ABI supports the following prefixes:
 
 
 \begin{compactitem}
+
 \item \palkeyword{file:[path]}: A regular file mapped from the host file system. The file is located by a file path on the host. The file path can be either an absolute path from the root the host file system, or a relative path from the current working directory on the host.
+
 \item \palkeyword{tcp:[address]:[port]} or \palkeyword{udp:[address]:[port]}: A TCP or UDP connection to a remote socket, identified by a IPv4 or IPv6 address and a listening port. The TCP connection exists until it is teared down by the both parties.
+
 \item \palkeyword{tcp.srv:[address]:[port]} or \palkeyword{udp.srv:[address]:[port]}: A TCP or UDP server waiting for remote connections, bound on a IPv4 or IPv6 address and an idle port.
-\item \palkeyword{pipe.srv:[name]} or \palkeyword{pipe:[name]}: a named RPC stream server, which can be connected from other processes running on the same host, 
-or a connected RPC stream,
-for cross-process message passing.
+
+\item \palkeyword{pipe.srv:[name]} or \palkeyword{pipe:[name]}: A named RPC stream.
+The stream can be either a server which awaits incoming connection from other processes,
+or a client to an existing server.
+
 \end{compactitem}
 
 
 
 Besides the abstraction,
-other function arguments of \syscall{StreamOpen}, including \code{access\_flags}, \code{share\_flags}, \code{create\_flags}, and \code{options},
-also inherit similar meanings from the options of \syscall{open}.
-These arguments specify the access type, file permission, creation mode, and other miscellaneous options of an I/O stream.
-For example, the access type can be specified as readable or writable,
+\syscall{StreamOpen}
+also inherits similar definitions of function arguments,
+including \code{access\_flags}, \code{share\_flags}, \code{create\_flags}, and \code{options},
+from the POSIX-style \syscall{open}.
+%also inherit similar meanings from the options of \syscall{open}.
+These arguments specify the access type, file permission, creation mode, and other miscellaneous options of the I/O streams:
+for example, the access type can be specified as readable or writable,
 and the creation mode can be either explicit or implicit.
 An interesting option is the choice of file permission (\code{share\_flags}), since the host ABI does not expose user credentials
 from the host.
@@ -105,9 +113,10 @@ which specifies specify whether a file can be shared with other applications.
 
 
 \syscall{StreamOpen} returns a {\bf stream handle}. A stream handle is similar to a file descriptor in the POSIX API,
-but defined as a pointer to a stream-specific data structure on most hosts.
-The definition of stream handles is up to the implementation of PAL;
-the library OS will simply reference the stream handles as identifiers for opened I/O streams.
+but defined as a pointer to a data structure containing the stream information.
+The internal structure of a stream handle is up to the I/O stream type and the implementation of each PAL;
+a library OS is supposed to reference a stream handle
+only as an identifier.
 
 
 
@@ -125,6 +134,13 @@ void *StreamMap   (HANDLE stream_handle,
                    void *expect_addr, uint protection,
                    ulong offset, ulong size);
 \end{paldef}
+
+
+
+
+
+
+
 
 
 
