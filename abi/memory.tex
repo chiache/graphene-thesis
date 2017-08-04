@@ -6,22 +6,23 @@ The challenge to defining the host ABI for memory management
 is to accommodate different allocation models and granularities, generally imposed by the hosts.
 A POSIX-style OS often assumes dynamic allocation at page granularity;
 the assumption is deeply ingrained in the design of page fault handler and page table management
-inside an OS like Linux or BSD.
-An OS component for memory management
+inside an OS like Linux or BSD;
+the memory-management component in an OS
 is usually low-level and closely interacting with the hardware interface,
 to serve the needs of both the OS and applications.
-Such an OS design makes it difficult to move the memory management
-component into the library OS, unless using hardware virtualization such as VT.
+Such an OS design makes it difficult to move memory management
+into the library OS, unless using hardware virtualization such as VT.
 
 
 
-A Linux application often {\em requires} memory management to be
-at page granularity.
+A Linux application 
+is generally developed under the assumption that the memory is managed by the OS
+with page granularity.
 %generally requires system API
 %for allocating, protecting, and deallocating memory at the same granularity.
 %A x86 application may require memory allocation to be strictly at the granularity of four-kilobyte pages,
-the primary Linux memory API,
-\syscall{mmap}, \syscall{mprotect}, and \syscall{munmap},
+The primary Linux memory API,
+including \syscall{mmap}, \syscall{mprotect}, and \syscall{munmap},
 allow an application
 to arbitrarily create, modify, and destroy VMAs (virtual memory areas),
 wholly or partially,
@@ -32,13 +33,16 @@ as long as the requested areas align to
 Specifically, the Linux dynamic loader (i.e., \code{ld.so}) %, an ubiqutous user-space component in Linux,
 uses \syscall{mmap} to map a binary file to a large memory area,
 and later divides the mapping into 4KB-aligned code and data segments.
-To implementing the Linux memory API,
+To implement the Linux memory API,
 the memory management scheme of the host ABI
-must be at least as fine-grained as 4KB pages:
-\syscall{VirtMemAlloc} is similar to \syscall{mmap} without being given a file;
-\syscall{VirtMemFree} and \syscall{VirtMemProtect}
-are equivalent to
-\syscall{mprotect} and \syscall{munmap}.
+must be at least as fine-grained as 4KB pages.
+
+
+The host ABI for memory management is defined as a simplified version of the Linux memory API:
+\syscall{VirtMemAlloc} is similar to \syscall{mmap}, except it only creates anonymous mappings;
+also, \syscall{VirtMemProtect} and \syscall{VirtMemFree}
+are mostly equivalent to
+\syscall{mprotect} and \syscall{munmap}, respectively.
 
 
 \begin{paldef}
@@ -50,6 +54,8 @@ bool  VirtMemProtect (void *addr, ulong size,
 \end{paldef}
 
 
+\syscall{VirtMemAlloc}, \syscall{VirtMemProtect}, and \syscall{VirtMemFree}
+delegate physical memory management to the hosts.
 
 
 
