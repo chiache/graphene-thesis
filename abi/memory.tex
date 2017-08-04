@@ -3,8 +3,8 @@
 
 
 The challenge to defining the host ABI for memory management
-is to accommodate different allocation models and granularities, generally imposed by the hosts.
-A POSIX-style OS often assumes dynamic allocation at page granularity;
+is to accommodate different allocation models and granularities imposed by the hosts.
+A POSIX-style OS often assumes dynamic allocation with page granularity (the size of a page is normally 4KB);
 the assumption is deeply ingrained in the design of page fault handler and page table management
 inside an OS like Linux or BSD;
 the memory-management component in an OS
@@ -15,9 +15,10 @@ into the library OS, unless using hardware virtualization such as VT.
 
 
 
-A Linux application 
-is generally developed under the assumption that the memory is managed by the OS
-with page granularity.
+Linux applications 
+are generally developed and compiled under the assumption that the memory is managed
+by the OS,
+at page granularity.
 %generally requires system API
 %for allocating, protecting, and deallocating memory at the same granularity.
 %A x86 application may require memory allocation to be strictly at the granularity of four-kilobyte pages,
@@ -56,8 +57,10 @@ bool  VirtMemProtect (void *addr, ulong size,
 \end{paldef}
 
 
-By defining \syscall{VirtMemAlloc}, \syscall{VirtMemProtect}, and \syscall{VirtMemFree}, \graphene{}
-delegates physical memory management to the hosts.
+\syscall{VirtMemAlloc}, \syscall{VirtMemProtect}, and \syscall{VirtMemFree}
+delegate physical memory management to the hosts.
+
+
 
 
 
