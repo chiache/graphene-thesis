@@ -39,11 +39,10 @@ the memory management scheme of the host ABI
 must be at least as fine-grained as 4KB pages.
 
 
-The host ABI for memory management is defined as follows:
-as \syscall{mmap},
-\syscall{VirtMemAlloc} creates anonymous, non-file memory mappings in a process;
-\syscall{VirtMemProtect} protects a memory region;
-and \syscall{VirtMemFree} frees the physical pages of a memory region.
+The host ABI is defined as follows:
+\palcall{VirtMemAlloc} creates an anonymous, non-file memory mapping in a process, as \syscall{mmap};
+\palcall{VirtMemProtect} changes the read (R), write (W), or execution (X) permission in an address range;
+finally, \palcall{VirtMemFree} frees the pages.
 
 
 
@@ -57,8 +56,13 @@ bool  VirtMemProtect (void *addr, ulong size,
 \end{paldef}
 
 
-\syscall{VirtMemAlloc}, \syscall{VirtMemProtect}, and \syscall{VirtMemFree}
-delegate physical memory management to the hosts.
+The host ABI delegates physical memory management to the host. The division of labor between the library OS and the host is as follows:
+the library OS manages only the virtual memory layout of a process;
+the host is the one who decides the allocation of physical memory resources, among VMAs of all processes.
+The delegation avoids the competition between the host and guest
+to dictate the usage of physical memory;
+for example, a VM needs to use techniques like ballooning to free the physical memory held by the guest OS.
+
 
 
 

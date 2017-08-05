@@ -38,20 +38,21 @@ Therefore, in \graphene{}, the host ABI restricts I/O abstractions to only synch
 
 
 
-The host ABI for stream I/O presents an equivalence of {\bf a POSIX file system}.
+The host ABI for stream I/O presents a simplified, {\b POSIX file system}.
 A POSIX file system
-encapsulates most of the I/O abstractions,
+encapsulates I/O abstractions,
 including files, sockets, pipes, and even character devices,
 in the file system API.
 The host ABI contains several functions
 which resemble the POSIX API:
-\syscall{StreamOpen}, \syscall{StreamRead}, and \syscall{StreamWrite}
-share the specfication with \syscall{open}, \syscall{read}, and \syscall{write};
-\syscall{StreamAttrQuery} and \syscall{StreamAttrQuerybyHandle} return file and I/O metadata, similar to \syscall{stat} and \syscall{fstat};
-both \syscall{StreamMap} and \syscall{mmap} maps regular files into the application memory. %, for reading or writing data.
-The POSIX-style host ABI
-simplifies the porting above
-similar system interfaces.
+\palcall{StreamOpen}, \palcall{StreamRead}, and \palcall{StreamWrite}
+are similar to \syscall{open}, \syscall{read}, and \syscall{write} in behavior, with a simplified, explicit semantic;
+\palcall{StreamMap} is equivalent to \syscall{mmap} with a \code{MAP\_FILE} flag, mapping a regular file in the process memory. %, for reading or writing data.
+\palcall{StreamAttrQuery} and \palcall{StreamAttrQuerybyHandle}
+return file and I/O metadata
+as \syscall{stat} and \syscall{fstat} do;
+The POSIX-style functions simplify the porting of the host ABI
+on hosts with a similar specification.
 
 
 
@@ -71,7 +72,7 @@ HANDLE StreamOpen (const char *stream_uri,
 
 
 
-Unlike \syscall{open}, \syscall{StreamOpen} uses a URI (uniform resource identifier), for specifying the I/O stream.
+Unlike \syscall{open}, \palcall{StreamOpen} uses a URI (uniform resource identifier), for specifying the I/O stream.
 An URI identifies both the type of I/O and the distination or location of the I/O stream.
 The type of a I/O stream is determined by URI prefix.
 The host ABI accepts the following URI prefixes:
@@ -95,25 +96,25 @@ or a client to an existing server.
 
 
 Besides the abstraction,
-\syscall{StreamOpen}
+\palcall{StreamOpen}
 also inherits similar definitions of function arguments,
-including \code{access\_flags}, \code{share\_flags}, \code{create\_flags}, and \code{options},
+including \palkeyword{access_flags}, \palkeyword{share_flags}, \palkeyword{create_flags}, and \palkeyword{options},
 from the POSIX-style \syscall{open}.
 %also inherit similar meanings from the options of \syscall{open}.
 These arguments specify the access type, file permission, creation mode, and other miscellaneous options of the I/O streams:
 for example, the access type can be specified as readable or writable,
 and the creation mode can be either explicit or implicit.
-An interesting option is the choice of file permission (\code{share\_flags}), since the host ABI does not expose user credentials
+An important concern is the choice of file permission (specified by \palkeyword{share_flags}), since the host ABI does not expose user credentials
 from the host.
 Setting the file permission in the host
 is mostly a usability feature: 
 an application can run more smoothly if some file permissions are externalized.
-For example, a compilor can create an executable with the execution (X) permission, so that the consecutive building script can run the executable.
+For example, a compilor can create an executable with the execution permission, so that the consecutive building script can run the executable.
 The host ABI also externalizes the file permission
 which specifies specify whether a file can be shared with other applications.
 
 
-\syscall{StreamOpen} returns a {\bf stream handle}. A stream handle is similar to a file descriptor in the POSIX API,
+\palcall{StreamOpen} returns a {\bf stream handle}. A stream handle is similar to a file descriptor in the POSIX API,
 but defined as a pointer to a data structure containing the stream information.
 The internal structure of a stream handle is up to the I/O stream type and the implementation of each PAL;
 a library OS is supposed to reference a stream handle
