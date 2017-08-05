@@ -1,6 +1,52 @@
 \section{Memory Management}
 \label{sec:abi:memory}
 
+
+The challenge to defining the host ABI for memory management
+is to accommodate different allocation models and granularities imposed by the hosts.
+A POSIX-style OS often assumes dynamic allocation with page granularity (the size of a page is normally 4KB);
+the assumption is deeply ingrained in the design of page fault handler and page table management
+inside an OS like Linux or BSD;
+the memory-management component in an OS
+is usually low-level and closely interacting with the hardware interface,
+to serve the needs of both the OS and applications.
+Such an OS design makes it difficult to move memory management
+into the library OS, unless using hardware virtualization such as VT.
+
+
+
+Linux applications 
+are generally developed and compiled under the assumption that the memory is managed
+by the OS,
+at page granularity.
+%generally requires system API
+%for allocating, protecting, and deallocating memory at the same granularity.
+%A x86 application may require memory allocation to be strictly at the granularity of four-kilobyte pages,
+The primary Linux memory API,
+including \syscall{mmap}, \syscall{mprotect}, and \syscall{munmap},
+allow an application
+to arbitrarily create, modify, and destroy VMAs (virtual memory areas),
+wholly or partially,
+as long as the requested areas align to
+4KB.
+%Developers can avoid hard-coding the granularity in an application,
+%by retrieving the system setting using \syscall{getpagesize}.
+Specifically, the Linux dynamic loader (i.e., \code{ld.so}) %, an ubiqutous user-space component in Linux,
+uses \syscall{mmap} to map a binary file to a large memory area,
+and then divides the mapping into 4KB-aligned code and data segments.
+To implement the Linux memory API,
+the memory management scheme of the host ABI
+must be at least as fine-grained as 4KB pages.
+
+
+The host ABI is defined as follows:
+\palcall{VirtMemAlloc} creates an anonymous, non-file memory mapping in a process, as \syscall{mmap};
+\palcall{VirtMemProtect} changes the read (R), write (W), or execution (X) permission in an address range;
+finally, \palcall{VirtMemFree} frees the pages.
+
+
+
+
 \begin{paldef}
 void *VirtMemAlloc   (void *expect_addr, ulong size,
                       uint alloc_type, uint protection);
@@ -8,6 +54,16 @@ bool  VirtMemFree    (void *addr, ulong size);
 bool  VirtMemProtect (void *addr, ulong size,
                       uint protection);
 \end{paldef}
+
+
+The host ABI delegates physical memory management to the host. The division of labor between the library OS and the host is as follows:
+the library OS manages only the virtual memory layout of a process;
+the host is the one who decides the allocation of physical memory resources, among VMAs of all processes.
+The delegation avoids the competition between the host and guest
+to dictate the usage of physical memory;
+for example, a VM needs to use techniques like ballooning to free the physical memory held by the guest OS.
+
+
 
 
 
