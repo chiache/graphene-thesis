@@ -38,7 +38,7 @@ Unless a new hardware can be transparently adopted in an OS,
 applications will lag behind the OS to be deployed on the hardware.
 
 
-
+\issuedone{1.2.b}{Specify SGX as a motivating example}
 As an extreme case, some hardware make unusual design decisions which contradicts OS or application assumptions,
 thus affecting the OS's ability to stay
 compatible against applications.
@@ -64,7 +64,7 @@ or an architecture without inter-connected, coherent memories~\cite{gschwind2007
 For these hardware, compatibility issues are likely to be a distraction, which researchers cannot avoid for commercializing the hardware.
 
 
-
+\issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
 The key challenge to maintaining the compatibility is to reproduce
 the idiosyncratic behavior and semantic
 of a system interface.
@@ -92,6 +92,7 @@ A key insight is to reduce the ad-hoc development effort for translating on a sp
 Virtualization separates the translation of an idiosyncratic system interface,
 using an intermediate interface which drops the assumptions
 from both the system interface and the underlying hardware or OS.
+\issuedone{1.2.c}{discuss library OS vs VM}
 A common solution is to run a VM (virtual machine) with an unmodified OS kernel, upon a virtual hardware interface.
 The virtual hardware interface 
 assumes generic, standard virtual hardware, %including CPU architecture, memory and I/O devices, 
@@ -134,6 +135,7 @@ to reproduce a system interface for applications.
 %A \libos{} is different from a translation layer which maps one set of system interfaces to another, nor is it the same as wrapper functions for formerly defined interfaces.
 %A \libos{} implements an operating system instance separated from the host, upon a standalone host interfaces similar to a set of virtualized hardware interfaces, or para-virtualized hypercalls.
 %To make the library OS practical enough to benefit OS research,
+\issuedone{1.2.d}{Specify target applications}
 This thesis targets the compatibility against commercially-used, popular Linux applications, including server applications, command-line programs, and language runtimes.
 %This thesis shows that the defined host ABI is sufficient to implement a rich of OS functionality for reusing the said applications.
 
@@ -152,6 +154,8 @@ Part of the host ABI is inherited from \drawbridge{}~\cite{porter11drawbridge}, 
 Windows applications.
 The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule} and Haven~\cite{baumann14haven}, to show the feasibility of implementing single-process, Linux functionality, and porting to Intel SGX.
 
+
+\issue{1.3.a}{Compare Graphene vs Docker}
 Established upon the previous work, \graphene{} holds the following key contributions:
 \begin{compactenum}
 \item \graphene{} explores and justifies the feasibility of building a library OS for resolving compatibility issues on various OSes and hardware.
@@ -188,6 +192,7 @@ which are either for administrative use (e.g., halting the machine), or unpopula
 
 \section{Motivating Examples}
 
+\issuedone{1.1.b}{motivating examples}
 This section shows two examples in which developing a compatible OS for existing applications can be challenging, to motivate the library OS design.
 
 
@@ -195,7 +200,6 @@ This section shows two examples in which developing a compatible OS for existing
 \label{sec:intro:sgx}
 
 
-\issue{1.1.b}{clarify problem specification}
 %One of the motivating examples, for using \libos{} to improve application compatibility,
 %is the support of unmodified Linux application
 %on the platform of Intel (SGX)~\cite{intelsgx}.
@@ -239,7 +243,7 @@ SGX also forbids \code{rdtsc}, in order to rule out potential physical attacks o
 %The application developers would have to remove these instructions from the applications in order to run inside an enclave.
 
 
-
+\issuedone{1.2.c}{discuss challenges of SGX shielding}
 SGX excludes OS services from the trust model, except functions which can be fully ported to user space (e.g. \syscall{malloc}).
 The absence of trusted OS services is an issue for porting any application.
 Existing solutions combines a modified C library with applications, to redirect system interfaces
@@ -266,6 +270,7 @@ with a trusted \graphene{} library OS instance.
 \label{sec:intro:multiproc}
 
 
+\issuedone{1.3.b}{Using multi-process as a motivating example}
 One characteristic of a UNIX program is the opportunity of utilizing multiple processes, created by either \syscall{fork} or \syscall{exec},
 to program self-contained sessions or commands in applications.
 Especially, \syscall{fork} is an unique feature in UNIX-style OSes, such as Linux and BSD,
@@ -343,6 +348,7 @@ for porting multi-process applications to a variety of OSes and architectures.
 \section{Security isolation}
 \label{sec:intro:security}
 
+\issue{1.1.d}{separate the motivation for security isolation}
 \placeholder{}
 
 %Besides emulating OS abstractions, \graphene{} also provides a reasonable model of enforcing security isolation among applications launched by mutually untrusting users.

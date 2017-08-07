@@ -2,6 +2,8 @@
 \label{sec:abi:streams}
 
 
+
+\issuedone{1.2.a}{discuss the memory management in the host (I/O)}
 An application requires interaction with the world during its execution.
 I/O is a common feature of almost every OSes.
 The typical I/O needed in an application
@@ -139,6 +141,86 @@ void *StreamMap   (HANDLE stream_handle,
 
 
 
+The host ABI features include synchronously reading and writing data over an I/O stream.
+The behavior of \palcall{StreamRead} and \palcall{StreamWrite} is slightly different between a file stream and other type of stream:
+when reading or writing a file stream, \palcall{StreamRead} and \palcall{StreamWrite} accesses the file at a specific offset from the beginning of the file;
+otherwise, when accessing a network or RPC stream,
+the argument \palkeyword{offset} is ignored, and thus the ABI works similar to \syscall{read} and \syscall{write}.
+The design is to keep the stream handle stateless inside the PAL,
+for cleanly migrating a library OS.
+Since the library OS is responsible of maintaining the offset of a file descriptor,
+a library OS instance can be easily detach from a PAL,
+by simply ``invalidating'' a stream handle;
+the library OS should be able to always reopen the stream after migration,
+or after a failure of accessing a stream handle,
+to recover the state of an I/O stream.
+
+
+
+\palcall{StreamMap} maps a file to an address in the memory,
+for either reading or writing data.
+\palcall{StreamMap} is used to create a local copy of a file (given permission \palkeyword{WRITE_COPY}),
+or a pass-through mapping of a file
+which will share file updates with other processes which open the same file.
+However, the challenge to implementing this behavior
+is to externalize the latest file state
+written by the application,
+on a host which disallows file-backed memory.
+For example, in a SGX enclave, all memory will have to be private memory,
+to be individually encrypted by the CPU.
+For a host which doesn't support pass-through file mappings,
+\palcall{StreamMap}
+can only guarantee writing out
+the latest file state to the disk when the memory is unmapped, using \palcall{VirtMemFree}.
+
+
+
+Another challenge in the library OS, regarding I/O streams,
+is to support asynchronously I/O, or peeping data received over a network or RPC stream.
+To implement the full Linux I/O features,
+the library OS must emulate asynchronous I/O,
+using the synchronous
+\palcall{StreamRead} and \palcall{StreamWrite}.
+The emulation requires opening the I/O stream in a non-blocking mode,
+and polling the stream handle before reading or writing data.
+The library OS can also buffer the data being read or written over a stream,
+as long as the buffered state is coordinated over every processes
+which share the same stream.
+
+
+
+\paragraph{Alternative.}
+An alternative strategy is to define a host ABI with asynchronous I/O,
+which is the design choice taken by Bascule~\cite{baumann13bascule}.
+An asynchronous I/O ABI can be potentially
+more flexible for implementing the library OS features,
+as it can emulate both synchronous and asynchronous behaviors
+without buffering.
+The only reason that we choose synchronous over asynchronous I/O
+in the host ABI is to reduce the porting effort,
+especially for a host which lacks
+asynchronous I/O features.
+
+
+
+\subsection*{Listening on a server}
+
+
+\begin{paldef}
+HANDLE StreamWaitforClient (HANDLE stream_handle);
+\end{paldef} 
+
+Besides the I/O streams which can be directly read or written,
+the host ABI also supports creation
+of I/O stream server, which can be
+connected from another process (to a RPC stream server), or another host (to a network server), as a client of the server.
+An I/O stream server cannot be accessed by \palcall{StreamWrite} or \palcall{StreamRead};
+instead, the I/O stream server has to block until a client
+connects the server, using \palcall{StreamWaitForClient}.
+\palcall{StreamWaitForClient} will return a stream handle, which represents a connection with the client.
+Other implementation
+is up to the host: for example,
+the host may decide a maximal number of incoming connections to buffer.
 
 
 
@@ -146,7 +228,26 @@ void *StreamMap   (HANDLE stream_handle,
 
 
 
-\subsection*{Querying metadata}
+
+
+\subsection*{Querying stream metadata}
+
+The host ABI features also include retrieving the metadata of an I/O stream.
+The retrieval of metadata is not limited to files,
+but also network sockets and RPC streams, to query the information regarding the streams.
+An example of the stream metadata is the address of a network stream;
+when a network stream is created,
+the host may randomly determine a local, temporary port to identify the connection;
+the POSIX API
+reveals the local port number
+to the applications,
+using \syscall{getsockname}.
+Other stream metadata required by Linux or POSIX functionality
+includes the total bytes written over an I/O stream, and the permission to sharing an I/O stream with other applications.
+
+
+
+The host ABI includes two functions for querying stream metadata:
 
 \begin{paldef}
 bool StreamAttrQuerybyHandle (HANDLE stream_handle,
@@ -156,6 +257,36 @@ bool StreamAttrQuery (const char *stream_uri,
 
 \end{paldef}
 
+Both functions fill out a data structure given by the library OS,
+with metadata regarding an I/O stream
+identified by either a stream handle or a URI.
+Keeping both functions can be convenient for the library OS to query a file without creating a stream handle;
+however, we can always consolidate the host ABI
+with only \palcall{StreamAttrQuerybyHandle},
+because \palcall{StreamAttrQuery} can be replaced by \palcall{StreamAttrQuerybyHandle}
+after \palcall{StreamOpen}.
+
+
+To complete the library OS implementation, \graphene{} introduces a new function,
+\palcall{StreamAttrSetByHandle},
+for changing the metadata of an I/O stream.
+The main reason for changing metadata
+is to configure a network or RPC stream with several device-specific options,
+such as the number of lingering connections,
+or enabling the TCP keepalive feature.
+
+
+
+
+
+
+
+
+
+\begin{paldef}
+bool StreamAttrSetbyHandle (HANDLE stream_handle,
+                            STREAM_ATTRS attrs);
+\end{paldef}
 
 
 \subsection*{Truncating a file or flushing a stream}
@@ -167,26 +298,49 @@ void treamFlush (HANDLE stream_handle);
 \end{paldef}
 
 
-\subsection*{Listening on a server}
-
-
-\begin{paldef}
-HANDLE StreamWaitforClient (HANDLE stream_handle);
-\end{paldef} 
-
-
-\subsection*{\graphene{}-specific stream I/O features}
-
-\begin{paldef}
-void StreamDelete (HANDLE stream_handle, uint direction);
-bool StreamAttrSetbyHandle (HANDLE stream_handle,
-                            STREAM_ATTRS attrs);
-\end{paldef}
+To externalize the change to an I/O stream, the library OS must ensure a file is truncated to the right length (using \palcall{StreamSetLength}), or a network or RPC Stream has flushed the host buffer (using \palcall{StreamFlush}).
+Both functions are private to a process; if multiple processes try
+to set the file length or flush a stream at the same time, one of the function calls may be ignored by the host.
 
 
 
-\paragraph{Character devices.}
+
+
+
+%\subsection*{\graphene{}-specific stream I/O features}
+
+%\begin{paldef}
+%void StreamDelete (HANDLE stream_handle, uint direction);
+%\end{paldef}
 
 
 
 \paragraph{Directories.}
+A POSIX file system contain a hierarchy of directories
+containing files and subdirectories.
+The file I/O in POSIX requires listing the entries in a directory;
+a POSIX function, \syscall{readdir}, returns a list of file and subdirectory names
+in a directory.
+In \graphene{}, we face a decision of whether to include directory I/O
+in the host ABI.
+An option is to maintain a local file in each directory
+to store a list of file and subdirectory names;
+however, this solution will requires maintaining the list whenever a new file or subdirectory is created.
+Therfore, we extend the host ABI,
+to allow opening a directory as a stream handle.
+The library OS can read a list of file and subdirectory names from a directory stream handle,
+generated by the hosts.
+
+
+
+
+\paragraph{Character devices.}
+The host ABI also supports reading or writing data over a character device, including a terminal.
+A terminal can be connected as a stream handle,
+using a special URI called \palkeyword{dev:tty}.
+Other character devices include the debug stream of a process (the URI is \palkeyword{dev:debug}),
+equivalent to writing to \code{stderr} in POSIX.
+
+
+
+
