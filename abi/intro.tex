@@ -110,17 +110,19 @@ based on design principles of \graphene{}. %, including simplicity and sufficien
 
 
 
-The host ABI assumes a calling convention similar to
+The host ABI assumes linking the library OS as
 a user library.
-\graphene{} dynamically links an application with the library OS and the host-specific PAL,
-and unifies them into a single executable running inside a process.
+The \graphene{} features include dynamically links an application, with the library OS and PAL,
+as one executable running inside a process.
 The host ABI does not
 rely on the system call convention;
-every call that enters a PAL is strictly a function call,
-as the library OS is programmed.
-Linking the library OS and PAL is beneficial for keeping the bootstrapping procedure adaptible,
-especially for a host like SGX,
-which requires all trusted code to execute in one context.
+every call that enters a PAL is strictly a function call.
+We choose to dynamically link the library OS for keeping the initialization
+adaptable to different hosts;
+For example,
+a host like SGX imposes restriction on the application context,
+including to validate a signature of application code at beginning.
+%which requires all trusted code to execute in one context.
  
 
 
