@@ -61,7 +61,8 @@ the library OS manages only the virtual memory layout of a process;
 the host is the one who decides the allocation of physical memory resources, among VMAs of all processes.
 The delegation avoids the competition between the host and guest
 on managing the physical memory, which is a common issue for virtualization.
-For example, a VM may suffer a problem called ``double-paging'' when both the host and guest is trying to swap unused pages out of memory; a VM needs to use techniques like ballooning to subtly coordinate with the host to make paging decisions.
+For example, a VM may suffer a problem called ``double-paging'' when both the host and guest is trying to swap unused pages out of memory; a VM needs to use techniques like ballooning~\cite{wldspurger02vmware-esx} to subtly coordinate with the host to make paging decisions,
+or use paravirtualization~\cite{vmware_vmi}.
 
 
 
