@@ -159,16 +159,16 @@ and thus can be loaded on any hosts.
 The host ABI assumes the library OS to be developed as a Linux-compliant, ELF (executable and linkable format) binary~\cite{elf-format}.
 %The host ABI inherit the Linux calling convention,
 %for the convenience of development.
-On x86 (64-bit mode), which is the primary target architecture of \graphene{},
+The primary architecture targeted by \graphene{} is x86-64;
 %The primary target of architecture in \graphene{} is x86-64;
 %in the x86-64 Linux call convention,
 %The host ABI follows the Linux calling convention,
 %which, on the x86 architecture, passes 
-the Linux calling convention
-regulates that the arguments to a function are passed in certain general-purpose registers---specifically stored in \code{rdi}, \code{rsi}, \code{rdx}, \code{rcx}, \code{r8}, and \code{r9}, in order~\cite{system-v-abi}.
-Also, by compiling the library OS into an ELF binary,
-\graphene{} can simplify the dynamic linking between the application, library OS and PAL,
-and enable C compiler optimizations for linking,
+the x86-64 Linux calling convention
+regulates the arguments of a function to be passed in certain general-purpose registers---specifically stored in \code{rdi}, \code{rsi}, \code{rdx}, \code{rcx}, \code{r8}, and \code{r9}~\cite{system-v-abi}.
+Moreover, by compiling the library OS into an ELF binary,
+\graphene{} simplifies the dynamic linking between the application, library OS and PAL,
+and enables compiler-level optimizations for linking,
 such as function name hashing.
 %The host ABI also assumes the library OS to be compiled in ELF (extensible linking format).
 %The decision is to match the calling conventions
@@ -255,6 +255,7 @@ but this technique is out of the scope of this thesis.
 \section{Host ABI Functions}
 
 
-This section describes 
-
+This section describes
+the details of defining the functions in the host ABI,
+categorized by the type of functions.
 
