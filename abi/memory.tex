@@ -18,14 +18,13 @@ into the library OS, unless using hardware virtualization such as VT.
 
 Linux applications 
 are generally developed and compiled under the assumption that the memory is managed
-by the OS,
-at page granularity.
+by the OS with page-level granularity.
 %generally requires system API
 %for allocating, protecting, and deallocating memory at the same granularity.
 %A x86 application may require memory allocation to be strictly at the granularity of four-kilobyte pages,
 The primary Linux memory API,
 including \syscall{mmap}, \syscall{mprotect}, and \syscall{munmap},
-allow an application
+allows an application
 to arbitrarily create, modify, and destroy VMAs (virtual memory areas),
 wholly or partially,
 as long as the requested areas align to
