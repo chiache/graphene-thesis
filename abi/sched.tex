@@ -82,7 +82,7 @@ void ThreadInterrupt (HANDLE thread_handle);
 
 
 
-Similar to memory management, the host ABI also delegates scheduling to the hosts.
+Similar to memory management, the host ABI delegates scheduling to the hosts.
 As the design and implementation of the scheduling policies
 differ from host to host,
 the library OS cannot implement all the Linux scheduling API and policies in the user space,
@@ -91,13 +91,15 @@ for configuring scheduling options.
 In fact, most of the scheduling options in Linux does not impact
 the functionality of an application;
 for example, without configuring the scheduling priority of threads,
-the application will still work,
-with potential performance penalty.
-The only exception is when an application contain
-producer and consumer threads,
-which continues to poll a work queue;
-in this producer-consumer scenario,
-the threads must run on different CPU cores, to prevent deadlocks.
+the application is likely to be still functioning,
+but may suffer performance penalty.
+The only exception is when an application requires
+producer and consumer threads
+to be scheduled to different CPU cores,
+to ensure progress.
+%which continues to poll a work queue;
+%in this producer-consumer scenario,
+%the threads must run on different CPU cores, to prevent deadlocks.
 We propose adding a function called \palcall{ThreadSetCPUInfinity} to the host ABI,
 to support binding a thread to CPU cores:
 
