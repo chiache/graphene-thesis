@@ -314,7 +314,7 @@ HANDLE RpcRecvHandle (HANDLE rpc_handle);
 
 
 
-\graphene{} introduces two functions to the host ABI for handling sharing: \palcall{RpcSendHandle} and \palcall{RpcRecvHandle}, to send a handle over a connected RPC stream.
+The host ABI introduces two functions for sharing handles across processes: \palcall{RpcSendHandle} and \palcall{RpcRecvHandle}, which sends handles over a connected RPC stream.
 The design is motivated by the Linux file descriptor sharing feature of UNIX domain sockets.
 \palcall{RpcSendHandle} will migrate the state of a stream handle, created by \palcall{StreamOpen},
 over a RPC stream, to the receiving process, which calls \palcall{RpcRecvHandle}.
@@ -324,12 +324,12 @@ over a RPC stream, to the receiving process, which calls \palcall{RpcRecvHandle}
 \subsubsection*{Bulk IPC (physical memory store)}
 
 
-The \graphene{} design which migrates and coordinates process states over RPC stream
-can potentially cause significant overhead on an multi-process application;
-especially, the RPC-based migration will slow down the latency of copy-on-write forking.
-the key overhead
-is caused by copying large chunk of memory
-across processes, without the help of a host to share the physical memory.
+Migrating and coordinating process states over RPC streams
+can suffer significant overhead, for copying large chunk of memory.
+Especially, the RPC-based migration will slow down the latency of copy-on-write forking.
+%the key overhead
+%is caused by copying large chunk of memory
+%across processes, without the help of a host to share the physical memory.
 
 \begin{paldef}
 HANDLE PhysicalMemoryStore  (uint index);
@@ -341,14 +341,14 @@ void * PhysicalMemoryMap    (HANDLE store_handle,
 \end{paldef}
 
 
-\graphene{} introduces a Bulk IPC feature in the host ABI, to reduce the latency of forking.
-The abstraction provided by the Bulk IPC feature
+The host ABI introduces a Bulk IPC feature, for reducing the latency of forking.
+The main abstraction of Bulk IPC
 is a physical memory store (created by \palcall{PhysicalMemoryStore});
-during process migration, the parent process
-can send application memory to the physical memory store (using \palcall{PhysicalMemoryCommit}), which will keep a snapshot of the sent memory, using copy-on-write.
+To migrate a process, the library OS
+can send application memory to the physical memory store (using \palcall{PhysicalMemoryCommit}), which will keep a snapshot of the memory, set as copy-on-write.
 The child process can then attach to the physical memory store,
-and map the memory snapshot into its memory (using \palcall{PhysicalMemoryMap}), also backed by copy-on-write.
-As a result, the Bulk IPC feature can large reduce the amount of physical memory copied during process migration,
+and map the memory snapshot into its memory (using \palcall{PhysicalMemoryMap}).
+The Bulk IPC feature can large reduce the amount of physical memory copied during process migration,
 and thus optimize the latency of forking.
 
 
