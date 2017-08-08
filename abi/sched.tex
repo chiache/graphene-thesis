@@ -1,4 +1,4 @@
-\section{Threading}
+\subsection{Threading}
 \label{sec:abi:thread}
 
 \issuedone{1.2.a}{discuss the memory management in the host (threading)}
@@ -13,7 +13,7 @@ to include only a small set of threading features.
 
 
 
-\subsection*{Creating a thread}
+\subsubsection*{Creating a thread}
 
 
 
@@ -51,7 +51,7 @@ or triggering a parent-wakening futex.
 
 
 
-\subsection*{Scheduler}
+\subsubsection*{Scheduler}
 
 
 
@@ -106,7 +106,7 @@ bool ThreadSetCPUInfinity (uint cpu_nums[], uint count);
 \end{paldef}
 
 
-\subsection*{Scheduling primitives}
+\subsubsection*{Scheduling primitives}
 
 
 The host ABI also includes scheduling primitives, such as locking, for synchronizing the execution
@@ -152,7 +152,7 @@ however, we show that these scheduling primitives are also portable on other hos
 
 
 
-\subsection*{Polling handles}
+\subsubsection*{Polling handles}
 
 
 The host ABI allows the library OS to poll one or several handles
@@ -188,7 +188,7 @@ until one of the handles
 is awakened, or the call timeouts.
 
 
-\subsection*{Thread-local storage}
+\subsubsection*{Thread-local storage}
 
 
 Most OSes requires certain form of thread-local storage (TLS),
@@ -239,7 +239,7 @@ the library OS cannot support TLS for an executable using thread-private pointer
 
 
 
-\section{Processes}
+\subsection{Processes}
 \label{sec:abi:proc}
 
 
@@ -282,7 +282,7 @@ from the parent process, to implement forking.
 
 
 
-\subsection*{Sharing a handle}
+\subsubsection*{Sharing a handle}
 
 
 
@@ -315,7 +315,7 @@ over a RPC stream, to the receiving process, which calls \palcall{RpcRecvHandle}
 \palcall{RpcSendHandle} will grant the receiving process the permission, to share the stream handle with the sending process.
 
 
-\subsection*{Bulk IPC (physical memory store)}
+\subsubsection*{Bulk IPC (physical memory store)}
 
 
 The \graphene{} design which migrates and coordinates process states over RPC stream
@@ -348,7 +348,7 @@ and thus optimize the latency of forking.
 
 
 
-\subsection*{Sandboxing}
+\subsubsection*{Sandboxing}
 
 
 \begin{paldef}
