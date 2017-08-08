@@ -326,18 +326,18 @@ is caused by copying large chunk of memory
 across processes, without the help of a host to share the physical memory.
 
 \begin{paldef}
-HANDLE PhysicalMemoryStoreOpen (uint index);
+HANDLE PhysicalMemoryStore  (uint index);
 ulong  PhysicalMemoryCommit (HANDLE store_handle,
-                            void *addr, ulong size);
-void * PhysicalMemoryMap (HANDLE store_handle,
-                          void *expect_addr, ulong size,
-                          uint protection);
+                             void *addr, ulong size);
+void * PhysicalMemoryMap    (HANDLE store_handle,
+                             void *addr, ulong size,
+                             uint protection);
 \end{paldef}
 
 
 \graphene{} introduces a Bulk IPC feature in the host ABI, to effectively reduce the overhead on implementing forking.
 The abstraction provided by the Bulk IPC feature
-is a physical memory store (created by \palcall{PhysicalMemoryStoreOpen});
+is a physical memory store (created by \palcall{PhysicalMemoryStore});
 during process migration, the parent process
 can send application memory to the physical memory store (using \palcall{PhysicalMemoryCommit}), which will keep a snapshot of the sent memory, using copy-on-write.
 The child process can then attach to the physical memory store,

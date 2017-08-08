@@ -292,17 +292,17 @@ bool StreamAttrSetbyHandle (HANDLE stream_handle,
 \subsubsection*{Truncating a file or flushing a stream}
 
 
-\begin{paldef}
-bool StreamSetLength (HANDLE stream_handle, ulong size);
-void treamFlush (HANDLE stream_handle);
-\end{paldef}
 
 
-To externalize the change to an I/O stream, the library OS must ensure a file is truncated to the right length (using \palcall{StreamSetLength}), or a network or RPC Stream has flushed the host buffer (using \palcall{StreamFlush}).
+To externalize the change to an I/O stream, the library OS must ensure a file is truncated to the right length (\palcall{StreamSetLength}), or a network or RPC Stream has flushed the host buffer (\palcall{StreamFlush}).
 Both functions are private to a process; if multiple processes try
 to set the file length or flush a stream at the same time, one of the function calls may be ignored by the host.
 
 
+\begin{paldef}
+bool StreamSetLength (HANDLE stream_handle, ulong size);
+void treamFlush (HANDLE stream_handle);
+\end{paldef}
 
 
 
@@ -312,7 +312,6 @@ to set the file length or flush a stream at the same time, one of the function c
 %\begin{paldef}
 %void StreamDelete (HANDLE stream_handle, uint direction);
 %\end{paldef}
-
 
 
 \paragraph{Directories.}
