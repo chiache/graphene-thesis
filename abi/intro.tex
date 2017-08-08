@@ -158,7 +158,7 @@ and thus can be loaded on any hosts.
 %and the library OS.
 
 
-The host ABI assumes the library OS to be developed as a Linux-compliant, ELF (extensible linking format) binary.
+The host ABI assumes the library OS to be developed as a Linux-compliant, ELF (executable and linkable format) binary~\cite{elf-format}.
 %The host ABI inherit the Linux calling convention,
 %for the convenience of development.
 On x86 (64-bit mode), which is the primary target architecture of \graphene{},
@@ -167,7 +167,7 @@ On x86 (64-bit mode), which is the primary target architecture of \graphene{},
 %The host ABI follows the Linux calling convention,
 %which, on the x86 architecture, passes 
 the Linux calling convention
-regulates that the arguments to a function are passed in certain general-purpose registers---specifically stored in \code{rdi}, \code{rsi}, \code{rdx}, \code{rcx}, \code{r8}, and \code{r9}, in order.
+regulates that the arguments to a function are passed in certain general-purpose registers---specifically stored in \code{rdi}, \code{rsi}, \code{rdx}, \code{rcx}, \code{r8}, and \code{r9}, in order~\cite{system-v-abi}.
 Also, by compiling the library OS into an ELF binary,
 \graphene{} can simplify the dynamic linking between the application, library OS and PAL,
 and enable C compiler optimizations for linking,
@@ -211,8 +211,8 @@ Another benefit is to simplify the debugging with GDB, which only recognizes one
 For a host with a different calling convention from Linux,
 the PAL is responsible for translating the calling convention between the host ABI and the host system interface.
 For example,
-in Windows, function arguments are passed in a different order among general-purpose registers,
-and thus require the Windows-specific PAL
+in Windows, function arguments are passed inside general-purpose registers, in a different order from the Linux convention~\cite{win-abi};
+therefore, a Windows PAL needs
 to swap the register values when the library OS calls the host ABI.
 Windows or OSX also accepts a different type of binary format,
 and requires the PAL to implement an ad-hoc linking scheme for the library OS as an ELF binary.
