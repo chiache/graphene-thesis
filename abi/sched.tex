@@ -197,15 +197,15 @@ is wakened, or the call timeouts.
 \subsubsection*{Thread-local storage}
 
 
-Most OSes requires certain form of thread-local storage (TLS),
-either to store thread-private variables, or to maintain thread control blocks (TCBs).
-Because TLS can be frequently accessed
+Most OSes requires thread-local storage (TLS),
+either to implement thread-private, application variables, or to store thread-specific information, for system libraries, in a thread control block (TCB).
+Because thread-local storage can be frequently accessed
 in an application,
 it would be inefficient to constantly
 enter the kernel for retrieving the TLS data.
 A common design is to occupy one of the thread-private registers
-to store a pointer to the TLS;
-on x86, either the FS or GS register is commonly used to reference the TLS.
+to store a pointer to the thread-local storage;
+on \graphenearch{}, the FS register is commonly used to reference the thread-local storage.
 
 
 
