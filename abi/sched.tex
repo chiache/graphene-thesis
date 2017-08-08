@@ -119,9 +119,9 @@ user-space locking
 cannot prevent a thread from being interrupted inside a critical section,
 and thus 
 causing the application to deadlock.
-Also, user-space locking must be implemented using the compare-and-exchange (\code{CMPXCHG}) instructions, which may not be available on some architectures.
-Therefore, the host ABI
-can encapsulate the scheduling primitives on different hosts.
+Also, user-space locking must be implemented using the compare-and-exchange (\code{CMPXCHG}) instructions, which may not be available on every architectures.
+Therefore, by including the scheduling primitives in the host ABI,
+\graphene{} can encapsulate different kinds of scheduling options available on the hosts.
 
 
 
@@ -137,14 +137,18 @@ void EventDestroy (HANDLE event_handle);
 
 
 
-\graphene{} inherit two types of scheduling primitives
-from the \drawbridge{} host ABI:
-semaphores and events.
-The events include synchronization events and notification events;
-the former wakens a sleeping consumer thread
-from a producer; the latter notifies the occurrence of an event and prevent further blocking.
-Both scheduling primitives share lots of resemblance with the Windows API;
-however, we show that these scheduling primitives are also portable on other hosts, including Linux, BSD, and SGX, using futexes or similar locking mechanisms.
+\graphene{} inherit most of the scheduling primitives
+from \drawbridge{}~\cite{porter11drawbridge}:
+{\bf semaphores} ensures the atomicity of a critical section;
+{\bf events} enforces the order of execution among multiple threads.
+The events created by the host ABI
+can be separated into synchronization events and notification events;
+the former is used by a producer thread, to wake a consumer thread
+blocking on a queue;
+the latter notifies the occurrence of a condition
+and prevent further blocking of threads.
+Both semaphores and events resemblance the abstractions provided by the Windows API;
+we show that these scheduling primitives are also portable on other hosts, including Linux, BSD, and SGX, using futexes or similar locking mechanisms.
 
 
 
