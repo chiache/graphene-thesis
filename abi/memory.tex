@@ -1,8 +1,8 @@
-\section{Memory Management}
+\subsection{Memory Management}
 \label{sec:abi:memory}
 
 
-\issuedone{1.2.a}{discuss the memory management in the host (memory)}
+\issuedone{1.2.a}{discuss resource management at host level (memory)}
 The challenge to defining the host ABI for memory management
 is to accommodate different allocation models and granularities of the hosts.
 A POSIX-style OS often assumes dynamic allocation with page granularity (the size of a page is normally 4KB);
@@ -18,14 +18,13 @@ into the library OS, unless using hardware virtualization such as VT.
 
 Linux applications 
 are generally developed and compiled under the assumption that the memory is managed
-by the OS,
-at page granularity.
+by the OS with page-level granularity.
 %generally requires system API
 %for allocating, protecting, and deallocating memory at the same granularity.
 %A x86 application may require memory allocation to be strictly at the granularity of four-kilobyte pages,
 The primary Linux memory API,
 including \syscall{mmap}, \syscall{mprotect}, and \syscall{munmap},
-allow an application
+allows an application
 to arbitrarily create, modify, and destroy VMAs (virtual memory areas),
 wholly or partially,
 as long as the requested areas align to
@@ -50,10 +49,10 @@ The host ABI for memory management is as follows:
 
 \begin{paldef}
 void *VirtMemAlloc   (void *expect_addr, ulong size,
-                      uint alloc_type, uint protection);
+                      uint alloc_type, uint protect);
 bool  VirtMemFree    (void *addr, ulong size);
 bool  VirtMemProtect (void *addr, ulong size,
-                      uint protection);
+                      uint protect);
 \end{paldef}
 
 
@@ -61,8 +60,9 @@ The host ABI delegates physical memory management to the host. The division of l
 the library OS manages only the virtual memory layout of a process;
 the host is the one who decides the allocation of physical memory resources, among VMAs of all processes.
 The delegation avoids the competition between the host and guest
-to dictate the usage of physical memory;
-for example, a VM needs to use techniques like ballooning to free the physical memory held by the guest OS.
+on managing the physical memory, which is a common issue for virtualization.
+For example, a VM may suffer a problem called ``double-paging'' when both the host and guest is trying to swap unused pages out of memory; a VM needs to use techniques like ballooning~\cite{wldspurger02vmware-esx} to subtly coordinate with the host to make paging decisions,
+or use paravirtualization~\cite{vmware_vmi}.
 
 
 

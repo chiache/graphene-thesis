@@ -1,10 +1,10 @@
-\section{Stream I/O}
+\subsection{Stream I/O}
 \label{sec:abi:streams}
 
 
 
-\issuedone{1.2.a}{discuss the memory management in the host (I/O)}
-An application requires interaction with the world during its execution.
+\issuedone{1.2.a}{discuss resource management at host level (I/O)}
+An application requires interaction with the world during its execution, using I/O devices.
 I/O is a common feature of almost every OSes.
 The typical I/O needed in an application
 can be catagorized into three types:
@@ -21,9 +21,9 @@ including pipes, UNIX sockets, and signals.
 
 
 The host ABI
-encapsulates I/O as three different types of byte streams
-to send data in and out of applications:
-network sockets, regular files, and RPC streams (similar to pipes).
+encapsulates I/O as byte streams
+to send data in and out of an application, but categorizes into three types:
+{\bf network connections}, {\bf regular files}, and {\bf RPC streams}.
 These I/O streams
 are created or connected using a URI (unified resource identifier),
 a unique name which describes the destinations or resource locations of the I/O streams.
@@ -61,7 +61,7 @@ on hosts with a similar specification.
 
 
 
-\subsection*{Opening or creating an I/O stream}
+\subsubsection*{Opening or creating an I/O stream}
 
 
 
@@ -125,7 +125,7 @@ only as an identifier.
 
 
 
-\subsection*{Reading or writing an I/O stream}
+\subsubsection*{Reading or writing an I/O stream}
 
 
 
@@ -203,7 +203,7 @@ asynchronous I/O features.
 
 
 
-\subsection*{Listening on a server}
+\subsubsection*{Listening on a server}
 
 
 \begin{paldef}
@@ -230,14 +230,14 @@ the host may decide a maximal number of incoming connections to buffer.
 
 
 
-\subsection*{Querying stream metadata}
+\subsubsection*{Querying stream metadata}
 
 The host ABI features also include retrieving the metadata of an I/O stream.
 The retrieval of metadata is not limited to files,
-but also network sockets and RPC streams, to query the information regarding the streams.
-An example of the stream metadata is the address of a network stream;
-when a network stream is created,
-the host may randomly determine a local, temporary port to identify the connection;
+but also network sockets and RPC streams. %, to query the information regarding the streams.
+An example of metadata is the address of a network stream;
+when an unbound network stream is created,
+the host will randomly bind the stream to a local, temporary port, for identifying the connection at the IP (internet protocol) level;
 the POSIX API
 reveals the local port number
 to the applications,
@@ -289,20 +289,20 @@ bool StreamAttrSetbyHandle (HANDLE stream_handle,
 \end{paldef}
 
 
-\subsection*{Truncating a file or flushing a stream}
+\subsubsection*{Truncating a file or flushing a stream}
+
+
+
+
+To externalize the change to an I/O stream, the library OS must ensure a file is truncated to the right length (\palcall{StreamSetLength}), or a network or RPC Stream has flushed the host buffer (\palcall{StreamFlush}).
+Both functions are private to a process; if multiple processes try
+to set the file length or flush a stream at the same time, one of the function calls may be ignored by the host.
 
 
 \begin{paldef}
 bool StreamSetLength (HANDLE stream_handle, ulong size);
 void treamFlush (HANDLE stream_handle);
 \end{paldef}
-
-
-To externalize the change to an I/O stream, the library OS must ensure a file is truncated to the right length (using \palcall{StreamSetLength}), or a network or RPC Stream has flushed the host buffer (using \palcall{StreamFlush}).
-Both functions are private to a process; if multiple processes try
-to set the file length or flush a stream at the same time, one of the function calls may be ignored by the host.
-
-
 
 
 
@@ -312,7 +312,6 @@ to set the file length or flush a stream at the same time, one of the function c
 %\begin{paldef}
 %void StreamDelete (HANDLE stream_handle, uint direction);
 %\end{paldef}
-
 
 
 \paragraph{Directories.}
