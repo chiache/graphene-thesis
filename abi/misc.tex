@@ -2,13 +2,32 @@
 \label{sec:abi:misc}
 
 
-Besides managing host resources, such as memory or I/O,
-some miscellaneous features needs to be implemented inside the host.
-
+Besides managing host resources, such as memory or I/O, some miscellaneous features needs to be provided by the host.
+Especially, some features, such as exception handling, are required
+by the library OS
+for implementing functionality specific to Linux.
+This section lists these miscellaneous functions in the host ABI.
 
 
 
 \subsubsection*{Exception handling}
+
+
+
+The exception handling in the host ABI
+is strictly designed for returning hardware exceptions,
+or failures inside the PAL,
+to the library OS.
+The library OS specifies a {\bf handler} function which the host ABI
+jumps to, when a certain exception is triggered.
+To have a design independent from the host,
+the handler will receive an object,
+for temporarily storing the state of execution,
+and a data structure
+specifying the information regarding the triggered exception,
+such as the register values in the faulting context.
+
+
 
 
 
@@ -18,11 +37,22 @@ typedef void (*EXCEPTION_HANDLER)
 \end{paldef}
 
 
+The library OS specifies the handler
+using \palcall{ExceptionSetHandler}.
+The handler is assigned to the whole process,
+instead of individual threads.
+The function also
+cancels out any handler previously assigned to the exception.
+If no handler is ever assigned to a specific exception,
+the PAL kills the whole process when the exception happens.
+Once a handler finishes handling an exception,
+it must call \palcall{ExceptionReturn} to return to the execution.
+
 
 \begin{paldef}
-bool ExceptionSetHandler  (uint exception,
-                           EXCEPTION_HANDLER handler);
-void ExceptionReturn      (void *exception_obj);
+bool ExceptionSetHandler (uint exception,
+                          EXCEPTION_HANDLER handler);
+void ExceptionReturn     (void *exception_obj);
 \end{paldef}
 
 
@@ -32,14 +62,20 @@ void ExceptionReturn      (void *exception_obj);
 
 
 
+
 \begin{paldef}
 ulong SystemTimeQuery (void);
 \end{paldef}
 
 
+
+
+
 \begin{paldef}
 ulong RandomBitsRead (void *buffer, ulong size);
 \end{paldef}
+
+
 
 
 \begin{paldef}
