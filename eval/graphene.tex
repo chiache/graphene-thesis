@@ -65,7 +65,7 @@ Checkpoint size & N/A & \multicolumn{2}{l|}{105 MB} & \multicolumn{2}{l|}{376 KB
 {Startup, checkpoint, and resume times for (1) a native Linux process,
 (2) a KVM virtual machine,
 (3) a \graphene{} \picoproc{},
-(4) a \graphene{} \picoproc{} in a \sgx{} enclave,
+(4) a \graphene{} \picoproc{} in a SGX enclave,
  where appropriate. Lower is better.  
 Overheads are relative to Linux.} 
 \label{tab:graphene:startup}
@@ -190,7 +190,7 @@ Ap. Bnch     & \multicolumn{8}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \%
 50 conc     & 6.305 & .002 & 5.420 & .060 & 16 \% & 4.555 & .012 & 38 \%  \\\hline
 100 conc    & 6.347 & .010 & 5.152 & .036 & 22 \% & 4.572 & .009 & 39 \%  \\\hline
 
-{\bf \light{}} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} \\
+{\bf \lighttpd{}} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} \\
 \hline
 
 25 conc    & 6.66 &.01 &6.46 &.03 &3 \% &5.65 &.00 &18 \%  \\\hline
@@ -224,7 +224,7 @@ Table~\ref{tab:graphene:apps} lists
 execution time of our {\em unmodified} 
 application benchmarks (detailed in \S\ref{sec:graphene:eval:mem}).
 All applications create multiple processes,
-except for \light{}, which only creates multiple threads.
+except for \lighttpd{}, which only creates multiple threads.
 Each data point is the average of at least six runs, 
 and 95\% confidence intervals are listed in the table.
 
@@ -236,7 +236,7 @@ with inputs of varying sizes:
 bzip2 (v1.0.6, 5KLoC, 13 files),
 \graphene{}'s {\tt libLinux} (31 KLoC, 78 files)
 and \gcc{} (v3.5.0, 551 KLoC, collected as a single source file). 
-We benchmark Apache (4 preforked workers) and \light{} (4 threads) with 
+We benchmark Apache (4 preforked workers) and \lighttpd{} (4 threads) with 
 \ab{},
 which issues 25, 50, and 100 concurrent requests
 to download a 100 byte file 50,000 times.
@@ -260,15 +260,15 @@ The trend is exacerbated in Unixbench, which creates all of the processes at the
 waits for them all to complete; because \graphene{} cannot create children as quickly as native, this leads to 
 load imbalance throughout the rest of the benchmark.  
 
-With the reference monitor disabled,  \light{} has equivalent throughput to a native Linux process;
+With the reference monitor disabled,  \lighttpd{} has equivalent throughput to a native Linux process;
 as discussed in the next subsection, these overheads come from checking paths in the monitor.
-The Apache web server loses about half of its throughput relative to \light{} on \graphene{}.
-The primary bottleneck in Apache relative to \light{} is System V semaphores,
+The Apache web server loses about half of its throughput relative to \lighttpd{} on \graphene{}.
+The primary bottleneck in Apache relative to \lighttpd{} is System V semaphores,
 %, which account for about 
 %one third of the additional time spent in {\tt libLinux}
 %relative to \light{}, 
 and the remaining overheads are attributable to more time spent waiting for input.
-The overheads for both \light{} and Apache on KVM are primarily attributable
+The overheads for both \lighttpd{} and Apache on KVM are primarily attributable
 to bridged networking.
 
 
@@ -355,7 +355,7 @@ fork+sh        & 499.64 & 0.67 & 1,726.75 & 6.14 & 245 & 1,912.00 & 3.83 &   283
 %%% 10K del & 149 & 0.3  & 94 & 0.1 & 58 & 88 & 0.2 & 69 \\\hline
 \end{tabular}
 \caption[\lmbench{} benchmarking results in Linux, KVM and \graphene{}]
-{\lmbench{} comparison among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in \sgx{} enclaves.
+{\lmbench{} comparison among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in SGX enclaves.
 Execution time is in microseconds, and lower is better. 
 %The file system is measured in thousands operations per second, and higher is better.
 Overheads are relative to Linux; negative overheads indicate improved performance.} 
@@ -422,7 +422,7 @@ msgrcv   & in-process    &  149	& 0.1 &   237 & 0.2 &	60	\%		\\
          & persistent    &  N/A	&     &   979 & 0.6 &	561	\%	    \\
          \hline
 \end{tabular}
-\caption[The \microbench{} results for System V message queues in Linux, KVM, and \graphene{}]
+\caption[The micro-benchmark results for System V message queues in Linux, KVM, and \graphene{}]
 {Micro-benchmark comparison for System V message queues
 between a native Linux process and \graphene{} \picoprocs{}.
 Execution time is in microseconds, and lower is better.
@@ -433,7 +433,7 @@ overheads are relative to Linux, and negative overheads indicate improved perfor
 \end{table}
 
 \paragraph{System V IPC.}
-Table~\ref{tab:graphene:msgq} lists the \microbench{}s
+Table~\ref{tab:graphene:msgq} lists the micro-benchmarks
 which exercise each System V message queue function,
 within one \picoproc{} (in process), across two concurrent \picoprocs{} (inter process),
 and across two non-concurrent \picoprocs{} (persistent).
@@ -447,7 +447,7 @@ fine-grained locks, two of which could be elided by using RCU to eliminate locki
 Most of the costs of persisting message queue contents are also attributable to locking.
 
 Although inter-process send and receive still induce substantial overhead, the optimizations
-discussed in \S\ref{sec:graphene:namespaces:insights} reduced overheads compared to a naive implementation
+discussed in \S\ref{sec:libos:namespaces:insights} reduced overheads compared to a naive implementation
 by a factor of ten.  The optimizations of asynchronous sending and migrating ownership of queues
 when a producer/consumer pattern were detected were particularly helpful.
 

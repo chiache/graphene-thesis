@@ -2,8 +2,11 @@
 \label{sec:abi:misc}
 
 
-
-
+Besides managing host resources, such as memory or I/O, some miscellaneous features needs to be provided by the host.
+Some features, such as exception handling, are required
+%by the library OS
+for implementing functionality specific to Linux.
+%This section lists these miscellaneous functions in the host ABI.
 
 
 
@@ -11,23 +14,61 @@
 
 
 
+The exception handling in the host ABI
+is strictly designed for returning hardware exceptions,
+or failures inside the PAL,
+to the library OS.
+The library OS specifies a {\bf handler} function which the host ABI
+jumps to, when a certain exception is triggered.
+To have a design independent from the host,
+the handler will receive an object,
+for temporarily storing the state of execution,
+and a data structure
+specifying the information regarding the triggered exception,
+such as the register values in the faulting context.
+
+
+
+
+
 \begin{paldef}
 typedef void (*EXCEPTION_HANDLER)
             (void *exception_obj, EXCEPTION_INFO info);
+
+bool ExceptionSetHandler (uint exception,
+                          EXCEPTION_HANDLER handler);
+void ExceptionReturn     (void *exception_obj);
 \end{paldef}
 
+The library OS specifies the handler
+using \palcall{ExceptionSetHandler}.
+The handler is assigned to the whole process,
+instead of individual threads.
+The function also
+cancels out any handler previously assigned to the exception.
+If no handler is ever assigned to a specific exception,
+the PAL kills the whole process when the exception happens.
+Once a handler finishes handling an exception,
+it must call \palcall{ExceptionReturn} to return to the execution.
 
 
-\begin{paldef}
-bool ExceptionSetHandler  (uint exception,
-                           EXCEPTION_HANDLER handler);
-void ExceptionReturn      (void *exception_obj);
-\end{paldef}
 
 
 
 
-\subsubsection*{Other miscellaneous features}
+
+%\subsubsection*{Other miscellaneous features}
+
+
+
+\paragraph{System time.} To calculate the system time,
+the library OS must rely on the host to have a reliable time source.
+
+
+
+
+
+
 
 
 
@@ -36,11 +77,28 @@ ulong SystemTimeQuery (void);
 \end{paldef}
 
 
+
+
+
 \begin{paldef}
 ulong RandomBitsRead (void *buffer, ulong size);
 \end{paldef}
 
 
+On some architectures, such as MIPS, the instruction cache inside the CPU 
+has to be flushed whenever the application code is changed.
+Both Windows and Linux contain system API for flushing the instruction cache.
+Inherited from \drawbridge{},
+\graphene{} defines a function called \palcall{ICacheFlush} in the host ABI,
+for architectures which requires such a feature.
+On \graphenearch{}, this function is not implemented,
+because the architecture
+does not require the instruction cache to be explicitly flushed.
+Still, Graphene keeps the definition
+for future porting to other architectures.
+
+
+
 \begin{paldef}
-ulong ICacheFlush (void *addr, ulong size);
+void ICacheFlush (void *addr, ulong size);
 \end{paldef}

@@ -7,8 +7,8 @@
 \section{Background}
 \label{sec:sgx:background}
 
-This section summarizes \sgx{},
-and current design points for running or porting applications on \sgx{}.
+This section summarizes SGX,
+and current design points for running or porting applications on SGX.
 %and the legacy frameworks of porting 
 %including \haven{}~\cite{baumann14haven}, \scone{}~\cite{osdi16scone}, and Panoply~\cite{shinde17panoply}. 
 
@@ -85,10 +85,10 @@ provide attestation to remote systems or other enclaves.
 %to allow remote entities to verify the soundness of execution and establish the trust
 %needed for provisioning sensitive data.
 
-\sgx{} enables a threat model where one only trusts the \intel{} CPUs and the 
+SGX enables a threat model where one only trusts the Intel CPUs and the 
 code running in the enclave(s).
 %whereas the rest of application, system software, off-CPU-package hardware devices and providers are untrusted. 
-\sgx{} protects applications from three different types of attacks on the same host, which are summarized in Figure~\ref{fig:sgx-threats}: untrusted application code inside the same process but outside the enclave; operating systems, hypervisors, and other system software;
+SGX protects applications from three different types of attacks on the same host, which are summarized in Figure~\ref{fig:sgx-threats}: untrusted application code inside the same process but outside the enclave; operating systems, hypervisors, and other system software;
 %\fixme{added Mona's suggestion}
 other applications on the same host; and off-chip hardware.
 A SGX enclave can also trust a remote service or enclave, and be trusted after inter-platform attestation~\cite{sgx-attestation}.
@@ -396,7 +396,7 @@ and we are aware of ongoing projects using \graphenesgx{}.
 \begin{figure}[t!]
 \centering
 \includegraphics[width=\linewidth]{sgx.pdf}
-\caption{The threat model of \sgx{}. \sgx{} protects applications
+\caption{The threat model of SGX. SGX protects applications
 from three types of attacks:
 in-process attacks from outside of the enclave,
 attacks from OS or hypervisor, and attacks from off-chip hardware.}
@@ -410,7 +410,7 @@ attacks from OS or hypervisor, and attacks from off-chip hardware.}
 \paragraph{How much functionality to pull into the enclave?}
 At one extreme, a library OS like Haven~\cite{baumann14haven} pulls most
 of the application-supporting code of the OS into the enclave.
-On the other extreme, thin ``shim'' layers, like SCONE~\cite{osdi16scone} and Panoply~\cite{shinde17panoply} 
+On the other extreme, thin ``shim'' layers, like \scone{}~\cite{osdi16scone} and \panoply{}~\cite{shinde17panoply} 
 wrap an API layer such as the system call table.
 Pulling more code into the enclave increases the size of the TCB,
 but can reduce the size and complexity of the interface, and attack surface, 

@@ -10,11 +10,12 @@
 
 \usepackage{xstring}
 
-\newcommand{\projname}[1]{{#1}}
+\declarecommand{\projname}[1]{{#1}}
 
-\newcommand{\syscall}[1]{{\tt #1()}}
-\newcommand{\code}[1]{{\tt #1}}
-\newcommand{\funcname}[1]{{\tt #1()}}
+\declarecommand{\syscall}[1]{{\tt #1()}}
+\declarecommand{\palcall}[1]{{\tt #1()}}
+\declarecommand{\code}[1]{{\tt #1}}
+\declarecommand{\funcname}[1]{{\tt #1()}}
 
 % different kinds of seconds
 \newcommand{\asec}{S}
@@ -23,7 +24,7 @@
 \newcommand{\nsec}{nS}
 
 % tunable symbols
-\newcommand{\roughly}{$\sim$}
+\newcommand{\roughly}[1][]{$\sim$#1}
 
 \newcommand{\palign}[2][]{%
     \IfEqCase{#2}{%
@@ -35,41 +36,65 @@
     \@@align \arraybackslash #1%
 }
 
+
+
 % slangs
+\declarecommand{\loc}{LoC}
+\declarecommand{\us}{$\mu$S}
+\declarecommand{\x}{$\times$}
 
-\newcommand{\loc}{LoC}
 
+% project names
 \declarecommand{\graphene}{\projname{Graphene}}
 \declarecommand{\graphenesgx}{\projname{Graphene-SGX}}
 \declarecommand{\graphenearch}{x86-64}
 \declarecommand{\civet}{\projname{Civet}}
-\declarecommand{\intel}{Intel}
-\declarecommand{\sgx}{SGX}
 \declarecommand{\microkernel}{microkernel}
-\declarecommand{\libos}{library OS}
-\declarecommand{\liboses}{library OSes}
-\declarecommand{\picoproc}{picoprocess}
-\declarecommand{\picoprocs}{picoprocesses}
 \declarecommand{\haven}{\projname{Haven}}
 \declarecommand{\drawbridge}{\projname{Drawbridge}}
-\declarecommand{\java}{Java}
-\declarecommand{\microbench}{micro-benchmark}
-\declarecommand{\sysvipc}{System V IPC}
-\declarecommand{\us}{$\mu$S}
-\declarecommand{\x}{$\times$}
+\declarecommand{\scone}{\projname{SCONE}}
+\declarecommand{\panoply}{\projname{PANOPLY}}
+\declarecommand{\sgx}{{SGX}}
+\declarecommand{\docker}{{Docker}}
+
+
+% terminology
+\declarecommand{\Libos}{Library OS}
+\declarecommand{\Liboses}{Library OSes}
+\declarecommand{\libos}{library OS}
+\declarecommand{\liboses}{library OSes}
+\declarecommand{\Picoproc}{Picoprocess}
+\declarecommand{\Picoprocs}{Picoprocesses}
+\declarecommand{\picoproc}{picoprocess}
+\declarecommand{\picoprocs}{picoprocesses}
 \declarecommand{\pal}{PAL}
-\declarecommand{\graphenesyscalls}{145}
-\declarecommand{\linuxsyscalls}{318}
-\declarecommand{\palcalls}{42}
-\declarecommand{\nativecalls}{50}
+\declarecommand{\posixapi}{POSIX function}
+\declarecommand{\posixapis}{POSIX functions}
+\declarecommand{\linuxapi}{system call}
+\declarecommand{\linuxapis}{system calls}
+\declarecommand{\hostapi}{PAL call}
+\declarecommand{\hostapis}{PAL calls}
+
+
+% stats
+\declarecommand{\graphenesyscallnum}{145}
+\declarecommand{\linuxsyscallnum}{318}
+\declarecommand{\palcallnum}{42}
+\declarecommand{\hostsyscallnum}{50}
+\declarecommand{\enclavecallnum}{28}
+
 \declarecommand{\gipclines}{1,131}
 \declarecommand{\sandboxmodlines}{888}
 \declarecommand{\reflines}{3,568}
 \declarecommand{\libclines}{606}
-\declarecommand{\interfacenum}{41}
-\declarecommand{\light}{lighttpd}
-\declarecommand{\gcc}{gcc}
+
+
+% miscs
+\declarecommand{\sysvipc}{System V IPC}
+\declarecommand{\lighttpd}{Lighttpd}
+\declarecommand{\gcc}{GCC}
 \declarecommand{\lmbench}{LMbench}
 \declarecommand{\ab}{ApacheBench}
 \declarecommand{\busy}{Bash}
-\declarecommand{\skylake}{Skylake}
+\declarecommand{\sgxsdk}{Intel SGX SDK}
+

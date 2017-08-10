@@ -65,21 +65,21 @@ even if these applications are not widely used.
 %%% an ubiquitous package that is not secured.
 
 One family of APIs prone to security problems are the %with security issues   that have been considered problematic
-{\tt set*id} API family.
+\syscall{set*id} API family.
 %The fundamental problem is that
-Many of the {\tt set*id} APIs
+Many of the \syscall{set*id} APIs
 have subtle semantic differences across different Unix variants.
 %~\citep{chen02setuid}.
-Chen et al.~\citep{chen02setuid} conclude that 
-{\tt setresuid} has the clearest semantics 
+Chen et al.~\cite{chen02setuid} conclude that 
+\syscall{setresuid} has the clearest semantics 
 across all Unix flavors. 
 %BSD, System V and Linux have different interpretation of 
 %other uid-setting system calls such as setuid, setreuid and seteuid. 
-Table~\ref{tab:syspop:secure-api} shows the \unwusagemetric{} 
-of {\tt set*id} and {\tt get*id} system calls.
+Table~\ref{tab:study:unweighted:secure-api} shows the \unwusagemetric{} 
+of \syscall{set*id} and \syscall{get*id} system calls.
 Most packages have 
 adopted the more clear and secure interface. 
-System calls {\tt setuid}, {\tt setreuid}, and {\tt setresuid} have
+System calls \syscall{setuid}, \syscall{setreuid}, and \syscall{setresuid} have
 \unwusagemetric{} of 15.67\%, 1.88\% and 99.68\% respectively. 
 %However, some packages
 %are still using the older interfaces, and package maintainers or distribution security teams
@@ -115,7 +115,7 @@ and similar variants.
 %The atomic version of these system calls, such as
 %{\tt faccessat}, avoids this attack by interpreting the path relative to
 %an already open file descriptor~\citep{tsafrir08tr}.
-Table~\ref{tab:syspop:secure-api} shows the current \unwusagemetric{} of
+Table~\ref{tab:study:unweighted:secure-api} shows the current \unwusagemetric{} of
 {\tt *at} system call variants and their older counterparts.
 We observed that the \unwusagemetric{} of
 the race-prone {\tt access} is still high (74.24\%), whereas {\tt faccessat} is only 0.63\%.
@@ -180,7 +180,7 @@ packages use the more vulnerable {\tt access} system call instead of the more se
 \end{tabular}
 \caption[\Unwusagemetric{} of secure and insecure API variations]
 {\Unwusagemetric{} of secure and insecure API variations. Higher is more important.}
-\label{tab:syspop:secure-api}
+\label{tab:study:unweighted:secure-api}
 \end{table}
 
 
@@ -193,7 +193,7 @@ and the alternative {\tt waitid} is preferred, as it more precisely specifies wh
 However, \unwusagemetric{} of {\tt wait4} and {\tt waitid} is 60.56\% and 0.24\%, respectively.
 This indicates that 60\% of the packages are still using the older {\tt wait4} system call.
 %This is another area of concern that needs to be notified to the maintainers of these packages.
-Table~\ref{tab:syspop:new-api} shows similar trend for some other system calls.
+Table~\ref{tab:study:unweighted:prefer-api} shows similar trend for some other system calls.
 Our dataset provides more opportunity for system developers
 to actively communicate with application developers,
 in order to speed up the process of retiring problematic APIs. 
@@ -205,7 +205,7 @@ in order to speed up the process of retiring problematic APIs.
 Some APIs are specific to a particular OS,
 such as Linux,
 and often have more portable variants.
-Table~\ref{tab:syspop:linux-specific} shows the comparison between
+Table~\ref{tab:study:unweighted:prefer-api} shows the comparison between
 Linux-specific APIs and their generic variants.
 The results show most developers prefer portable or generic APIs
 more than Linux-specific APIs.
@@ -224,7 +224,7 @@ where one version has increased functionality.
 %The existence of these API variants is caused by arbitrary choices
 %made by the OS developers.
 %In addition to some system call variants being Linux specific, in some cases, that is not the factor for developer preference of one API variant over the other.
-Table~\ref{tab:syspop:prefer-api} shows the difference %of \unwusagemetric{}
+Table~\ref{tab:study:unweighted:prefer-api} shows the difference %of \unwusagemetric{}
 between these system calls.
 %which are either alternative to each other,
 %or one is simply a more powerful version (more functionality; accepting more arguments) of the other.
@@ -233,7 +233,7 @@ between these system calls.
 %the more powerful version of the system calls ({\tt recvmsg} or {\tt sendmsg})
 %or more functionality. 
 Interestingly, more developers chose the less powerful variants,
-such as using {\tt select} over {\tt pselect6}, or {\tt dup2} over {\tt dup3}.
+such as using \syscall{select} over \syscall{pselect6}, or \syscall{dup2} over \syscall{dup3}.
 This indicates that more often than not, developers choose simplicity 
 unless a task demands the functionality of a more powerful API variant.
 
@@ -309,7 +309,7 @@ unless a task demands the functionality of a more powerful API variant.
 
 
 \caption{\Unwusagemetric{} among API variants. Higher is more important.}
-\label{tab:syspop:prefer-api}%
+\label{tab:study:unweighted:prefer-api}%
 \end{table}%
 
  

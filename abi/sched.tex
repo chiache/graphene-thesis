@@ -357,6 +357,51 @@ and thus optimize the latency of forking.
 \subsubsection*{Sandboxing}
 
 
+The security isolation of \graphene{} is based on a {\bf sandbox}, a container isolating a number of coordinating library OS instances.
+When \graphene{} launches an application, the application begins running inside a standalone sandbox.
+By default, a new process cloned by the application share the sandbox
+with its parent process.
+To configure the isolation policies,
+developers provide a {\bf manifest} file for each application.
+The policies are enforced by a reference monitor in the host.
+A manifest file contains run-time rules for sandboxing resources which can be shared in the host,
+including files, network sockets, and RPC streams.
+
+
+
+Sandboxing delegates
+security isolation to the host.
+An application doesn't have to trust the library OS
+to enforce security policies,
+on every applications running on the same host.
+If a library OS instance is compromised by the application,
+the threat will be contained inside the sandbox,
+and cannot cross the sandbox boundary, unless the host is also compromised.
+For each sandbox,
+the isolation policies are statically assigned,
+in the manifest file given at the launch.
+The isolation policies
+cannot be subverted during execution.
+
+
+
+However, sometimes, an application may want to reassign the policies,
+for security isolation inside of the application.
+Processes in an application may have different privilege levels, or belong to different sessions which should be isolated from each other.
+\palcall{SandboxSetPolicy} can dynamically
+assign a new manifest file specifying a stricter policy
+than the original manifest,
+to restrict a process from accessing the resources shared by other processes.
+\palcall{SandboxSetPolicy}
+moves a process to a new sandbox.
+An option, \palkeyword{sandbox_rpc}, can block all RPC streams from other processes running in the original sandbox.
+
+
+
+
+
+
+
 \begin{paldef}
 bool SandboxSetPolicy (const char *sandbox_manifest,
                        bool sandbox_rpc);
