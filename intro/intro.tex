@@ -87,7 +87,7 @@ is to prevent compatibility issues from distracting hardware innovations.
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
 The key challenge to maintaining OS compatibility
 is to bridge the gap between
-a idiosyncratic system interface and hardware prerequisites.
+a idiosyncratic system interface and hardware assumptions.
 %implementing the idiosyncratic features of a system interface,
 %and satisfying the hardware prerequisites.
 %The key challenge, though, is to reproduce
@@ -100,12 +100,16 @@ often contains abundance of unique abstractions and behaviors.
 For example, the latest Linux system interface has grown to \roughly{300} \linuxapis{},
 with a lot of Linux-specific options and corner cases~\cite{linux-man-syscall}
 invented along the way.
-Developing a fully-compatible OS, for any existing Linux applications, %, to reuse any application,
+Developing a fully-compatible OS, for any Linux applications, %, to reuse any application,
 requires faithfully reproducing
-the idiosyncratic features within the Linux \linuxapis{},
+the idiosyncratic features of the \linuxapis{},
 %which can be painful on an innovative hardware, such as a SGX-enabled CPU.
 %which is the primary barrier in developing a compatible OS.
-while resolving hardware restrictions.
+while resolving hardware-specific restrictions.
+The OS development effort, for maintaining compatibility, can be dominated by the translation between the system interface and unconventional hardware abstractions.
+
+
+
 
 
 
