@@ -13,9 +13,9 @@ and how users configure policies for defenses.
 \subsection{Threat model}
 \label{sec:sgx:overview:threat}
 
-\graphenesgx{} follows a typical threat model for \sgx{} applications.
+\graphenesgx{} follows a typical threat model for SGX applications.
 The following components are untrusted:
-(1) hardware outside of the \intel{} CPU package(s),
+(1) hardware outside of the Intel CPU package(s),
 (2) the OS, hypervisor, and other system software,
 (3) other applications executing on the same host, including unrelated enclaves,
 and (4) user-space components that
@@ -93,7 +93,7 @@ Other security-sensitive manifest options inherited from \graphene{}, such as en
 \fixmedp{We need a 1 para introduction to provisioning.  What is a provisioning server, and why do I need it?}
 
 Once the \graphenesgx{} framework takes an application with its manifest file and enclave signature,
-it creates an \sgx{} enclave and step-by-step establishes
+it creates an SGX enclave and step-by-step establishes
 the trust of the remote provisioning server(s). 
 We divide the process of trust establishment into three stages:
 
@@ -138,19 +138,19 @@ to request and process any sensitive data with permission.
 
 
 Besides the components in the \graphenesgx{} framework,
-an architectural enclave, {\tt AESMD}, introduced by the \sdk{},
+an architectural enclave, {\tt AESMD}, introduced by the \sgxsdk{},
 has to be trusted in our threat model.
 The purpose of this enclave is to verify the attributes in enclave signatures
 and generate a run-time token for initializing the enclave execution.
-The {\tt AESMD} enclave is secured by a private key owned by \intel{} and the correspondent public key is recognized by all \intel{} CPUs with \sgx{}.
+The {\tt AESMD} enclave is secured by a private key owned by Intel and the correspondent public key is recognized by all Intel CPUs with SGX.
 
 %Besides the enclaves where applications are loaded,
-%an architectural enclave called {\tt aesm} on each platform that supports \sgx{}
+%an architectural enclave called {\tt aesm} on each platform that supports SGX
 %must be trusted by all enclave.
-%{\tt AESM} is a secured service signed by \intel{} for generating
+%{\tt AESM} is a secured service signed by Intel for generating
 %valid enclave tokens.
-%The {\tt aesm} binary is part of the \sgx{} SDK,
-%and signed using an \intel{} internal key, thus cannot be
+%The {\tt aesm} binary is part of the \sgxsdk{},
+%and signed using an Intel internal key, thus cannot be
 %tampered by any third party.
 %Otherwise, any other parts of the platform that launches the enclave
 %must not be trusted, including the host kernel,
@@ -162,9 +162,9 @@ The {\tt AESMD} enclave is secured by a private key owned by \intel{} and the co
 %
 %For enclaves, the only way to be securely provisioned by another entity
 %is by attestation.
-%\sgx{} provides a signed proof of the enclave measurement,
+%SGX provides a signed proof of the enclave measurement,
 %which can be verified by other entities as long as their platforms
-%also support \sgx{}.
+%also support SGX.
 %In \haven{} model, the same shielding module cannot have different applications
 %securely provisioned, because their enclave measurements will simply
 %appear no difference.

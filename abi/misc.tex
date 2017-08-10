@@ -3,10 +3,10 @@
 
 
 Besides managing host resources, such as memory or I/O, some miscellaneous features needs to be provided by the host.
-Especially, some features, such as exception handling, are required
-by the library OS
+Some features, such as exception handling, are required
+%by the library OS
 for implementing functionality specific to Linux.
-This section lists these miscellaneous functions in the host ABI.
+%This section lists these miscellaneous functions in the host ABI.
 
 
 
@@ -34,8 +34,11 @@ such as the register values in the faulting context.
 \begin{paldef}
 typedef void (*EXCEPTION_HANDLER)
             (void *exception_obj, EXCEPTION_INFO info);
-\end{paldef}
 
+bool ExceptionSetHandler (uint exception,
+                          EXCEPTION_HANDLER handler);
+void ExceptionReturn     (void *exception_obj);
+\end{paldef}
 
 The library OS specifies the handler
 using \palcall{ExceptionSetHandler}.
@@ -49,16 +52,22 @@ Once a handler finishes handling an exception,
 it must call \palcall{ExceptionReturn} to return to the execution.
 
 
-\begin{paldef}
-bool ExceptionSetHandler (uint exception,
-                          EXCEPTION_HANDLER handler);
-void ExceptionReturn     (void *exception_obj);
-\end{paldef}
 
 
 
 
-\subsubsection*{Other miscellaneous features}
+
+%\subsubsection*{Other miscellaneous features}
+
+
+
+\paragraph{System time.} To calculate the system time,
+the library OS must rely on the host to have a reliable time source.
+
+
+
+
+
 
 
 
@@ -76,8 +85,20 @@ ulong RandomBitsRead (void *buffer, ulong size);
 \end{paldef}
 
 
+On some architectures, such as MIPS, the instruction cache inside the CPU 
+has to be flushed whenever the application code is changed.
+Both Windows and Linux contain system API for flushing the instruction cache.
+Inherited from \drawbridge{},
+\graphene{} defines a function called \palcall{ICacheFlush} in the host ABI,
+for architectures which requires such a feature.
+On \graphenearch{}, this function is not implemented,
+because the architecture
+does not require the instruction cache to be explicitly flushed.
+Still, Graphene keeps the definition
+for future porting to other architectures.
+
 
 
 \begin{paldef}
-ulong ICacheFlush (void *addr, ulong size);
+void ICacheFlush (void *addr, ulong size);
 \end{paldef}
