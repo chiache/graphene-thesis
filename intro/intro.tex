@@ -7,16 +7,16 @@ The main concept of a UNIX-style OS~\cite{ritchie74unix} is to encapsulate hardw
 (e.g., \linuxapis{}).
 %which is programmable in an application.
 A system interface can isolate an application from the idiosyncrasy of hardware interfaces, and thus make the application {\bf portable} across hardware platforms.
-To the application developers,
+To application developers,
 a system interface reveals the OS as an extended machine~\cite{dhamdhere2007os-textbook},
-which presents a consistent view of hardware and OS features
-for programming.
+which presents a consistent view of all the OS and hardware features
+to program with.
 %presented by the system interface
 %is independent from the physical machines running the OS.
 %for applications to be programmed with.
 %compared with the physical machines for running the OS.
-A portable application can be reused
-upon different hardware options encapsulated by the OS, such as CPU models, memories, and I/O devices.
+The value of a portable application is to be deployed and reused
+upon different hardware options, such as CPU models, memories, and I/O devices, as long as the system interface encapsulates the hardware.
 %encapsulated by the OS.
 %different encapsulated hardware options, including CPU models, memories, and I/O devices. 
 %upon a series of continuously-developed hardware,
@@ -27,10 +27,10 @@ upon different hardware options encapsulated by the OS, such as CPU models, memo
 %The only exception is the portability across CPU architectures,
 %Otherwise, application developers would expect an application, built without dependency to %specific hardware, to be reusable in an OS regardless of what hardware users choose.
 %The same assumption on application portability has been shared among
-Modern OS standards,
+Many modern OS standards,
 including Linux~\cite{linux-standard-base}, Windows~\cite{win-api}, and POSIX~\cite{ieee-posix},
-have all defined a versatile system interface
-to facilitate the programming of a portable application.
+have defined their system interfaces with a similar incentive,
+as facilitating application programming and portability.
 %to make applications adaptable and widely distributable.
 %facilitate the development of an portable application.
 %share the merit of application portability.
@@ -38,11 +38,27 @@ to facilitate the programming of a portable application.
 
 
 %However, defining a system interface does not guarantee long-term portability of an application.
-A prerequisite to the long-term portability of an application
-is to have a compatible system interface.
-{\bf Compatibility} represents
+To continuously utilize a portable application, 
+{\bf compatibility} has increasingly become a major prerequisite and challenge
+in OS development.
+An OS with compatibility
 \fixme{Check this: defining compatibility}
-the ability of an OS to reproduce the features of a system interface, for reusing an application previously developed with these features.
+owns the ability of reproducing features and semantics of a system interface
+for reusing deployed applications.
+Due to the rapid growth of applications, the cost for compromising compatibility
+has become unacceptably expensive;
+an OS like Linux or Windows cannot afford reprogramming
+up to thousands or millions of applications,
+if the system interface is no longer compatible.
+Specifically,
+both Linux and Windows have gone to great lengths
+to avoid jeopardizing compatibility.
+The Linux standard base (LSB)~\cite{linux-standard-base} forbids deprecating or redefining any system calls
+unless OS developers have gone through a lengthy process
+of announcing and confirming every affected application to be properly ported. 
+An early version of Windows Vista, nicknamed ``Longhorn'',
+introduced a brand-new Windows API and a database-like file system,
+but eventually dialed back the changes due to compatibility problems\fixme{find this citation}~\cite{win-vista}.
 %Maintaining system interface compatibility is generally a responsibility of OS developers;
 %while extending an OS for expanding the portability of applications
 %on new hardware.
@@ -50,14 +66,13 @@ the ability of an OS to reproduce the features of a system interface, for reusin
 %the system interface has to stay compatible with existing applications.
 %Especially, OS developers may face compatibility issues
 %when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
-
-
-
-
-Compatibility is broken when an OS developer decides to extend the system interface,
-in order to adopt new hardware.
-If a system interface is extended for a new hardware,
-existing applications need to be reprogrammed accordingly, using the latest system interface.
+Many examples show that
+OS developers recognize loss of compatibility to be a problem with severe consequences,
+and a direct impact on application usability.
+%Compatibility is broken when an OS developer decides to extend the system interface,
+%in order to adopt new hardware.
+%If a system interface is extended for a new hardware,
+%existing applications need to be reprogrammed accordingly, using the latest system interface.
 %Extensions to a system interface are usually in the form of \syscall{ioctl} operations in a POSIX-style OS,
 %or new system call options such as the \code{MAP\_HUGETLB} flags for \syscall{mmap}.
 %Unless an OS can be transparently extended for a new hardware,
@@ -67,16 +82,26 @@ existing applications need to be reprogrammed accordingly, using the latest syst
 %because of the additional porting efforts.
 
 
-Especially, OS developers may face compatibility issues
-when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
-\issuedone{1.2.b}{Specify SGX as a motivating example}
-In extreme cases, an innovative hardware can make unusual design decisions,
-changing OS assumptions
-which are critical to application compatibility.
-%thus affecting the OS's ability to stay
-%compatible against applications.
-The kind of hardware is usually
-for realizing a revolutionary feature, or researching new opportunities in OS or hardware development.
+In general, OS developers encounter compatibility issues when adopting an innovative hardware or OS design,
+which leaks out of the typical abstractions
+encapsulated by a system interface.
+Hardware developers or researchers
+create unconventional hardware designs or features,
+to explore opportunities
+of revolutionizing system qualities.
+A cutting-edge hardware invention may revert or change the assumptions which other hardware are conventionally designed with,
+forcing extensive changes inside the OS implementation.
+
+
+
+
+%In extreme cases, an innovative hardware can make unusual design decisions,
+%changing OS assumptions
+%which are critical to application compatibility.
+%%thus affecting the OS's ability to stay
+%%compatible against applications.
+%The kind of hardware is usually
+%for realizing a revolutionary feature, or researching new opportunities in OS or hardware development.
 %are cutting-edge technologies, or research-purpose hardware.
 %Researchers create
 %these hardware
@@ -84,6 +109,7 @@ for realizing a revolutionary feature, or researching new opportunities in OS or
 %in seek of revolutionary results.
 %making the implementation of a compatible system interface
 %even more challenging.
+\issuedone{1.2.b}{Specify SGX as a motivating example}
 A running example in this thesis, as a revolutionary hardware feature,
 is {\bf SGX (software guard extensions)}~\cite{intelsgx}.
 SGX is an Intel CPU feature, which provides the building blocks for developing
