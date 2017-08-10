@@ -85,27 +85,26 @@ is to prevent compatibility to become a distraction to hardware innovation.
 
 
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
-To develop a compatible OS on a new hardware,
-the key challenge is to bridge the gap between
-a complex, idiosyncratic system interface, and the hardware prerequisites.
+The key challenge to maintaining OS compatibility
+is to bridge the gap between
+a idiosyncratic system interface and hardware prerequisites.
 %implementing the idiosyncratic features of a system interface,
 %and satisfying the hardware prerequisites.
 %The key challenge, though, is to reproduce
 %the idiosyncratic behavior and semantic
 %of a system interface.
 %The goal of OS development is to bridge the "semantic gap" between the system interface and the low-level hardware abstractions~\cite{tanenbaum19os-textbook}.
-Most of the existing system interfaces,
-including the Linux \linuxapis{}, 
-contains a lot of OS-specific abstractions and behaviors.
-For example, Linux has defined up to 300 \linuxapis{},
-with a number of flags, sub-interfaces, and corner cases~\cite{linux-man-syscall},
-many of which are unique to Linux.
-Developing a fully-compatible OS %, to reuse any application,
+In a modern OS, the system interface
+%such as the Linux \linuxapis{}, 
+often contains abundance of unique abstractions and behaviors.
+For example, the latest Linux system interface has grown to \roughly{300} \linuxapis{},
+with a lot of Linux-specific flags, sub-interfaces, and corner cases invented along the way~\cite{linux-man-syscall}.
+Developing a fully-compatible OS, for any existing Linux applications, %, to reuse any application,
 requires faithfully reproducing
-the idiosyncratic features of a system interface,
+the idiosyncratic features of the Linux \linuxapis{},
 %which can be painful on an innovative hardware, such as a SGX-enabled CPU.
 %which is the primary barrier in developing a compatible OS.
-regardless of any hardware restrictions.
+regardless of hardware-specific restrictions.
 
 
 
