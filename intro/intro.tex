@@ -71,17 +71,16 @@ SGX is an Intel CPU feature, which provides the building blocks for developing
 an application capable of self-protection against malicious OSes, hypervisors, and administrators.
 Despite the security benefits,
 SGX raises several compatibility issues, including changing the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
-Other motivating examples can be found among asymmetric multiprocessing architectures,
-especially architectures without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
+Other examples can be found among asymmetric multi-processing architectures,
+especially ones without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
 %and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
 %Especially, the size and subtlety of the Linux or Windows system interface
 %makes it unsuitable for adopting applications to SGX~\cite{checkoway13iago}, because SGX has fundamentally changed the nature of OS services.
 %Several recent publications mitigate part of the compatibility issue for deploying applications on SGX~\cite{baumann14haven,osdi16scone,shinde17panoply}.
-An important challenge to developing a hardware
-and the corresponding OS support
-is to prevent compatibility issues to become a distraction to innovation.
+A challenging task in OS development
+is to prevent compatibility to become a distraction to hardware innovation.
 
 
 
@@ -97,16 +96,16 @@ a complex, idiosyncratic system interface, and the hardware prerequisites.
 %The goal of OS development is to bridge the "semantic gap" between the system interface and the low-level hardware abstractions~\cite{tanenbaum19os-textbook}.
 Most of the existing system interfaces,
 including the Linux \linuxapis{}, 
-contains a lot of abstractions and behaviors which are unique to the OSes.
+contains a lot of OS-specific abstractions and behaviors.
 For example, Linux has defined up to 300 \linuxapis{},
 with a number of flags, sub-interfaces, and corner cases~\cite{linux-man-syscall},
-many of which are not shared with other OSes.
-Developing a fully-compatible OS, to reuse any application,
+many of which are unique to Linux.
+Developing a fully-compatible OS %, to reuse any application,
 requires faithfully reproducing
 the idiosyncratic features of a system interface,
 %which can be painful on an innovative hardware, such as a SGX-enabled CPU.
 %which is the primary barrier in developing a compatible OS.
-regardless of restrictions from hardware.
+regardless of any hardware restrictions.
 
 
 
