@@ -65,12 +65,13 @@ for realizing a revolutionary feature, or researching new opportunities in OS or
 %in seek of revolutionary results.
 %making the implementation of a compatible system interface
 %even more challenging.
-A running example in this thesis, as a revolutionary hardware,
-is {\bf SGX (software guard extensions)}~\cite{intelsgx},
-an Intel CPU feature which allows applications to protect themselves from malicious OSes, hypervisors, and administrators.
-Despite the benefits,
+A running example in this thesis, as a revolutionary hardware feature,
+is {\bf SGX (software guard extensions)}~\cite{intelsgx}.
+SGX is an Intel CPU feature, which provides the building blocks for developing
+an application capable of self-protection against malicious OSes, hypervisors, and administrators.
+Despite the security benefits,
 SGX raises several compatibility issues, including changing the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
-Other representative examples can be found among asymmetric multiprocessing architectures,
+Other motivating examples can be found among asymmetric multiprocessing architectures,
 especially architectures without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
@@ -85,9 +86,9 @@ is to prevent compatibility issues to become a distraction to innovation.
 
 
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
-To be compatible on a new hardware,
-the key challenge in OS development is to bridge the gap between
-the system interface and hardware prerequisites.
+To develop a compatible OS on a new hardware,
+the key challenge is to bridge the gap between
+a complex, idiosyncratic system interface, and the hardware prerequisites.
 %implementing the idiosyncratic features of a system interface,
 %and satisfying the hardware prerequisites.
 %The key challenge, though, is to reproduce
@@ -96,9 +97,17 @@ the system interface and hardware prerequisites.
 %The goal of OS development is to bridge the "semantic gap" between the system interface and the low-level hardware abstractions~\cite{tanenbaum19os-textbook}.
 Most of the existing system interfaces,
 including the Linux \linuxapis{}, 
-contains a lot of OS-specific, idiosyncratic abstractions and behaviors.
+contains a lot of abstractions and behaviors which are unique to the OSes.
 For example, Linux has defined up to 300 \linuxapis{},
-with a number of flags, sub-interfaces, and corner cases~\cite{linux-man-syscall}, all of which have to be faithfully reproduced by a fully compatible Linux kernel.
+with a number of flags, sub-interfaces, and corner cases~\cite{linux-man-syscall},
+many of which are not shared with other OSes.
+Developing a fully-compatible OS, to reuse any application,
+requires faithfully reproducing
+the idiosyncratic features of a system interface,
+%which can be painful on an innovative hardware, such as a SGX-enabled CPU.
+%which is the primary barrier in developing a compatible OS.
+regardless of restrictions from hardware.
+
 
 
 %A system interface can contain up to hundreds or thousands of \linuxapi or OS functions, with numerous corner cases and programming options~\cite{ieee-posix, linux-man-syscall}.
