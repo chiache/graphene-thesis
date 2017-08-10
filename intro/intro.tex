@@ -3,11 +3,22 @@
 
 
 Operating systems simplify the programming of an application, to utilize a wide range of hardware.
-A UNIX-style OS~\cite{ritchie74unix} encapsulates hardware resources and abstractions under a {\bf system interface}.
+The main concept of a UNIX-style OS~\cite{ritchie74unix} is to encapsulate hardware resources and abstractions, using a {\bf system interface} programmable by applications
+(e.g., \linuxapis{}).
 %which is programmable in an application.
-The system interface presents a consistent view of OS and hardware features, or a virtualized, extended ``machine''~\cite{dhamdhere2007os-textbook} which programmers see when developing an application.
+A system interface can isolate an application from the idiosyncrasy of hardware interfaces, and thus make the application {\bf portable} across hardware platforms.
+To the application developers,
+a system interface reveals the OS as an extended machine~\cite{dhamdhere2007os-textbook},
+which presents a consistent view of hardware and OS features
+for programming.
+%presented by the system interface
+%is independent from the physical machines running the OS.
+%for applications to be programmed with.
 %compared with the physical machines for running the OS.
-A primary benefit for the system interface is to program an application with {\bf portability}, as being independent from any encapsulated hardware options, such as CPU models, memories, and I/O devices. 
+A portable application can be reused
+upon different hardware options encapsulated by the OS, such as CPU models, memories, and I/O devices.
+%encapsulated by the OS.
+%different encapsulated hardware options, including CPU models, memories, and I/O devices. 
 %upon a series of continuously-developed hardware,
 %including CPUs, memories, and I/O devices.
 %Application portability requires an OS to export a system interface
@@ -16,10 +27,10 @@ A primary benefit for the system interface is to program an application with {\b
 %The only exception is the portability across CPU architectures,
 %Otherwise, application developers would expect an application, built without dependency to %specific hardware, to be reusable in an OS regardless of what hardware users choose.
 %The same assumption on application portability has been shared among
-The portability of applications
-has been an important factor in modern OS standards,
-including Linux~\cite{linux-standard-base}, Windows~\cite{win-api}, BSD~\cite{quarterman85bsd}, 
-and POSIX~\cite{ieee-posix}.
+Modern OS standards,
+including Linux~\cite{linux-standard-base}, Windows~\cite{win-api}, and POSIX~\cite{ieee-posix},
+have all defined a versatile system interface
+to facilitate the programming of a portable application.
 %to make applications adaptable and widely distributable.
 %facilitate the development of an portable application.
 %share the merit of application portability.
@@ -27,14 +38,21 @@ and POSIX~\cite{ieee-posix}.
 
 
 %However, defining a system interface does not guarantee long-term portability of an application.
-A prerequisite to keeping a portable application usable is system interface compatibility against the application.
-{\bf Compatibility} represents the ability of an OS to faithfully reproduce the features of a system interface, as previously programmed in an application.
-Maintaining compatibility is important for reusing a portable application
-in an OS extended for new hardware.
+A prerequisite to a portable application is system interface compatibility against the application.
+{\bf Compatibility} represents
+\fixme{Check this: defining compatibility}
+the ability of an OS to reproduce the features of a system interface, for reusing an application previously developed with these features.
+%Maintaining system interface compatibility is generally a responsibility of OS developers;
+%while extending an OS for expanding the portability of applications
+%on new hardware.
 %Despite the OS extensions for future hardware,
 %the system interface has to stay compatible with existing applications.
-Especially, OS developers may face compatibility issues
-when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
+%Especially, OS developers may face compatibility issues
+%when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
+
+
+
+
 Compatibility is broken when an OS developer decides to extend the system interface,
 in order to adopt new hardware.
 If a system interface is extended for a new hardware,
@@ -48,7 +66,8 @@ existing applications need to be reprogrammed accordingly, using the latest syst
 %because of the additional porting efforts.
 
 
-
+Especially, OS developers may face compatibility issues
+when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
 \issuedone{1.2.b}{Specify SGX as a motivating example}
 In extreme cases, an innovative hardware can make unusual design decisions,
 changing OS assumptions
