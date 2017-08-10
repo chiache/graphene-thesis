@@ -10,7 +10,7 @@ a system interface presents
 a virtualized, extended machine~\cite{dhamdhere2007os-textbook},
 differentiated from
 the physical machines which actually run the OS and application.
-Programming against a system interface makes an application {\bf portable},
+Programming against a system interface makes an application portable,
 upon a series of continuously-developed hardware,
 including CPUs, memories, and I/O devices.
 %Application portability requires an OS to export a system interface
@@ -72,15 +72,15 @@ an application capable of self-protection against malicious OSes, hypervisors, a
 Despite the security benefits,
 SGX raises several compatibility issues, including changing the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
 Other examples can be found among asymmetric multi-processing architectures,
-especially ones without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
+especially without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
 %and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
 %Especially, the size and subtlety of the Linux or Windows system interface
 %makes it unsuitable for adopting applications to SGX~\cite{checkoway13iago}, because SGX has fundamentally changed the nature of OS services.
 %Several recent publications mitigate part of the compatibility issue for deploying applications on SGX~\cite{baumann14haven,osdi16scone,shinde17panoply}.
-A challenging task in OS development
-is to prevent compatibility to become a distraction to hardware innovation.
+A challenging problem in OS development
+is to prevent compatibility issues from distracting hardware innovations.
 
 
 
@@ -98,13 +98,14 @@ In a modern OS, the system interface
 %such as the Linux \linuxapis{}, 
 often contains abundance of unique abstractions and behaviors.
 For example, the latest Linux system interface has grown to \roughly{300} \linuxapis{},
-with a lot of Linux-specific flags, sub-interfaces, and corner cases invented along the way~\cite{linux-man-syscall}.
+with a lot of Linux-specific options and corner cases~\cite{linux-man-syscall}
+invented along the way.
 Developing a fully-compatible OS, for any existing Linux applications, %, to reuse any application,
 requires faithfully reproducing
-the idiosyncratic features of the Linux \linuxapis{},
+the idiosyncratic features within the Linux \linuxapis{},
 %which can be painful on an innovative hardware, such as a SGX-enabled CPU.
 %which is the primary barrier in developing a compatible OS.
-regardless of hardware-specific restrictions.
+while resolving hardware restrictions.
 
 
 
