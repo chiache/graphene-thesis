@@ -3,14 +3,19 @@
 
 
 Operating systems simplify the programming of an application, to utilize a wide range of hardware.
-The main concept of a UNIX-style OS~\cite{ritchie74unix} is to encapsulate hardware resources and abstractions, using a {\bf system interface} programmable by applications
-(e.g., \linuxapis{}).
+A UNIX-style OS~\cite{ritchie74unix}
+encapsulates hardware resources and abstractions,
+and exports a {\bf system interface} %(e.g., \linuxapis{})
+to applications.
 %which is programmable in an application.
-A system interface can isolate an application from the idiosyncrasy of hardware interfaces, and make the application  portable across hardware platforms.
-To application developers,
-a system interface reveals the OS as an extended machine~\cite{dhamdhere2007os-textbook},
-with a consistent view of all the OS and hardware features
-available for programming.
+A system interface can isolate applications from the idiosyncrasy of hardware interfaces, and allow applications to be widely deployed to different platforms.
+For application developers, the benefit of a system interface
+is to hide the details of bare hardware; meanwhile, the OS presents a more powerful ``extended machine'',
+which is more feature-rich and homogeneous than bare hardware~\cite{dhamdhere2007os-textbook}.
+%The purpose of an extended machine
+%is to provide a consistent view for all the system features,
+%which are independent from the choice of hardware.
+%available for programming.
 %presented by the system interface
 %is independent from the physical machines running the OS.
 %for applications to be programmed with.
@@ -27,10 +32,14 @@ available for programming.
 %The only exception is the portability across CPU architectures,
 %Otherwise, application developers would expect an application, built without dependency to %specific hardware, to be reusable in an OS regardless of what hardware users choose.
 %The same assumption on application portability has been shared among
-Many modern OS standards,
+A number of OS standards,
 including Linux~\cite{linux-standard-base}, Windows~\cite{win-api}, and POSIX~\cite{ieee-posix},
-have defined their own system interfaces,
-for facilitating application programming.
+have defined a similar, UNIX-style system interface.
+
+
+
+
+%to facilitate application programming.
 %to make applications adaptable and widely distributable.
 %facilitate the development of an portable application.
 %share the merit of application portability.
