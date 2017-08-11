@@ -6,17 +6,17 @@ Operating systems simplify the programming of an application, to utilize a wide 
 The main concept of a UNIX-style OS~\cite{ritchie74unix} is to encapsulate hardware resources and abstractions, using a {\bf system interface} programmable by applications
 (e.g., \linuxapis{}).
 %which is programmable in an application.
-A system interface can isolate an application from the idiosyncrasy of hardware interfaces, and thus make the application {\bf portable} across hardware platforms.
+A system interface can isolate an application from the idiosyncrasy of hardware interfaces, and make the application  portable across hardware platforms.
 To application developers,
 a system interface reveals the OS as an extended machine~\cite{dhamdhere2007os-textbook},
-which presents a consistent view of all the OS and hardware features
-to program with.
+with a consistent view of all the OS and hardware features
+available for programming.
 %presented by the system interface
 %is independent from the physical machines running the OS.
 %for applications to be programmed with.
 %compared with the physical machines for running the OS.
-The value of a portable application is to be deployed and reused
-upon different hardware options, such as CPU models, memories, and I/O devices, as long as the system interface encapsulates the hardware.
+%The value of a portable application is to be deployed and reused
+%upon different hardware options, such as CPU models, memories, and I/O devices, as long as the system interface encapsulates the hardware.
 %encapsulated by the OS.
 %different encapsulated hardware options, including CPU models, memories, and I/O devices. 
 %upon a series of continuously-developed hardware,
@@ -29,8 +29,8 @@ upon different hardware options, such as CPU models, memories, and I/O devices, 
 %The same assumption on application portability has been shared among
 Many modern OS standards,
 including Linux~\cite{linux-standard-base}, Windows~\cite{win-api}, and POSIX~\cite{ieee-posix},
-have defined their system interfaces with a similar incentive,
-as facilitating application programming and portability.
+have defined their own system interfaces,
+for facilitating application programming.
 %to make applications adaptable and widely distributable.
 %facilitate the development of an portable application.
 %share the merit of application portability.
@@ -44,21 +44,21 @@ in OS development.
 An OS with compatibility
 \fixme{Check this: defining compatibility}
 owns the ability of reproducing features and semantics of a system interface
-for reusing deployed applications.
-Due to the rapid growth of applications, the cost for compromising compatibility
-has become unacceptably expensive;
-an OS like Linux or Windows cannot afford reprogramming
-up to thousands or millions of applications,
-if the system interface is no longer compatible.
-Specifically,
-both Linux and Windows have gone to great lengths
-to avoid jeopardizing compatibility.
+for reusing existing applications.
+Due to the rapid growth of applications, the price of losing compatibility
+can be extremely expensive;
+%an OS like Linux or Windows
+developers cannot afford constantly reprogramming applications,
+whenever the system interface is extended for new hardware. % no longer compatible.
+%Specifically,
+%both Linux and Windows have gone to great lengths
+%to avoid jeopardizing compatibility.
 The Linux standard base (LSB)~\cite{linux-standard-base} forbids deprecating or redefining any system calls
 unless OS developers have gone through a lengthy process
 of announcing and confirming every affected application to be properly ported. 
 An early version of Windows Vista, nicknamed ``Longhorn'',
 introduced a brand-new Windows API and a database-like file system,
-but eventually dialed back the changes due to compatibility problems\fixme{find this citation}~\cite{win-vista}.
+but eventually dialed back the changes due to criticism on compatibility~\fixme{find this citation}~\cite{win-vista}.
 %Maintaining system interface compatibility is generally a responsibility of OS developers;
 %while extending an OS for expanding the portability of applications
 %on new hardware.
@@ -66,9 +66,9 @@ but eventually dialed back the changes due to compatibility problems\fixme{find 
 %the system interface has to stay compatible with existing applications.
 %Especially, OS developers may face compatibility issues
 %when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
-Many examples show that
-OS developers recognize loss of compatibility to be a problem with severe consequences,
-and a direct impact on application usability.
+%Many examples show that
+In general, OS developers recognize loss of compatibility to be a problem with severe consequences
+and direct impact on user experience.
 %Compatibility is broken when an OS developer decides to extend the system interface,
 %in order to adopt new hardware.
 %If a system interface is extended for a new hardware,
@@ -82,19 +82,11 @@ and a direct impact on application usability.
 %because of the additional porting efforts.
 
 
-In general, OS developers encounter compatibility issues when adopting an innovative hardware or OS design,
+OS developers encounter compatibility problems when adopting an innovative hardware or OS design
 which leaks out of the typical abstractions
 encapsulated by a system interface.
-Hardware developers or researchers
-create unconventional hardware designs or features,
-to explore opportunities
-of revolutionizing system qualities.
-A cutting-edge hardware invention may revert or change the assumptions which other hardware are conventionally designed with,
-forcing extensive changes inside the OS implementation.
-
-
-
-
+%A disruptive hardware design or feature
+%can help explore research opportunities of gaining revolutionary results.
 %In extreme cases, an innovative hardware can make unusual design decisions,
 %changing OS assumptions
 %which are critical to application compatibility.
@@ -110,27 +102,29 @@ forcing extensive changes inside the OS implementation.
 %making the implementation of a compatible system interface
 %even more challenging.
 \issuedone{1.2.b}{Specify SGX as a motivating example}
-A running example in this thesis, as a revolutionary hardware feature,
-is {\bf SGX (software guard extensions)}~\cite{intelsgx}.
-SGX is an Intel CPU feature, which provides the building blocks for developing
-an application capable of self-protection against malicious OSes, hypervisors, and administrators.
+A running example in this thesis %, as an innovative hardware,
+is a new Intel CPU feature called {\bf SGX (software guard extensions)}~\cite{intelsgx}.
+SGX provides a system building block for developing
+an application which protects itself from malicious OSes, hypervisors, and administrators.
 Despite the security benefits,
-SGX raises several compatibility issues, including changing the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
+SGX raises several compatibility issues, including reverting the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
 Other examples can be found among asymmetric multi-processing architectures,
-especially without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
+especially the architectures without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
 %and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
 %Especially, the size and subtlety of the Linux or Windows system interface
 %makes it unsuitable for adopting applications to SGX~\cite{checkoway13iago}, because SGX has fundamentally changed the nature of OS services.
 %Several recent publications mitigate part of the compatibility issue for deploying applications on SGX~\cite{baumann14haven,osdi16scone,shinde17panoply}.
-A challenging problem in OS development
-is to prevent compatibility issues from distracting hardware innovations.
+%This thesis
+%uses SGX as a strong motivating example (see Section~\ref{sec:intro:sgx}),
+%because SGX fundamentally reverses a critical OS assumption, and causes a combination of compatibility and security problems.
+%SGX shows that compatibility issues can be distraction to innovations.
 
 
 
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
-The key challenge to maintaining OS compatibility
+The key challenge to OS compatibility
 is to bridge the gap between
 a idiosyncratic system interface and hardware assumptions.
 %implementing the idiosyncratic features of a system interface,
