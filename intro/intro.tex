@@ -4,14 +4,29 @@
 
 Operating systems simplify the programming of an application, to utilize a wide range of hardware.
 A UNIX-style OS~\cite{ritchie74unix}
-encapsulates hardware resources and abstractions,
-and exports a {\bf system interface} %(e.g., \linuxapis{})
-to applications.
-%which is programmable in an application.
-A system interface can isolate applications from the idiosyncrasy of hardware interfaces, and allow applications to be widely deployed to different platforms.
-For application developers, the benefit of a system interface
-is to hide the details of bare hardware; meanwhile, the OS presents a more powerful ``extended machine'',
-which is more feature-rich and homogeneous than bare hardware~\cite{dhamdhere2007os-textbook}.
+encapsulates hardware resources and abstractions in a {\bf system interface}.
+The interface of a hardware
+is idiosyncratic to the design made by manufacturer.
+An application may be programmed against bare hardware, but will have to be modified for running upon a different hardware interface.
+Inside an OS, application developers program against the system interface, given a consistent view of the system features.
+A system interface must be independent from the idiosyncrasy of hardware,
+so that application developers can avoid making assumptions about users' choice of hardware.
+
+
+
+
+
+
+
+
+
+
+
+
+
+%, and allows applications to be widely deployed on different platforms.
+%an OS can be a more powerful ``extended machine'',
+%which is more feature-rich and homogeneous than the bare hardware~\cite{dhamdhere2007os-textbook}.
 %The purpose of an extended machine
 %is to provide a consistent view for all the system features,
 %which are independent from the choice of hardware.
@@ -32,9 +47,9 @@ which is more feature-rich and homogeneous than bare hardware~\cite{dhamdhere200
 %The only exception is the portability across CPU architectures,
 %Otherwise, application developers would expect an application, built without dependency to %specific hardware, to be reusable in an OS regardless of what hardware users choose.
 %The same assumption on application portability has been shared among
-A number of OS standards,
-including Linux~\cite{linux-standard-base}, Windows~\cite{win-api}, and POSIX~\cite{ieee-posix},
-have defined a similar, UNIX-style system interface.
+%Linux~\cite{linux-standard-base}, Windows~\cite{win-api}, or POSIX~\cite{ieee-posix}.
+
+
 
 
 
@@ -46,14 +61,41 @@ have defined a similar, UNIX-style system interface.
 
 
 
+
+Applications developed in an OS depend on the system interface
+to remain compatible with previous OS versions.
+%Application programming models are often influenced by the definition of system interface.
+%A system interface contains
+%a set of OS functions that applications
+%call to describe the order and condition of requesting OS services.
+Programming against a system interface often involves
+hard-coding the intent and condition of requesting OS services
+in the application code.
+If an OS development milestone requires redefining part of the system interface,
+an application may become obsolete
+due to mismatching with the latest system interface definition.
+Although compilers and libraries may reconstruct or recast some of the changed functions,
+a principle-level or assumption-level change of the system interface
+would be difficult to recover,
+using either compile-time translation or a thin library.
+Therefore, the common practice in OS development is to maintain
+the same features and behaviors in a system interface,
+as application developers learn when an application is produced.
+The quality of an OS to maintain a system interface
+that matches with the development background of applications
+is known as {\bf compatibility}.
+
+
+
+
 %However, defining a system interface does not guarantee long-term portability of an application.
-To continuously utilize a portable application, 
-{\bf compatibility} has increasingly become a major prerequisite and challenge
-in OS development.
-An OS with compatibility
-\fixme{Check this: defining compatibility}
-owns the ability of reproducing features and semantics of a system interface
-for reusing existing applications.
+%To continuously utilize a portable application, 
+%{\bf compatibility} has increasingly become a major prerequisite and challenge
+%in OS development.
+%An OS with compatibility
+%\fixme{Check this: defining compatibility}
+%owns the ability of reproducing features and semantics of a system interface
+%for reusing existing applications.
 Due to the rapid growth of applications, the price of losing compatibility
 can be extremely expensive;
 %an OS like Linux or Windows
