@@ -95,7 +95,7 @@ and application programming interface (API).
 Because redefining a system interface can undermine compatibility, OS developers lose the opportunities to make more significant improvements that affect both OS and applications.
 For example, Linux and similar OSes
 introduce \linuxapis{} such as \syscall{openat} as an improved version
-of the less secure \syscall{open} and others, but struggle to completely replace the latter due to compatibility.
+of the racy \syscall{open} and others, but struggle to completely replace the latter due to compatibility.
 As a result, deprecation is often a length process, wherein users are repeated warned
 until the process eventually expires.
 Furthermore, a large-scale change on the system interface
@@ -112,7 +112,7 @@ and database-like file system, but sacrificed compatibility~\cite{spolsky04micro
 %Especially, OS developers may face compatibility issues
 %when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
 %Many examples show that
-These are examples that complete compatibility of a system interface
+These are both examples that prioritizing compatibility %of a system interface
 hinders OS development.
 
 
@@ -130,29 +130,13 @@ hinders OS development.
 %because of the additional porting efforts.
 
 
-OS developers often face challenges when adopting an innovative hardware
-that leaks out of the system interface.
 
 
-%A disruptive hardware design or feature
-%can help explore research opportunities of gaining revolutionary results.
-%In extreme cases, an innovative hardware can make unusual design decisions,
-%changing OS assumptions
-%which are critical to application compatibility.
-%%thus affecting the OS's ability to stay
-%%compatible against applications.
-%The kind of hardware is usually
-%for realizing a revolutionary feature, or researching new opportunities in OS or hardware development.
-%are cutting-edge technologies, or research-purpose hardware.
-%Researchers create
-%these hardware
-%to explore opportunities of tweaking existing assumptions,
-%in seek of revolutionary results.
-%making the implementation of a compatible system interface
-%even more challenging.
+
+
 \issuedone{1.2.b}{Specify SGX as a motivating example}
 A running example in this thesis %, as an innovative hardware,
-is a new Intel CPU feature called {\bf SGX (software guard extensions)}~\cite{intelsgx}.
+is a new Intel CPU feature called SGX (software guard extensions)~\cite{intelsgx}.
 SGX provides a system building block for developing
 an application which protects itself from malicious OSes, hypervisors, and administrators.
 Despite the security benefits,
