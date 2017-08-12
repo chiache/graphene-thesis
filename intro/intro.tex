@@ -4,7 +4,7 @@
 
 Operating systems simplify the programming of an application, to utilize a wide range of hardware.
 A UNIX-style OS~\cite{ritchie74unix}
-encapsulates hardware resources and abstractions in a {\bf system interface}.
+encapsulates hardware resources and abstractions in a system interface.
 The interface of a hardware
 is idiosyncratic to the design made by manufacturer.
 An application may be programmed against bare hardware, but will have to be modified for running upon a different hardware interface.
@@ -71,7 +71,7 @@ to remain compatible with previous OS versions.
 Programming against a system interface often involves
 hard-coding the intent and condition of requesting OS services
 in the application code.
-If a milestone in OS development requires redefining part of the system interface,
+If a milestone of OS development redefines a part of the system interface,
 an application may become obsolete
 due to mismatching with the latest system interface definition.
 Although compilers and libraries may reconstruct or recast some of the changed functions,
@@ -84,33 +84,26 @@ just as application developers previously observed when the application is built
 This thesis
 defines
 the quality of reproducing a system interface that matches with the requests hard-coded in applications
-as {\bf compatibility}.
+as compatibility.
 
 
 
-
-%However, defining a system interface does not guarantee long-term portability of an application.
-%To continuously utilize a portable application, 
-%{\bf compatibility} has increasingly become a major prerequisite and challenge
-%in OS development.
-%An OS with compatibility
-%\fixme{Check this: defining compatibility}
-%owns the ability of reproducing features and semantics of a system interface
-%for reusing existing applications.
-In general, OS developers recognize loss of compatibility as a problem with direct consequences
-on user experiences.
-%an OS like Linux or Windows
-%developers cannot afford constantly reprogramming applications,
-%whenever the system interface is extended for new hardware. % no longer compatible.
-%Specifically,
-%both Linux and Windows have gone to great lengths
-%to avoid jeopardizing compatibility.
-The Linux standard base (LSB)~\cite{linux-standard-base} forbids deprecating or redefining any system calls
-unless OS developers have gone through a lengthy process
-of announcing and confirming every affected application to be properly ported. 
-An early version of Windows Vista, nicknamed ``Longhorn'',
-introduced a brand-new Windows API and a database-like file system,
-but eventually dialed back the changes due to criticism on compatibility~\fixme{find this citation}~\cite{win-vista}.
+OS developers often struggle to maintain compatibility while attemping to improve
+the interaction between the OS and applications.
+A system interface is initially defined for an early specification of the ideal OS functionality
+and application programming interface (API).
+Because redefining a system interface can undermine compatibility, OS developers lose the opportunities to make more significant improvements that affect both OS and applications.
+For example, Linux and similar OSes
+introduce \linuxapis{} such as \syscall{openat} as an improved version
+of the less secure \syscall{open} and others, but struggle to completely replace the latter due to compatibility.
+As a result, deprecation is often a length process, wherein users are repeated warned
+until the process eventually expires.
+Furthermore, a large-scale change on the system interface
+may impact compatibility even greater.
+A well-known example is the cancellation of an initial version of Windows Vista, 
+codenamed ``Longhorn'',
+which planned to introduce a brand-new user interface API
+and database-like file system~\cite{spolsky04microsoft-api-war}.
 %Maintaining system interface compatibility is generally a responsibility of OS developers;
 %while extending an OS for expanding the portability of applications
 %on new hardware.
@@ -119,6 +112,10 @@ but eventually dialed back the changes due to criticism on compatibility~\fixme{
 %Especially, OS developers may face compatibility issues
 %when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
 %Many examples show that
+These are examples that maintaining the complete compatibility of a system interface
+hinders OS development.
+
+
 
 %Compatibility is broken when an OS developer decides to extend the system interface,
 %in order to adopt new hardware.
@@ -133,7 +130,10 @@ but eventually dialed back the changes due to criticism on compatibility~\fixme{
 %because of the additional porting efforts.
 
 
-OS developers struggle to maintain compatibility when adopting an innovative hardware that leaks out of the system interface.
+OS developers often face challenges when adopting an innovative hardware
+that leaks out of the system interface.
+
+
 %A disruptive hardware design or feature
 %can help explore research opportunities of gaining revolutionary results.
 %In extreme cases, an innovative hardware can make unusual design decisions,
@@ -266,7 +266,7 @@ but develop a simple host ABI for virtualizing OS components.
 %but be simple enough for porting.
 %defined to be completely independent from the physical machines,
 %and contain abstractions that are easy to implement in most commodity OSes.
-Above the host ABI, we proposes using a {\bf \libos{}}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
+Above the host ABI, we proposes using a  \libos{}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
 to reproduce a system interface for applications.
 %that the existing applications imperatively depend on.
 %A \libos{} is different from a translation layer which maps one set of system interfaces to another, nor is it the same as wrapper functions for formerly defined interfaces.
