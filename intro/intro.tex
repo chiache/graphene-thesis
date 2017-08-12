@@ -3,11 +3,42 @@
 
 
 Operating systems simplify the programming of an application, to utilize a wide range of hardware.
-A UNIX-style OS~\cite{ritchie74unix} encapsulates hardware resources and abstractions under a {\bf system interface}.
-%which is programmable in an application.
-The system interface presents a consistent view of OS and hardware features, or a virtualized, extended ``machine''~\cite{dhamdhere2007os-textbook} which programmers see when developing an application.
+A UNIX-style OS~\cite{ritchie74unix}
+encapsulates hardware resources and abstractions in a system interface.
+The interface of a hardware
+is idiosyncratic to the design made by manufacturer.
+An application may be programmed against bare hardware, but will have to be modified for running upon a different hardware interface.
+Inside an OS, application developers program against the system interface, given a consistent view of the system features.
+A system interface must be independent from the idiosyncrasy of hardware,
+so that application developers can avoid making assumptions about users' choice of hardware.
+
+
+
+
+
+
+
+
+
+
+
+
+
+%, and allows applications to be widely deployed on different platforms.
+%an OS can be a more powerful ``extended machine'',
+%which is more feature-rich and homogeneous than the bare hardware~\cite{dhamdhere2007os-textbook}.
+%The purpose of an extended machine
+%is to provide a consistent view for all the system features,
+%which are independent from the choice of hardware.
+%available for programming.
+%presented by the system interface
+%is independent from the physical machines running the OS.
+%for applications to be programmed with.
 %compared with the physical machines for running the OS.
-A primary benefit for the system interface is to program an application with {\bf portability}, as being independent from any encapsulated hardware options, such as CPU models, memories, and I/O devices. 
+%The value of a portable application is to be deployed and reused
+%upon different hardware options, such as CPU models, memories, and I/O devices, as long as the system interface encapsulates the hardware.
+%encapsulated by the OS.
+%different encapsulated hardware options, including CPU models, memories, and I/O devices. 
 %upon a series of continuously-developed hardware,
 %including CPUs, memories, and I/O devices.
 %Application portability requires an OS to export a system interface
@@ -16,29 +47,84 @@ A primary benefit for the system interface is to program an application with {\b
 %The only exception is the portability across CPU architectures,
 %Otherwise, application developers would expect an application, built without dependency to %specific hardware, to be reusable in an OS regardless of what hardware users choose.
 %The same assumption on application portability has been shared among
-The portability of applications
-has been an important factor in modern OS standards,
-including Linux~\cite{linux-standard-base}, Windows~\cite{win-api}, BSD~\cite{quarterman85bsd}, 
-and POSIX~\cite{ieee-posix}.
+%Linux~\cite{linux-standard-base}, Windows~\cite{win-api}, or POSIX~\cite{ieee-posix}.
+
+
+
+
+
+
+%to facilitate application programming.
 %to make applications adaptable and widely distributable.
 %facilitate the development of an portable application.
 %share the merit of application portability.
 
 
 
-%However, defining a system interface does not guarantee long-term portability of an application.
-A prerequisite to keeping a portable application usable is system interface compatibility against the application.
-{\bf Compatibility} represents the ability of an OS to faithfully reproduce the features of a system interface, as previously programmed in an application.
-Maintaining compatibility is important for reusing a portable application
-in an OS extended for new hardware.
+
+Applications developed in an OS depend on the system interface
+to remain compatible with previous OS versions.
+%Application programming models are often influenced by the definition of system interface.
+%A system interface contains
+%a set of OS functions that applications
+%call to describe the order and condition of requesting OS services.
+Usage of a system interface is mostly hard-coded
+in a fully-compiled application.
+%A fully-compiled application is mostly hard-coded with the usage of a system interface
+%The programming of a system interface requires
+%hard-coding the intention and condition of requesting OS services
+%in the application code.
+If a milestone of OS development involves modifying a part of the system interface,
+an application may become obsolete
+for containing mismatched system interface usage.
+%due to mismatching with the latest definition.
+Although compilers and libraries can reconstruct or recast some of the modifications,
+a principle-level or assumption-level change to the system interface
+would be difficult to be compatible
+using either compile-time translation or a thin library.
+The common practice in OS development is to maintain
+the same system interface,
+as the application developers previously observed when building an application.
+This thesis defines compatibility as
+the quality of reproducing a system interface that matches with the requests hard-coded in applications.
+%is generally known as compatibility.
+
+
+
+OS developers often struggle to maintain compatibility while improving
+the relationship between the OS and applications.
+A system interface may contain outdated specifications of system features and application programming interface (API);
+OS developers generally avoid modifying the system interface,
+despite the missed opportunities to
+more significant improvements by changing both OS and application sides.
+For example, Linux and similar OSes
+introduce \linuxapis{} such as \syscall{openat} as an unracy version
+of \syscall{open}, but cannot deprecate the latter due to modifications needed in applications.
+Deprecating a \linuxapi{} is often a length process, wherein application developers are repeatedly warned.
+%until the process finally expires.
+Moreover, a large-scale change in the system interface
+will impact compatibility even further.
+A well-known example is the cancellation of an early version of Windows Vista, 
+codenamed ``Longhorn'',
+which introduced a brand-new user interface API
+and database-like file system, but sacrificed compatibility~\cite{spolsky04microsoft-api-war}.
+%Maintaining system interface compatibility is generally a responsibility of OS developers;
+%while extending an OS for expanding the portability of applications
+%on new hardware.
 %Despite the OS extensions for future hardware,
 %the system interface has to stay compatible with existing applications.
-Especially, OS developers may face compatibility issues
-when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
-Compatibility is broken when an OS developer decides to extend the system interface,
-in order to adopt new hardware.
-If a system interface is extended for a new hardware,
-existing applications need to be reprogrammed accordingly, using the latest system interface.
+%Especially, OS developers may face compatibility issues
+%when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
+%Many examples show that
+These are examples that compatibility restrictions
+hinder OS development.
+
+
+
+%Compatibility is broken when an OS developer decides to extend the system interface,
+%in order to adopt new hardware.
+%If a system interface is extended for a new hardware,
+%existing applications need to be reprogrammed accordingly, using the latest system interface.
 %Extensions to a system interface are usually in the form of \syscall{ioctl} operations in a POSIX-style OS,
 %or new system call options such as the \code{MAP\_HUGETLB} flags for \syscall{mmap}.
 %Unless an OS can be transparently extended for a new hardware,
@@ -49,42 +135,33 @@ existing applications need to be reprogrammed accordingly, using the latest syst
 
 
 
+
+
+
 \issuedone{1.2.b}{Specify SGX as a motivating example}
-In extreme cases, an innovative hardware can make unusual design decisions,
-changing OS assumptions
-which are critical to application compatibility.
-%thus affecting the OS's ability to stay
-%compatible against applications.
-The kind of hardware is usually
-for realizing a revolutionary feature, or researching new opportunities in OS or hardware development.
-%are cutting-edge technologies, or research-purpose hardware.
-%Researchers create
-%these hardware
-%to explore opportunities of tweaking existing assumptions,
-%in seek of revolutionary results.
-%making the implementation of a compatible system interface
-%even more challenging.
-A running example in this thesis, as a revolutionary hardware feature,
-is {\bf SGX (software guard extensions)}~\cite{intelsgx}.
-SGX is an Intel CPU feature, which provides the building blocks for developing
-an application capable of self-protection against malicious OSes, hypervisors, and administrators.
+A running example in this thesis %, as an innovative hardware,
+is a new Intel CPU feature called SGX (software guard extensions)~\cite{intelsgx}.
+SGX provides a system building block for developing
+an application which protects itself from malicious OSes, hypervisors, and administrators.
 Despite the security benefits,
-SGX raises several compatibility issues, including changing the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
+SGX raises several compatibility issues, including reverting the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
 Other examples can be found among asymmetric multi-processing architectures,
-especially without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
+especially the architectures without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
 %and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
 %Especially, the size and subtlety of the Linux or Windows system interface
 %makes it unsuitable for adopting applications to SGX~\cite{checkoway13iago}, because SGX has fundamentally changed the nature of OS services.
 %Several recent publications mitigate part of the compatibility issue for deploying applications on SGX~\cite{baumann14haven,osdi16scone,shinde17panoply}.
-A challenging problem in OS development
-is to prevent compatibility issues from distracting hardware innovations.
+%This thesis
+%uses SGX as a strong motivating example (see Section~\ref{sec:intro:sgx}),
+%because SGX fundamentally reverses a critical OS assumption, and causes a combination of compatibility and security problems.
+%SGX shows that compatibility issues can be distraction to innovations.
 
 
 
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
-The key challenge to maintaining OS compatibility
+The key challenge to OS compatibility
 is to bridge the gap between
 a idiosyncratic system interface and hardware assumptions.
 %implementing the idiosyncratic features of a system interface,
@@ -177,7 +254,7 @@ but develop a simple host ABI for virtualizing OS components.
 %but be simple enough for porting.
 %defined to be completely independent from the physical machines,
 %and contain abstractions that are easy to implement in most commodity OSes.
-Above the host ABI, we proposes using a {\bf \libos{}}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
+Above the host ABI, we proposes using a  \libos{}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
 to reproduce a system interface for applications.
 %that the existing applications imperatively depend on.
 %A \libos{} is different from a translation layer which maps one set of system interfaces to another, nor is it the same as wrapper functions for formerly defined interfaces.
