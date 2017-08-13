@@ -2,6 +2,13 @@
 
 \newcommand{\issue}[2]{{}}
 \newcommand{\issuedone}[2]{{}}
+
+\newcommand{\issuepage}{{}}
+
+\newcommand{\keepthis}[1]{{#1}}
+\newcommand{\polishthis}[1]{{#1}}
+\newcommand{\rewritethis}[1]{{#1}}
+
 \else
 
 \newcommand{\issue}[3][red!40]{{\todo[caption=\parbox{9em}{Issue #2}\parbox{6em}{\thechapterorsection:}\parbox{18em}{#3}, fancyline, color=#1, list]{
@@ -13,23 +20,37 @@
 
 \newcommand{\issuedone}[2]{\issue[green!40]{#1 (done)}{#2}}
 
-\noindent
-{\Huge\bf Writing Plan}
-\vspace*{2\baselineskip}
+\newcommand{\issuepage}{%
+    \noindent
+    {\Huge\bf Writing Plan}
+    \vspace*{2\baselineskip}
+    
+    \noindent
+    {\large Access the following Google Doc:}\\
+    {\normalsize\url{https://docs.google.com/a/cs.stonybrook.edu/document/d/1Wk4dk2mgFPXlB_3hRwfPiyQdBI16B9eT4xA5qpJ24iA/edit?usp=sharing}}
+    
+    \vspace*{-4\baselineskip}
+    
+    \begingroup
+    \footnotesize
+    \let\cleardoublepage\relax
+    \let\clearpage\relax
+    \listoftodos[]
+    \endgroup
+    
+    \newpage
+}
 
-\noindent
-{\large Access the following Google Doc:}\\
-{\normalsize\url{https://docs.google.com/a/cs.stonybrook.edu/document/d/1Wk4dk2mgFPXlB_3hRwfPiyQdBI16B9eT4xA5qpJ24iA/edit?usp=sharing}}
+\usepackage{xcolor}
 
-\vspace*{-4\baselineskip}
+\newcommand{\hlcolor}[2][yellow]{%
+  \textcolor{#1}{{#2}}%
+}
 
-\begingroup
-\footnotesize
-\let\cleardoublepage\relax
-\let\clearpage\relax
-\listoftodos[]
-\endgroup
-
-\newpage
+\definecolor{forestgreen}{rgb}{0.03, 0.47, 0.19}
+\newcommand{\keepthis}[1]{\hlcolor[forestgreen]{{#1}}}
+\newcommand{\polishthis}[1]{\hlcolor[blue]{{#1}}}
+\definecolor{darkred}{rgb}{0.81, 0.06, 0.13}
+\newcommand{\rewritethis}[1]{\hlcolor[darkred]{{#1}}}
 
 \fi
