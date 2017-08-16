@@ -165,7 +165,7 @@ Dynamic linking allows shipping the library OS as a separate binary from the hos
 %and the library OS.
 
 
-\fixmedp{I think you can make this sentence more direct: "The library OS is loaded by the host OS as user libraries."}
+\fixmedp{Make this sentence more direct: "The library OS is loaded by the host OS as user libraries."}
 The host ABI inherits the \graphenearch{} Linux convention. %, to simplify compilation and linking.
 A PAL can load the library OS as ELF (executable and linkable format) binary~\cite{elf-format}, similar as loading a Linux library.
 %The host ABI inherit the Linux calling convention,
@@ -216,22 +216,25 @@ Another benefit is to simplify the debugging with GDB, which only recognizes one
 
 
 
-\paragraph{Translating calling conventions.}
-\fixmedp{I might make this point clearer: on all systems, the PAL includes a simple ELF loader (even Linux).  For Windows or OS X, the PAL is not itself ELF, but rather a native binary, that includes an ELF loader.
-}
+\paragraph{Host differences.}
 For a host with a different calling convention from Linux,
 the PAL is responsible for translating the calling convention between the host ABI and the host system interface.
 For example,
-in Windows, function arguments are passed inside general-purpose registers, in a different order from the Linux convention~\cite{win-abi};
-therefore, a Windows PAL needs
-to swap the register values when the library OS calls the host ABI.
-Windows and OSX also accepts a different type of binary format,
-and requires the PAL to implement an ad-hoc linking scheme for the library OS as an ELF binary.
+Windows and OSX have different calling conventions and binary formats
+from Linux.
+\fixmedp{Make this point clearer}
+On all hosts, the PAL includes a simple ELF loader (even on a Linux host).
+On a host like Windows or OSX, the PAL is not itself ELF,
+but rather a host-specific binary that includes an ELF loader.
+%therefore, a Windows PAL needs
+%to swap the register values when the library OS calls the host ABI.
+%Windows and OSX also accepts a different type of binary format,
+%and requires the PAL to implement an ad-hoc linking scheme for the library OS as an ELF binary.
 
 
 
 
-\paragraph{Returning error codes.}
+\paragraph{Error codes.}
 For explicity, a function in the host ABI only returns two types of results:
 a non-zero number or pointer if the function succeeds, or zero if it fails.
 Unlike the Linux call convention, the host ABI does not return negative values as error codes (e.g., \code{-EINVAL}).
