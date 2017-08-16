@@ -3,20 +3,18 @@
 
 \keepthis{Operating systems simplify the programming of an application, to utilize a wide range of hardware.}
 \keepthis{A UNIX-style OS~\cite{ritchie74unix}
-encapsulates hardware resources and abstractions in a system interface.}
-The interface of a hardware
-is idiosyncratic to the design made by manufacturer.
-An application may be programmed against bare hardware, but will have to be modified for running upon a different hardware interface.
-Inside an OS, application developers program against the system interface, given a consistent view of the system features.
-A system interface must be independent from the idiosyncrasy of hardware,
-so that application developers can avoid making assumptions about users' choice of hardware.
-
-
-
-
-
-
-
+encapsulates hardware resources and abstractions, using a system interface.}
+Without a system interface,
+an application will have to be programmed against
+idiosyncratic hardware interfaces, as designed by the manufacturers.
+Although it is possible to program an application against bare hardware,
+the application will fail to execute upon other hardware with unmatched hardware interfaces.
+An OS allows application developers to program against
+a consistent, hardware-independent
+system interface, %given a consistent view of the system features.
+%A system interface must be independent from the idiosyncrasy of hardware,
+so that application developers can avoid making assumption
+or restricting users to run the application on specific hardware.
 
 
 
@@ -87,7 +85,7 @@ The common practice in OS development is to maintain
 the same system interface,
 as the application developers previously observed when building an application.
 This thesis defines compatibility as
-\polish{the quality of reproducing a system interface that matches with the requests hard-coded in applications.}
+~\polish{the quality of reproducing a system interface that matches with the requests hard-coded in applications.}
 %is generally known as compatibility.
 
 
@@ -95,7 +93,7 @@ This thesis defines compatibility as
 \keepthis{OS developers often struggle to maintain compatibility while improving
 the relationship between the OS and applications.}
 A system interface may contain outdated specifications of system features and application programming interface (API);
-\polish{OS developers avoid modifying the system interface,
+~\polish{OS developers avoid modifying the system interface,
 despite of the missed opportunities for
 potentially making more significant improvements by changing both OS and application sides.}
 For example, Linux and similar OSes
@@ -139,7 +137,7 @@ an obstacle or a distraction to innovations.}
 
 
 
-Adopting an innovative hardware in a OS, with a requirement of compatibility, poses an unavoidable challenge for the developers.
+Adopting an innovative hardware in a OS, with a requirement of compatibility, poses a challenge for the developers.
 An OS needs continuous development for utilizing new hardware.
 \polish{Most new hardware follow similar designs as their predecessors, so
 OS developers can encapsulate the development of 
@@ -167,7 +165,7 @@ SGX raises several compatibility issues, including reverting the trusted nature 
 %uses SGX as a strong motivating example (see Section~\ref{sec:intro:sgx}),
 %because SGX fundamentally reverses a critical OS assumption, and causes a combination of compatibility and security problems.
 %SGX shows that compatibility issues can be distraction to innovations.
-\polish{A hardware like SGX impacts OS developers
+~\polish{A hardware like SGX impacts OS developers
 at either assumption level or principle level,
 and requires re-addressing the system interface design, causing fundamental compatibility issues.}
 
@@ -176,10 +174,10 @@ and requires re-addressing the system interface design, causing fundamental comp
 
 
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
-\keepthis{For OS developer, the key problem in compatibility
+For OS developer, the key problem in compatibility
 is how to bridge the presumed gap between
 the OS and applications,
-to synchronize the definition and assumption of system interface.}
+to synchronize the definition and assumption of system interface.
 %The key challenge, though, is to reproduce
 %the idiosyncratic behavior and semantic
 %of a system interface.
@@ -204,9 +202,8 @@ For example, the latest Linux system interface has grown to \roughly{300} \linux
 along with tons of Linux-specific
 options, constraints, and corner cases~\cite{linux-man-syscall}.
 %invented along the way.
-\polish{The potential inconsistency, between
-the system interface that applications need, and the system interface that OS developers wish to evolve, is the critical factor
-that jeopardizes compatibility.}
+As delicate a system interface can be,
+
 
 
 
@@ -257,9 +254,9 @@ with even simpler specification and assumption than a virtual hardware interface
 
 
 
-This thesis focuses on \polish{experimenting an OS design for resolving emerging compatibility challenges in OSes,
-when adopting an innovative hardware or
-an alternative system interface.}
+\polish{This thesis explores an OS design, called {\bf \libos{}}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
+to resolve emerging compatibility challenges in OS development and innovation.}
+%when adopting an innovative hardware or alternative system interface.}
 %implementation of compatibility in an OS, in case the OS developers intend to extend the OS for new hardware.
 %reducing the difficulty of retaining compatibility
 %is to reduce the complexity of system interface which has to be reproduced, to achieve compatibility against existing applications.
