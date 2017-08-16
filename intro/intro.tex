@@ -67,8 +67,11 @@ to remain compatible with previous OS versions.}
 %A system interface contains
 %a set of OS functions that applications
 %call to describe the order and condition of requesting OS services.
-Usage of a system interface is mostly hard-coded
-in a fully-compiled application.
+\polish{The creation of a fully-compiled application
+normally requires hard-coding the usage of a system interface,
+including the description of intention and condition
+of requesting OS services
+through the system interface.}
 %A fully-compiled application is mostly hard-coded with the usage of a system interface
 %The programming of a system interface requires
 %hard-coding the intention and condition of requesting OS services
@@ -85,7 +88,7 @@ The common practice in OS development is to maintain
 the same system interface,
 as the application developers previously observed when building an application.
 This thesis defines compatibility as
-the quality of reproducing a system interface that matches with the requests hard-coded in applications.
+\polish{the quality of reproducing a system interface that matches with the requests hard-coded in applications.}
 %is generally known as compatibility.
 
 
@@ -93,9 +96,9 @@ the quality of reproducing a system interface that matches with the requests har
 \keepthis{OS developers often struggle to maintain compatibility while improving
 the relationship between the OS and applications.}
 A system interface may contain outdated specifications of system features and application programming interface (API);
-\polishthis{OS developers avoid modifying the system interface,
-despite any missed opportunities to
-making more significant improvements by fine-tuning both OS and application sides.}
+\polish{OS developers avoid modifying the system interface,
+despite of the missed opportunities for
+potentially making more significant improvements by changing both OS and application sides.}
 For example, Linux and similar OSes
 introduce \linuxapis{} such as \syscall{openat} as an unracy version
 of \syscall{open}, but cannot deprecate the latter due to modifications needed in applications.
@@ -115,8 +118,10 @@ and database-like file system, but sacrificed compatibility~\cite{spolsky04micro
 %Especially, OS developers may face compatibility issues
 %when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
 %Many examples show that
-These are examples that compatibility restrictions
-hinder OS development.
+%These are examples that compatibility restrictions
+%hinder OS development.
+\polish{OS developers often find the pursuit of compatibility
+an obstacle or a distraction to innovations.}
 
 
 
@@ -135,17 +140,24 @@ hinder OS development.
 
 
 
-
-
+Adopting an innovative hardware in a OS, with a requirement of compatibility, poses an unavoidable challenge for the developers.
+An OS needs continuous development for utilizing new hardware.
+\polish{Most new hardware follow similar designs as their predecessors.
+OS developers can encapsulate the development of 
+a hardware driver under a standardized driver interface.
+However, when hardware developers introduce a cutting-edge hardware or a research prototype which cannot be encapsulated by the existing driver interfaces,
+the adoption demands extra attention from OS developers, to make changes across many OS layers.}
 \issuedone{1.2.b}{Specify SGX as a motivating example}
-A running example in this thesis %, as an innovative hardware,
-is a new Intel CPU feature called SGX (software guard extensions)~\cite{intelsgx}.
+Recently, such a problem escalates as more ground-breaking hardware technologies
+being introduced into production,
+including CPU technologies such as 
+Intel SGX (software guard extensions)~\cite{intelsgx}.
 SGX provides a system building block for developing
 an application which protects itself from malicious OSes, hypervisors, and administrators.
 Despite the security benefits,
-SGX raises several compatibility issues, including reverting the trusted nature of OS services~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and forbidding the sharing of isolated application memory~\cite{shinde17panoply}.
-Other examples can be found among asymmetric multi-processing architectures,
-especially the architectures without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
+SGX raises several compatibility issues, including reverting the trusted nature of OS components~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and restricting the sharing of isolated application memory~\cite{shinde17panoply}.
+%Other examples can be found among asymmetric multi-processing architectures,
+%especially the architectures without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
 %and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
@@ -156,33 +168,46 @@ especially the architectures without inter-connected, coherent memory~\cite{gsch
 %uses SGX as a strong motivating example (see Section~\ref{sec:intro:sgx}),
 %because SGX fundamentally reverses a critical OS assumption, and causes a combination of compatibility and security problems.
 %SGX shows that compatibility issues can be distraction to innovations.
+\polish{A hardware like SGX impacts OS developers
+at either assumption level or principle level,
+and requires re-addressing the system interface design, causing fundamental compatibility issues.}
+
+
 
 
 
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
-The key challenge to OS compatibility
-is to bridge the gap between
-a idiosyncratic system interface and hardware assumptions.
-%implementing the idiosyncratic features of a system interface,
-%and satisfying the hardware prerequisites.
+\keepthis{For OS developer, the key problem in compatibility
+is how to bridge the presumed gap between
+the OS and applications,
+to synchronize the definition and assumption of system interface.}
 %The key challenge, though, is to reproduce
 %the idiosyncratic behavior and semantic
 %of a system interface.
 %The goal of OS development is to bridge the "semantic gap" between the system interface and the low-level hardware abstractions~\cite{tanenbaum19os-textbook}.
-In a modern OS, the system interface
-%such as the Linux \linuxapis{}, 
-often contains abundance of unique abstractions and behaviors.
+To advance OS innovation,
+it would be better if OS developers can be free from restrictions
+on modifying system interfaces,
+to introduce new OS designs or hardware.
+On the other hand, applications are constantly hard-coded with
+the usage of previous system interfaces.
+Therefore, the primary challenge that
+OS developers are facing
+is the translation between the former and future system interfaces.
+The translation involves
+reproducing the subtle definition of the former system interface
+over another;
+after evolving an OS for generations,
+the system interface is likely to contain
+plenty of complex, idiosyncratic
+features and semantics, used by applications for years.
 For example, the latest Linux system interface has grown to \roughly{300} \linuxapis{},
-with a lot of Linux-specific options and corner cases~\cite{linux-man-syscall}
-invented along the way.
-Developing a fully-compatible OS, for any Linux applications, %, to reuse any application,
-requires faithfully reproducing
-the idiosyncratic features of the \linuxapis{},
-%which can be painful on an innovative hardware, such as a SGX-enabled CPU.
-%which is the primary barrier in developing a compatible OS.
-while resolving hardware-specific restrictions.
-The OS development effort, for maintaining compatibility, will be dominated by translating between the system interface
-and low-level hardware abstractions.
+along with tons of Linux-specific
+options, constraints, and corner cases~\cite{linux-man-syscall}.
+%invented along the way.
+\polish{The potential inconsistency, between
+the system interface that applications need, and the system interface that OS developers wish to evolve, is the critical factor
+that jeopardizes compatibility.}
 
 
 
@@ -190,26 +215,25 @@ and low-level hardware abstractions.
 
 
 
-
-%A system interface can contain up to hundreds or thousands of \linuxapi or OS functions, with numerous corner cases and programming options~\cite{ieee-posix, linux-man-syscall}.
-
-%is influenced by the design of plenty of pre-existing hardware,
-%and thus is difficult to change for another disruptive hardware.
-%For example, a monolithic OS, such as Linux or Windows, assumes a unified kernel, which mediates all operations from applications to request hardware resources and abstractions.
-Also, an OS prototype built from scratch
-can redefine a system interface which accommodates a new hardware, or optimizes for it~\cite{baumann09barrelfish,peter14arrakis,belay14ix}.
-%and may require compatibility against deployed applications.
-%often chooses to adopt the system interface of a popular OS standard, such as POSIX or Linux, to reuse applications already under deployment.
-%It is a practical move to implement system interfaces from a popular open OS such a Linux,
-%to demonstrate the benefits of using an OS prototype
-%on running certain native applications.
-%An OS can define a system interface with up to hundreds or thousands of functions~\cite{ieee-posix, linux-man-syscall}. %nearly impossible to fully implement from scratch.
-However, to be compatible with existing applications,
-building a translation or emulation layer for reproducing the former OS behavior and semantic, upon either an adapted system interface or an OS prototype, is still necessary.
-
+%%A system interface can contain up to hundreds or thousands of \linuxapi or OS functions, with numerous corner cases and programming options~\cite{ieee-posix, linux-man-syscall}.
+%
+%%is influenced by the design of plenty of pre-existing hardware,
+%%and thus is difficult to change for another disruptive hardware.
+%%For example, a monolithic OS, such as Linux or Windows, assumes a unified kernel, which mediates all operations from applications to request hardware resources and abstractions.
+%Also, an OS prototype built from scratch
+%can redefine a system interface which accommodates a new hardware, or optimizes for it~\cite{baumann09barrelfish,peter14arrakis,belay14ix}.
+%%and may require compatibility against deployed applications.
+%%often chooses to adopt the system interface of a popular OS standard, such as POSIX or Linux, to reuse applications already under deployment.
+%%It is a practical move to implement system interfaces from a popular open OS such a Linux,
+%%to demonstrate the benefits of using an OS prototype
+%%on running certain native applications.
+%%An OS can define a system interface with up to hundreds or thousands of functions~\cite{ieee-posix, linux-man-syscall}. %nearly impossible to fully implement from scratch.
+%However, to be compatible with existing applications,
+%building a translation or emulation layer for reproducing the former OS behavior and semantic, upon either an adapted system interface or an OS prototype, is still necessary.
 
 
-The translation (or emulation) of a system interface
+
+The translation of system interfaces
 can benefit from virtualizing the upper layers of OS components,
 or the whole OS. 
 A key insight is to reduce the ad-hoc development effort for translating on a specific hardware or host interface, by reusing a virtualized OS implementation.
@@ -234,15 +258,25 @@ with even simpler specification and assumption than a virtual hardware interface
 
 
 
-
-This thesis describes an OS design which resolves compatibility issues, for either a new hardware or a OS prototype.
+This thesis focuses on \polish{experimenting an OS design for resolving emerging compatibility challenges in OSes,
+when adopting an innovative hardware or
+an alternative system interface.}
 %implementation of compatibility in an OS, in case the OS developers intend to extend the OS for new hardware.
 %reducing the difficulty of retaining compatibility
 %is to reduce the complexity of system interface which has to be reproduced, to achieve compatibility against existing applications.
 %when extending the OS implementation.
-This thesis demonstrates that OS developers need not to repeat the implementation of
-the whole system interface,
-but develop a simple host ABI for virtualizing OS components.
+The purpose of the OS design
+is to reduce the OS development effort for pursuing compatibility
+against existing applications,
+and to encourage OS or hardware innovation.
+The key is to demonstrate that OS developers need not to repeat the effort of reproducing the whole system interface,
+by reusing a rich of virtualized OS components, such as the \linuxapis{}.
+We proposes using a  \libos{}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
+to link the virtualized OS components
+with an application.
+What OS developers need to develop is merely a simplified host ABI (application binary interface),
+which includes
+the basic OS functionality needed from a host.
 % when the goal is to retain the compatibility for a certain amount of applications, on an unconventional physical machine.
 %For the OS design, this thesis presents a narrow system interface to each hosts,
 %or {\em host ABI}.
@@ -253,14 +287,12 @@ but develop a simple host ABI for virtualizing OS components.
 %but be simple enough for porting.
 %defined to be completely independent from the physical machines,
 %and contain abstractions that are easy to implement in most commodity OSes.
-Above the host ABI, we proposes using a  \libos{}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
-to reproduce a system interface for applications.
 %that the existing applications imperatively depend on.
 %A \libos{} is different from a translation layer which maps one set of system interfaces to another, nor is it the same as wrapper functions for formerly defined interfaces.
 %A \libos{} implements an operating system instance separated from the host, upon a standalone host interfaces similar to a set of virtualized hardware interfaces, or para-virtualized hypercalls.
 %To make the library OS practical enough to benefit OS research,
 \issuedone{1.2.d}{Specify target applications}
-This thesis targets the compatibility against commercially-used, popular Linux applications, including server applications, command-line programs, and language runtimes.
+This OS design targets on commercial Linux applications used in cloud environment, including server applications, command-line programs, and language runtimes.
 %This thesis shows that the defined host ABI is sufficient to implement a rich of OS functionality for reusing the said applications.
 
 
@@ -269,7 +301,7 @@ This thesis targets the compatibility against commercially-used, popular Linux a
 %using a host interface defined with simplicity and minimal assumptions. This \libos{} design, alone with the host interface, is potentially stackable on various operating systems, to benefit both backward and forward compatibility.
 
 
-Based on this OS design, we present {\bf \graphene{}}, a library OS for running unmodified Linux applications on various OSes and hardware, including SGX as a running example.
+This thesis presents {\bf \graphene{}}, a library OS for running unmodified Linux applications on various OSes and hardware.
 %This thesis shows the embodiment of an OS design as the \graphene{} library OS.
 %The  library OS can run a wide range of unmodified Linux applications,
 %including server-type applications, command-line programs, and language runtimes, on a set of host OSes and hardware platforms.
@@ -281,7 +313,7 @@ Windows applications.
 The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule} and Haven~\cite{baumann14haven}, to show the feasibility of implementing single-process, Linux functionality, and porting to Intel SGX.
 
 
-\issue{1.3.a}{Compare Graphene vs Docker}
+%\issue{1.3.a}{Compare Graphene vs Docker}
 Established upon the previous work, \graphene{} holds the following key contributions:
 \begin{compactenum}
 \item \graphene{} explores and justifies the feasibility of building a library OS for resolving compatibility issues on various OSes and hardware.
@@ -475,23 +507,7 @@ for porting multi-process applications to a variety of OSes and architectures.
 \label{sec:intro:security}
 
 \issue{1.1.d}{separate the motivation for security isolation}
-\placeholder{}
 
-%Besides emulating OS abstractions, \graphene{} also provides a reasonable model of enforcing security isolation among applications launched by mutually untrusting users.
-%Similar as the complexity of emulating all the abstractions,
-%the security isolation on a monolithic OS can be delicate and prone to mistake,
-%if each abstraction is controlled individually.
-%\graphene{} simplifies the isolation of OS abstractions
-%down to three host abstractions: files, network connections, and RPC streams.
-%For these host abstractions, \graphene{} enforces isolation policies in the styles
-%commonly used by security experts:
-%white-lists for file access, firewall rules for network connection,
-%and simple ``Chinese Wall'' isolation for RPC streams.
-%We show that, by isolating these host abstractions,
-%the numerous OS abstractions emulated by the \liboses{} will be utterly isolated,
-%without making significant effort to build individual access control.
-%The isolation model is fully portable to every host platforms,
-%including the host with SGX enclaves, where no trusted host monitor is present
 
 
 
