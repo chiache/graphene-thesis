@@ -85,26 +85,29 @@ by translating either at compile time or through a thin library.
 The common practice in OS development is to preserve
 the whole system interface,
 as application developers previously observe when building an application.
-This thesis defines
-\keepthis{{\em the ability of reproducing a system interface that matches with the hard-coded requirement in applications}} as {\bf compatibility}.
+\keepthis{This thesis defines
+the ability of reproducing a system interface that satisfies the hard-coded requirement of applications as {\bf compatibility}.}
 %is generally known as compatibility.
 
 
 
 \keepthis{OS developers often struggle to maintain compatibility while improving
 the relationship between the OS and applications.}
-A system interface may contain outdated specifications of system features and application programming interface (API);
+As an OS evolves, a system interface may contain an outdated specification of OS features and application programming interface (API);
 ~\polish{OS developers avoid modifying the system interface,
-despite of the missed opportunities for
-potentially making more significant improvements by changing both OS and application sides.}
+despite of missed opportunities to
+more significant improvement by adjusting both OS and application sides.}
 For example, Linux and similar OSes
 introduce \linuxapis{} such as \syscall{openat} as an unracy version
-of \syscall{open}, but cannot deprecate the latter due to modifications needed in applications.
-Deprecating a \linuxapi{} is often a length process, wherein application developers are repeatedly warned for years.
+of \syscall{open}, 
+to prevent TOCTOU (time-to-check-to-time-to-use) attacks.
+Unfortunately, complete deprecation of the unsafe \syscall{open} system call
+would be a painful and lengthy process,
+wherein every applications will have to be addressed specifically.
 %until the process finally expires.
-Moreover, a large-scale change in the system interface
-will impact compatibility even further.
-A well-known example is the cancellation of an early version of Windows Vista, 
+%Imaginably, a more large-scale modification of the system interface
+%may be catastrophic.
+Another well-known example is the cancellation of an early version of Windows Vista, 
 codenamed ``Longhorn'',
 which introduced a brand-new user interface API
 and database-like file system, but sacrificed compatibility~\cite{spolsky04microsoft-api-war}.
@@ -118,8 +121,10 @@ and database-like file system, but sacrificed compatibility~\cite{spolsky04micro
 %Many examples show that
 %These are examples that compatibility restrictions
 %hinder OS development.
-\polish{OS developers often find the pursuit of compatibility
-an obstacle or a distraction to innovations.}
+As a result, %for OS developers, 
+compatibility
+is crucial to the usability of a system, but also an unwelcome distraction
+in the early stage of innovation.
 
 
 
@@ -138,8 +143,9 @@ an obstacle or a distraction to innovations.}
 
 
 
-Adopting an innovative hardware in a OS, with a requirement of compatibility, poses a challenge for the developers.
-An OS needs continuous development for utilizing new hardware.
+\keepthis{Sometimes, in order to adopt an innovative hardware in an OS, 
+compatibility can pose a challenge for OS developers.}
+An OS needs to be be continuously extended to utilize new hardware.
 \polish{Most new hardware follow similar designs as their predecessors, so
 OS developers can encapsulate the development of 
 a hardware driver under a standardized driver interface.
@@ -166,17 +172,16 @@ SGX raises several compatibility issues, including reverting the trusted nature 
 %uses SGX as a strong motivating example (see Section~\ref{sec:intro:sgx}),
 %because SGX fundamentally reverses a critical OS assumption, and causes a combination of compatibility and security problems.
 %SGX shows that compatibility issues can be distraction to innovations.
-~\polish{A hardware like SGX impacts OS developers
-at either assumption level or principle level,
-and requires re-addressing the system interface design, causing fundamental compatibility issues.}
+~\polish{A hardware like SGX impacts OS development
+require redesigning the system interface, causing compatibility issues.}
 
 
 
 
 
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
-For OS developer, the key problem in compatibility
-is how to bridge the presumed gap between
+The key to compatibility
+is to bridge the presumed gap between
 the OS and applications,
 to synchronize the definition and assumption of system interface.
 %The key challenge, though, is to reproduce
