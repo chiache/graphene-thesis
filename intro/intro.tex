@@ -246,8 +246,8 @@ with less development effort.}
 
 
 The development of a compatibility layer
-can benefit from virtualizing the upper layers of an OS, or even the whole OS.
-An OS always contains
+can benefit from virtualizing the upper layers of an OS, or the whole OS.
+An OS contains
 several components that are independent from
 encapsulating hardware or upholding OS assumptions (e.g., multiprocessing).
 For example, a major task of the API components
@@ -317,9 +317,9 @@ including innovative CPU platforms (e.g., SGX), alternative kernels (e.g., Windo
 
 
 \issuedone{1.2.d}{Specify target applications}
-This thesis proposes a balance % the trade-offs
-between compatibility against applications
-and adaptibility against hosts.
+This thesis tries to strike a better balance % the trade-offs
+between the simplicity of the host interface
+and the sufficiency of library OS functionality to be compatible against applications.
 According to
 a study of Linux system API~\cite{tsai16apistudy},
 \linuxapis{} are not equally important in term of the impact on application compatibility.
@@ -367,7 +367,7 @@ it requires far less memory resource than running a VM with a full, unmodified O
 The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule}
 to show the feasibility of implementing single-process, Linux functionality, and inserting host-level extension layers.
 Haven~\cite{baumann14haven} later ports \drawbridge{} to SGX,
-to protect unmodified Windows application against malicious inputs from the OS.
+to shield Windows application against malicious inputs from the host OS.
 \polish{Established upon the previous work,
 \graphene{} %extends the concept of previous work
 presents an overall solution for running unmodified applications upon a variety of host OSes and hardware,
