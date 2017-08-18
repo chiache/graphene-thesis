@@ -70,19 +70,19 @@ the ability of reproducing a system interface that satisfies the hard-coded requ
 The development of a fully-compiled application (not as a script or intermediate code)
 includes hard-coding the usage of a system interface
 in the binaries.
-\polish{Application developers make decisions of embedding the interaction with a system interface inside of an application.}
+\polish{Application developers make decisions of embedding the requests and parameters of interacting with a system interface inside of an application.}
 %A fully-compiled application is mostly hard-coded with the usage of a system interface
 %The programming of a system interface requires
 %hard-coding the intention and condition of requesting OS services
 %in the application code.
 If a milestone of OS development involves modifying a part of the system interface,
 an application becomes obsolete
-if it contains retired or outdated system interface usage.
+if it contains outdated system interface specifications.
 %due to mismatching with the latest definition.
-Although compilers and libraries can reconstruct or recast some old system interfaces,
-a principle-level or assumption-level change
-would be difficult to recover,
-by translating either at compile time or through a thin library.
+Although compilers and libraries can reconstruct or recast some OS functions,
+a principle-level or assumption-level change in the system interface
+would still be difficult to recover.
+%by translating either at compile time or through a thin library.
 The common practice in OS development is to preserve
 the whole system interface,
 as application developers previously observe when building an application.
@@ -161,8 +161,10 @@ SGX supports developing
 an application with self-protection against malicious OSes, hypervisors, and administrators;
 however, SGX also raises several compatibility issues, including reverting the trusted nature of OS services.
 %and restricting the sharing of isolated application memory~\cite{shinde17panoply}.
-Other examples can be found among research-type, asymmetric multi-processing architectures,
-especially ones without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}, which complicates the implementation of state-sharing, multi-process abstractions. 
+Other examples can be found among research-type architectures,
+such as an asymmetric multi-processing architectures
+without inter-connected memory~\cite{gschwind2007,cascaval2002evaluation}.
+%which complicates the implementation of state-sharing, multi-process abstractions. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
 %and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
@@ -177,6 +179,18 @@ especially ones without inter-connected, coherent memory~\cite{gschwind2007,casc
 gradually promoting a new system interface that can encauplate the latest hardware, but existing applications still need a timely solution to resolve the urgent compatibility issues.}
 
 
+
+As an indisputable reason for maintaining compatibility,
+it is possible that application developers are unwilling to modify an application,
+either in the source code or in binaries.
+The development of a commercial application
+requires a thorough process of testing and code inspection to ensure the correctness and safety of the application.
+Application developers may consider modifying or recompiling an application %for a new hardware or system interface to be 
+a risk for application stability.
+Even if users are willing to modify applications on their own,
+application developers may be reluctant to release the proprietary source code.
+All these dilemmas call for a solution
+to translate an alternative system interface for unmodified application binaries.
 
 
 
