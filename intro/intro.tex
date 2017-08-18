@@ -276,7 +276,7 @@ as long as the architecture is virtualizable.
 
 
 \polish{As an alternative to a VM, OS developers can partition an OS, to virtualize only necessary components into a thin compatibility layer}---a {\bf \libos{}}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels}
-to load inside applications.
+loaded inside of an application.
 %when adopting an innovative hardware or alternative system interface.}
 %implementation of compatibility in an OS, in case the OS developers intend to extend the OS for new hardware.
 %reducing the difficulty of retaining compatibility
@@ -317,8 +317,8 @@ including innovative CPU platforms (e.g., SGX), alternative kernels (e.g., Windo
 
 
 \issuedone{1.2.d}{Specify target applications}
-\graphene{} balances % the trade-offs
-between {\em sufficiency} of OS functionality to be compatible against applications
+This thesis proposes the balance % the trade-offs
+between {\em sufficiency} of OS functionality to maintain compatibility against applications
 and {\em simplicity} of adapting to a new host.
 According to
 a study of Linux system API~\cite{tsai16apistudy},
@@ -368,9 +368,11 @@ The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule}
 to show the feasibility of implementing single-process, Linux functionality, and inserting host-level extension layers.
 Haven~\cite{baumann14haven} later ports \drawbridge{} to SGX,
 to protect unmodified Windows application against malicious inputs from the OS.
-\polish{\graphene{} extends the concept of previous work,
-to present an overall solution over a variety of host OSes and hardware,
-and to reason about an ideal host interface.}
+\polish{Established upon the previous work,
+\graphene{} %extends the concept of previous work
+presents an overall solution for running unmodified applications upon a variety of host OSes and hardware,
+and reasons about the ideal host interface.}
+
 
 
 %\issue{1.3.a}{Compare Graphene vs Docker}
@@ -561,6 +563,7 @@ for porting multi-process applications to a variety of OSes and architectures.
 \section{Evaluating API Compatibility}
 
 
+\rewrite{
 This thesis studies the compatibility requirement in Linux and POSIX
 from the perspectives of applications and users.
 The study begins with building a metric for compatibility,
@@ -575,6 +578,7 @@ and evaluate the developed results.
 The study shows that most applications do not require
 half of the Linux system calls,
 which are either for administrative use (e.g., halting the machine), or unpopular among applications.
+}
 
 
 \section{Summary}
