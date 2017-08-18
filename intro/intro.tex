@@ -61,15 +61,16 @@ or restricting users to run an application on specific hardware.}
 
 \keepthis{An application developed in an OS is dependent on the system interface
 to remain compatible with previous OS generations.}
+\keepthis{This thesis defines {\bf compatibility} as
+the ability of reproducing a system interface that satisfies the hard-coded requirement of applications.}
 %Application programming models are often influenced by the definition of system interface.
 %A system interface contains
 %a set of OS functions that applications
 %call to describe the order and condition of requesting OS services.
-\polish{The development of a fully-compiled application (not as a script or intermediate code)
+The development of a fully-compiled application (not as a script or intermediate code)
 includes hard-coding the usage of a system interface
 in the binaries.
-Application developers make decisions of embedding intentions and parameters
-of accessing a system interface, inside applications.}
+\polish{Application developers make decisions of embedding the interaction with a system interface inside of an application.}
 %A fully-compiled application is mostly hard-coded with the usage of a system interface
 %The programming of a system interface requires
 %hard-coding the intention and condition of requesting OS services
@@ -85,29 +86,30 @@ by translating either at compile time or through a thin library.
 The common practice in OS development is to preserve
 the whole system interface,
 as application developers previously observe when building an application.
-\keepthis{This thesis defines
-the ability of reproducing a system interface that satisfies the hard-coded requirement of applications as {\bf compatibility}.}
+
 %is generally known as compatibility.
 
 
 
 \keepthis{OS developers often struggle to maintain compatibility while improving
 the relationship between the OS and applications.}
-As an OS evolves, a system interface may contain an outdated specification of OS features and application programming interface (API);
-~\polish{OS developers avoid modifying the system interface,
+An system interface may contain outdated specifications of OS features and application programming interface (API);
+~\polish{however, OS developers generally avoid modifying the system interface,
 despite of missed opportunities to
-more significant improvement by adjusting both OS and application sides.}
+improving both OS and application sides.}
 For example, Linux and similar OSes
 introduce \linuxapis{} such as \syscall{openat} as an unracy version
-of \syscall{open}, 
-to prevent TOCTOU (time-to-check-to-time-to-use) attacks.
+of \syscall{open}.
+%to prevent TOCTOU (time-to-check-to-time-to-use) attacks.
 Unfortunately, complete deprecation of the unsafe \syscall{open} system call
 would be a painful and lengthy process,
-wherein every applications will have to be addressed specifically.
+wherein every applications have to be reprogrammed accordingly.
 %until the process finally expires.
 %Imaginably, a more large-scale modification of the system interface
 %may be catastrophic.
-Another well-known example is the cancellation of an early version of Windows Vista, 
+Moreover, if a system interface is changed on a large scale,
+the result may be catastrophic:
+a well-known example is the cancellation of an early version of Windows Vista, 
 codenamed ``Longhorn'',
 which introduced a brand-new user interface API
 and database-like file system, but sacrificed compatibility~\cite{spolsky04microsoft-api-war}.
@@ -121,10 +123,8 @@ and database-like file system, but sacrificed compatibility~\cite{spolsky04micro
 %Many examples show that
 %These are examples that compatibility restrictions
 %hinder OS development.
-As a result, %for OS developers, 
-compatibility
-is crucial to the usability of a system, but also an unwelcome distraction
-in the early stage of innovation.
+\keepthis{In general, OS developers treat compatibility as an important factor to the usability of a system,
+but also an unwelcome distraction in the early stage of innovation.}
 
 
 
@@ -143,25 +143,26 @@ in the early stage of innovation.
 
 
 
-\keepthis{Sometimes, in order to adopt an innovative hardware in an OS, 
-compatibility can pose a challenge for OS developers.}
-An OS needs to be be continuously extended to utilize new hardware.
-\polish{Most new hardware follow similar designs as their predecessors, so
-OS developers can encapsulate the development of 
-a hardware driver under a standardized driver interface.
-However, when hardware developers introduce a cutting-edge hardware or a research prototype which cannot be encapsulated by the existing driver interfaces,
-the adoption demands extra attention from OS developers, to make changes across many OS layers.}
+\keepthis{Sometimes, the adoption of an innovative hardware
+poses unexpected challenges to maintaining compatibility in OS development.}
+%An OS needs to be be continuously extended to utilize new hardware.
+\polish{A new hardware that follows a similar design as its predecessors
+can be adopted by the OS using a standardized driver.
+However, a cutting-edge or research hardware may not fall into
+the typical abstractions
+encapsulated by the driver interfaces,
+and thus demands extra attention for adoption.}
+The challenges emerge as more ground-breaking hardware technologies
+have been released in the industry.
 \issuedone{1.2.b}{Specify SGX as a motivating example}
-Recently, such a problem escalates as more ground-breaking hardware technologies
-being introduced into production,
-including CPU technologies such as 
-Intel SGX (software guard extensions)~\cite{intelsgx}.
-SGX provides a system building block for developing
-an application which protects itself from malicious OSes, hypervisors, and administrators.
-Despite the security benefits,
-SGX raises several compatibility issues, including reverting the trusted nature of OS components~\cite{baumann14haven,osdi16scone,tsai17graphene-sgx}, and restricting the sharing of isolated application memory~\cite{shinde17panoply}.
-%Other examples can be found among asymmetric multi-processing architectures,
-%especially the architectures without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}. 
+For example, CPU technologies like Intel SGX (software guard extensions)~\cite{intelsgx}
+change the relationship between the OS and applications.
+SGX supports developing
+an application with self-protection against malicious OSes, hypervisors, and administrators;
+however, SGX also raises several compatibility issues, including reverting the trusted nature of OS services.
+%and restricting the sharing of isolated application memory~\cite{shinde17panoply}.
+Other examples can be found among research-type, asymmetric multi-processing architectures,
+especially ones without inter-connected, coherent memory~\cite{gschwind2007,cascaval2002evaluation}, which complicates the implementation of state-sharing, multi-process abstractions. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
 %and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
@@ -172,15 +173,17 @@ SGX raises several compatibility issues, including reverting the trusted nature 
 %uses SGX as a strong motivating example (see Section~\ref{sec:intro:sgx}),
 %because SGX fundamentally reverses a critical OS assumption, and causes a combination of compatibility and security problems.
 %SGX shows that compatibility issues can be distraction to innovations.
-~\polish{A hardware like SGX impacts OS development
-require redesigning the system interface, causing compatibility issues.}
+\polish{In the long term, OS developers should consider
+gradually promoting a new system interface that can encauplate the latest hardware, but existing applications still need a timely solution to resolve the urgent compatibility issues.}
+
+
 
 
 
 
 
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
-The key to compatibility
+\rewrite{The key to compatibility
 is to bridge the presumed gap between
 the OS and applications,
 to synchronize the definition and assumption of system interface.
@@ -193,7 +196,7 @@ it would be better if OS developers can be free from restrictions
 on modifying system interfaces,
 to introduce new OS designs or hardware.
 On the other hand, applications are constantly hard-coded with
-the usage of previous system interfaces.
+the usage of previous system interfaces.}
 Therefore, the primary challenge that
 OS developers are facing
 is the translation between the former and future system interfaces.
@@ -261,7 +264,7 @@ with even simpler specification and assumption than a virtual hardware interface
 
 
 \polish{This thesis explores an OS design, called {\bf \libos{}}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
-to resolve emerging compatibility challenges in OS development and innovation.}
+to address the emerging compatibility challenges in OS development and innovation.}
 %when adopting an innovative hardware or alternative system interface.}
 %implementation of compatibility in an OS, in case the OS developers intend to extend the OS for new hardware.
 %reducing the difficulty of retaining compatibility
