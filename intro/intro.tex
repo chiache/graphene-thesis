@@ -317,8 +317,9 @@ including innovative CPU platforms (e.g., SGX), alternative kernels (e.g., Windo
 
 
 \issuedone{1.2.d}{Specify target applications}
-\graphene{} balances the trade-offs
-between compatibility against applications and adaptability against hosts.
+\graphene{} balances % the trade-offs
+between {\em sufficiency} of OS functionality to be compatible against applications
+and {\em simplicity} of adapting to a new host.
 According to
 a study of Linux system API~\cite{tsai16apistudy},
 \linuxapi{} are not equally important to applications.
@@ -365,45 +366,31 @@ it requires far less memory resource than running a VM with a full, unmodified O
 The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule}
 to show the feasibility of implementing single-process, Linux functionality, and inserting host-level extension layers.
 Haven~\cite{baumann14haven} later ports \drawbridge{} to SGX,
-to protect unmodified Windows application isolated by SGX, against malicious inputs from the OS services.
+to protect unmodified Windows application against malicious inputs from the OS.
 \polish{\graphene{} extends the concept of previous work,
 to present an overall solution over a variety of host OSes and hardware,
-and to reason about the definition of an ideal host interface.}
+and to reason about an ideal host interface.}
 
 
 %\issue{1.3.a}{Compare Graphene vs Docker}
 %Established upon the previous work, 
-The contributions of this thesis over previous work are as follows:
-\begin{compactenum}
-\item \graphene{} explores and justifies the feasibility of building a library OS for resolving compatibility issues on various OSes and hardware.
-%(1) Reasoning about the portability and completeness of functionality.
-% of the host ABI and library OS design for both
-\item \graphene{} faithfully implements a rich of native Linux system calls, including several challenging features which are specific to Linux or UNIX,
-such as multi-process abstractions.
-\item \graphene{} shows it possible to engineer a library OS
-with practical performance overhead,
-and memory footprint close to a Linux process.
-\item Comparable to a VM, \graphene{} can enforce strong security isolation
-between mutually-untrusted applications,
-with a narrowed attack surface to the host kernel (more in Section~\ref{sec:intro:security}).
-\end{compactenum}
+\rewrite{This thesis has several contributions over previous work.}
+ 
 
+%\begin{compactenum}
+%\item \graphene{} explores and justifies the feasibility of building a library OS for resolving compatibility issues on various OSes and hardware.
+%%(1) Reasoning about the portability and completeness of functionality.
+%% of the host ABI and library OS design for both
+%\item \graphene{} faithfully implements a rich of native Linux system calls, including several challenging features which are specific to Linux or UNIX,
+%such as multi-process abstractions.
+%\item \graphene{} shows it possible to engineer a library OS
+%with practical performance overhead,
+%and memory footprint close to a Linux process.
+%\item Comparable to a VM, \graphene{} can enforce strong security isolation
+%between mutually-untrusted applications,
+%with a narrowed attack surface to the host kernel (more in Section~\ref{sec:intro:security}).
+%\end{compactenum}
 
-\paragraph{Compatibility evaluation and study.}
-This thesis studies the compatibility requirement in Linux and POSIX
-from the perspectives of applications and users.
-The study begins with building a metric for compatibility,
-weighted by the API usage in applications,
-and application importance (or popularity).
-%for measuring and implementing compatibility. The design principle applies to either a commodity OS, a newly-built OS prototype, or the \graphene{} library OS.
-%This thesis shows that the compatibility against the existing applications, in an OS, can be measured and incrementally improved by scientific approach.
-%Using a metric that is weighted by the usage of system interfaces in a large sample of commonly used applications, as well as the popularity of the sampled applications,
-Using the metric,
-OS developers can quantitatively determine the priority in implementing a system interface,
-and evaluate the developed results.
-The study shows that most applications do not require
-half of the Linux system calls,
-which are either for administrative use (e.g., halting the machine), or unpopular among applications.
 
 
 
@@ -562,12 +549,31 @@ for porting multi-process applications to a variety of OSes and architectures.
 
 
 
-\section{Security isolation}
+\section{Security Isolation}
 \label{sec:intro:security}
 
 \issue{1.1.d}{separate the motivation for security isolation}
 
 
+
+
+\section{Evaluating API Compatibility}
+
+
+This thesis studies the compatibility requirement in Linux and POSIX
+from the perspectives of applications and users.
+The study begins with building a metric for compatibility,
+weighted by the API usage in applications,
+and application importance (or popularity).
+%for measuring and implementing compatibility. The design principle applies to either a commodity OS, a newly-built OS prototype, or the \graphene{} library OS.
+%This thesis shows that the compatibility against the existing applications, in an OS, can be measured and incrementally improved by scientific approach.
+%Using a metric that is weighted by the usage of system interfaces in a large sample of commonly used applications, as well as the popularity of the sampled applications,
+Using the metric,
+OS developers can quantitatively determine the priority in implementing a system interface,
+and evaluate the developed results.
+The study shows that most applications do not require
+half of the Linux system calls,
+which are either for administrative use (e.g., halting the machine), or unpopular among applications.
 
 
 \section{Summary}
