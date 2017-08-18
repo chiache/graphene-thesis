@@ -317,19 +317,20 @@ including innovative CPU platforms (e.g., SGX), alternative kernels (e.g., Windo
 
 
 \issuedone{1.2.d}{Specify target applications}
-The development of \graphene{} is an exercise to
-renegotiate the trade-off
+\graphene{} balances the trade-offs
 between compatibility against applications and adaptability against hosts.
 According to
-a study of the Linux system API usage~\cite{tsai16apistudy},
-not every Linux \linuxapi{} are equally important to reusing the applications on different host OSes.
-Furthermore, not every applications need to be reused
-on an innovative hardware or an alternative system interface.
-The Linux system API study shows that
-a large amount of the Linux \linuxapis{} are defined for system administration,
+a study of the Linux system API~\cite{tsai16apistudy},
+not all Linux \linuxapi{} are equally important to reusability of applications upon a host OS.
+Also, not all applications 
+are equally important to be reused upon different host OSes and hardware.
+The API study shows that
+a portion of the Linux \linuxapis{} are defined for administration purposes,
 such as configuring the ethernet cards and rebooting the machine.
-It also appears that these Linux \linuxapis{} are only used by a few administrative tools (e.g., \code{ifconfig}, \code{reboot}),
-and it is likely that the host OSes will already contain similar programs.
+These \linuxapis{} are exclusively used by administrative programs,
+such as \code{ifconfig} and \code{reboot},
+and it is less valuable to reuse these programs than just using the tools available in the host.
+%and each host OS is likely to contain similar tools.
 \graphene{} is primarily targeting three types of applications:
 server and cloud applications (e.g., Apache, Memcached), command-line programs (e.g., Bash, GCC), and language runtimes (e.g., Python, OpenJDK).
 The \graphene{} library OS is sufficient for running these applications,
