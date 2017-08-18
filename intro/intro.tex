@@ -180,52 +180,45 @@ gradually promoting a new system interface that can encauplate the latest hardwa
 
 
 
-As an indisputable reason for maintaining compatibility,
-it is possible that application developers are unwilling to modify an application,
-either in the source code or in binaries.
+
+\polish{A practical reason for maintaining compatibility
+is the fact that
+application developers may be unwilling to modify an application,
+at the stage of either source code or compiled binaries.}
 The development of a commercial application
-requires a thorough process of testing and code inspection to ensure the correctness and safety of the application.
+requires a thorough process of testing and code inspection to ensure the correctness and safety of execution.
 Application developers may consider modifying or recompiling an application %for a new hardware or system interface to be 
-a risk for application stability.
+a risk to application stability.
 Even if users are willing to modify applications on their own,
 application developers may be reluctant to release the proprietary source code.
-All these dilemmas call for a solution
-to translate an alternative system interface for unmodified application binaries.
+These dilemmas call for a solution
+to translate an alternative system interface for unmodified applications.
 
 
 
 
 
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
-\rewrite{The key to compatibility
-is to bridge the presumed gap between
-the OS and applications,
-to synchronize the definition and assumption of system interface.
-%The key challenge, though, is to reproduce
-%the idiosyncratic behavior and semantic
-%of a system interface.
-%The goal of OS development is to bridge the "semantic gap" between the system interface and the low-level hardware abstractions~\cite{tanenbaum19os-textbook}.
-To advance OS innovation,
-it would be better if OS developers can be free from restrictions
-on modifying system interfaces,
-to introduce new OS designs or hardware.
-On the other hand, applications are constantly hard-coded with
-the usage of previous system interfaces.}
-Therefore, the primary challenge that
-OS developers are facing
-is the translation between the former and future system interfaces.
-The translation involves
-reproducing the subtle definition of the former system interface
-over another;
-after evolving an OS for generations,
-the system interface is likely to contain
-plenty of complex, idiosyncratic
-features and semantics, used by applications for years.
-For example, the latest Linux system interface has grown to \roughly{300} \linuxapis{},
-along with tons of Linux-specific
-options, constraints, and corner cases~\cite{linux-man-syscall}.
-%invented along the way.
-As delicate a system interface can be,
+To formalize the problem,
+OS developers can't or shouldn't avoid modifying a system interface,
+yet existing application tend to rely on former system interface definitions to remain functional.
+A reasonable approach is to insert a compatibility layer
+between the application and the OS,
+to bridge the gap of system interface definitions, including both the API and the nature of OS features.
+Take SGX for example:
+\polish{a compatibility layer for supporting unmodified applications on SGX
+must redirect the requests for system API to the host OS,
+as well as validate the results of OS services in case the host OS is malicious.}
+Another goal is to reduce the effort of developing such a compatibility layer,
+so that maintaining compatibility would not become a burden in OS development and innovation.
+OS developers should not have
+to reimplement every features of a system interface in a compatibility layer;
+A modern OS such as Linux
+can contain up to hundreds or thousands of functions,
+with lots of options and corner cases to implement~\cite{linux-man-syscall}.
+\polish{Ultimately, this thesis is presenting a solution
+for building a compatibility layer that reproduces a rich-feature system interface,
+with less development effort.}
 
 
 
@@ -252,64 +245,61 @@ As delicate a system interface can be,
 
 
 
-The translation of system interfaces
-can benefit from virtualizing the upper layers of OS components,
-or the whole OS. 
-A key insight is to reduce the ad-hoc development effort for translating on a specific hardware or host interface, by reusing a virtualized OS implementation.
-Virtualization separates the translation of an idiosyncratic system interface,
-using an intermediate interface which drops the assumptions
-from both the system interface and the underlying hardware or OS.
+The development of a compatibility layer
+can benefit from virtualizing the upper layers of an OS, or even the whole OS.
+An OS always contains
+several components that are independent from
+encapsulating hardware or upholding OS assumptions (e.g., multiprocessing).
+For example, a major task of the API components
+(e.g., system call table)
+is to interpret the user inputs,
+as well as to update or retrieve the related OS states.
+Virtualization can preserve these OS components,
+using an intermediate interface
+exported by the host OS.
 \issuedone{1.2.c}{discuss library OS vs VM}
-A common solution is to run a VM (virtual machine) with an unmodified OS kernel, upon a virtual hardware interface.
-The virtual hardware interface 
-assumes generic, standard virtual hardware, %including CPU architecture, memory and I/O devices, 
-which are compatible with an unmodified OS (e.g., Linux kernel) in the virtual machine.
-The caveat for a VM
+Virtualization allows a VM (virtual machine) to carry an unmodified OS kernel,
+as a full-stack compatibility layer
+for applications.
+A VM relies on a virtual hardware interface as the intermediate
+to the host;
 %A virtual machine conveniently reuses existing OS implementation
 %for reproducing the system interface,
-is that it still relies on an assumption
-that the CPU architecture has virtualization support,
-such as Intel VT (virtualization technology).
-As an alternative to a VM, OS developers can partition an OS instead of reusing the whole OS,
-using a "pinch point" found inside the OS implementation,
-with even simpler specification and assumption than a virtual hardware interface.
+the virtual hardware interface requires a CPU architecture with virtualization support~\cite{popek74virtual}
+such as Intel VT (virtualization technology)~\cite{VT}.
+Virtualization can provide full compatibility
+by reusing an OS implementation,
+as long as the architecture is virtualizable.
 
 
 
 
-\polish{This thesis explores an OS design, called {\bf \libos{}}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
-to address the emerging compatibility challenges in OS development and innovation.}
+
+To build a more adaptable alternative than a VM, OS developers can partition an OS, to virtualize only necessary OS components into a compatibility layer---a {\bf \libos{}}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels}
+loaded inside applications.
 %when adopting an innovative hardware or alternative system interface.}
 %implementation of compatibility in an OS, in case the OS developers intend to extend the OS for new hardware.
 %reducing the difficulty of retaining compatibility
 %is to reduce the complexity of system interface which has to be reproduced, to achieve compatibility against existing applications.
 %when extending the OS implementation.
-The purpose of the OS design
-is to reduce the OS development effort for pursuing compatibility
-against existing applications,
-and to encourage OS or hardware innovation.
-The key is to demonstrate that OS developers need not to repeat the effort of reproducing the whole system interface,
-by reusing a rich of virtualized OS components, such as the \linuxapis{}.
-We proposes using a  \libos{}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
-to link the virtualized OS components
-with an application.
-What OS developers need to develop is merely a simplified host ABI (application binary interface),
-which includes
-the basic OS functionality needed from a host.
-% when the goal is to retain the compatibility for a certain amount of applications, on an unconventional physical machine.
-%For the OS design, this thesis presents a narrow system interface to each hosts,
-%or {\em host ABI}.
-%to be implemented for each host platforms.
-%the key to facilitating the compatibility in an OS.
-%The host ABI must
-%contain typical OS functions needed by every applications,
-%but be simple enough for porting.
-%defined to be completely independent from the physical machines,
-%and contain abstractions that are easy to implement in most commodity OSes.
-%that the existing applications imperatively depend on.
-%A \libos{} is different from a translation layer which maps one set of system interfaces to another, nor is it the same as wrapper functions for formerly defined interfaces.
-%A \libos{} implements an operating system instance separated from the host, upon a standalone host interfaces similar to a set of virtualized hardware interfaces, or para-virtualized hypercalls.
-%To make the library OS practical enough to benefit OS research,
+The purpose of a \libos{} is to
+reproduce the features and API of a system interface,
+inside a user-space, reusable {\em library} that executes upon a virtualized host interface.
+Unlike the virtual hardware interface,
+a virtualized host interface to the library OS is redefined for the simplicity
+of OS development upon each host OS and hardware.
+\polish{The host interface is
+derived from a ``pinch point'' found inside an OS,
+to partition the high-level, hardware-independent OS components,
+into a \libos{}.}
+A library OS can be reused to build a compatibility layer for unmodified applications upon any host,
+as long as the host interface is implemented.
+
+
+This thesis presents {\bf \graphene{}}, a library OS for running unmodified Linux applications on various host OSes and hardware.
+
+
+
 \issuedone{1.2.d}{Specify target applications}
 This OS design targets on commercial Linux applications used in cloud environment, including server applications, command-line programs, and language runtimes.
 %This thesis shows that the defined host ABI is sufficient to implement a rich of OS functionality for reusing the said applications.
@@ -320,7 +310,7 @@ This OS design targets on commercial Linux applications used in cloud environmen
 %using a host interface defined with simplicity and minimal assumptions. This \libos{} design, alone with the host interface, is potentially stackable on various operating systems, to benefit both backward and forward compatibility.
 
 
-This thesis presents {\bf \graphene{}}, a library OS for running unmodified Linux applications on various OSes and hardware.
+
 %This thesis shows the embodiment of an OS design as the \graphene{} library OS.
 %The  library OS can run a wide range of unmodified Linux applications,
 %including server-type applications, command-line programs, and language runtimes, on a set of host OSes and hardware platforms.
