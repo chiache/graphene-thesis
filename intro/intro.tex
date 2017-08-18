@@ -93,7 +93,7 @@ as application developers previously observe when building an application.
 
 \keepthis{OS developers often struggle to maintain compatibility while improving
 the relationship between the OS and applications.}
-An system interface may contain outdated specifications of OS features and application programming interface (API);
+An system interface may contain outdated specifications of OS features and application programming interfaces (APIs);
 ~\polish{however, OS developers generally avoid modifying the system interface,
 despite of missed opportunities to
 improving both OS and application sides.}
@@ -112,7 +112,7 @@ the result may be catastrophic:
 a well-known example is the cancellation of an early version of Windows Vista, 
 codenamed ``Longhorn'',
 which introduced a brand-new user interface API
-and database-like file system, but sacrificed compatibility~\cite{spolsky04microsoft-api-war}.
+and a database-like file system, but sacrificed compatibility~\cite{spolsky04microsoft-api-war}.
 %Maintaining system interface compatibility is generally a responsibility of OS developers;
 %while extending an OS for expanding the portability of applications
 %on new hardware.
@@ -204,7 +204,7 @@ OS developers can't or shouldn't avoid modifying a system interface,
 yet existing application tend to rely on former system interface definitions to remain functional.
 A reasonable approach is to insert a compatibility layer
 between the application and the OS,
-to bridge the gap of system interface definitions, including both the API and the nature of OS features.
+to bridge the gap of system interface definitions, including both the APIs and the nature of OS features.
 Take SGX for example:
 \polish{a compatibility layer for supporting unmodified applications on SGX
 must redirect the requests for system API to the host OS,
@@ -275,8 +275,8 @@ as long as the architecture is virtualizable.
 
 
 
-To build a more adaptable alternative than a VM, OS developers can partition an OS, to virtualize only necessary OS components into a compatibility layer---a {\bf \libos{}}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels}
-loaded inside applications.
+\polish{As an alternative to a VM, OS developers can partition an OS, to virtualize only necessary components into a thin compatibility layer}---a {\bf \libos{}}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels}
+to load inside applications.
 %when adopting an innovative hardware or alternative system interface.}
 %implementation of compatibility in an OS, in case the OS developers intend to extend the OS for new hardware.
 %reducing the difficulty of retaining compatibility
@@ -296,14 +296,50 @@ A library OS can be reused to build a compatibility layer for unmodified applica
 as long as the host interface is implemented.
 
 
-\fixme{rewrite this paragraph}
-This thesis presents {\bf \graphene{}}, a library OS for running unmodified Linux applications on various host OSes and hardware.
+This thesis presents
+{\bf \graphene{}},
+a library OS for running unmodified applications upon innovative hardware and alternative system interfaces.
+\graphene{} chooses the rich-feature Linux system interface (i.e., \linuxapis{})
+as the target for reproducing.
+\polish{The goal of \graphene{}
+is to build a compatibility layer for reusing a wide range of Linux commercial applications,
+to benefit the highly-customizable server and cloud environments.}
+The \graphene{} library OS
+is developed upon a narrowed host interface, defined as a host ABI (application binary interface),
+to be easily ported to various host options.
+The host ABI isolates the implementation of Linux features and API, from addressing the low-level restriction and idiosyncrasy.
+The strength of \graphene{} is to fine-tune the host ABI,
+to simplify the host development and drop the assumptions on host OSes and hardware.
+So far \graphene{}
+has been targeting several host options,
+including innovative CPU platforms (e.g., SGX), alternative kernels (e.g., Windows, OSX, and FreeBSD), and research-type OSes (e.g., L4 microkernels~\cite{l4family}, Barrelfish~\cite{baumann09barrelfish}).
 
 
 
 \issuedone{1.2.d}{Specify target applications}
-\fixme{rewrite this paragraph}
-This OS design targets on commercial Linux applications used in cloud environment, including server applications, command-line programs, and language runtimes.
+The development of \graphene{} is an exercise to
+renegotiate the trade-off
+between compatibility against applications and adaptability against hosts.
+According to
+a study of the Linux system API usage~\cite{tsai16apistudy},
+not every Linux \linuxapi{} are equally important to reusing the applications on different host OSes.
+Furthermore, not every applications need to be reused
+on an innovative hardware or an alternative system interface.
+The Linux system API study shows that
+a large amount of the Linux \linuxapis{} are defined for system administration,
+such as configuring the ethernet cards and rebooting the machine.
+It also appears that these Linux \linuxapis{} are only used by a few administrative tools (e.g., \code{ifconfig}, \code{reboot}),
+and it is likely that the host OSes will already contain similar programs.
+\graphene{} is primarily targeting three types of applications:
+server and cloud applications (e.g., Apache, Memcached), command-line programs (e.g., Bash, GCC), and language runtimes (e.g., Python, OpenJDK).
+The \graphene{} library OS is sufficient for running these applications,
+by implementing a portion of the Linux \linuxapis{} (\graphenesyscallnum{} out of \linuxsyscallnum{}),
+upon a narrowed host ABI containing \palcallnum{} functions.
+
+
+
+
+%This OS design targets on commercial Linux applications used in cloud environment, including server applications, command-line programs, and language runtimes.
 %This thesis shows that the defined host ABI is sufficient to implement a rich of OS functionality for reusing the said applications.
 
 
@@ -312,18 +348,30 @@ This OS design targets on commercial Linux applications used in cloud environmen
 %using a host interface defined with simplicity and minimal assumptions. This \libos{} design, alone with the host interface, is potentially stackable on various operating systems, to benefit both backward and forward compatibility.
 
 
-\fixme{rewrite this paragraph}
+
 %This thesis shows the embodiment of an OS design as the \graphene{} library OS.
 %The  library OS can run a wide range of unmodified Linux applications,
 %including server-type applications, command-line programs, and language runtimes, on a set of host OSes and hardware platforms.
-\graphene{} implements %\graphenesyscallnum{} out of \linuxsyscallnum{} 
-Linux system calls,
-with a narrowed host ABI containing \palcallnum{} functions.
-Part of the host ABI is inherited from \drawbridge{}~\cite{porter11drawbridge}, a prior library OS which has demonstrated compatibility benefit over
+\graphene{} inherits 
+a foundation of the host ABI from \drawbridge{}~\cite{porter11drawbridge},
+a previous library OS developed for reusing 
+%which has demonstrated compatibility benefit over
 Windows applications.
-The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule} and Haven~\cite{baumann14haven}, to show the feasibility of implementing single-process, Linux functionality, and porting to Intel SGX.
+\polish{The purpose of \drawbridge{} is to use the \libos{} as a lightweight VM,
+to run applications in a guest environment.}
+Because the library OS is built by partitioning OS components,
+it requires far less memory resource than running a VM with a full, unmodified OS kernel.
+The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule}
+to show the feasibility of implementing single-process, Linux functionality, and inserting host-level extension layers.
+Haven~\cite{baumann14haven} later ports \drawbridge{} to SGX,
+as a {\em shielding layer} for protecting unmodified Windows application against malicious inputs from the OS services.
+\polish{\graphene{} extends the concept of previous work,
+to present an overall solution over a variety of host OSes and hardware,
+and to reason about the definition of an ideal host interface.}
+
+
 %\issue{1.3.a}{Compare Graphene vs Docker}
-Established upon the previous work, \graphene{} holds the following key contributions:
+Established upon previous work, \graphene{} holds the following key contributions:
 \begin{compactenum}
 \item \graphene{} explores and justifies the feasibility of building a library OS for resolving compatibility issues on various OSes and hardware.
 %(1) Reasoning about the portability and completeness of functionality.
