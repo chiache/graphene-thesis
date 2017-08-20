@@ -417,10 +417,17 @@ u64 StreamMap (HANDLE stream_handle, u64 expect_addr,
 \end{paldef}
 
 
-\palcall{StreamMap} maps a file to an address in the memory, for file reading and writing, or executing the code stored in a binary file.
-\palcall{StreamMap} creates either a local copy of the file,
-or a pass-through mapping
-which will share file updates with other processes. % which open the same file.
+\palcall{StreamMap} maps a file to an address in memory, for reading and writing a file, or executing the code stored in a binary file.
+\palcall{StreamMap} creates a memory region
+as either a copy of the file,
+or a pass-through mapping which shares file updates with other processes.
+When calling \palcall{StreamMap},
+the guest specifies an expected address in memory for mapping the file, or a zeroed address for mapping at a random address determined by the host.
+\palkeyword{protect_flags} specifies the protection mode
+of the memory mapping (same definition in \palcall{VirtMemAlloc}), as a combination of \palkeyword{READ} (readable), \palkeyword{WRITE} (writable), \palkeyword{EXEC} (executable), and \palkeyword{WRITE_COPY} (writable local copy).
+At success, \palcall{StreamMap}
+returns an address where the file is mapped in memory.
+
 
 
 
