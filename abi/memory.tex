@@ -48,11 +48,11 @@ The host ABI for memory management is as follows:
 
 
 \begin{paldef}
-void *VirtMemAlloc   (void *expect_addr, ulong size,
-                      uint alloc_type, uint protect);
-bool  VirtMemFree    (void *addr, ulong size);
-bool  VirtMemProtect (void *addr, ulong size,
-                      uint protect);
+u64  VirtMemAlloc   (u64 expect_addr, u64 size,
+                     u16 alloc_type, u16 protect_flags);
+bool VirtMemFree    (u64 addr, u64 size);
+bool VirtMemProtect (u64 addr, u64 size,
+                     u16 protect_flags);
 \end{paldef}
 
 

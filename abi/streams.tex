@@ -4,58 +4,112 @@
 
 
 \issuedone{1.2.a}{discuss resource management at host level (I/O)}
-An application requires interaction with the world during its execution, using I/O devices.
-I/O is a common feature of almost every OSes.
-The typical I/O needed in an application
-can be catagorized into three types:
-externalizing data to outside of the machines (i.e., networking);
-externalizing data to a permanent store (i.e., storage);
-and communicating with other applications running on the same host (i.e., remote-procedure call).
-A modern OS may define several abstractions
-for each types of I/O; for example, a file in Linux can be read using several system calls,
-including \syscall{read}, \syscall{pread}, and \syscall{readv};
-RPC in Linux is based on multiple inter-process abstractions,
-including pipes, UNIX sockets, and signals.
+I/O is part of the foundation
+of an OS, to allow an application to interact with
+other machines, users, applications, or system software.
+An OS typically supports three types of I/O:
+%An application requires interaction with the world during its execution, using I/O devices.
+%I/O is a common feature of almost every OSes.
+%The typical I/O needed in an application
+%can be catagorized into three types:
+{\bf storage}, for externalizing data to a permanent store;
+{\bf network}, for exchanging data with another machine over internet;
+and {\bf RPC} (remote procedure call),
+for connecting concurrent applications or processes.
+An OS must contain features for all three types of I/O abstractions,
+and manages the resources on I/O devices, such as hard drives and NICs (network interface controllers).
+Therefore, unless an I/O device is virtualized and dedicated to
+an application or a guest,
+a host OS must take a major role in I/O management;
+for the least, a host OS has to share the resources among multiple applications or guests,
+and contain the drivers to interface with the I/O devices.
 
 
 
 
-The host ABI
-encapsulates I/O as byte streams
-to send data in and out of an application, but categorizes into three types:
-{\bf network connections}, {\bf regular files}, and {\bf RPC streams}.
-These I/O streams
-are created or connected using a URI (unified resource identifier),
-a unique name which describes the destinations or resource locations of the I/O streams.
-According to the prefix of URI,
-the PAL can create either a synchronous I/O stream (e.g., a file or a connected socket)
-or named I/O server (e.g., a listening TCP socket).
-
-
-Modern OSes contain several out-of-band or asynchronous I/O abstractions, to improve the latency or CPU idle time
-when polling I/O streams.
-Although using out-of-band or asynchronous I/O is beneficial for application performance,
-providing these I/O features can be challenging for a host.
-Therefore, in \graphene{}, the host ABI restricts I/O abstractions to only synchronous stream I/O.
+%externalizing data to outside of the machines (i.e., networking);
+% (i.e., storage);
+%and  (i.e., remote-procedure call).
+%A modern OS may define several abstractions
+%for each types of I/O; for example, a file in Linux can be read using several system calls,
+%including \syscall{read}, \syscall{pread}, and \syscall{readv};
+%RPC in Linux is based on multiple inter-process abstractions,
+%including pipes, UNIX sockets, and signals.
 
 
 
-The host ABI for stream I/O presents a simplified, {\b POSIX file system}.
-A POSIX file system
-encapsulates I/O abstractions,
-including files, sockets, pipes, and even character devices,
-in the file system API.
-The host ABI contains several functions
-which resemble the POSIX API:
-\palcall{StreamOpen}, \palcall{StreamRead}, and \palcall{StreamWrite}
-are similar to \syscall{open}, \syscall{read}, and \syscall{write} in behavior, with a simplified, explicit semantic;
-\palcall{StreamMap} is equivalent to \syscall{mmap} with a \code{MAP\_FILE} flag, mapping a regular file in the process memory. %, for reading or writing data.
+
+\fixmedp{Perhaps you want to start with defining a single byte stream abstraction? And then talk about how different URIs leads to different subclasses?}
+The basic I/O abstraction in the host ABI
+is a simple byte stream.
+A byte stream allows sending or receiving information over an I/O device
+as a continuous byte sequence.
+According the type of I/O, a byte stream is restructured as the I/O device demands;
+for example, on a storage device,
+a byte stream is logically stored as a sequential file,
+but physically divided into blocks;
+on a NIC, a byte stream is transfered as packets, and identified by IP address and port number bound to a network socket;
+a RPC stream can be simply a FIFO (first-in-first-out),
+which applications or processes use to pass messages.
+The host ABI for I/O is similar to the API of a UNIX-style OS,
+which treats ``everything as a file descriptor''
+and allows utilizing different types of I/O devices through the same file system APIs, including \syscall{read} and \syscall{write}.
+Managing I/O as byte streams simplifies the development of both the library OS and PALs.
+%The host ABI includes \hostapis{} for single-flavored, stream-type I/O, similar to the API of a UNIX-style OS.
+%In general, a UNIX-style OS
+%follows the design where ,
+%meaning that each I/O abstraction is encapsulated by the file system APIs, such as \syscall{read} and \syscall{write}, to send and receive data on a file, a network socket, or a FIFO (first-in-first-out).
+%but categorizes into three types:
+%{\bf network connections}, {\bf regular files}, and {\bf RPC streams}.
+
+
+The host ABI identifies I/O streams by URIs (unified resource identifier).
+%These I/O streams
+%are created or connected using a URI (unified resource identifier),
+A URI is a unique name which describes 
+both the subclass of an I/O stream, and the information for locating or identifying an I/O stream on an I/O device or inside the host OS.
+The subclass of an I/O stream is identified by the URI prefix,
+a keyword that represents different types of I/O: ``\palkeyword{file:}'' for regular files; ``\palkeyword{tcp:}'' and ``\palkeyword{udp:}'' for network connections; and ``\code{pipe:}'' for RPC streams.
+The rest of the URI represents an identifier of the I/O stream:
+for example, a file can be identified by a path located in a hierachical file system;
+a network connection can be identified by the socket address.
+The URIs standardize the way of identifying I/O resources inside various host OSes.
+
+
+%According to the prefix of URI,
+%the PAL can create either a synchronous I/O stream (e.g., a file or a connected socket)
+%or named I/O server (e.g., a listening TCP socket).
+%Modern OSes contain several out-of-band or asynchronous I/O abstractions, to improve the latency or CPU idle time
+%when polling I/O streams.
+%Although using out-of-band or asynchronous I/O is beneficial for application performance,
+%providing these I/O features can be challenging for a host.
+%Therefore, in \graphene{}, the host ABI restricts I/O abstractions to only synchronous stream I/O.
+
+
+\fixmedp{Define these semantics without a reference to POSIX, so that the document is self-contained.}
+The \hostapis{} defined in the host ABI for I/O are as follows:
+%The host ABI for stream I/O presents a simplified, {\b POSIX file system}.
+%A POSIX file system
+%encapsulates I/O abstractions,
+%including files, sockets, pipes, and even character devices,
+%in the file system API.
+%The host ABI contains several functions
+%which resemble the POSIX API:
+\palcall{StreamOpen} creates or opens an I/O stream;
+\palcall{StreamRead} and \palcall{StreamWrite}
+send and receive data over an opened I/O stream;
+%are similar to \syscall{open}, \syscall{read}, and \syscall{write} in behavior, with a simplified, explicit semantic;
+\palcall{StreamMap} maps %a is equivalent to \syscall{mmap} with a \code{MAP\_FILE} flag, mapping
+a regular file to the application's memory; %, for reading or writing data.
 \palcall{StreamAttrQuery} and \palcall{StreamAttrQuerybyHandle}
-return file and I/O metadata
-as \syscall{stat} and \syscall{fstat} do;
-The POSIX-style functions simplify the porting of the host ABI
-on hosts with a similar specification.
-
+retrieves the file metadata and I/O attributes;
+%as \syscall{stat} and \syscall{fstat} do;
+%The POSIX-style functions simplify the porting of the host ABI
+%on hosts with a similar specification.
+\palcall{StreamWaitForClient} blocks and creates an I/O stream for incoming network or RPC connection;
+\palcall{StreamSetLength} truncates a regular file;
+\palcall{StreamFlush} clears the I/O buffer inside the host OS.
+The following sections will discuss these \hostapis{} in details.
 
 
 
@@ -68,59 +122,164 @@ on hosts with a similar specification.
 
 \begin{paldef}
 HANDLE StreamOpen (const char *stream_uri,
-                   uint access_flags, uint share_flags,
-                   uint create_flags, uint options);
+                   u16 access_flags, u16 share_flags,
+                   u16 create_flags, u16 options);
 \end{paldef}
 
 
 
-Unlike \syscall{open}, \palcall{StreamOpen} uses a URI (uniform resource identifier), for specifying the I/O stream.
-An URI identifies both the type of I/O and the distination or location of the I/O stream.
-The type of a I/O stream is determined by URI prefix.
-The host ABI accepts the following URI prefixes:
+\palcall{StreamOpen} opens an I/O stream, % for future operations,
+according to a URI given by \palkeyword{stream_uri} as a string argument. % to identifies resources associated with the I/O stream. 
+The specification of 
+\palcall{StreamOpen} includes interpreting the URI prefixes and syntaxes of \palkeyword{stream_uri},
+and allocating the associated resources in the host OS and on the I/O devices.
+\fixmedp{The term ``Opaque pointer'' is useful here}
+If \palcall{StreamOpen} succeeds, it returns a {\bf stream handle}.
+A stream handle is stored by the guest as an identifier to the opened I/O stream.
+A stream handle is an opauqe pointer, which means the guest should only reference it as an identifier, and never try to interpret the content.
+On the other hand, if \palcall{StreamOpen} fails (e.g., invalid arguments or permission denied), it returns a null pointer with the failure reason delivered with an exception.
+% A stream handle is similar to a file descriptor in the POSIX API,
+%but defined as a pointer to a data structure containing the stream information.
+%The internal structure of a stream handle is up to the I/O stream type and the implementation of each PAL;
+%a library OS is supposed to reference a stream handle
+%only as an identifier.
 
+
+\fixmedp{Need a listing of all the values of flags}
+Other arguments of \palcall{StreamOpen} specify the options for opening an I/O stream:
+
+\begin{compactitem}
+
+\item
+\palkeyword{access_flags} specifies the access mode of the I/O stream, which can be either \palkeyword{RDONLY} (read-only), \palkeyword{WRONLY} (write-only), \palkeyword{APPEND} (append-only), and \palkeyword{RDWR} (readable-writable).
+The first three access modes are only available
+for regular files; if the opened stream is a network or RPC stream, the access mode is always \palkeyword{RDWR}.
+The access modes specify the basic access permissions that an application can request when opening a file.
+The access permissions are validated by the host OS, based on user configurations.
+For example, a file configured as append-only for the running application can only be opened in the \palkeyword{APPEND} mode.
+
+\item
+\palkeyword{share_flags} specifies the permissions for sharing a regular file (ignored for other types of  I/O streams)
+with other applications, either in \graphene{} or in the host OS.
+\palkeyword{share_flags} can be a combination of six different values:
+\palkeyword{OWNER_R}, \palkeyword{OWNER_W}, and \palkeyword{OWNER_X}
+represent the permissions to be read, writed, and executed by the creater of the file;
+\palkeyword{OTHER_R}, \palkeyword{OTHER_W}, and \palkeyword{OTHER_X}
+represent the permissions to be read, writed, and executed by everyone else.
+The permissions are externalized to the host file system; access modes given in future execution are validated against the permissions.
+
+\item
+\palkeyword{create_flags} specifies whether to create a regular file,
+when it does not exist in the host file system.
+If \palkeyword{create_flags} is given as \palkeyword{TRY_CREATE},
+it creates the file no matter if the file exists.
+If \palkeyword{create_flags} is given as \palkeyword{ALWAYS_CREATE},
+it fails if the file already exists.
+
+\item
+\palkeyword{options} specifies a set of miscellaneous options to configure the opened I/O stream.
+Currently \palcall{StreamOpen} only accepts one option: \palkeyword{NONBLOCK} specifies that the I/O stream will never block whenever the guest attempts to read or write data.
+The nonblocking I/O option is necessary for performing asynchronous I/O in the guest, to overlap the blocking time of multiple streams by polling (using \palcall{ObjectsWaitAny}).
+
+\end{compactitem}
+
+
+%includes different syntaxes for interpreting the URI and the rest of arguments,
+%and different behaviors for creating or opening an I/O stream,
+%according to the URI prefixes.
+%uses a URI (uniform resource identifier), for specifying the I/O stream.
+%An URI identifies both the type of I/O and the distination or location of the I/O stream.
+%The type of a I/O stream is determined by URI prefix.
+According to the consecutive operations, \palcall{StreamOpen}
+returns two types of handles: One type represents a simple byte stream;
+the other type is a server handle, which can wait on remote clients to initiate handshakes
+for creating a byte-stream connection.
+A server handle can be bound as a network server or a RPC server.
+Because a server handle is not a byte stream, it cannot be directly read or written,
+but can be given to \palcall{StreamWaitForClient} to block and receive a client connection.
+The host ABI includes the abstraction of creating server handles
+because receiving client connections requires control at the TCP/IP layer
+and allocating host resources,
+which cannot be implemented in the guest unless
+the network stack is virtualized.
+
+
+
+
+\palcall{StreamOpen} accepts the following URI prefixes and syntaxes for creating a byte stream or a server handle:
 
 
 \begin{compactitem}
 
-\item \palkeyword{file:[path]}: A regular file mapped from the host file system. The file is located by a file path on the host. The file path can be either an absolute path from the root the host file system, or a relative path from the current working directory on the host.
+\item \palkeyword{file:[path]} creates or opens a regular file on the host file system.
+The opened file is located by a path---either an absolute path from the root of the host file system, 
+or a relative path.
+\fixmedp{Mention CWD is relative to where the app is launched from. It may also be worth noting that this is included for convenience, but there are some security risks to using relative paths.}
+A relative path is located from the initial directory where the application is launched,
+and will never change afterward.
+\palcall{StreamOpen} accepts relative paths for the convenience of locating application files packaged and shipped together.
+Note that there could be security concerns
+that a relative path may collide with another absolute path, or be ambiguous if the path starts with a ``dot-dot'' (i.e., walking back a directory).
+Fortunately, both cases can be checked by the guest, as long as
+the initial directory is specified by the host.
+%based on user configurations.
 
-\item \palkeyword{tcp:[address]:[port]} or \palkeyword{udp:[address]:[port]}: A TCP or UDP connection to a remote socket, identified by a IPv4 or IPv6 address and a listening port. The TCP connection exists until it is teared down by the both parties.
+\item \palkeyword{tcp:[address]:[port]} or \palkeyword{udp:[address]:[port]} creates a TCP or UDP connection to a remote server,
+based on the IPv4 or IPv6 address and port number of the remote end.
+One a connection is created,
+it will exists until it is torn down by both sides.
 
-\item \palkeyword{tcp.srv:[address]:[port]} or \palkeyword{udp.srv:[address]:[port]}: A TCP or UDP server waiting for remote connections, bound on a IPv4 or IPv6 address and an idle port.
+\item \palkeyword{tcp.srv:[address]:[port]} or \palkeyword{udp.srv:[address]:[port]} create a TCP or UDP server handle which can receive remote client connections.
+A TCP or UDP server is bound on a IPv4 or IPv6 address and an idle port number.
+If the specified port number is smaller than 1024,
+it may require additional privilege from the host OS.
 
-\item \palkeyword{pipe.srv:[name]} or \palkeyword{pipe:[name]}: A named RPC stream.
-The stream can be either a server which awaits incoming connection from other processes,
-or a client to an existing server.
+\item \palkeyword{pipe.srv:[name]} or \palkeyword{pipe:[name]} create a named RPC server or a connection to a RPC server.
+The name of a RPC server is an arbitrary, unique string.
+An RPC stream is an efficient way for passing messages between applications or processes
+running on the same host,
+compare with using a network stream locally.
+An RPC stream is supposed to be low-latency, and can scale up to significantly
+more concurrent connections
+than the limitation on network streams.
+
+%The stream can be either a server which awaits incoming connection from other processes,
+%or a client to an existing server.
 
 \end{compactitem}
 
 
 
-Besides the abstraction,
-\palcall{StreamOpen}
-also inherits similar definitions of function arguments,
-including \palkeyword{access_flags}, \palkeyword{share_flags}, \palkeyword{create_flags}, and \palkeyword{options},
-from the POSIX-style \syscall{open}.
-%also inherit similar meanings from the options of \syscall{open}.
-These arguments specify the access type, file permission, creation mode, and other miscellaneous options of the I/O streams:
-for example, the access type can be specified as readable or writable,
-and the creation mode can be either explicit or implicit.
-An important concern is the choice of file permission (specified by \palkeyword{share_flags}), since the host ABI does not expose user credentials
-from the host.
-Setting the file permission in the host
-is mostly a usability feature: 
-an application can run more smoothly if some file permissions are externalized.
-For example, a compilor can create an executable with the execution permission, so that the consecutive building script can run the executable.
-The host ABI also externalizes the file permission
-which specifies specify whether a file can be shared with other applications.
+%Besides the abstraction,
+%\palcall{StreamOpen}
+%also inherits similar definitions of function arguments,
+%including \palkeyword{access_flags}, \palkeyword{share_flags}, \palkeyword{create_flags}, and \palkeyword{options},
+%from the POSIX-style \syscall{open}.
+%%also inherit similar meanings from the options of \syscall{open}.
+%These arguments specify the access type, file permission, creation mode, and other miscellaneous options of the I/O streams:
+%for example, the access type can be specified as readable or writable,
+%and the creation mode can be either explicit or implicit.
+%An important concern is the choice of file permission (specified by \palkeyword{share_flags}), since the host ABI does not expose user credentials
+%from the host.
+%Setting the file permission in the host
+%is mostly a usability feature: 
+%an application can run more smoothly if some file permissions are externalized.
+%For example, a compilor can create an executable with the execution permission, so that the consecutive building script can run the executable.
+%The host ABI also externalizes the file permission
+%which specifies specify whether a file can be shared with other applications.
 
 
-\palcall{StreamOpen} returns a {\bf stream handle}. A stream handle is similar to a file descriptor in the POSIX API,
-but defined as a pointer to a data structure containing the stream information.
-The internal structure of a stream handle is up to the I/O stream type and the implementation of each PAL;
-a library OS is supposed to reference a stream handle
-only as an identifier.
+\palcall{StreamOpen} defines the scope of enforcing and configuring security isolation in the host OSes.
+URIs for \palcall{StreamOpen} represent three types of host resources that are shareable among guests:
+file, network, and RPC. 
+Other host resources, such as threads and memory,
+are local to each process, and thus can be isolated by pinning the resources.
+Restricting the shareable host resource to I/O streams simplifies
+the enforcement of security policies in the hosts.
+In the host ABI, \palcall{StreamOpen} is the only \hostapi{} that requires permission checks in the host OS.
+A user can configure the security policies of sharing these I/O stream
+by simply listing URIs that are permitted for an application.
+
 
 
 
@@ -130,38 +289,141 @@ only as an identifier.
 
 
 \begin{paldef}
-ulong StreamRead  (HANDLE stream_handle, ulong offset,
-                   ulong size, void *buffer);
-ulong StreamWrite (HANDLE stream_handle, ulong offset,
-                   ulong size, const void *buffer);
-void *StreamMap   (HANDLE stream_handle,
-                   void *expect_addr, uint protection,
-                   ulong offset, ulong size);
+u64 StreamRead  (HANDLE stream_handle, u64 offset,
+                 u64 size, void *buffer);
+u64 StreamWrite (HANDLE stream_handle, u64 offset,
+                 u64 size, const void *buffer);
+\end{paldef}                   
+              
+\palcall{StreamRead} and \palcall{StreamWrite} synchronously
+read and write data over an opened I/O stream.
+Both \hostapis{} receive four arguments: a \palkeyword{stream_handle} for referencing the target I/O stream;
+\palkeyword{offset} from the beginning of a regular file
+(ignored if the stream is a network or RPC stream);
+\palkeyword{size} for specifying how many bytes are expected to be read or written;
+and finally, a \palkeyword{buffer} for storing the read or written data.
+At success, the \hostapis{} return the number of bytes
+actually being read or written.
+
+
+     
+
+
+
+
+%The host ABI features include synchronously reading and writing data over an I/O stream.
+%The behavior of \palcall{StreamRead} and \palcall{StreamWrite} is slightly different between a file stream and other type of stream:
+%when reading or writing a file stream, \palcall{StreamRead} and \palcall{StreamWrite} accesses the file at a specific offset from the beginning of the file;
+%otherwise, when accessing a network or RPC stream,
+%the argument \palkeyword{offset} is ignored, and thus the ABI works similar to \syscall{read} and \syscall{write}.
+
+
+
+\palcall{StreamRead} and \palcall{StreamWrite} avoid the semantics of sequential file access
+to skip the migration of stream handles.
+A regular file opened by \palcall{StreamOpen} (not in the append-only mode)
+can only be read or written at an absolute offset
+from the beginning of the file.
+The random file access prevents the host OSes to track the offset
+as an internal state,
+and allows a migrated guest to reopen the I/O stream on another host
+without migrating the host OS states.
+Because all the host OS states associated with an I/O stream is only meaningful to the host,
+and can be receated anytime,
+the I/O stream appears to be {\em stateless} to the guest.
+
+
+
+%The design is to keep the stream handle stateless inside the PAL,
+%for cleanly migrating a library OS.
+%Since the library OS is responsible of maintaining the offset of a file descriptor,
+%a library OS instance can be easily detach from a PAL,
+%by simply ``invalidating'' a stream handle;
+%the library OS should be able to always reopen the stream after migration,
+%or after a failure of accessing a stream handle,
+%to recover the state of an I/O stream.
+
+
+
+The host ABI does not includes asynchronous I/O semantics, or peeking into network or RPC buffers inside the host OS.
+%Another challenge in the library OS, regarding I/O streams,
+%is to support asynchronously I/O, or peeping data received over a network or RPC stream.
+%This design decision is made to keep the host ABI simple.
+Asynchronous I/O and peeking the buffers are both
+common OS features that an application may depend on.
+Although the features are not included in the host ABI,
+the guest (i.e., the \libos{}) is supposed to emulate these features using the synchronous \palcall{StreamRead} and \palcall{StreamWrite},
+combined with other \hostapis{} (e.g., \palcall{ObjectsWaitAny})
+to prevent blocking on an I/O stream.
+The guest can also allocate its own buffer to store data prematurely received from an I/O stream,
+to serve the buffer peeking feature.
+More details of these features are discussed in Chapter~\ref{chap:libos}.
+
+%To implement the full Linux I/O features,
+%the library OS must emulate asynchronous I/O,
+%using the synchronous
+%\palcall{StreamRead} and \palcall{StreamWrite}.
+%The emulation requires opening the I/O stream in a non-blocking mode,
+%and polling the stream handle before reading or writing data.
+%The library OS can also buffer the data being read or written over a stream,
+%as long as the buffered state is coordinated over every processes
+%which share the same stream.
+
+
+\paragraph{Alternative.}
+An alternative strategy is to define a host ABI with asynchronous I/O semantics.
+An asynchronous read or write
+does not return a result immediately; instead, it creates an event handle
+which can be polled arbitrarily.
+An ABI that asynchronously reads and writes an I/O stream
+potentially has more predictable semantics,
+because the guest can explicitly tell which \hostapis{} will be blocking.
+This strategy
+is taken by Bascule~\cite{baumann13bascule}.
+\graphene{} chooses synchronous I/O over asynchronous I/O in the current host ABI,
+because synchronous I/O is a more common feature in host OSes.
+
+
+ 
+
+
+%Defining  \hostapis{} for asynchronous read and write
+%may potentially sacrifice portability, \fixme{cites some host that doesn't have async IO}
+%since asynchronous I/O is less common seen in OSes.
+%However, 
+%can potentially be a more flexible option for emulating other I/O features in the guest.
+%For example, the guest can emulate a synchronous read by polling a stream followed by asynchronously reading it.
+
+
+
+%An asynchronous I/O ABI can be potentially
+%more flexible for implementing the library OS features,
+%as it can emulate both synchronous and asynchronous behaviors
+%without buffering.
+%The only reason that we choose synchronous over asynchronous I/O
+%in the host ABI is to reduce the porting effort,
+%especially for a host which lacks
+%asynchronous I/O features.
+
+
+
+\subsubsection*{Mapping a file to memory}
+                   
+\begin{paldef}            
+u64 StreamMap (HANDLE stream_handle, u64 expect_addr,
+               u16 protect_flags, u64 offset, u64 size);
 \end{paldef}
 
 
-
-The host ABI features include synchronously reading and writing data over an I/O stream.
-The behavior of \palcall{StreamRead} and \palcall{StreamWrite} is slightly different between a file stream and other type of stream:
-when reading or writing a file stream, \palcall{StreamRead} and \palcall{StreamWrite} accesses the file at a specific offset from the beginning of the file;
-otherwise, when accessing a network or RPC stream,
-the argument \palkeyword{offset} is ignored, and thus the ABI works similar to \syscall{read} and \syscall{write}.
-The design is to keep the stream handle stateless inside the PAL,
-for cleanly migrating a library OS.
-Since the library OS is responsible of maintaining the offset of a file descriptor,
-a library OS instance can be easily detach from a PAL,
-by simply ``invalidating'' a stream handle;
-the library OS should be able to always reopen the stream after migration,
-or after a failure of accessing a stream handle,
-to recover the state of an I/O stream.
+\palcall{StreamMap} maps a file to an address in the memory, for file reading and writing, or executing the code stored in a binary file.
+\palcall{StreamMap} creates either a local copy of the file,
+or a pass-through mapping
+which will share file updates with other processes. % which open the same file.
 
 
 
-\palcall{StreamMap} maps a file to an address in the memory,
-for either reading or writing data.
-\palcall{StreamMap} is used to create a local copy of a file (given permission \palkeyword{WRITE_COPY}),
-or a pass-through mapping of a file
-which will share file updates with other processes which open the same file.
+
+
 However, the challenge to implementing this behavior
 is to externalize the latest file state
 written by the application,
@@ -175,31 +437,11 @@ the latest file state to the disk when the memory is unmapped, using \palcall{Vi
 
 
 
-Another challenge in the library OS, regarding I/O streams,
-is to support asynchronously I/O, or peeping data received over a network or RPC stream.
-To implement the full Linux I/O features,
-the library OS must emulate asynchronous I/O,
-using the synchronous
-\palcall{StreamRead} and \palcall{StreamWrite}.
-The emulation requires opening the I/O stream in a non-blocking mode,
-and polling the stream handle before reading or writing data.
-The library OS can also buffer the data being read or written over a stream,
-as long as the buffered state is coordinated over every processes
-which share the same stream.
 
 
 
-\paragraph{Alternative.}
-An alternative strategy is to define a host ABI with asynchronous I/O,
-which is the design choice taken by Bascule~\cite{baumann13bascule}.
-An asynchronous I/O ABI can be potentially
-more flexible for implementing the library OS features,
-as it can emulate both synchronous and asynchronous behaviors
-without buffering.
-The only reason that we choose synchronous over asynchronous I/O
-in the host ABI is to reduce the porting effort,
-especially for a host which lacks
-asynchronous I/O features.
+
+
 
 
 
@@ -300,7 +542,7 @@ to set the file length or flush a stream at the same time, one of the function c
 
 
 \begin{paldef}
-bool StreamSetLength (HANDLE stream_handle, ulong size);
+bool StreamSetLength (HANDLE stream_handle, u64 size);
 void treamFlush (HANDLE stream_handle);
 \end{paldef}
 
