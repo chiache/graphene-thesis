@@ -613,8 +613,20 @@ which contains the new attributes to be assigned to the I/O stream.
 \palkeyword{stream_type} cannot be changed, as well as any attributes that violate the limitation imposed by the host.
 
 
-There is a dilemma for defining the right \palkeyword{STREAM_ATTRS} data structure, since it decides which stream attributes
-should be exposed by the host.
+A dilemma for defining the \palkeyword{STREAM_ATTRS} data structure is
+to decide which stream attributes,
+especially for a network stream, should be exposed by the host,
+A network stream attribute can be derived from an optional feature inside the host network stack,
+or a configuration at the NIC level.
+Exposing these stream attributes allows the guest to export APIs for applications
+to fine-tune the I/O performance.
+However, exposing too many attributes makes the host ABI
+less portable on different host OSes, since these attributes may not have their equivalences in certain host OSes.
+Eventually, a guest should not expect every attributes defined in \palkeyword{STREAM_ATTRS} to be always configurable,
+and \palcall{StreamAttrSetByHandle} will raise a failure
+if the guest tries to set an unavailable attribute.
+
+
 
 
 
@@ -640,6 +652,16 @@ should be exposed by the host.
 \begin{paldef}
 bool StreamSetLength (HANDLE stream_handle, u64 size);
 \end{paldef}
+
+Finally, \palcall{StreamSetLength} extends or truncates the size of a regular file.
+The \palkeyword{size} given to \palcall{StreamSetLength} can either be larger than the current size of the file, to allocate more space on the storage,
+or be smaller than the current size, to shrink the space taken on the storage.
+Although \palcall{StreamWrite} will automatically extend a file when writing beyond the end of file,
+a file-backed memory mapping created by \palcall{StreamMap} cannot extend the file
+when writing to memory pages that are not backed by file content.
+When memory access exceeds the file boundary, the host OS raises a memory fault.
+\palcall{StreamSetLength} allows the guest to extend a file before proceeding to access a memory mapping beyond the end of file, or to truncate the file to proper length after the access is finished.
+
 
 
 
