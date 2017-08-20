@@ -196,7 +196,7 @@ the other type is a server handle, which can wait on remote clients to initiate 
 for creating a byte-stream connection.
 A server handle can be bound as a network server or a RPC server.
 Because a server handle is not a byte stream, it cannot be directly read or written,
-but can be given to \palcall{StreamWaitForClient} to block and receive a client connection.
+but can be given to \palcall{ServerWaitForClient} to block and receive a client connection.
 The host ABI includes the abstraction of creating server handles
 because receiving client connections requires control at the TCP/IP layer
 and allocating host resources,
@@ -269,16 +269,18 @@ than the limitation on network streams.
 %which specifies specify whether a file can be shared with other applications.
 
 
-\palcall{StreamOpen} defines the scope of enforcing and configuring security isolation in the host OSes.
-URIs for \palcall{StreamOpen} represent three types of host resources that are shareable among guests:
-file, network, and RPC. 
+\palcall{StreamOpen} defines the scope of enforcing and configuring security isolation in the hosts.
+%URIs for \palcall{StreamOpen} represent three types of 
+The host ABI restricts the sharing of host resources
+to type types of simple I/O streams (i.e., file, network, and RPC). 
 Other host resources, such as threads and memory,
-are local to each process, and thus can be isolated by pinning the resources.
-Restricting the shareable host resource to I/O streams simplifies
-the enforcement of security policies in the hosts.
-In the host ABI, \palcall{StreamOpen} is the only \hostapi{} that requires permission checks in the host OS.
-A user can configure the security policies of sharing these I/O stream
-by simply listing URIs that are permitted for an application.
+are local to each process, and thus can be isolated by dedicating the host resources.
+%Restricting the shareable host resource to I/O streams simplifies
+%the enforcement of security policies in the hosts.
+Therefore, in the host ABI, \palcall{StreamOpen} is the only \hostapi{}
+which requires permission checks in the hosts.
+Moreover, a user can configure the policies of sharing I/O streams by
+whitelisting the URIs that are permitted for an application.
 
 
 
@@ -449,7 +451,7 @@ the latest file state to the disk when the memory is unmapped, using \palcall{Vi
 
 
 \begin{paldef}
-HANDLE StreamWaitforClient (HANDLE stream_handle);
+HANDLE ServerWaitforClient (HANDLE server_handle);
 \end{paldef} 
 
 Besides the I/O streams which can be directly read or written,
