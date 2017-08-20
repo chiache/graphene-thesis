@@ -417,32 +417,58 @@ u64 StreamMap (HANDLE stream_handle, u64 expect_addr,
 \end{paldef}
 
 
-\palcall{StreamMap} maps a file to an address in memory, for reading and writing a file, or executing the code stored in a binary file.
+\palcall{StreamMap} maps a file to an address in memory, for reading and writing data, or executing code stored in a binary file.
 \palcall{StreamMap} creates a memory region
 as either a copy of the file,
 or a pass-through mapping which shares file updates with other processes.
 When calling \palcall{StreamMap},
-the guest specifies an expected address in memory for mapping the file, or a zeroed address for mapping at a random address determined by the host.
+the guest specifies an expected address in memory for mapping the file, or a null address (i.e., zero) for mapping at a random address decided by the host.
+\palkeyword{expect_addr}, \palkeyword{offset}, and \palkeyword{size} have to be aligned
+with the allocation granularity of the hosts (more discussion in Section~\ref{sec:abi:memory}).
 \palkeyword{protect_flags} specifies the protection mode
-of the memory mapping (same definition in \palcall{VirtMemAlloc}), as a combination of \palkeyword{READ} (readable), \palkeyword{WRITE} (writable), \palkeyword{EXEC} (executable), and \palkeyword{WRITE_COPY} (writable local copy).
-At success, \palcall{StreamMap}
-returns an address where the file is mapped in memory.
+of the memory mapping, as a combination of \palkeyword{READ} (readable), \palkeyword{WRITE} (writable), \palkeyword{EXEC} (executable), and \palkeyword{WRITE_COPY} (writable local copy).
+At success, \palcall{StreamMap} returns the starting address of the mapped area; otherwise, a null address is returned.
 
 
 
 
+The host ABI includes \palcall{StreamMap} for two reasons. First, memory-mapped I/O is suitable for certain file access patterns of applications, and cannot be fully emulated by the guest using \palcall{StreamRead} and \palcall{StreamWrite}.
+An application often chooses memory-mapped I/O for
+avoiding the overhead of memory copy and context switch, %, especially when the application contains
+for frequent, small, random file reads and writes.
+Second, memory-mapped I/O is asynchronous by nature.
+The data written to a file-backed memory mapping can be lazily flushed out to the storage;
+the same feature is difficult to emulate in the guest
+%due to lack of ability to efficiently determine which pages are recently updated,
+% and thus should be synchronized with the storage.
+without an efficient way of marking recently-updated pages (page table dirty bits can only be accessed in host OSes).
+%without access to dirty bits in the page table.
 
 
-However, the challenge to implementing this behavior
-is to externalize the latest file state
-written by the application,
-on a host which disallows file-backed memory.
-For example, in a SGX enclave, all memory will have to be private memory,
-to be individually encrypted by the CPU.
-For a host which doesn't support pass-through file mappings,
-\palcall{StreamMap}
-can only guarantee writing out
-the latest file state to the disk when the memory is unmapped, using \palcall{VirtMemFree}.
+
+
+%However, the challenge to implementing this behavior
+%is to externalize the latest file state
+%written by the application,
+%on a host which disallows file-backed memory.
+%For example, in a SGX enclave, all memory will have to be private memory,
+%to be individually encrypted by the CPU.
+%For a host which doesn't support pass-through file mappings,
+%\palcall{StreamMap}
+%can only guarantee writing out
+%the latest file state to the disk when the memory is unmapped, using \palcall{VirtMemFree}.
+
+
+\fixmedp{there should be an explicit semantics about when the mapping is visible back to the host, like on a sync, with the option to flush earlier}
+Although \palcall{StreamMap} allows multiple processes to map the same file into memory, it does not guarantee the data to be coherently shared across processes.
+Because memory-mapped I/O is asynchronous,
+the data written in the memory is only guaranteed to be flushed to the storage
+when the memory mapping is unmapped.
+Also, the host ABI drops the assumption of memory sharing, especially for an isolated environment like SGX.
+It is optional for the host to flush earlier,
+or to coherently share the memory across multiple processes.
+
+
 
 
 
@@ -461,17 +487,31 @@ the latest file state to the disk when the memory is unmapped, using \palcall{Vi
 HANDLE ServerWaitforClient (HANDLE server_handle);
 \end{paldef} 
 
-Besides the I/O streams which can be directly read or written,
-the host ABI also supports creation
-of I/O stream server, which can be
-connected from another process (to a RPC stream server), or another host (to a network server), as a client of the server.
-An I/O stream server cannot be accessed by \palcall{StreamWrite} or \palcall{StreamRead};
-instead, the I/O stream server has to block until a client
-connects the server, using \palcall{StreamWaitForClient}.
-\palcall{StreamWaitForClient} will return a stream handle, which represents a connection with the client.
-Other implementation
-is up to the host: for example,
-the host may decide a maximal number of incoming connections to buffer.
+
+\palcall{ServerWaitforClient} waits on a network or RPC server handle, %created with a URI that starts with \palkeyword{tcp.srv:}, \palkeyword{udp.srv:}, or \palkeyword{pipe.srv:},
+to receive an incoming client connection.
+%Besides the I/O streams which can be directly read or written,
+%the host ABI also supports creation
+%of I/O stream server, which can be
+%connected from another process (to a RPC stream server), or another host (to a network server), as a client of the server.
+A network or RPC server handle cannot be accessed by \palcall{StreamWrite} or \palcall{StreamRead};
+instead, the host OS listens on the server handle,
+and negotiates the handshakes for incoming connections.
+Once a connection is fully established,
+the host OS returns a client stream handle, which can be read or written as a simple byte stream.
+Before any connection arrives, \palcall{ServerWaitforClient} blocks eternally.
+if a connection arrives before the guest calls \palcall{ServerWaitforClient},
+the host can optionally buffer the connection in a limited backlog; the maximal size of server backlogs is up to the user configurations. The host will drop incoming connections when the backlog is full.
+
+
+
+
+%I/O stream server has to block until a client
+%connects the server, using \palcall{StreamWaitForClient}.
+%\palcall{StreamWaitForClient} will return a stream handle, which represents a connection with the client.
+%Other implementation
+%is up to the host: for example,
+%the host may decide a maximal number of incoming connections to buffer.
 
 
 
@@ -481,78 +521,124 @@ the host may decide a maximal number of incoming connections to buffer.
 
 
 
-\subsubsection*{Querying stream metadata}
+\subsubsection*{File and stream attributes}
 
-The host ABI features also include retrieving the metadata of an I/O stream.
-The retrieval of metadata is not limited to files,
-but also network sockets and RPC streams. %, to query the information regarding the streams.
-An example of metadata is the address of a network stream;
-when an unbound network stream is created,
-the host will randomly bind the stream to a local, temporary port, for identifying the connection at the IP (internet protocol) level;
-the POSIX API
-reveals the local port number
-to the applications,
-using \syscall{getsockname}.
-Other stream metadata required by Linux or POSIX functionality
-includes the total bytes written over an I/O stream, and the permission to sharing an I/O stream with other applications.
-
-
-
-The host ABI includes two functions for querying stream metadata:
+%The host ABI features also include retrieving the metadata of an I/O stream.
+%The retrieval of metadata is not limited to files,
+%but also network sockets and RPC streams. %, to query the information regarding the streams.
+%An example of metadata is the address of a network stream;
+%when an unbound network stream is created,
+%the host will randomly bind the stream to a local, temporary port, for identifying the connection at the IP (internet protocol) level;
+%the POSIX API
+%reveals the local port number
+%to the applications,
+%using \syscall{getsockname}.
+%Other stream metadata required by Linux or POSIX functionality
+%includes the total bytes written over an I/O stream, and the permission to sharing an I/O stream with other applications.
+%The host ABI includes two functions for querying stream metadata:
 
 \begin{paldef}
 bool StreamAttrQuerybyHandle (HANDLE stream_handle,
-                              STREAM_ATTRS attrs);
+                              STREAM_ATTRS *attrs);
 bool StreamAttrQuery (const char *stream_uri,
-                      STREAM_ATTRS attrs);
+                      STREAM_ATTRS *attrs);
 
 \end{paldef}
 
-Both functions fill out a data structure given by the library OS,
-with metadata regarding an I/O stream
-identified by either a stream handle or a URI.
-Keeping both functions can be convenient for the library OS to query a file without creating a stream handle;
-however, we can always consolidate the host ABI
-with only \palcall{StreamAttrQuerybyHandle},
-because \palcall{StreamAttrQuery} can be replaced by \palcall{StreamAttrQuerybyHandle}
-after \palcall{StreamOpen}.
-
-
-To complete the library OS implementation, \graphene{} introduces a new function,
-\palcall{StreamAttrSetByHandle},
-for changing the metadata of an I/O stream.
-The main reason for changing metadata
-is to configure a network or RPC stream with several device-specific options,
-such as the number of lingering connections,
-or enabling the TCP keepalive feature.
+Both \palcall{StreamAttrQuerybyHandle} and \palcall{StreamAttrQuery} query the attributes of an I/O stream, and return the attributes in a \palkeyword{STREAM_ATTRS} data structure.
+The only difference is that \palcall{StreamAttrQuerybyHandle} queries an opened stream handle,
+whereas \palcall{StreamAttrQuery} queries a URI without opening the I/O stream.
+\palcall{StreamAttrQuery} is convenient for querying stream attributes when the guest is not planning to access the data of an I/O stream.
+%Because \palcall{StreamOpen} involves more operations in the host OS,
+%\palcall{StreamAttrQuery} can quickly retrieve the attributes without actually opening the stream.
+Both \hostapis{} return true or false for whether the stream attributes are retrieved successfully.
 
 
 
+%Both functions fill out a data structure given by the library OS,
+%with metadata regarding an I/O stream
+%identified by either a stream handle or a URI.
+%Keeping both functions can be convenient for the library OS to query a file without creating a stream handle;
+%however, we can always consolidate the host ABI
+%with only \palcall{StreamAttrQuerybyHandle},
+%because \palcall{StreamAttrQuery} can be replaced by \palcall{StreamAttrQuerybyHandle}
+%after \palcall{StreamOpen}.
 
 
 
 
+\begin{paldef}
+typedef struct {
+    u16 stream_type, access_flags, share_flags, options;
+    u64 stream_size;
+    u64 recvbuf, recvtimeout;
+    u64 sendbuf, sendtimeout;
+    u64 lingertimeout;
+    u16 network_options;
+} STREAM_ATTRS;
+\end{paldef}
+
+
+The \palcall{STREAM_ATTRS} data structure consists of multiple fields specifying the attributes assigned to an I/O stream since creation.
+\palkeyword{stream_type} specifies the type of I/O stream that the handle references to.
+\palkeyword{access_flags}, \palkeyword{share_flags}, and \palkeyword{options} are the same attributes assigned to an I/O stream when the stream is created by \palcall{StreamOpen}.
+\palkeyword{stream_size} has different meanings for files and network/RPC streams:
+if the handle is a file, \palkeyword{stream_size} specifies the total size of the file;
+if the handle is a network or RPC stream, \palkeyword{stream_size} specifies the size of pending data currently received and buffered in the host.
+
+
+The remaining attributes are specific to network or RPC streams.
+\palkeyword{recvbuf} and \palkeyword{sendbuf} specify the limitation of buffering the pending bytes, either inbound or outbound.
+\palkeyword{recvtimeout} and \palkeyword{sendtimeout} specify the receiving or sending timeout (in microsends)
+before a stream is considered being disconnected abruptly.
+\palkeyword{lingertimeout} specify the timeout for closing or shutting down a connection
+to wait for the pending outbound data.
+\palkeyword{network_options} is a combination of flags that specify the options of configuring a network stream.
+Currently \palkeyword{network_options} accepts the following generic options:
+\palkeyword{KEEPALIVE} (enabling keep-alive messages), %\palkeyword{CORK} (don't send out partial data),
+\palkeyword{TCP_NODELAY} (no delay on sending small data),
+and \palkeyword{TCP_QUICKACK} (no delay on sending ACK responses).
 
 
 \begin{paldef}
 bool StreamAttrSetbyHandle (HANDLE stream_handle,
-                            STREAM_ATTRS attrs);
+                            const STREAM_ATTRS *attrs);
 \end{paldef}
 
 
-\subsubsection*{Truncating a file or flushing a stream}
+\palcall{StreamAttrSetByHandle} is a \hostapi{} newly introduced by \graphene{}.
+\palcall{StreamAttrSetByHandle} changes the attributes initially assigned to an I/O stream, and externalizes the change to the host OS.
+\palcall{StreamAttrSetByHandle} is given an updated \palkeyword{STREAM_ATTRS} data structure,
+which contains the new attributes to be assigned to the I/O stream.
+\palkeyword{stream_type} cannot be changed, as well as any attributes that violate the limitation imposed by the host.
+
+
+There is a dilemma for defining the right \palkeyword{STREAM_ATTRS} data structure, since it decides which stream attributes
+should be exposed by the host.
+
+
+
+%To complete the library OS implementation, \graphene{} introduces a new function,
+%,
+%for changing the metadata of an I/O stream.
+%The main reason for changing metadata
+%is to configure a network or RPC stream with several device-specific options,
+%such as the number of lingering connections,
+%or enabling the TCP keepalive feature.
+
+
+%\subsubsection*{Truncating a file or flushing a stream}
 
 
 
 
-To externalize the change to an I/O stream, the library OS must ensure a file is truncated to the right length (\palcall{StreamSetLength}), or a network or RPC Stream has flushed the host buffer (\palcall{StreamFlush}).
-Both functions are private to a process; if multiple processes try
-to set the file length or flush a stream at the same time, one of the function calls may be ignored by the host.
+%To externalize the change to an I/O stream, the library OS must ensure a file is truncated to the right length (\palcall{StreamSetLength}), or a network or RPC Stream has flushed the host buffer (\palcall{StreamFlush}).
+%Both functions are private to a process; if multiple processes try
+%to set the file length or flush a stream at the same time, one of the function calls may be ignored by the host.
 
 
 \begin{paldef}
 bool StreamSetLength (HANDLE stream_handle, u64 size);
-void treamFlush (HANDLE stream_handle);
 \end{paldef}
 
 
