@@ -1,117 +1,241 @@
-\subsection{Threading}
+\subsection{CPU Scheduling}
 \label{sec:abi:thread}
 
 \issuedone{1.2.a}{discuss resource management at host level (threading)}
-Threading in the host ABI includes two kinds of features:
-one is to create a thread, for scheduling the CPU resources; the other is to synchronize or coordinate among multiple threads,
-using several scheduling primitives programmable by applications.
-Both Linux and POSIX have defined a rich threading API, with various thread creation options
-and scheduling primitives.
-\graphene{} simplifies the host ABI
-to include only a small set of threading features.
+The host ABI for CPU scheduling includes two abstractions:
+one is the creation of a {\bf thread}, an execution unit allocated by the guest,
+to be scheduled to run on a CPU core.
+The other abstraction is a set of {\bf scheduling primitives},
+designed for synchronization and coordination
+among multiple threads.
+%Both Linux and POSIX have defined a rich threading API, with various thread creation options
+%and complex scheduling primitives.
+%\graphene{} simplifies the host ABI
+%by include only a small set of basic threading features.
 %for each host to implement.
 
 
 
-\subsubsection*{Creating a thread}
+The thread abstraction requires the host OS to contain a host scheduler.
+A host scheduler will dynamically assign one of the living threads to each CPU core, to allow the thread to continue execution until rescheduling.
+The scheduling algorithm of a host scheduler is up to
+the design and configuration of the host OS;
+however, a host scheduler does have to ensure every thread to follow its expected behaviors,
+regardless of the scheduling algorithm.
+For the least, a host scheduler should avoid completely starving one of the living threads,
+so that the guest can make progress as expected.
+Other CPU scheduling criteria such as fairness, throughput, and CPU utilization
+are still critical to the application performance, but the host scheduler is responsible of improving these criteria.
 
 
 
-Unlike a user thread in Linux or POSIX (i.e., a ``pthread''),
-a guest thread created by the host ABI,
-using \palcall{ThreadCreate},
-is simply a new context which starts at a function.
-The host ABI
-moves all the thread creation options,
-such as thread-local storage,
-to an initialization function called after the thread creation,
-inside the library OS.
-The purpose of \palcall{ThreadCreate}
-is simple: it creates a ``kernel thread'' in the host,
-which can be scheduled by the host scheduler,
-to run application code on another CPU core.
-The \graphene{} library OS does not implement its own scheduler.
+
+
+
+\subsubsection*{Creating or terminating a thread}
+
+
+
+%Unlike a user thread in Linux or POSIX (i.e., a ``pthread''),
+%a guest thread created by the host ABI,
+%using \palcall{ThreadCreate},
+%is simply a new context which starts at a function.
+%The host ABI
+%moves all the thread creation options,
+%such as thread-local storage,
+%to an initialization function called after the thread creation,
+%inside the library OS.
+%The purpose of \palcall{ThreadCreate}
+%is simple: it creates a ``kernel thread'' in the host,
+%which can be scheduled by the host scheduler,
+%to run application code on another CPU core.
+%The \graphene{} library OS does not implement its own scheduler.
 
 
 \begin{paldef}
-HANDLE ThreadCreate (void (*start) (void *), void *arg);
-void ThreadExit (void);
+HANDLE ThreadCreate (void (*start) (void *),
+                     void *param);
 \end{paldef}
 
 
-The host ABI does not implement thread exiting notifications.
-When a guest thread is terminated using \palcall{ThreadExit}, the PAL destroys the correspondent kernel thread
-without notifying other threads.
-The design counts on the library OS to implement the Linux-style notifications,
-including
-sending a \code{SIGCHLD} signal,
-or triggering a parent-wakening futex.
-% assigned by a child thread ID field given to  
+\palcall{ThreadCreate} creates a living thread that can be immediately
+scheduled by the host scheduler.
+The arguments of \palcall{ThreadCreate} specify the initial state of the new thread, including a function to start the thread execution, and a parameter being passed to the function.
+As soon as \palcall{ThreadCreate} successfully returns,
+the caller thread and the created thread should both be live in the host OS.
+%and scheduled to run in arbitrary order.
+When \palcall{ThreadCreate} succeeds, it returns a thread handle that represents the created thread
+to the caller.
 
 
 
 
-\subsubsection*{Scheduler}
-
-
-
-
-Besides thread creation,
-the host ABI needs scheduling features to interrupt a thread execution,
-or yield the CPU.
-The concerns for including scheduling features
-in the host ABI
-is two-fold.
-The first concern is regarding compatibility;
-an application may be stuck in a busy-waiting loop, if the library OS lacks the ability to interrupt the execution when certain events occur.
-Specifically, \palcall{ThreadInterrupt} interrupts a thread using a thread handle
-returned by \palcall{ThreadCreat}.
-The second concern is regarding the CPU occupancy;
-if a thread does not forfeit the CPU when it stops making progress,
-the CPU can be wasted being idle.
-\palcall{ThreadDelay} and \palcall{ThreadYield}
-delays the current thread, until a period of time has passed, or the host scheduler re-schedules the thread to a CPU core.
+\palcall{ThreadCreate} is simplified in several ways.
+First, \palcall{ThreadCreate} does not allow the guest to specify
+the initial stack where the new thread starts execution.
+Instead, the host OS takes the liberty of allocating an initial, fixed-size stack for the new thread,
+but the new thread is free to
+switch to a user-assigned stack afterward.
+Second, \palcall{ThreadCreate} takes no creation options
+except a starting function and a parameter.
+Every threads created by \palcall{ThreadCreate} should look identical to the host,
+and share every resources assigned to the process.
 
 
 
 \begin{paldef}
-bool ThreadDelay     (u64 delay_microsec);
+void ThreadExit (void);
+\end{paldef}
+
+\palcall{ThreadExit} simply terminates the current thread in the host OS. The \hostapi{} takes no argument, and should never return if it succeeds.
+The purpose of \palcall{ThreadExit} is to free the resources allocated in the host OS
+for creating the current thread, including the initial stack.
+
+
+
+
+%The host ABI does not implement thread exiting notifications.
+%When a guest thread is terminated using \palcall{ThreadExit}, the PAL destroys the correspondent kernel thread
+%without notifying other threads.
+%The design counts on the library OS to implement the Linux-style notifications,
+%including
+%sending a \code{SIGCHLD} signal,
+%or triggering a parent-wakening futex.
+% assigned by a child thread ID field given to  
+
+
+\subsubsection*{Scheduling a thread}
+
+
+The host ABI allows a running thread to voluntarily give up the CPU core,
+or to be interrupted by other threads.
+In either ways, the thread is suspended until being rescheduled
+to a CPU core.
+The purpose of rescheduling a thread is to prevent the thread to busily waiting for a specific condition,
+such as a variable being set to specific value, or a specific time in the future.
+Busy-waiting wastes CPU cycles,
+and can potentially prevent other threads from being scheduled, if the host scheduler does not
+implement a time-slicing scheduling algorithm such as round-robin.
+Although the guest delegates scheduling to the host scheduler, the guest can proactively request for scheduling to improve CPU throughput.
+
+
+
+%Besides thread creation,
+%the host ABI needs scheduling features to interrupt a thread execution,
+%or yield the CPU.
+%The concerns for including scheduling features
+%in the host ABI
+%is two-fold.
+%The first concern is regarding compatibility;
+%an application may be stuck in a busy-waiting loop, if the library OS lacks the ability to interrupt the execution when certain events occur.
+%Specifically, \palcall{ThreadInterrupt} interrupts a thread using a thread handle
+%returned by \palcall{ThreadCreat}.
+%The second concern is regarding the CPU occupancy;
+%if a thread does not forfeit the CPU when it stops making progress,
+%the CPU can be wasted being idle.
+%\palcall{ThreadDelay} and \palcall{ThreadYield}
+%delays the current thread, until a period of time has passed, or the host scheduler re-schedules the thread to a CPU core.
+
+
+
+\begin{paldef}
+u64  ThreadDelay     (u64 delay_microsec);
 void ThreadYield     (void);
+\end{paldef}
+
+
+\fixmedp{Define the semantics a bit more. When you do a delay, presumably wait at least that long; are theere any cases you can return early (e.g., EINTR)?}
+Both \palcall{ThreadDelay} and \palcall{ThreadYield} suspend the current thread for rescheduling.
+\palcall{ThreadDelay} suspends the current thread
+for a period of time, and the length of suspension is specified by \palkeyword{delay_microsec}, in microseconds.
+If the thread is suspended successfully and rescheduled after expiration of the specified period,
+\palcall{ThreadDelay} returns zero and resumes the thread execution.
+If the thread is rescheduled prematurely, due to interruption of other threads (using \palcall{ThreadInterrupt}),
+\palcall{ThreadDelay} returns the remaining time in microseconds.
+\fixmedp{When you do a yield, under what conditions are you rescheduled?}
+\palcall{ThreadYield} simply yields the CPU, and the caller thread can be rescheduled immediately by the host scheduler.
+
+
+
+
+
+
+
+\begin{paldef}
 void ThreadInterrupt (HANDLE thread_handle);
 \end{paldef}
 
 
 
-Similar to memory management, the host ABI delegates scheduling to the hosts.
-As the design and implementation of the scheduling policies
-differ from host to host,
-the library OS cannot implement all the Linux scheduling API and policies in the user space,
-unless the host ABI exposes a wide interface
-for configuring the host scheduler.
+\palcall{ThreadInterrupt} reschedules another thread, either running or suspended, based on a given thread handle.
+\palcall{ThreadInterrupt} has two primary purposes.
+First, \palcall{ThreadInterrupt} can interrupt the suspension of a thread, and force the thread to resume execution immediately.
+Second, \palcall{ThreadInterrupt} can interrupt the execution of a running thread,
+so that the thread can instantaneously respond to a sudden event.
+Without \palcall{ThreadInterrupt},
+a running thread can only detect the occurrence of an event at a certain ``checkpoint'' in the code.
+
+
+
+
+
+\paragraph{Scheduling options.}
+The host ABI currently contains no scheduling options for the guest to configure the host scheduler.
+An OS usually allows an application to set certain scheduling options,
+such as assigning the scheduling priority of a thread, or configuring the scheduling policies.
+For simplicity,
+the host ABI completely delegates scheduling to the host scheduler,
+and only allows host-level, user configuration for setting the scheduling options statically.
+The simplicity prevents the host from exposing a wide interface
+for configuring the host scheduler,
+but such a host ABI would fail to support
+most of the scheduling options available in Linux (e.g., \syscall{sched\_setparam}).
+%Similar to memory management, the host ABI delegates scheduling to the hosts.
+%As the design and implementation of the scheduling policies
+%differ from host to host,
+%the library OS cannot implement all the Linux scheduling API and policies in the user space,
+%unless the host ABI exposes a wide interface
+%for configuring the host scheduler.
+
+
+
 Luckily, most of the scheduling options in Linux does not impact
-the functionality of an application;
-for example, without configuring the scheduling priority of threads,
+the functionality of an application.
+For example, without setting the scheduling priority,
 the application can still make progress,
 but may suffer performance penalty due to unnecessary CPU idles.
-The only exception happens when an application requires
-producer and consumer threads
-to be scheduled on different cores,
-or the application may be deadlocked and stop progressing.
+The only exception is CPU affinity, as binding a thread to one or multiple CPU cores.
+CPU affinity is important
+for an application with a producer-consumer programming model,
+wherein the consumer busily waits for the producer.
+Such a producer-consumer model requires the producer and consumer threads to be scheduled on different CPU cores, to prevent being deadlocked by the scheduler.
+% when an application requires
+%producer and consumer threads
+%to be scheduled on different cores,
+%or the application may be deadlocked and stop progressing.
 %which continues to poll a work queue;
 %in this producer-consumer scenario,
 %the threads must run on different CPU cores, to prevent deadlocks.
-We propose adding a function called \palcall{ThreadSetCPUInfinity} to the host ABI,
+We propose adding a \hostapi{} called \palcall{ThreadSetCPUAffinity}
 to support binding a thread to CPU cores:
 
 \begin{paldef}
-bool ThreadSetCPUInfinity (uint cpu_nums[], uint count);
+bool ThreadSetCPUAffinity (u8 cpu_indexes[], u8 num);
 \end{paldef}
+
+\fixmedp{Explain how the arguments work}
+\palcall{ThreadSetCPUAffinity} binds the current thread to a list of CPU cores, as specified in \palkeyword{cpu_indexes}.
+\palkeyword{cpu_indexes} is an array of non-negative integers, which are smaller than the total number of CPU cores.
+
 
 
 \subsubsection*{Scheduling primitives}
 
 
-The host ABI also includes scheduling primitives, such as locking, for synchronizing the execution
+The host ABI includes two scheduling primitives: one is mutex locking, and the other is 
+
+
+, for synchronizing the execution
 of several threads running in parallel.
 The host ABI must provide scheduling primitives,
 because locking cannot be reliably implemented in the user space;
@@ -126,13 +250,14 @@ Therefore, by including the scheduling primitives in the host ABI,
 
 
 \begin{paldef}
-HANDLE SemaphoreCreate  (uint max_count, uint inital);
-void   SemaphoreRelease (HANDLE semaphore_handle);
-void   SemaphoreDestroy (HANDLE semaphore_handle);
+HANDLE MutexCreate (void);
+void   MutexUnlock (HANDLE mutex_handle);
+\end{paldef}
+
+\begin{paldef}
 HANDLE SynchronizationEventCreate (void);
 HANDLE NotificationEventCreate    (void);
-void EventSet     (HANDLE event_handle);
-void EventDestroy (HANDLE event_handle);
+void   EventSet     (HANDLE event_handle);
 \end{paldef}
 
 

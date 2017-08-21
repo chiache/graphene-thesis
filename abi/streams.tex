@@ -190,10 +190,11 @@ The nonblocking I/O option is necessary for performing asynchronous I/O in the g
 %uses a URI (uniform resource identifier), for specifying the I/O stream.
 %An URI identifies both the type of I/O and the distination or location of the I/O stream.
 %The type of a I/O stream is determined by URI prefix.
-According to the consecutive operations, \palcall{StreamOpen}
-returns two types of handles: One type represents a simple byte stream;
-the other type is a server handle, which can wait on remote clients to initiate handshakes
-for creating a byte-stream connection.
+According to consecutive operations, handles returned by \palcall{StreamOpen}
+can be separated into two types:
+One is a simple byte stream;
+the other type is a {\bf server handle}, which waits for remote clients to initiate handshakes
+for establishing a byte-stream connection.
 A server handle can be bound as a network server or a RPC server.
 Because a server handle is not a byte stream, it cannot be directly read or written,
 but can be given to \palcall{ServerWaitForClient} to block and receive a client connection.
@@ -615,7 +616,7 @@ which contains the new attributes to be assigned to the I/O stream.
 
 A dilemma for defining the \palkeyword{STREAM_ATTRS} data structure is
 to decide which stream attributes,
-especially for a network stream, should be exposed by the host,
+especially the attributes for a network stream (i.e., flags included in \palkeyword{network_option}), should be exposed by the host,
 A network stream attribute can be derived from an optional feature inside the host network stack,
 or a configuration at the NIC level.
 Exposing these stream attributes allows the guest to export APIs for applications

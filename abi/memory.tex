@@ -27,7 +27,7 @@
 
 \issuedone{1.2.a}{discuss resource management at host level (pages)}
 The abstraction in the host ABI for page management
-is a virtaul memory area (VMA), a page-aligned, nonoverlaping region
+is a {\bf virtaul memory area (VMA)}, a page-aligned, nonoverlaping region
 in the guest's virtual address space.
 A virtual memory area
 specifies the memory region that requires the host OS to allocate the page resources,
@@ -62,7 +62,7 @@ u64  VirtMemAlloc   (u64 expect_addr, u64 size,
 Otherwise, if no address is given, \palcall{VirtMemAlloc} can create the VMA at wherever the host OS sees fit, and does not overlap with existing VMAs.
 Both \palkeyword{expect_addr} and \palkeyword{size}
 must be page-aligned, and never exceed the permitted range in the guest's virtual address space.
-\palkeyword{protect_flags} specifies the memory protection on the created VMA, and can be given a combination of the following values: \palkeyword{READ}, \palkeyword{WRITE}, and \palkeyword{EXEC} (similar as \palcall{StreamMap} but without \palkeyword{WRITE_COPY}).
+\palkeyword{protect_flags} specifies the page protection in the created VMA, and can be given a combination of the following values: \palkeyword{READ}, \palkeyword{WRITE}, and \palkeyword{EXEC} (similar as \palcall{StreamMap} but without \palkeyword{WRITE_COPY}).
 If \palcall{VirtMemAlloc} succeeds, it returns the starting address
 of the created VMA, which the guest is permitted to access up to the given size.
 
@@ -78,10 +78,10 @@ bool VirtMemProtect (u64 addr, u64 size,
 
 
 \palcall{VirtMemFree} and \palcall{VirtMemProtect} modify one or more VMAs, 
-by either freeing the memory
-or adjusting the memory protection in an address range.
-Both \hostapis{} specify the starting address and size of the address range to modify.
-The given address range must be page-aligned,
+by either freeing the pages
+or adjusting the page protection in an address range.
+Both \hostapis{} specify the starting address and size of the address range to modify;
+the given address range must be page-aligned,
 but can be any part of the guest virtual address apace,
 and overlap with any VMAs, either file-backed or anonymous.
 If the given address range overlaps with a VMA, the overlapped part is divided into a new VMA, and be destroyed or protected accordingly.
