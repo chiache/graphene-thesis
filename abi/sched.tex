@@ -151,9 +151,16 @@ for a period of time, and the length of suspension is specified by \palkeyword{d
 If the thread is suspended successfully and rescheduled after expiration of the specified period,
 \palcall{ThreadDelay} returns zero and resumes the thread execution.
 If the thread is rescheduled prematurely, due to interruption of other threads (using \palcall{ThreadInterrupt}),
-\palcall{ThreadDelay} returns the remaining time in microseconds.
+\palcall{ThreadDelay} returns the remaining suspension time in microseconds.
+
+
 \fixmedp{When you do a yield, under what conditions are you rescheduled?}
-\palcall{ThreadYield} simply yields the CPU, and the caller thread can be rescheduled immediately by the host scheduler.
+\palcall{ThreadYield} simply yields the execution of current thread, and the thread can be rescheduled immediately by the host scheduler.
+\palcall{ThreadYield} allows a thread to request for rescheduling when the thread expects
+to wait for certain conditions.
+When \palcall{ThreadYield} is called, the host scheduler will suspend the current time slice,
+and rerun the scheduling algorithm to select a runnable thread.
+
 
 
 
@@ -232,20 +239,31 @@ bool ThreadSetCPUAffinity (u8 cpu_indexes[], u8 num);
 \subsubsection*{Scheduling primitives}
 
 
-The host ABI includes two scheduling primitives: one is mutex locking, and the other is 
+The host ABI includes two scheduling primitives: one is mutex locking, and the other is a waitable event.
+The purpose of defining the host scheduling primitives
+is to improve the user-space locking. The user-space locking is generally implemented
+by atomic instructions
+or the compare-and-swap (CAS) instruction;
+To perform user-space locking, a thread will be spinning on a CPU core until atomically changing the state of a lock or an event.
+The host scheduling primitives can prevent a thread from spinning on a CPU core,
+by requesting the host scheduler
+to suspend the thread until the expected condition occurs.
 
 
-, for synchronizing the execution
-of several threads running in parallel.
-The host ABI must provide scheduling primitives,
-because locking cannot be reliably implemented in the user space;
-user-space locking
-cannot prevent a thread from being interrupted inside a critical section,
-and thus 
-causing the application to deadlock.
-Also, user-space locking must be implemented using the compare-and-exchange (\code{CMPXCHG}) instructions, which may not be available on every architectures.
-Therefore, by including the scheduling primitives in the host ABI,
-\graphene{} can encapsulate different kinds of scheduling options available on the hosts.
+
+
+
+%, for synchronizing the execution
+%of several threads running in parallel.
+%The host ABI must provide scheduling primitives,
+%because locking cannot be reliably implemented in the user space;
+%user-space locking
+%cannot prevent a thread from being interrupted inside a critical section,
+%and thus 
+%causing the application to deadlock.
+%Also, user-space locking must be implemented using the compare-and-exchange (\code{CMPXCHG}) instructions, which may not be available on every architectures.
+%Therefore, by including the scheduling primitives in the host ABI,
+%\graphene{} can encapsulate different kinds of scheduling options available on the hosts.
 
 
 
@@ -254,53 +272,77 @@ HANDLE MutexCreate (void);
 void   MutexUnlock (HANDLE mutex_handle);
 \end{paldef}
 
+
+\palcall{MutexCreate} creates a mutex (mutual-exclusive) lock for atomic execution of a critical section in the code.
+A mutex lock can only be acquired by one thread at a time;
+if multiple threads are competing over a mutex lock, only one thread will proceed while other threads will block until the lock is released.
+A mutex lock can be acquired by \palcall{ObjectsWaitAny} (described later),
+and be released by \palcall{MutexUnlock}.
+
+
+
 \begin{paldef}
 HANDLE SynchronizationEventCreate (void);
 HANDLE NotificationEventCreate    (void);
-void   EventSet     (HANDLE event_handle);
+void   EventSet (HANDLE event_handle);
 \end{paldef}
 
 
 
-\graphene{} inherit most of the scheduling primitives
-from \drawbridge{}~\cite{porter11drawbridge}:
-{\bf semaphores} ensures the atomicity of a critical section;
-{\bf events} enforces the order of execution among multiple threads.
-The events created by the host ABI
-can be separated into synchronization events and notification events;
-the former is used by a producer thread, to wake a consumer thread
-blocking on a queue;
-the latter notifies the occurrence of a condition
-and prevent further blocking of threads.
-Both semaphores and events resemblance the abstractions provided by the Windows API;
-we show that these scheduling primitives are also portable on other hosts, including Linux, BSD, and SGX, using futexes or similar locking mechanisms.
+%\graphene{} inherit most of the scheduling primitives
+%from \drawbridge{}~\cite{porter11drawbridge}:
+%{\bf semaphores} ensures the atomicity of a critical section;
+%{\bf events} enforces the order of execution among multiple threads.
+%The events created by the host ABI
+%can be separated into synchronization events and notification events;
+%the former is used by a producer thread, to wake a consumer thread
+%blocking on a queue;
+%the latter notifies the occurrence of a condition
+%and prevent further blocking of threads.
+%Both semaphores and events resemblance the abstractions provided by the Windows API;
+%we show that these scheduling primitives are also portable on other hosts, including Linux, BSD, and SGX, using futexes or similar locking mechanisms.
 
 
 
+\palcall{SynchronizationEventCreate} and \palcall{NotificationEventCreate} create a waitable event for synchronizing the execution of multiple threads.
+These two \hostapis{} create two types of waitable events, namely synchronization event and notification event.
+Both types of events can be waited by a thread. %, using \palcall{ObjectsWaitAny}.
+The difference is that
+setting a synchronization event
+wakes up at most one thread that are currently waiting for the event,
+whereas setting a notification event stops any thread from
+further blocking on the event.
+An event can be set by \palcall{EventSet}, and be waited by \palcall{ObjectsWaitAny}.
 
 
+Synchronization events and notification events are designed for different purposes.
+A synchronization event can be used in a producer-consumer model, wherein a consumer thread can block until a producer thread submits a task or a result.
+On the other hand, a notification event can be used for notifying the occurrence of a one-time event;
+for example, a thread calling \palcall{ThreadCreate} can use a notification event to block until a new thread is created and starts execution.
 
 
+\subsubsection*{Waiting for scheduling events}
 
 
-\subsubsection*{Polling handles}
-
-
-The host ABI allows the library OS to poll one or several handles
-at the same time.
-The possible handles to poll include semaphores, synchronization or notification events,
-or I/O streams.
-Therefore, the host ABI
-introduces a function, \palcall{ObjectsWait}, similar to \syscall{poll} in POSIX,
-with a timeout option.
+%The host ABI allows the library OS to poll one or several handles
+%at the same time.
+%The possible handles to poll include semaphores, synchronization or notification events,
+%or I/O streams.
+%Therefore, the host ABI
+%introduces a function, \palcall{ObjectsWait}, similar to \syscall{poll} in POSIX,
+%with a timeout option.
 
 
 
 \begin{paldef}
-HANDLE ObjectsWait    (HANDLE *handles, uint nhandles,
-                       ulong timeout);
+HANDLE ObjectsWait    (HANDLE *handles, u8 nhandles,
+                       u64 timeout);
+\end{paldef}
+
+
+\begin{paldef}
 HANDLE StreamGetEvent (HANDLE stream_handle,
-                       uint event_flags);
+                       u16 event_flags);
 \end{paldef}
 
 
