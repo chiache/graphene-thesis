@@ -239,15 +239,18 @@ bool ThreadSetCPUAffinity (u8 cpu_indexes[], u8 num);
 \subsubsection*{Scheduling primitives}
 
 
-The host ABI includes two scheduling primitives: one is mutex locking, and the other is a waitable event.
-The purpose of defining the host scheduling primitives
-is to improve the user-space locking. The user-space locking is generally implemented
-by atomic instructions
-or the compare-and-swap (CAS) instruction;
-To perform user-space locking, a thread will be spinning on a CPU core until atomically changing the state of a lock or an event.
-The host scheduling primitives can prevent a thread from spinning on a CPU core,
-by requesting the host scheduler
-to suspend the thread until the expected condition occurs.
+The host ABI includes two scheduling primitives: one is mutex (mutually-exclusive) locking, and the other is a waitable event object.
+The purpose of including scheduling primitives in the host ABI
+is to improve the user-space synchronization, which is generally implemented
+by atomic or compare-and-swap (CAS) instruction;
+with user-space synchronization, a thread will spin on a CPU core until the state of a lock or an event
+is atomically changed.
+The host-level scheduling primitives
+%can prevent a thread from spinning on a CPU core,
+%by requesting the host scheduler
+can avoid the spinning
+by suspending a blocking thread in the host scheduler,
+until being signaled by another thread.
 
 
 
@@ -273,11 +276,18 @@ void   MutexUnlock (HANDLE mutex_handle);
 \end{paldef}
 
 
-\palcall{MutexCreate} creates a mutex (mutually-exclusive) lock for atomic execution of a critical section in the code.
-A mutex lock can only be acquired by one thread at a time;
-if multiple threads are competing over a mutex lock, only one thread will proceed while other threads will block until the lock is released.
-A mutex lock can be acquired by \palcall{ObjectsWaitAny} (defined later),
-and be released by \palcall{MutexUnlock}.
+\palcall{MutexCreate} creates a handle that can be used as a mutex lock.
+A mutex lock enforces atomic execution in a critical section:
+if multiple threads are competing over a mutex lock
+before entering the critical section,
+only one thread can proceed while other threads will block until the lock is released again.
+\palcall{MutexUnlock} releases a mutex lock held
+by the current thread.
+To acquire a mutex lock,
+a generic \hostapi{},
+\palcall{ObjectsWaitAny} (defined later),
+can be used to compete with other threads,
+or wait for the lock release if the lock is held.
 
 
 
@@ -305,22 +315,25 @@ void   EventClear (HANDLE event_handle);
 
 
 
-\palcall{SynchronizationEventCreate} and \palcall{NotificationEventCreate} create two different types of waitable events for synchronizing the execution of multiple threads.
-Both types of events can be signaled by a thread.
-Signaling a synchronization event allows exactly one waiting thread to continue execution.
-A synchronization event can synchronize producer and consumer threads,
-since a producer thread can signal exactly one consumer at a time.
-On the other hand, a notification event can stay signaled until a thread manually resets the event using \palcall{EventClear}.
-A notification event can be used for notifying the occurrence of a one-time event,
-such as the start of a new thread.
+\palcall{SynchronizationEventCreate} and \palcall{NotificationEventCreate} create two different types of waitable event objects, as synchronization and notification event objects.
+Any thread can use \palcall{EventSet} to signal an event.
+Signaling a synchronization event object allows exactly one waiting thread to continue its execution,
+immediately or in the future.
+A synchronization event object can be used to coordinate threads that cooperate as producers and consumers;
+a producer thread can signal exactly one consumer at a time.
+On the other hand, a notification event object can stay signaled until another thread
+manually resets the event object, using \palcall{EventClear}.
+A notification event object can be used for notifying the occurrence of a one-time event,
+such as the start or termination of an execution.
 %Both types of events can be waited by a thread. %, using \palcall{ObjectsWaitAny}.
 %The difference is that
 %singaling a synchronization event
 %wakes up at most one thread that are currently waiting for the event,
 %whereas signaling a notification event stops any thread from
 %further blocking on the event.
-An event can be signal by \palcall{EventSet}, and a thread can wait for the event
-using \palcall{ObjectsWaitAny} (defined later).
+Similar to acquiring a mutex lock,
+\palcall{ObjectsWaitAny} can also be used
+to wait for an event object to be signaled.
 
 
 %Synchronization events and notification events are designed for different purposes.
@@ -343,91 +356,170 @@ using \palcall{ObjectsWaitAny} (defined later).
 
 
 \begin{paldef}
-HANDLE ObjectsWaitAny (HANDLE *handles, u8 nhandles,
-                       u64 timeout);
+HANDLE ObjectsWaitAny (HANDLE *handle_array,
+                       u8 handle_num, u64 timeout);
 \end{paldef}
 
 
-\palcall{ObjectsWaitAny} will block on one or multiple event handles, until one of the events occur.
-For the least,
-\palcall{ObjectsWaitAny} allows a thread to
-wait until a mutex lock is released, or an event is signaled.
-Moreover, \palcall{ObjectsWaitAny} can be used to poll %for certain events
-an I/O stream handle,
-to wait for events such as arrival or delivery of data,
-a stream being shut down.
-\palcall{ObjectsWaitAny}
+The host ABI defines a generic \hostapi{},
+\palcall{ObjectsWaitAny}, to wait for various kinds of events that are assoicated 
+with a given handle array (specified by \palkeyword{handle_array} and \palkeyword{handle_num}).
+A common usage of \palcall{ObjectsWaitAny}
+is to perform a blocking operation on a scheduling primitive,
+such as acquiring a mutex lock,
+or waiting for the signaling of an event object.
+If the mutex lock is successfully acquired, or the event is signaled,
+\palcall{ObjectsWaitAny} stops blocking
+and returns the target handle. 
+\palcall{ObjectsWaitAny} only accepts one handle if
+the handle is a mutex lock or an event object;
+waiting for multiple mutex locks or event objects is not supported by the host ABI,
+because the feature has no concrete use case in the guest,
+and can be tricky to implement due to lack of similar system API.
 
 
+%For the least,
+%\palcall{ObjectsWaitAny} allows a thread to
+%wait until a mutex lock is released, or an event is signaled.
+%Moreover, \palcall{ObjectsWaitAny} can be used to poll %for certain events
+%an I/O stream handle,
+%to wait for events such as arrival or delivery of data,
+%a stream being shut down.
+%\palcall{ObjectsWaitAny}
+
+\palcall{ObjectsWaitAny} also receives a \palkeyword{timeout} argument to prevent the current thread to wait for the events indefinitely.
+If the timeout expires before the occurrence of any events related with the given handles,
+\palcall{ObjectsWaitAny} stops blocking
+and returns a null handle.
+
+
+\palcall{ObjectsWaitAny} can also be used for polling multiple stream handles, to wait for I/O events
+such as receiving inbound data or sudden failure.
+Unlike a mutex lock or an event object, a stream handle can be associated
+with multiple I/O events.
+Therefore, the host ABI introduces a \hostapi{}, \palcall{StreamGetEvent}, to create a stream event handle
+that represents a specific I/O event of the given stream handle.
+The definition of \palcall{StreamGetEvent} is inspired by Bascule~\cite{baumann13bascule}.
 
 
 \begin{paldef}
-HANDLE StreamGetEvent (HANDLE stream_handle,
-                       u16 event_flags);
+HANDLE StreamGetEvent (HANDLE stream_handle, u16 event);
 \end{paldef}
 
 
-A challenge to implementing polling
-to differentiate the I/O events which can occur on a stream.
-When blocking on a network or RPC stream, an application needs to be notified
-about three types of events:
-establishment of the connection (i.e., becoming writable), arrival of messages (i.e., becoming readable), and shut-down of the connection;
-thus, the \graphene{} host ABI introduces a new function,
-\palcall{StreamGetEvent},
-to generate a handle identifying these I/O events of a stream,
-and can be polled by \palcall{ObjectsWait}.
-The design also keeps the definition of \palcall{ObjectsWait} simple:
-\palcall{ObjectsWait} should do nothing more than blocking on an array of handles,
-until one of the handles
-is wakened, or the call timeouts.
+\fixmedp{Could you accomplish the smae thing by creating more than one handle for a network socket?}
+\palcall{StreamGetEvent} receives a stream handle and a specific I/O event.
+The \palkeyword{event} argument can be given
+one of the following values:
+\palkeyword{READ_READY}, for notifying that there are inbound data ready to be read;
+\palkeyword{WRITE_READY}, for notifying
+that a network connection is fully established
+and ready to be written;
+and \palkeyword{ERROR}, for notifying that certain failures occur on the stream.
+
+%A challenge to implementing polling
+%to differentiate the I/O events which can occur on a stream.
+%When blocking on a network or RPC stream, an application needs to be notified
+%about three types of events:
+%establishment of the connection (i.e., becoming writable), arrival of messages (i.e., becoming readable), and shut-down of the connection;
+%thus, the \graphene{} host ABI introduces a new function,
+%\palcall{StreamGetEvent},
+%to generate a handle identifying these I/O events of a stream,
+%and can be polled by \palcall{ObjectsWait}.
+%The design also keeps the definition of \palcall{ObjectsWait} simple:
+%\palcall{ObjectsWait} should do nothing more than blocking on an array of handles,
+%until one of the handles
+%is wakened, or the call timeouts.
 
 
 \subsubsection*{Thread-local storage}
 
 
-Most OSes requires thread-local storage (TLS),
-either to implement thread-private application variables, or to store thread-specific, system library states, in a thread control block (TCB).
-Because thread-local storage can be frequently accessed
-in an application,
-it would be inefficient to constantly
-enter the kernel for retrieving the TLS data.
-A common design is to occupy one of the thread-private registers
-to store a pointer to the thread-local storage;
-on \graphenearch{}, the FS register is commonly used to reference the thread-local storage.
+Some OSes, such as Linux and Windows, requires a thread-local storage (TLS),
+either to store thread-private variables, or to maintain a user-space
+thread control block (TCB) for system libraries.
+A TLS area can potentially be frequently accessed by an application or library.
+Therefore, on \graphenearch{},
+the TLS is often referenced by one of the FS and GS segment registers,
+which is assigned a unique pointer.
+%from all other threads.
+A thread can access a state in its own TLS by referencing a specific offset from the FS/GS register.
+Also, retrieving or assigning the value of the FS/GS register
+is a privilege operation
+that must be performed in the host OS kernel.
+
+
+
+%Because thread-local storage can be frequently accessed
+%in an application,
+%it would be inefficient to constantly
+%enter the kernel for retrieving the TLS data.
+%A common design is to occupy one of the thread-private registers
+%to store a pointer to the thread-local storage;
+%on \graphenearch{}, the FS register is commonly used to reference the thread-local storage.
 
 
 
 
 \begin{paldef}
-void SegmentRegSet (uint register, ulong *value);
+u64 SegmentRegisterAccess (u8 register, u64 value);
 \end{paldef}
 
 
 
+
+The host ABI introduces a \hostapi{}, \palcall{SegmentRegisterAccess}, for reading or writing the FS/GS register value.
+The \palkeyword{register} argument can be either \palkeyword{WRITE_FS} or \palkeyword{WRITE_GS},
+with the \palkeyword{value} argument
+being a pointer that references to the TLS area.
+Otherwise, the \palkeyword{register} argument
+can be \palkeyword{READ_FS} or \palkeyword{READ_GS},
+to retrieve the FS/GS register value.
+Regardless, \palcall{SegmentRegisterAccess} returns the current value of FS/GS register.
+
+
+
 \issuedone{1.3.e}{discuss the FS/GS limitation}
-The host ABI includes a function, \palcall{SegmentRegSet}, to set the FS/GS registers.
-The implementation of \palcall{SegmentRegSet}
-depends the host system interfaces. 
-By default, reading or writing the value of the FS/GS registers is a privileged operation
-which can only be performed in ring 0.
-On Linux or BSD, the FS register is commonly used for bookkeeping in the standard C library;
-thus, the Linux or BSD system calls naturally include the feature of reading or writing the FS/GS registers in the kernel space (although only the FS register is used in the user space).
-However, on other hosts, especially Windows and OSX,
-we observe the case where changing the FS/GS registers is considered unnecessary and dangerous to the kernel.
-These hosts periodically reset the value of the FS/GS registers,
-preventing the host ABI to assign the TLS permanently.
+Unfortunately, the feasibility of implementing \palcall{SegmentRegisterAccess}
+deoends on the host OS.
+%The implementation of \palcall{SegmentRegSet}
+%depends the host system interfaces. 
+%By default, reading or writing the value of the FS/GS registers is a privileged operation
+%which can only be performed in ring 0.
+Linux and similar OSes allow the usage of FS/GS register,
+primarily because the FS register is heavily used in the standard C library.
+%or BSD, the FS register is commonly used for bookkeeping in the standard C library;
+%thus, the Linux or BSD system calls naturally include the feature of reading or writing the FS/GS registers in the kernel space (although only the FS register is used in the user space).
+However, in other OSes, especially Windows and OSX,
+changing the FS/GS register %is considered an unnecessary or even dangerous behavior,
+is forbidden by the OS kernels.
+The Windows 7, 8, and 10 kernels confiscate the FS register for storing a thread control block (TCB),
+and thus forbid users to change the FS register value.
+OSX's xnu kernel considers FS/GS registers to be of no concrete use.
+These OS kernels
+have been aggressively resetting the FS/GS register values
+to mitigate any user attempt of changing them.
+Therefore, the host ABI declares \palcall{SegmentRegisterAccess}
+as one of the optional \hostapis{},
+as the guest should consider developing a workaround if the \hostapi{} is not supported on a certain host.
 
 
-The primary challenge
-to implementing TLS for Linux applications
-is that an executable can hard-code the references to the FS register in its binary.
-Because a Linux executable is usually {\em unrelocatable},
-it can access a thread-private pointer by simply reading or writing to a specific offset
-to the FS register.
-To support these applications,
-a host must populate a valid TCB at the address pointed by the FS register;
-if the host forbids setting the FS register,
-the library OS cannot support TLS for an executable using thread-private pointers.
+%we observe the case where changing the FS/GS registers is considered unnecessary and dangerous to the kernel.
+%These hosts periodically reset the value of the FS/GS registers,
+%preventing the host ABI to assign the TLS permanently.
+
+
+
+%The primary challenge
+%to implementing TLS for Linux applications
+%is that an executable can hard-code the references to the FS register in its binary.
+%Because a Linux executable is usually {\em unrelocatable},
+%it can access a thread-private pointer by simply reading or writing to a specific offset
+%to the FS register.
+%To support these applications,
+%a host must populate a valid TCB at the address pointed by the FS register;
+%if the host forbids setting the FS register,
+%the library OS cannot support TLS for an executable using thread-private pointers.
 
 %On these hosts, the compatibility for TLS usage in applications is partially sacrificed.
 
