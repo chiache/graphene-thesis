@@ -1,245 +1,524 @@
-\subsection{Threading}
+\subsection{CPU Scheduling}
 \label{sec:abi:thread}
 
 \issuedone{1.2.a}{discuss resource management at host level (threading)}
-Threading in the host ABI includes two kinds of features:
-one is to create a thread, for scheduling the CPU resources; the other is to synchronize or coordinate among multiple threads,
-using several scheduling primitives programmable by applications.
-Both Linux and POSIX have defined a rich threading API, with various thread creation options
-and scheduling primitives.
-\graphene{} simplifies the host ABI
-to include only a small set of threading features.
+The host ABI for CPU scheduling includes two abstractions:
+one is the creation of a {\bf thread}, an execution unit allocated by the guest,
+to be scheduled to run on a CPU core.
+The other abstraction is a set of {\bf scheduling primitives},
+designed for synchronization and coordination
+among multiple threads.
+%Both Linux and POSIX have defined a rich threading API, with various thread creation options
+%and complex scheduling primitives.
+%\graphene{} simplifies the host ABI
+%by include only a small set of basic threading features.
 %for each host to implement.
 
 
 
-\subsubsection*{Creating a thread}
+The thread abstraction requires the host OS to contain a host scheduler.
+A host scheduler will dynamically assign one of the living threads to each CPU core, to allow the thread to continue execution until rescheduling.
+The scheduling algorithm of a host scheduler is up to
+the design and configuration of the host OS;
+however, a host scheduler does have to ensure every thread to follow its expected behaviors,
+regardless of the scheduling algorithm.
+For the least, a host scheduler should avoid completely starving one of the living threads,
+so that the guest can make progress as expected.
+Other CPU scheduling criteria such as fairness, throughput, and CPU utilization
+are still critical to the application performance, but the host scheduler is responsible of improving these criteria.
 
 
 
-Unlike a user thread in Linux or POSIX (i.e., a ``pthread''),
-a guest thread created by the host ABI,
-using \palcall{ThreadCreate},
-is simply a new context which starts at a function.
-The host ABI
-moves all the thread creation options,
-such as thread-local storage,
-to an initialization function called after the thread creation,
-inside the library OS.
-The purpose of \palcall{ThreadCreate}
-is simple: it creates a ``kernel thread'' in the host,
-which can be scheduled by the host scheduler,
-to run application code on another CPU core.
-The \graphene{} library OS does not implement its own scheduler.
+
+
+
+\subsubsection*{Creating or terminating a thread}
+
+
+
+%Unlike a user thread in Linux or POSIX (i.e., a ``pthread''),
+%a guest thread created by the host ABI,
+%using \palcall{ThreadCreate},
+%is simply a new context which starts at a function.
+%The host ABI
+%moves all the thread creation options,
+%such as thread-local storage,
+%to an initialization function called after the thread creation,
+%inside the library OS.
+%The purpose of \palcall{ThreadCreate}
+%is simple: it creates a ``kernel thread'' in the host,
+%which can be scheduled by the host scheduler,
+%to run application code on another CPU core.
+%The \graphene{} library OS does not implement its own scheduler.
 
 
 \begin{paldef}
-HANDLE ThreadCreate (void (*start) (void *), void *arg);
-void ThreadExit (void);
+HANDLE ThreadCreate (void (*start) (void *),
+                     void *param);
 \end{paldef}
 
 
-The host ABI does not implement thread exiting notifications.
-When a guest thread is terminated using \palcall{ThreadExit}, the PAL destroys the correspondent kernel thread
-without notifying other threads.
-The design counts on the library OS to implement the Linux-style notifications,
-including
-sending a \code{SIGCHLD} signal,
-or triggering a parent-wakening futex.
-% assigned by a child thread ID field given to  
+\palcall{ThreadCreate} creates a living thread that can be immediately
+scheduled by the host scheduler.
+The arguments of \palcall{ThreadCreate} specify the initial state of the new thread, including a function to start the thread execution, and a parameter being passed to the function.
+As soon as \palcall{ThreadCreate} successfully returns,
+the caller thread and the created thread should both be live in the host OS.
+%and scheduled to run in arbitrary order.
+When \palcall{ThreadCreate} succeeds, it returns a thread handle that represents the created thread
+to the caller.
 
 
 
 
-\subsubsection*{Scheduler}
-
-
-
-
-Besides thread creation,
-the host ABI needs scheduling features to interrupt a thread execution,
-or yield the CPU.
-The concerns for including scheduling features
-in the host ABI
-is two-fold.
-The first concern is regarding compatibility;
-an application may be stuck in a busy-waiting loop, if the library OS lacks the ability to interrupt the execution when certain events occur.
-Specifically, \palcall{ThreadInterrupt} interrupts a thread using a thread handle
-returned by \palcall{ThreadCreat}.
-The second concern is regarding the CPU occupancy;
-if a thread does not forfeit the CPU when it stops making progress,
-the CPU can be wasted being idle.
-\palcall{ThreadDelay} and \palcall{ThreadYield}
-delays the current thread, until a period of time has passed, or the host scheduler re-schedules the thread to a CPU core.
+\palcall{ThreadCreate} is simplified in several ways.
+First, \palcall{ThreadCreate} does not allow the guest to specify
+the initial stack where the new thread starts execution.
+Instead, the host OS takes the liberty of allocating an initial, fixed-size stack for the new thread,
+but the new thread is free to
+switch to a user-assigned stack afterward.
+Second, \palcall{ThreadCreate} takes no creation options
+except a starting function and a parameter.
+Every threads created by \palcall{ThreadCreate} should look identical to the host,
+and share every resources assigned to the process.
 
 
 
 \begin{paldef}
-bool ThreadDelay     (ulong delay_microsec);
-void ThreadYield     (void);
+void ThreadExit (void);
+\end{paldef}
+
+\palcall{ThreadExit} simply terminates the current thread in the host OS. The \hostapi{} takes no argument, and should never return if it succeeds.
+The purpose of \palcall{ThreadExit} is to free the resources allocated in the host OS
+for creating the current thread, including the initial stack.
+
+
+
+
+%The host ABI does not implement thread exiting notifications.
+%When a guest thread is terminated using \palcall{ThreadExit}, the PAL destroys the correspondent kernel thread
+%without notifying other threads.
+%The design counts on the library OS to implement the Linux-style notifications,
+%including
+%sending a \code{SIGCHLD} signal,
+%or triggering a parent-wakening futex.
+% assigned by a child thread ID field given to  
+
+
+\subsubsection*{Scheduling a thread}
+
+
+The host ABI allows a running thread to voluntarily give up the CPU core,
+or to be interrupted by other threads.
+In either ways, the thread is suspended until being rescheduled
+to a CPU core.
+The purpose of rescheduling a thread is to prevent the thread to busily waiting for a specific condition,
+such as a variable being set to specific value, or a specific time in the future.
+Busy-waiting wastes CPU cycles,
+and can potentially prevent other threads from being scheduled, if the host scheduler does not
+implement a time-slicing scheduling algorithm such as round-robin.
+Although the guest delegates scheduling to the host scheduler, the guest can proactively request for scheduling to improve CPU throughput.
+
+
+
+%Besides thread creation,
+%the host ABI needs scheduling features to interrupt a thread execution,
+%or yield the CPU.
+%The concerns for including scheduling features
+%in the host ABI
+%is two-fold.
+%The first concern is regarding compatibility;
+%an application may be stuck in a busy-waiting loop, if the library OS lacks the ability to interrupt the execution when certain events occur.
+%Specifically, \palcall{ThreadInterrupt} interrupts a thread using a thread handle
+%returned by \palcall{ThreadCreat}.
+%The second concern is regarding the CPU occupancy;
+%if a thread does not forfeit the CPU when it stops making progress,
+%the CPU can be wasted being idle.
+%\palcall{ThreadDelay} and \palcall{ThreadYield}
+%delays the current thread, until a period of time has passed, or the host scheduler re-schedules the thread to a CPU core.
+
+
+
+\begin{paldef}
+u64  ThreadDelay (u64 delay_microsec);
+void ThreadYield (void);
+\end{paldef}
+
+
+\fixmedp{Define the semantics a bit more. When you do a delay, presumably wait at least that long; are theere any cases you can return early (e.g., EINTR)?}
+Both \palcall{ThreadDelay} and \palcall{ThreadYield} suspend the current thread for rescheduling.
+\palcall{ThreadDelay} suspends the current thread
+for a period of time, and the length of suspension is specified by \palkeyword{delay_microsec}, in microseconds.
+If the thread is suspended successfully and rescheduled after expiration of the specified period,
+\palcall{ThreadDelay} returns zero and resumes the thread execution.
+If the thread is rescheduled prematurely, due to interruption of other threads (using \palcall{ThreadInterrupt}),
+\palcall{ThreadDelay} returns the remaining suspension time in microseconds.
+
+
+\fixmedp{When you do a yield, under what conditions are you rescheduled?}
+\palcall{ThreadYield} simply yields the execution of current thread, and the thread can be rescheduled immediately by the host scheduler.
+\palcall{ThreadYield} allows a thread to request for rescheduling when the thread expects
+to wait for certain conditions.
+When \palcall{ThreadYield} is called, the host scheduler will suspend the current time slice,
+and rerun the scheduling algorithm to select a runnable thread.
+
+
+
+
+
+
+
+
+\begin{paldef}
 void ThreadInterrupt (HANDLE thread_handle);
 \end{paldef}
 
 
 
-Similar to memory management, the host ABI delegates scheduling to the hosts.
-As the design and implementation of the scheduling policies
-differ from host to host,
-the library OS cannot implement all the Linux scheduling API and policies in the user space,
-unless the host ABI exposes a wide interface
-for configuring the host scheduler.
+\palcall{ThreadInterrupt} reschedules another thread, either running or suspended, based on a given thread handle.
+\palcall{ThreadInterrupt} has two primary purposes.
+First, \palcall{ThreadInterrupt} can interrupt the suspension of a thread, and force the thread to resume execution immediately.
+Second, \palcall{ThreadInterrupt} can interrupt the execution of a running thread,
+so that the thread can instantaneously respond to a sudden event.
+Without \palcall{ThreadInterrupt},
+a running thread can only detect the occurrence of an event at a certain ``checkpoint'' in the code.
+
+
+
+
+
+\paragraph{Scheduling options.}
+The host ABI currently contains no scheduling options for the guest to configure the host scheduler.
+An OS usually allows an application to set certain scheduling options,
+such as assigning the scheduling priority of a thread, or configuring the scheduling policies.
+For simplicity,
+the host ABI completely delegates scheduling to the host scheduler,
+and only allows host-level, user configuration for setting the scheduling options statically.
+The simplicity prevents the host from exposing a wide interface
+for configuring the host scheduler,
+but such a host ABI would fail to support
+most of the scheduling options available in Linux (e.g., \syscall{sched\_setparam}).
+%Similar to memory management, the host ABI delegates scheduling to the hosts.
+%As the design and implementation of the scheduling policies
+%differ from host to host,
+%the library OS cannot implement all the Linux scheduling API and policies in the user space,
+%unless the host ABI exposes a wide interface
+%for configuring the host scheduler.
+
+
+
 Luckily, most of the scheduling options in Linux does not impact
-the functionality of an application;
-for example, without configuring the scheduling priority of threads,
+the functionality of an application.
+For example, without setting the scheduling priority,
 the application can still make progress,
 but may suffer performance penalty due to unnecessary CPU idles.
-The only exception happens when an application requires
-producer and consumer threads
-to be scheduled on different cores,
-or the application may be deadlocked and stop progressing.
+The only exception is CPU affinity, as binding a thread to one or multiple CPU cores.
+CPU affinity is important
+for an application with a producer-consumer programming model,
+wherein the consumer busily waits for the producer.
+Such a producer-consumer model requires the producer and consumer threads to be scheduled on different CPU cores, to prevent being deadlocked by the scheduler.
+% when an application requires
+%producer and consumer threads
+%to be scheduled on different cores,
+%or the application may be deadlocked and stop progressing.
 %which continues to poll a work queue;
 %in this producer-consumer scenario,
 %the threads must run on different CPU cores, to prevent deadlocks.
-We propose adding a function called \palcall{ThreadSetCPUInfinity} to the host ABI,
+We propose adding a \hostapi{} called \palcall{ThreadSetCPUAffinity}
 to support binding a thread to CPU cores:
 
 \begin{paldef}
-bool ThreadSetCPUInfinity (uint cpu_nums[], uint count);
+bool ThreadSetCPUAffinity (u8 cpu_indexes[], u8 num);
 \end{paldef}
+
+\fixmedp{Explain how the arguments work}
+\palcall{ThreadSetCPUAffinity} binds the current thread to a list of CPU cores, as specified in \palkeyword{cpu_indexes}.
+\palkeyword{cpu_indexes} is an array of non-negative integers, which are smaller than the total number of CPU cores.
+
 
 
 \subsubsection*{Scheduling primitives}
 
 
-The host ABI also includes scheduling primitives, such as locking, for synchronizing the execution
-of several threads running in parallel.
-The host ABI must provide scheduling primitives,
-because locking cannot be reliably implemented in the user space;
-user-space locking
-cannot prevent a thread from being interrupted inside a critical section,
-and thus 
-causing the application to deadlock.
-Also, user-space locking must be implemented using the compare-and-exchange (\code{CMPXCHG}) instructions, which may not be available on every architectures.
-Therefore, by including the scheduling primitives in the host ABI,
-\graphene{} can encapsulate different kinds of scheduling options available on the hosts.
+The host ABI includes two scheduling primitives: one is mutex (mutually-exclusive) locking, and the other is a waitable event object.
+The purpose of including scheduling primitives in the host ABI
+is to improve the user-space synchronization, which is generally implemented
+by atomic or compare-and-swap (CAS) instruction;
+with user-space synchronization, a thread will spin on a CPU core until the state of a lock or an event
+is atomically changed.
+The host-level scheduling primitives
+%can prevent a thread from spinning on a CPU core,
+%by requesting the host scheduler
+can avoid the spinning
+by suspending a blocking thread in the host scheduler,
+until being signaled by another thread.
+
+
+
+
+
+%, for synchronizing the execution
+%of several threads running in parallel.
+%The host ABI must provide scheduling primitives,
+%because locking cannot be reliably implemented in the user space;
+%user-space locking
+%cannot prevent a thread from being interrupted inside a critical section,
+%and thus 
+%causing the application to deadlock.
+%Also, user-space locking must be implemented using the compare-and-exchange (\code{CMPXCHG}) instructions, which may not be available on every architectures.
+%Therefore, by including the scheduling primitives in the host ABI,
+%\graphene{} can encapsulate different kinds of scheduling options available on the hosts.
 
 
 
 \begin{paldef}
-HANDLE SemaphoreCreate  (uint max_count, uint inital);
-void   SemaphoreRelease (HANDLE semaphore_handle);
-void   SemaphoreDestroy (HANDLE semaphore_handle);
+HANDLE MutexCreate (void);
+void   MutexUnlock (HANDLE mutex_handle);
+\end{paldef}
+
+
+\palcall{MutexCreate} creates a handle that can be used as a mutex lock.
+A mutex lock enforces atomic execution in a critical section:
+if multiple threads are competing over a mutex lock
+before entering the critical section,
+only one thread can proceed while other threads will block until the lock is released again.
+\palcall{MutexUnlock} releases a mutex lock held
+by the current thread.
+To acquire a mutex lock,
+a generic \hostapi{},
+\palcall{ObjectsWaitAny} (defined later),
+can be used to compete with other threads,
+or wait for the lock release if the lock is held.
+
+
+
+\begin{paldef}
 HANDLE SynchronizationEventCreate (void);
 HANDLE NotificationEventCreate    (void);
-void EventSet     (HANDLE event_handle);
-void EventDestroy (HANDLE event_handle);
+void   EventSet   (HANDLE event_handle);
+void   EventClear (HANDLE event_handle);
 \end{paldef}
 
 
 
-\graphene{} inherit most of the scheduling primitives
-from \drawbridge{}~\cite{porter11drawbridge}:
-{\bf semaphores} ensures the atomicity of a critical section;
-{\bf events} enforces the order of execution among multiple threads.
-The events created by the host ABI
-can be separated into synchronization events and notification events;
-the former is used by a producer thread, to wake a consumer thread
-blocking on a queue;
-the latter notifies the occurrence of a condition
-and prevent further blocking of threads.
-Both semaphores and events resemblance the abstractions provided by the Windows API;
-we show that these scheduling primitives are also portable on other hosts, including Linux, BSD, and SGX, using futexes or similar locking mechanisms.
+%\graphene{} inherit most of the scheduling primitives
+%from \drawbridge{}~\cite{porter11drawbridge}:
+%{\bf semaphores} ensures the atomicity of a critical section;
+%{\bf events} enforces the order of execution among multiple threads.
+%The events created by the host ABI
+%can be separated into synchronization events and notification events;
+%the former is used by a producer thread, to wake a consumer thread
+%blocking on a queue;
+%the latter notifies the occurrence of a condition
+%and prevent further blocking of threads.
+%Both semaphores and events resemblance the abstractions provided by the Windows API;
+%we show that these scheduling primitives are also portable on other hosts, including Linux, BSD, and SGX, using futexes or similar locking mechanisms.
 
 
 
+\palcall{SynchronizationEventCreate} and \palcall{NotificationEventCreate} create two different types of waitable event objects, as synchronization and notification event objects.
+Any thread can use \palcall{EventSet} to signal an event.
+Signaling a synchronization event object allows exactly one waiting thread to continue its execution,
+immediately or in the future.
+A synchronization event object can be used to coordinate threads that cooperate as producers and consumers;
+a producer thread can signal exactly one consumer at a time.
+On the other hand, a notification event object can stay signaled until another thread
+manually resets the event object, using \palcall{EventClear}.
+A notification event object can be used for notifying the occurrence of a one-time event,
+such as the start or termination of an execution.
+%Both types of events can be waited by a thread. %, using \palcall{ObjectsWaitAny}.
+%The difference is that
+%singaling a synchronization event
+%wakes up at most one thread that are currently waiting for the event,
+%whereas signaling a notification event stops any thread from
+%further blocking on the event.
+Similar to acquiring a mutex lock,
+\palcall{ObjectsWaitAny} can also be used
+to wait for an event object to be signaled.
 
 
+%Synchronization events and notification events are designed for different purposes.
+%A synchronization event can be used in a producer-consumer model, wherein a consumer thread can block until a producer thread signals the event.
+%On the other hand, a notification event can be used for notifying the occurrence of a one-time event;
+%for example, a thread calling \palcall{ThreadCreate} can use a notification event to block until a new thread is created and starts execution.
 
 
+\subsubsection*{Waiting for scheduling events}
 
 
-\subsubsection*{Polling handles}
-
-
-The host ABI allows the library OS to poll one or several handles
-at the same time.
-The possible handles to poll include semaphores, synchronization or notification events,
-or I/O streams.
-Therefore, the host ABI
-introduces a function, \palcall{ObjectsWait}, similar to \syscall{poll} in POSIX,
-with a timeout option.
+%The host ABI allows the library OS to poll one or several handles
+%at the same time.
+%The possible handles to poll include semaphores, synchronization or notification events,
+%or I/O streams.
+%Therefore, the host ABI
+%introduces a function, \palcall{ObjectsWait}, similar to \syscall{poll} in POSIX,
+%with a timeout option.
 
 
 
 \begin{paldef}
-HANDLE ObjectsWait    (HANDLE *handles, uint nhandles,
-                       ulong timeout);
-HANDLE StreamGetEvent (HANDLE stream_handle,
-                       uint event_flags);
+HANDLE ObjectsWaitAny (HANDLE *handle_array,
+                       u8 handle_num, u64 timeout);
 \end{paldef}
 
 
-A challenge to implementing polling
-to differentiate the I/O events which can occur on a stream.
-When blocking on a network or RPC stream, an application needs to be notified
-about three types of events:
-establishment of the connection (i.e., becoming writable), arrival of messages (i.e., becoming readable), and shut-down of the connection;
-thus, the \graphene{} host ABI introduces a new function,
-\palcall{StreamGetEvent},
-to generate a handle identifying these I/O events of a stream,
-and can be polled by \palcall{ObjectsWait}.
-The design also keeps the definition of \palcall{ObjectsWait} simple:
-\palcall{ObjectsWait} should do nothing more than blocking on an array of handles,
-until one of the handles
-is wakened, or the call timeouts.
+The host ABI defines a generic \hostapi{},
+\palcall{ObjectsWaitAny}, to wait for various kinds of events that are assoicated 
+with a given handle array (specified by \palkeyword{handle_array} and \palkeyword{handle_num}).
+A common usage of \palcall{ObjectsWaitAny}
+is to perform a blocking operation on a scheduling primitive,
+such as acquiring a mutex lock,
+or waiting for the signaling of an event object.
+If the mutex lock is successfully acquired, or the event is signaled,
+\palcall{ObjectsWaitAny} stops blocking
+and returns the target handle. 
+\palcall{ObjectsWaitAny} only accepts one handle if
+the handle is a mutex lock or an event object;
+waiting for multiple mutex locks or event objects is not supported by the host ABI,
+because the feature has no concrete use case in the guest,
+and can be tricky to implement due to lack of similar system API.
+
+
+%For the least,
+%\palcall{ObjectsWaitAny} allows a thread to
+%wait until a mutex lock is released, or an event is signaled.
+%Moreover, \palcall{ObjectsWaitAny} can be used to poll %for certain events
+%an I/O stream handle,
+%to wait for events such as arrival or delivery of data,
+%a stream being shut down.
+%\palcall{ObjectsWaitAny}
+
+\palcall{ObjectsWaitAny} also receives a \palkeyword{timeout} argument to prevent the current thread to wait for the events indefinitely.
+If the timeout expires before the occurrence of any events related with the given handles,
+\palcall{ObjectsWaitAny} stops blocking
+and returns a null handle.
+
+
+\palcall{ObjectsWaitAny} can also be used for polling multiple stream handles, to wait for I/O events
+such as receiving inbound data or sudden failure.
+Unlike a mutex lock or an event object, a stream handle can be associated
+with multiple I/O events.
+Therefore, the host ABI introduces a \hostapi{}, \palcall{StreamGetEvent}, to create a stream event handle
+that represents a specific I/O event of the given stream handle.
+The definition of \palcall{StreamGetEvent} is inspired by Bascule~\cite{baumann13bascule}.
+
+
+\begin{paldef}
+HANDLE StreamGetEvent (HANDLE stream_handle, u16 event);
+\end{paldef}
+
+
+\fixmedp{Could you accomplish the smae thing by creating more than one handle for a network socket?}
+\palcall{StreamGetEvent} receives a stream handle and a specific I/O event.
+The \palkeyword{event} argument can be given
+one of the following values:
+\palkeyword{READ_READY}, for notifying that there are inbound data ready to be read;
+\palkeyword{WRITE_READY}, for notifying
+that a network connection is fully established
+and ready to be written;
+and \palkeyword{ERROR}, for notifying that certain failures occur on the stream.
+
+%A challenge to implementing polling
+%to differentiate the I/O events which can occur on a stream.
+%When blocking on a network or RPC stream, an application needs to be notified
+%about three types of events:
+%establishment of the connection (i.e., becoming writable), arrival of messages (i.e., becoming readable), and shut-down of the connection;
+%thus, the \graphene{} host ABI introduces a new function,
+%\palcall{StreamGetEvent},
+%to generate a handle identifying these I/O events of a stream,
+%and can be polled by \palcall{ObjectsWait}.
+%The design also keeps the definition of \palcall{ObjectsWait} simple:
+%\palcall{ObjectsWait} should do nothing more than blocking on an array of handles,
+%until one of the handles
+%is wakened, or the call timeouts.
 
 
 \subsubsection*{Thread-local storage}
 
 
-Most OSes requires thread-local storage (TLS),
-either to implement thread-private application variables, or to store thread-specific, system library states, in a thread control block (TCB).
-Because thread-local storage can be frequently accessed
-in an application,
-it would be inefficient to constantly
-enter the kernel for retrieving the TLS data.
-A common design is to occupy one of the thread-private registers
-to store a pointer to the thread-local storage;
-on \graphenearch{}, the FS register is commonly used to reference the thread-local storage.
+Some OSes, such as Linux and Windows, requires a thread-local storage (TLS),
+either to store thread-private variables, or to maintain a thread control block (TCB).
+A TLS area can potentially be frequently accessed by an application or library.
+Therefore, on \graphenearch{},
+the TLS is often referenced by one of the FS and GS segment registers,
+which is assigned a unique pointer.
+%from all other threads.
+A thread can access a state in its own TLS by referencing a specific offset from the FS/GS register.
+Also, retrieving or assigning the value of the FS/GS register
+is a privilege operation
+that must be performed in the host OS kernel.
+
+
+
+%Because thread-local storage can be frequently accessed
+%in an application,
+%it would be inefficient to constantly
+%enter the kernel for retrieving the TLS data.
+%A common design is to occupy one of the thread-private registers
+%to store a pointer to the thread-local storage;
+%on \graphenearch{}, the FS register is commonly used to reference the thread-local storage.
 
 
 
 
 \begin{paldef}
-void SegmentRegSet (uint register, ulong *value);
+u64 SegmentRegisterAccess (u8 register, u64 value);
 \end{paldef}
 
 
 
+
+The host ABI introduces a \hostapi{}, \palcall{SegmentRegisterAccess}, for reading or writing the FS/GS register value.
+The \palkeyword{register} argument can be either \palkeyword{WRITE_FS} or \palkeyword{WRITE_GS},
+with the \palkeyword{value} argument
+being a pointer that references to the TLS area.
+Otherwise, the \palkeyword{register} argument
+can be \palkeyword{READ_FS} or \palkeyword{READ_GS},
+to retrieve the FS/GS register value.
+Regardless, \palcall{SegmentRegisterAccess} returns the current value of FS/GS register.
+
+
+
 \issuedone{1.3.e}{discuss the FS/GS limitation}
-The host ABI includes a function, \palcall{SegmentRegSet}, to set the FS/GS registers.
-The implementation of \palcall{SegmentRegSet}
-depends the host system interfaces. 
-By default, reading or writing the value of the FS/GS registers is a privileged operation
-which can only be performed in ring 0.
-On Linux or BSD, the FS register is commonly used for bookkeeping in the standard C library;
-thus, the Linux or BSD system calls naturally include the feature of reading or writing the FS/GS registers in the kernel space (although only the FS register is used in the user space).
-However, on other hosts, especially Windows and OSX,
-we observe the case where changing the FS/GS registers is considered unnecessary and dangerous to the kernel.
-These hosts periodically reset the value of the FS/GS registers,
-preventing the host ABI to assign the TLS permanently.
+Unfortunately, the feasibility of implementing \palcall{SegmentRegisterAccess}
+deoends on the host OS.
+%The implementation of \palcall{SegmentRegSet}
+%depends the host system interfaces. 
+%By default, reading or writing the value of the FS/GS registers is a privileged operation
+%which can only be performed in ring 0.
+Linux and similar OSes allow the usage of FS/GS register,
+primarily because the FS register is heavily used in the standard C library.
+%or BSD, the FS register is commonly used for bookkeeping in the standard C library;
+%thus, the Linux or BSD system calls naturally include the feature of reading or writing the FS/GS registers in the kernel space (although only the FS register is used in the user space).
+However, in other OSes, especially Windows and OSX,
+changing the FS/GS register %is considered an unnecessary or even dangerous behavior,
+is forbidden by the OS kernels.
+The Windows 7, 8, and 10 kernels confiscate the FS register for storing a thread control block (TCB),
+and thus forbid users to change the FS register value.
+OSX's xnu kernel considers FS/GS registers to be of no concrete use.
+These OS kernels
+have been aggressively resetting the FS/GS register values
+to mitigate any user attempt of changing them.
+Therefore, the host ABI declares \palcall{SegmentRegisterAccess}
+as one of the optional \hostapis{},
+as the guest should consider developing a workaround if the \hostapi{} is not supported on a certain host.
 
 
-The primary challenge
-to implementing TLS for Linux applications
-is that an executable can hard-code the references to the FS register in its binary.
-Because a Linux executable is usually {\em unrelocatable},
-it can access a thread-private pointer by simply reading or writing to a specific offset
-to the FS register.
-To support these applications,
-a host must populate a valid TCB at the address pointed by the FS register;
-if the host forbids setting the FS register,
-the library OS cannot support TLS for an executable using thread-private pointers.
+%we observe the case where changing the FS/GS registers is considered unnecessary and dangerous to the kernel.
+%These hosts periodically reset the value of the FS/GS registers,
+%preventing the host ABI to assign the TLS permanently.
+
+
+
+%The primary challenge
+%to implementing TLS for Linux applications
+%is that an executable can hard-code the references to the FS register in its binary.
+%Because a Linux executable is usually {\em unrelocatable},
+%it can access a thread-private pointer by simply reading or writing to a specific offset
+%to the FS register.
+%To support these applications,
+%a host must populate a valid TCB at the address pointed by the FS register;
+%if the host forbids setting the FS register,
+%the library OS cannot support TLS for an executable using thread-private pointers.
 
 %On these hosts, the compatibility for TLS usage in applications is partially sacrificed.
 
@@ -249,39 +528,69 @@ the library OS cannot support TLS for an executable using thread-private pointer
 \label{sec:abi:proc}
 
 
-\graphene{} implements a distributed OS model for multi-process applications.
-Each process in \graphene{} has a library OS instance;
-Multiple library OS instances in a multi-process application must work together
-to present a single OS view,
-same as running in a native Linux.
-Therefore, the host ABI does not require copy-on-writing forking,
-but simply creation of a clean process instantiating the library OS.
+\fixmedp{don't mix perspective; focus in this chapter on the PAL model only. I would do minimal discussion of what the libOS does here.}
+The host ABI creates a process as a new guest to run on the current host.
+A process in the host perspective is a {\em picoprocess}, which consists of brand-new instances
+of the PAL, the \libos{}, and a specific application.
+The host ABI defines a process
+as a simple abstraction, which owns a new address space, and starts with a clean state of no guest VMAs, no held I/O resources, and no allocated handles.
+Moreover, a new process will not share any memory with former processes.
+The definition of the process abstraction
+is meant to simplify the host design for expanding a single-process execution to multiple processes.
+
+
+
+
+%\graphene{} implements a distributed OS model for multi-process applications.
+%Each process in \graphene{} has a library OS instance;
+%Multiple library OS instances in a multi-process application must work together
+%to present a single OS view,
+%same as running in a native Linux.
+%Therefore, the host ABI does not require copy-on-writing forking,
+%but simply creation of a clean process instantiating the library OS.
 
 
 
 
 \begin{paldef}
-HANDLE ProcessCreate (const char *executable,
-                      const char *manifest,
+HANDLE ProcessCreate (const char *application_uri,
+                      const char *manifest_uri,
                       const char **args, uint flags);
 \end{paldef}
 
-When creating a process, the host ABI, as \palcall{ProcessCreate}, takes a URI of the executable to run in the new process,
-together with a manifest file, which specifies the user policy.
-Once a new process is created, the library OS can be initialized
-and migrate the library OS and application state from the parent process;
-after migration, the new process can resume execution from the point of checkpointing,
-as a forked process.
-To the hosts, the processes in an application share nothing
-but the I/O streams opened by multiple processes.
+
+\palcall{ProcessCreate} creates a process (or picoprocess) to run an application specified by
+\palkeyword{application_uri}, a URI that identifies the application executable.
+\palcall{ProcessCreate} allows specifying the user configuration
+according to a given manifest file (i.e., \palkeyword{manifest_uri}), as well as passing command-line arguments (i.e., \palkeyword{args}) to the new process.
+The effect of calling \palcall{ProcessCreate} is mostly equivalent to
+relaunching the specified application in \graphene{},
+except two distictions: \palcall{ProcessCreate} returns a process handle to its caller;
+also, a process created by \palcall{ProcessCreate} belongs to the same {\em sandbox}---an isolated container of related processes---with its parent process.
+The detail of the sandbox abstraction is discussed in Section~\ref{sec:abi:proc:sandbox}.
 
 
-\palcall{ProcessCreate} returns a process handle.
+
+
+%When creating a process, the host ABI, as \palcall{ProcessCreate}, takes a URI of the executable to run in the new process,
+%together with a manifest file, which specifies the user policy.
+%Once a new process is created, the library OS can be initialized
+%and migrate the library OS and application state from the parent process;
+%after migration, the new process can resume execution from the point of checkpointing,
+%as a forked process.
+%To the hosts, the processes in an application share nothing
+%but the I/O streams opened by multiple processes.
+
+
+%\palcall{ProcessCreate} returns a process handle.
 To bootstrap the inter-process communication, a process handle also works as an unnamed RPC stream connecting the parent and child processes.
-The initialization of a library OS instance uses the RPC stream
-to retrieve namespace coordination information, such as how to locate the namespace leaders.
-The PRC stream is also used to send process migration data
-from the parent process, to implement forking.
+The guests in the parent and child processes can use this RPC stream to share internal states,
+as well as to inherit I/O stream handles from each other.
+
+%The initialization of a library OS instance uses the RPC stream
+%to retrieve namespace coordination information, such as how to locate the namespace leaders.
+%The PRC stream is also used to send process migration data
+%from the parent process, to implement forking.
 
 
 
@@ -293,18 +602,21 @@ from the parent process, to implement forking.
 
 
 
-Due to the statelessness of stream handles,
-a library OS can cleanly migrate its state to a new process, and recreate all the stream handles previously opened in the process.
+Due to the statelessness of handles,
+a guest can cleanly migrate its state to a new process, and recreate all handles afterward.
 Unfortunately, not all I/O streams can be recreated
-in a new process, due to the limitations of host system interfaces;
-in most hosts, a network connection is only identified by one handle or file descriptor,
-and can only be shared when the handle or file descriptor
-is inherited by a child process.
-The same inheritance feature also has to be implemented
-inside the library OS, to support Linux applications.
-Since every process created by \palcall{ProcessCreate} is a clean \graphene{} process with freshly-initialized library OS state,
-the library OS needs extra functions in the host ABI
-to inherit handles instead of data from the parent process.
+in a new process, due to the host limitations;
+for example, in most host OSes, a network connection is bounded to a process,
+and can only be shared through inheriting the network handle or file descriptor from the parent process.
+%is inherited through cloning.
+%only identified by one handle or file descriptor,
+%and can only be shared when the handle or file descriptor
+%is inherited by a child process.
+%The same inheritance feature also has to be implemented
+%inside the library OS, to support Linux applications.
+Since every process created by \palcall{ProcessCreate} is a clean picoprocess without inheriting any stream handles,
+a guest needs a host feature
+to share a network stream handle with other processes.
 
 
 \begin{paldef}
@@ -314,47 +626,90 @@ HANDLE RpcRecvHandle (HANDLE rpc_handle);
 
 
 
-The host ABI introduces two functions for sharing handles across processes: \palcall{RpcSendHandle} and \palcall{RpcRecvHandle}, which sends handles over a connected RPC stream.
-The design is motivated by the Linux file descriptor sharing feature of UNIX domain sockets.
-\palcall{RpcSendHandle} will migrate the state of a stream handle, created by \palcall{StreamOpen},
-over a RPC stream, to the receiving process, which calls \palcall{RpcRecvHandle}.
-\palcall{RpcSendHandle} will grant the receiving process the permission, to share the stream handle with the sending process.
-
+The host ABI introduces \palcall{RpcSendHandle} and \palcall{RpcRecvHandle} for sharing I/O stream handles over a RPC stream (a process handle is also used as a RPC stream).
+\palcall{RpcSendHandle} 
+migrates the host state of a stream handle, specified by \palkeyword{cargo},
+over a RPC stream handle.
+\palcall{RpcSendHandle},
+which is called inside another process,
+then receives the migrated host states from the RPC stream.
+\palcall{RpcSendHandle}
+will grant the receiving process permissions to access the I/O stream handle. % with the sending process.
+If \palcall{RpcSendHandle} succeeds, it returns a handle
+that references to the shared I/O stream.
+The abstraction is similar to a feature in Linux and similar OSes that
+shares file descriptors over a UNIX domain socket.
 
 \subsubsection*{Bulk IPC (physical memory store)}
 
 
-Migrating and coordinating process states over RPC streams
-can suffer significant overhead, when copying large chunks of memory.
-Especially, the RPC-based migration will slow down the latency of copy-on-write forking.
+%Migrating the guest state over a RPC stream can suffer significant overhead,
+%when copying large chunks of memory.
+%Especially, the RPC-based migration will slow down the
+%latency of copy-on-write forking.
 %the key overhead
 %is caused by copying large chunk of memory
 %across processes, without the help of a host to share the physical memory.
 
+
+
+The host ABI introduces an optional bulk IPC feature, as a faster alternative to RPC stream.
+The optimization brought
+by the feature
+is to reduce the latency of sending large chunks of data across processes.
+The main abstraction of bulk IPC is a physical memory store.
+Multiple processes can open the same memory store;
+a processes sends the data in a piece of page-aligned memory to the store,
+while another process maps the data to its memory.
+Since the host can enable the copy-on-write sharing on the data mapped to both processes,
+the latency can be much shorter than copying the data over a RPC stream.
+
+
+%can send application memory to the physical memory store (using \palcall{PhysicalMemoryCommit}), which will keep a snapshot of the memory, set as copy-on-write.
+%The child process can then attach to the physical memory store,
+%and map the memory snapshot into its memory (using \palcall{PhysicalMemoryMap}).
+%The Bulk IPC feature can large reduce the amount of physical memory copied during process migration,
+%and thus optimize the latency of forking.
+
+
 \begin{paldef}
-HANDLE PhysicalMemoryStore  (uint index);
-ulong  PhysicalMemoryCommit (HANDLE store_handle,
-                             void *addr, ulong size);
-void * PhysicalMemoryMap    (HANDLE store_handle,
-                             void *addr, ulong size,
-                             uint protection);
+HANDLE PhysicalMemoryStore  (u32 index);
 \end{paldef}
 
 
-The host ABI introduces a Bulk IPC feature, for reducing the latency of forking.
-The main abstraction of Bulk IPC
-is a physical memory store (created by \palcall{PhysicalMemoryStore});
-To migrate a process, the library OS
-can send application memory to the physical memory store (using \palcall{PhysicalMemoryCommit}), which will keep a snapshot of the memory, set as copy-on-write.
-The child process can then attach to the physical memory store,
-and map the memory snapshot into its memory (using \palcall{PhysicalMemoryMap}).
-The Bulk IPC feature can large reduce the amount of physical memory copied during process migration,
-and thus optimize the latency of forking.
+\palcall{PhysicalMemoryStore} creates or attaches to a physical memory store,
+based on a given index number.
+The indexing of physical memory stores is independent for each sandbox (the container abstraction discussed in Section~\ref{sec:abi:proc:sandbox}),
+so unrelated guests cannot share a physical memory store by specifying the same index number.
+If \palcall{PhysicalMemoryStore} succeeds,
+it returns a handle that references to the physical memory store.
+The store is alive until every related processes close the corresponding store handles,
+and no data is left in the store.
 
 
 
 
-\subsubsection*{Sandboxing}
+\begin{paldef}
+u64    PhysicalMemoryCommit (HANDLE store_handle,
+                             u64 addr, u64 size);
+u64    PhysicalMemoryMap    (HANDLE store_handle,
+                             u64 addr, u64 size,
+                             u16 protect_flags);
+\end{paldef}
+
+
+\palcall{PhysicalMemoryCommit} commits the data in a memory range to a physical memory store.
+Both \palkeyword{addr} and \palkeyword{size} must be aligned to pages,
+so that the host can enable copy-on-write sharing if possible.
+\palcall{PhysicalMemoryMap} maps the data from a physical memory store
+to a memory range in the current process.
+\palkeyword{protect_flags} specifies the page protection assigned to the mapped memory ranges.
+
+
+
+
+\subsection{Sandboxing}
+\label{sec:abi:proc:sandbox}
 
 
 The security isolation of \graphene{} is based on a {\bf sandbox}, a container isolating a number of coordinating library OS instances.
@@ -385,16 +740,23 @@ cannot be subverted during execution.
 
 
 
-However, sometimes, an application may want to reassign the policies,
-for security isolation inside of the application.
-Processes in an application may have different privilege levels, or belong to different sessions which should be isolated from each other.
+The host ABI also introduces a \hostapi{}, \palcall{SandboxSetPolicy},
+to dynamically move a process to a new sandbox.
+Sometimes, an application needs to reassign the rules of security isolation,
+for enforcing stricter rules inside the application.
+A multi-sandbox environment can protect an application with multiple privilege levels, or an application that creates session for separating the processing for each client.
+%belong to different sessions which should be isolated from each other.
+With \palcall{SandboxSetPolicy}, a process that requires less security privilege
+or serves a separate session can voluntarily moves itself to a new sandbox,
+with stricter rules.
 \palcall{SandboxSetPolicy} can dynamically
-assign a new manifest file specifying a stricter policy
-than the original manifest,
-to restrict a process from accessing the resources shared by other processes.
-\palcall{SandboxSetPolicy}
-moves a process to a new sandbox.
-An option, \palkeyword{sandbox_rpc}, can block all RPC streams from other processes running in the original sandbox.
+assign a new manifest file that specifies the new rules,
+to be applied to the
+new sandbox created for the current process.
+%to restrict a process from accessing the resources shared by other processes.
+%\palcall{SandboxSetPolicy}
+%moves a process to a new sandbox.
+%An option, \palkeyword{sandbox_rpc}, can block all RPC streams from other processes running in the original sandbox.
 
 
 
@@ -403,9 +765,12 @@ An option, \palkeyword{sandbox_rpc}, can block all RPC streams from other proces
 
 
 \begin{paldef}
-bool SandboxSetPolicy (const char *sandbox_manifest,
-                       bool sandbox_rpc);
+bool SandboxSetPolicy (const char *manifest_uri,
+                       u16 sandbox_flags);
 \end{paldef}
 
 
-
+\palcall{SandboxSetPolicy} receives a URI of the manifest file that specifies the sandboxing rules,
+and an optional \palkeyword{sandbox_flags} argument.
+The \palkeyword{sandbox_flags} argument currently can only contain one value:
+\palkeyword{SANDBOX_RPC}, for isolating the RPC streams between the original sandbox and the new sandbox.

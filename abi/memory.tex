@@ -1,72 +1,119 @@
-\subsection{Memory Management}
+\subsection{Page Management}
 \label{sec:abi:memory}
 
 
-\issuedone{1.2.a}{discuss resource management at host level (memory)}
-The challenge to defining the host ABI for memory management
-is to accommodate different allocation models and granularities of the hosts.
-A POSIX-style OS often assumes dynamic allocation with page granularity (the size of a page is normally 4KB);
-the assumption is deeply ingrained in the design of page fault handler and page table management
-inside an OS like Linux or BSD;
-the memory-management component in an OS
-is usually low-level and closely interacting with the hardware interface,
-to serve the needs of both the OS and applications.
-Such an OS design makes it difficult to move memory management
-into the library OS, unless using hardware virtualization such as VT.
+
+%Linux applications 
+%are generally developed and compiled under the assumption that the memory is managed
+%by the OS with page-level granularity.
+%%generally requires system API
+%%for allocating, protecting, and deallocating memory at the same granularity.
+%%A x86 application may require memory allocation to be strictly at the granularity of four-kilobyte pages,
+%The primary Linux memory API,
+%including \syscall{mmap}, \syscall{mprotect}, and \syscall{munmap},
+%allows an application
+%to arbitrarily create, modify, and destroy VMAs (virtual memory areas),
+%wholly or partially,
+%as long as the requested areas align to
+%4KB.
+%%Developers can avoid hard-coding the granularity in an application,
+%%by retrieving the system setting using \syscall{getpagesize}.
+%Specifically, the Linux dynamic loader (i.e., \code{ld.so}) %, an ubiqutous user-space component in Linux,
+%uses \syscall{mmap} to map a binary file to a large memory area,
+%and then divides the mapping into 4KB-aligned code and data segments.
+%To implement the Linux memory API,
+%the memory management scheme of the host ABI
+%must be at least as fine-grained as 4KB pages.
+
+\issuedone{1.2.a}{discuss resource management at host level (pages)}
+In the hos ABI, the abstraction for page management
+is a {\bf virtaul memory area (VMA)}, a page-aligned, nonoverlaping region
+in the guest's virtual address space.
+A virtual memory area
+specifies the memory region that requires the host OS to allocate the page resources,
+either statically or dynamically.
+There are two types of VMAs: one is a file-backed VMA, which is created by \palcall{StreamMap} and backs the memory pages with file data blocks.
+The other type is an anoumous VMA, which is purely in DRAM and not backed by any files.
+Either types of VMAs is part of the virtual address space,
+and a VMA should never overlap with others created in the same virtual address space.
+The host OS can choose to populate all the pages for a VMA immediately at creation of the VMA,
+or delay the allocation until the first memory access (i.e., demand paging).
 
 
 
-Linux applications 
-are generally developed and compiled under the assumption that the memory is managed
-by the OS with page-level granularity.
-%generally requires system API
-%for allocating, protecting, and deallocating memory at the same granularity.
-%A x86 application may require memory allocation to be strictly at the granularity of four-kilobyte pages,
-The primary Linux memory API,
-including \syscall{mmap}, \syscall{mprotect}, and \syscall{munmap},
-allows an application
-to arbitrarily create, modify, and destroy VMAs (virtual memory areas),
-wholly or partially,
-as long as the requested areas align to
-4KB.
-%Developers can avoid hard-coding the granularity in an application,
-%by retrieving the system setting using \syscall{getpagesize}.
-Specifically, the Linux dynamic loader (i.e., \code{ld.so}) %, an ubiqutous user-space component in Linux,
-uses \syscall{mmap} to map a binary file to a large memory area,
-and then divides the mapping into 4KB-aligned code and data segments.
-To implement the Linux memory API,
-the memory management scheme of the host ABI
-must be at least as fine-grained as 4KB pages.
 
 
-The host ABI for memory management is as follows:
-\palcall{VirtMemAlloc} creates an anonymous, non-file memory mapping in a process, similar as \syscall{mmap};
-\palcall{VirtMemProtect} changes the read (R), write (W), or execution (X) permission in an address range;
-\palcall{VirtMemFree} frees the an address range.
+
+%The host ABI for memory management is as follows:
+%\palcall{VirtMemAlloc} creates an anonymous, non-file memory mapping in a process, similar as \syscall{mmap};
+%\palcall{VirtMemProtect} changes the read (R), write (W), or execution (X) permission in an address range;
+%\palcall{VirtMemFree} frees the an address range.
 
 
 
 
 \begin{paldef}
-void *VirtMemAlloc   (void *expect_addr, ulong size,
-                      uint alloc_type, uint protect);
-bool  VirtMemFree    (void *addr, ulong size);
-bool  VirtMemProtect (void *addr, ulong size,
-                      uint protect);
+u64  VirtMemAlloc   (u64 expect_addr, u64 size,
+                     u16 protect_flags);
 \end{paldef}
 
 
-The host ABI delegates physical memory management to the host. The division of labor between the library OS and the host is as follows:
-the library OS manages only the virtual memory layout of a process;
-the host is the one who decides the allocation of physical memory resources, among VMAs of all processes.
-The delegation avoids the competition between the host and guest
-on managing the physical memory, which is a common issue for virtualization.
-For example, a VM may suffer a problem called ``double-paging'' when both the host and guest is trying to swap unused pages out of memory; a VM needs to use techniques like ballooning~\cite{wldspurger02vmware-esx} to subtly coordinate with the host to make paging decisions,
-or use paravirtualization~\cite{vmware_vmi}.
+\palcall{VirtMemAlloc} creates an anonymous VMA in the guest memory. When \palcall{VirtMemAlloc} is given an expected address, the host OS must try to create the VMA at the exact address.
+Otherwise, if no address is given, \palcall{VirtMemAlloc} can create the VMA at wherever the host OS sees fit, and does not overlap with existing VMAs.
+Both \palkeyword{expect_addr} and \palkeyword{size}
+must be page-aligned, and never exceed the permitted range in the guest's virtual address space.
+\palkeyword{protect_flags} specifies the page protection in the created VMA, and can be given a combination of the following values: \palkeyword{READ}, \palkeyword{WRITE}, and \palkeyword{EXEC} (similar as \palcall{StreamMap} but without \palkeyword{WRITE_COPY}).
+If \palcall{VirtMemAlloc} succeeds, it returns the starting address
+of the created VMA, which the guest is permitted to access up to the given size.
 
 
 
 
+
+\begin{paldef}
+bool VirtMemFree    (u64 addr, u64 size);
+bool VirtMemProtect (u64 addr, u64 size,
+                     u16 protect_flags);
+\end{paldef}
+
+
+\palcall{VirtMemFree} and \palcall{VirtMemProtect} modify one or more VMAs, 
+by either freeing the pages
+or adjusting the page protection in an address range.
+Both \hostapis{} specify the starting address and size of the address range to modify;
+the given address range must be page-aligned,
+but can be any part of the guest virtual address apace,
+and overlap with any VMAs, either file-backed or anonymous.
+If the given address range overlaps with a VMA, the overlapped part is divided into a new VMA, and be destroyed or protected accordingly.
+
+
+ 
+
+
+
+%The host ABI delegates physical memory management to the host. The division of labor between the library OS and the host is as follows:
+%the library OS manages only the virtual memory layout of a process;
+%the host is the one who decides the allocation of physical memory resources, among VMAs of all processes.
+%The delegation avoids the competition between the host and guest
+%on managing the physical memory, which is a common issue for virtualization.
+%For example, a VM may suffer a problem called ``double-paging'' when both the host and guest is trying to swap unused pages out of memory; a VM needs to use techniques like ballooning~\cite{wldspurger02vmware-esx} to subtly coordinate with the host to make paging decisions,
+%or use paravirtualization~\cite{vmware_vmi}.
+
+
+
+\fixme{Moved from the beginning of this section}
+The challenge to defining the host ABI for page management
+is to accommodate different allocation models and granularities of the hosts.
+A POSIX-style OS often assumes dynamic allocation with page granularity (normally with four-kilobyte pages);
+the assumption is deeply ingrained in the design of page fault handler sand page table management
+inside an OS like Linux or BSD;
+the page management component in an OS
+is usually low-level and closely interacting with the hardware interface,
+to serve the needs of both the OS and applications.
+Such an OS design makes it difficult to move page management
+into the guest, unless using hardware virtualization such as
+\fixmedp{Needs a cite, and probaly a more specific mention of what feature of VT you have in mind}
+VT~\cite{VT}, which virtualizes page fault handlers and page table management to the guest.
 
 
 

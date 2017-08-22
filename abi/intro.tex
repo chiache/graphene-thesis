@@ -1,7 +1,22 @@
-\fixmedp{make this chapter self-contained; should be like a manual of the host ABI; avoid taking about libOS and focus on PAL}
-This chapter formally defines the host ABI.
-The host ABI of \graphene{} represents a specification of which OS and hardware abstractions should be implemented in the hosts, 
-compared to what should be in the library OS.
+This chapter specifies the formal definition of the host ABI as a component
+of the \graphene{} architecture.
+\fixmedp{A sentence on motivation might be good here.  Same with implication.  Like, what is the high level goal?  What properties would a good abi have (or how to judge goodness)?}
+\polish{The host ABI acts as a boundary between the host and the guest (i.e., the \libos{}),
+and defines several UNIX-like features. % for \libos{} development.
+The specification of the host ABI is primarily based on two criterions:
+{\em simplicity}, for reducing the development effort per host, and {\em sufficiency}, for encapsulating enough host-specific system abstractions.}
+The chapter discusses
+the rationale behind the definition of the current host ABI,
+according to the experience of porting the host ABI to several host examples, such as Linux, Windows, and SGX.
+
+
+
+
+
+
+
+%The host ABI of \graphene{} represents a specification of which OS and hardware abstractions should be implemented in the hosts, 
+%compared to what should be in the library OS.
 %, in order to implement the library OS.
 %and how to develop
 %a PAL (platform adaption layer).
@@ -13,12 +28,8 @@ compared to what should be in the library OS.
 %determine the definition of the host ABI,
 %as a guideline to adding host features.
 %with new abstractions.
-\fixmedp{A sentence on motivation might be good here.  Same with implication.  Like, what is the high level goal?  What properties would a good abi have (or how to judge goodness)?}
-The purpose of the host ABI is to define
-a small set of OS features,
-\polish{which is both simple to port on the hosts targeted in this thesis,
-and sufficient to develop a library OS
-that is compatible against Linux applications for cloud or servers.}
+
+
 
 
 
@@ -117,32 +128,29 @@ that is compatible against Linux applications for cloud or servers.}
 
 
 
-\section{PAL Subroutines}
+\section{PAL Calling Convention}
 
 
 
-The key component to implement the features of the host ABI
-is a PAL (platform adaption layer).
-The host ABI
-%is not only a description of the interface to the host and library OS,
-is essentially a specification of how to develop a PAL.
-The specification of a PAL
-includes two parts: the first is the functions used in the programming of the library OS;
-the second is the calling convention
-that a PAL enforces for the library OS to interact with the host ABI.
-This section will discuss the PAL calling convention.
+%The key component to implement the features of the host ABI
+%is a PAL (platform adaption layer).
+%The host ABI
+%%is not only a description of the interface to the host and library OS,
+%is essentially a specification of how to develop a PAL.
+%The specification of a PAL
+%includes two parts: the first is the functions used in the programming of the library OS;
+%the second is the calling convention
+%that a PAL enforces for the library OS to interact with the host ABI.
+%This section will discuss the PAL calling convention.
 
 
 
-The library is loaded by the hosts as a user library.
-The features of a PAL include dynamically linking the library OS
-as one executable.
-The host ABI avoids making assumption about the host,
-including the host system call convention.
-Every call from the library OS to enter the PAL is a normal function call.
-To resolve function call addresses,
-the PAL has to work as a dynamic loader, similar to \code{ld.so}.
-Dynamic linking allows shipping the library OS as a separate binary from the host-specific PAL binaries.
+%The host ABI avoids making assumption about the host,
+%including the host system call convention.
+%Every call from the library OS to enter the PAL is a normal function call.
+%To resolve function call addresses,
+%the PAL has to work as a dynamic loader, similar to \code{ld.so}.
+%Dynamic linking allows shipping the library OS as a separate binary from the host-specific PAL binaries.
 %and thus can be loaded on any hosts.
 %We choose to dynamically link the library OS for keeping the initialization
 %adaptable to different hosts;
@@ -167,7 +175,7 @@ Dynamic linking allows shipping the library OS as a separate binary from the hos
 
 \fixmedp{Make this sentence more direct: "The library OS is loaded by the host OS as user libraries."}
 The host ABI inherits the \graphenearch{} Linux convention. %, to simplify compilation and linking.
-A PAL can load the library OS as ELF (executable and linkable format) binary~\cite{elf-format}, similar as loading a Linux library.
+The PAL contains a simple run-time loader that can load the library OS as an ELF (executable and linkable format) binary~\cite{elf-format}, similar to \code{ld.so} for loading a user library.
 %The host ABI inherit the Linux calling convention,
 %for the convenience of development.
 %The primary architecture targeted by \graphene{} is \graphenearch{};
@@ -240,8 +248,8 @@ a non-zero number or pointer if the function succeeds, or zero if it fails.
 Unlike the Linux call convention, the host ABI does not return negative values as error codes (e.g., \code{-EINVAL}).
 Instead, the host ABI delivers the failure of a function call
 as an exception, with the library OS capturing the failure by an assigned exception handler.
-The design is to avoid confusing
-the interpretation of return values from the host ABI.
+The design avoids confusing semantics
+when interpreting return values.
 
 
 
@@ -258,7 +266,7 @@ to running most of the Linux applications without modification or recompilation.
 
 
 However, there are cases where static linking is preferred on a host (e.g., SGX), and recompilation is acceptable to the users.
-Compiling the applications, library OS, and potential a PAL
+Compiling an application, library OS, and PAL
 into a single binary is similar to the technique of unikernels~\cite{unikernels},
 which has the benefit of compiling out unnecessary code and execution paths
 from the binary. 
@@ -266,12 +274,16 @@ Theoretically, it is possible for \graphene{} to statically link an application 
 but this technique is out of the scope of this thesis.
 
 
+\section{\titlecap{The \hostapis{}}}
 
+\fixmedp{make this chapter self-contained; should be like a manual of the host ABI; avoid taking about libOS and focus on PAL}
+This section defines the \hostapis{}
+in the host ABI,
+%functions in the host ABI, according on the type of OS features.
+as a developer's guide to implementing the host ABI for a new host.
+This section describes 
+the usage of each \hostapi{} in details,
+followed by a justification of the necessity and simplicity
+for a host to export such a \hostapi{}.
 
-\section{Functions}
-
-
-This section defines the functions in the host ABI, according on the type of OS features needed from a host.
-This section is equivalent to a manual 
-for programming the library OS against the host ABI.
 

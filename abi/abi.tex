@@ -7,16 +7,17 @@
 \graphicspath{{abi/figures/}}
 
 \lstnewenvironment{paldef}{
+  \noindent\minipage{\linewidth}\medskip
   \lstset{
     basicstyle=\ttfamily\footnotesize, %
     frame=single, %
-    rulecolor=\color{gray!20}, %
-    backgroundcolor=\color{gray!20}, %
+    rulecolor=\color{gray!30}, %
+    backgroundcolor=\color{gray!30}, %
     showspaces=false, %
     showstringspaces=false, %
     lineskip=2pt, % 
-    aboveskip=.5\baselineskip, %
-    belowskip=.75\baselineskip, %
+    aboveskip=0.25\baselineskip, %
+    belowskip=1.00\baselineskip, %
     framesep=10pt, %
     framexleftmargin=5pt, %
     framexrightmargin=5pt, %
@@ -27,9 +28,10 @@
     breakindent=0pt %
   }
 }{ %
+  \endminipage
 }
 
-\declarecommand{\palkeyword}[1]{\colorbox{gray!20}{\lstinline[basicstyle=\ttfamily\small]{#1}}} 
+\declarecommand{\palkeyword}[1]{\setlength{\fboxsep}{0pt}\colorbox{gray!30}{\lstinline[basicstyle=\ttfamily\small]{#1}}} 
 \declarecommand{\palcall}[1]{\palkeyword{#1()}} 
 
 \input{intro}
@@ -38,7 +40,7 @@
 \input{sched}
 \input{misc}
 %\input{loading}
-\input{manifest}
+%\input{manifest}
 \input{summary}
 
 \declarecommand{\palcall}[1]{{\tt #1()}} 

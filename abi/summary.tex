@@ -1,9 +1,29 @@
 \section{Summary}
 \label{sec:abi:summary}
 
-The host ABI of \graphene{}
-declares a set of basic OS functions, which must be implemented in the host.
-The host ABI redefines the division of labor
-between host and guest;
-the host ABI decouples hardware resource management and security isolation,
-from API implementation for applications.
+%The host ABI of \graphene{}
+%defines a set of basic OS functions, which must be implemented in the host.
+%The host ABI redefines the division of labor
+%between host and guest;
+%the host ABI decouples hardware resource management and security isolation,
+%from API implementation for applications.
+
+
+\fixmedp{I think related goals are to show that 1) the ABI can be implemented relatively easily on most hosts. 2) that it is sufficient to run a lot of Linux applications.}
+The host ABI consists of a sufficient set of simple, UNIX-like OS features.
+The goal of defining the host ABI
+is to ensure that the host ABI can be implemented relatively easily on most hosts,
+and simultaneously, to expose enough host abstractions for developing a library OS that runs a lot of Linux applications.
+Functions in the host ABI,
+or so-called \hostapis{},
+either manage a ubiquitous hardware resource, such as pages or CPU cycles,
+or encapsulate an idiosyncratic feature of the host OSes, such as scheduling primitives or exception handling.
+For most of the \hostapis{}, system API with similar functionality and semantics
+can be found on most host OSes;
+Few exceptions
+(e.g., setting segment registers),
+which are limited to be implemented on certain host OSes,
+are defined as optional features,
+so that the library OS can be prepared with designing workarounds.
+
+
