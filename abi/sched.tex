@@ -436,8 +436,7 @@ and \palkeyword{ERROR}, for notifying that certain failures occur on the stream.
 
 
 Some OSes, such as Linux and Windows, requires a thread-local storage (TLS),
-either to store thread-private variables, or to maintain a user-space
-thread control block (TCB) for system libraries.
+either to store thread-private variables, or to maintain a thread control block (TCB).
 A TLS area can potentially be frequently accessed by an application or library.
 Therefore, on \graphenearch{},
 the TLS is often referenced by one of the FS and GS segment registers,
@@ -529,39 +528,69 @@ as the guest should consider developing a workaround if the \hostapi{} is not su
 \label{sec:abi:proc}
 
 
-\graphene{} implements a distributed OS model for multi-process applications.
-Each process in \graphene{} has a library OS instance;
-Multiple library OS instances in a multi-process application must work together
-to present a single OS view,
-same as running in a native Linux.
-Therefore, the host ABI does not require copy-on-writing forking,
-but simply creation of a clean process instantiating the library OS.
+\fixmedp{don't mix perspective; focus in this chapter on the PAL model only. I would do minimal discussion of what the libOS does here.}
+The host ABI creates a process as a new guest to run on the current host.
+A process in the host perspective is a {\em picoprocess}, which consists of brand-new instances
+of the PAL, the \libos{}, and a specific application.
+The host ABI defines a process
+as a simple abstraction, which owns a new address space, and starts with a clean state of no guest VMAs, no held I/O resources, and no allocated handles.
+Moreover, a new process will not share any memory with former processes.
+The definition of the process abstraction
+is meant to simplify the host design for expanding a single-process execution to multiple processes.
+
+
+
+
+%\graphene{} implements a distributed OS model for multi-process applications.
+%Each process in \graphene{} has a library OS instance;
+%Multiple library OS instances in a multi-process application must work together
+%to present a single OS view,
+%same as running in a native Linux.
+%Therefore, the host ABI does not require copy-on-writing forking,
+%but simply creation of a clean process instantiating the library OS.
 
 
 
 
 \begin{paldef}
-HANDLE ProcessCreate (const char *executable,
-                      const char *manifest,
+HANDLE ProcessCreate (const char *application_uri,
+                      const char *manifest_uri,
                       const char **args, uint flags);
 \end{paldef}
 
-When creating a process, the host ABI, as \palcall{ProcessCreate}, takes a URI of the executable to run in the new process,
-together with a manifest file, which specifies the user policy.
-Once a new process is created, the library OS can be initialized
-and migrate the library OS and application state from the parent process;
-after migration, the new process can resume execution from the point of checkpointing,
-as a forked process.
-To the hosts, the processes in an application share nothing
-but the I/O streams opened by multiple processes.
+
+\palcall{ProcessCreate} creates a process (or picoprocess) to run an application specified by
+\palkeyword{application_uri}, a URI that identifies the application executable.
+\palcall{ProcessCreate} allows specifying the user configuration
+according to a given manifest file (i.e., \palkeyword{manifest_uri}), as well as passing command-line arguments (i.e., \palkeyword{args}) to the new process.
+The effect of calling \palcall{ProcessCreate} is mostly equivalent to
+relaunching the specified application in \graphene{},
+except two distictions: \palcall{ProcessCreate} returns a process handle to its caller;
+also, a process created by \palcall{ProcessCreate} belongs to the same {\em sandbox}---an isolated container of related processes---with its parent process.
+The detail of the sandbox abstraction is discussed in Section~\ref{sec:abi:proc:sandbox}.
 
 
-\palcall{ProcessCreate} returns a process handle.
+
+
+%When creating a process, the host ABI, as \palcall{ProcessCreate}, takes a URI of the executable to run in the new process,
+%together with a manifest file, which specifies the user policy.
+%Once a new process is created, the library OS can be initialized
+%and migrate the library OS and application state from the parent process;
+%after migration, the new process can resume execution from the point of checkpointing,
+%as a forked process.
+%To the hosts, the processes in an application share nothing
+%but the I/O streams opened by multiple processes.
+
+
+%\palcall{ProcessCreate} returns a process handle.
 To bootstrap the inter-process communication, a process handle also works as an unnamed RPC stream connecting the parent and child processes.
-The initialization of a library OS instance uses the RPC stream
-to retrieve namespace coordination information, such as how to locate the namespace leaders.
-The PRC stream is also used to send process migration data
-from the parent process, to implement forking.
+The guests in the parent and child processes can use this RPC stream to share internal states,
+as well as to inherit I/O stream handles from each other.
+
+%The initialization of a library OS instance uses the RPC stream
+%to retrieve namespace coordination information, such as how to locate the namespace leaders.
+%The PRC stream is also used to send process migration data
+%from the parent process, to implement forking.
 
 
 
@@ -573,18 +602,21 @@ from the parent process, to implement forking.
 
 
 
-Due to the statelessness of stream handles,
-a library OS can cleanly migrate its state to a new process, and recreate all the stream handles previously opened in the process.
+Due to the statelessness of handles,
+a guest can cleanly migrate its state to a new process, and recreate all handles afterward.
 Unfortunately, not all I/O streams can be recreated
-in a new process, due to the limitations of host system interfaces;
-in most hosts, a network connection is only identified by one handle or file descriptor,
-and can only be shared when the handle or file descriptor
-is inherited by a child process.
-The same inheritance feature also has to be implemented
-inside the library OS, to support Linux applications.
-Since every process created by \palcall{ProcessCreate} is a clean \graphene{} process with freshly-initialized library OS state,
-the library OS needs extra functions in the host ABI
-to inherit handles instead of data from the parent process.
+in a new process, due to the host limitations;
+for example, in most host OSes, a network connection is bounded to a process,
+and can only be shared through inheriting the network handle or file descriptor from the parent process.
+%is inherited through cloning.
+%only identified by one handle or file descriptor,
+%and can only be shared when the handle or file descriptor
+%is inherited by a child process.
+%The same inheritance feature also has to be implemented
+%inside the library OS, to support Linux applications.
+Since every process created by \palcall{ProcessCreate} is a clean picoprocess without inheriting any stream handles,
+a guest needs a host feature
+to share a network stream handle with other processes.
 
 
 \begin{paldef}
@@ -594,47 +626,90 @@ HANDLE RpcRecvHandle (HANDLE rpc_handle);
 
 
 
-The host ABI introduces two functions for sharing handles across processes: \palcall{RpcSendHandle} and \palcall{RpcRecvHandle}, which sends handles over a connected RPC stream.
-The design is motivated by the Linux file descriptor sharing feature of UNIX domain sockets.
-\palcall{RpcSendHandle} will migrate the state of a stream handle, created by \palcall{StreamOpen},
-over a RPC stream, to the receiving process, which calls \palcall{RpcRecvHandle}.
-\palcall{RpcSendHandle} will grant the receiving process the permission, to share the stream handle with the sending process.
-
+The host ABI introduces \palcall{RpcSendHandle} and \palcall{RpcRecvHandle} for sharing I/O stream handles over a RPC stream (a process handle is also used as a RPC stream).
+\palcall{RpcSendHandle} 
+migrates the host state of a stream handle, specified by \palkeyword{cargo},
+over a RPC stream handle.
+\palcall{RpcSendHandle},
+which is called inside another process,
+then receives the migrated host states from the RPC stream.
+\palcall{RpcSendHandle}
+will grant the receiving process permissions to access the I/O stream handle. % with the sending process.
+If \palcall{RpcSendHandle} succeeds, it returns a handle
+that references to the shared I/O stream.
+The abstraction is similar to a feature in Linux and similar OSes that
+shares file descriptors over a UNIX domain socket.
 
 \subsubsection*{Bulk IPC (physical memory store)}
 
 
-Migrating and coordinating process states over RPC streams
-can suffer significant overhead, when copying large chunks of memory.
-Especially, the RPC-based migration will slow down the latency of copy-on-write forking.
+%Migrating the guest state over a RPC stream can suffer significant overhead,
+%when copying large chunks of memory.
+%Especially, the RPC-based migration will slow down the
+%latency of copy-on-write forking.
 %the key overhead
 %is caused by copying large chunk of memory
 %across processes, without the help of a host to share the physical memory.
 
+
+
+The host ABI introduces an optional bulk IPC feature, as a faster alternative to RPC stream.
+The optimization brought
+by the feature
+is to reduce the latency of sending large chunks of data across processes.
+The main abstraction of bulk IPC is a physical memory store.
+Multiple processes can open the same memory store;
+a processes sends the data in a piece of page-aligned memory to the store,
+while another process maps the data to its memory.
+Since the host can enable the copy-on-write sharing on the data mapped to both processes,
+the latency can be much shorter than copying the data over a RPC stream.
+
+
+%can send application memory to the physical memory store (using \palcall{PhysicalMemoryCommit}), which will keep a snapshot of the memory, set as copy-on-write.
+%The child process can then attach to the physical memory store,
+%and map the memory snapshot into its memory (using \palcall{PhysicalMemoryMap}).
+%The Bulk IPC feature can large reduce the amount of physical memory copied during process migration,
+%and thus optimize the latency of forking.
+
+
 \begin{paldef}
-HANDLE PhysicalMemoryStore  (uint index);
-ulong  PhysicalMemoryCommit (HANDLE store_handle,
-                             void *addr, ulong size);
-void * PhysicalMemoryMap    (HANDLE store_handle,
-                             void *addr, ulong size,
-                             uint protection);
+HANDLE PhysicalMemoryStore  (u32 index);
 \end{paldef}
 
 
-The host ABI introduces a Bulk IPC feature, for reducing the latency of forking.
-The main abstraction of Bulk IPC
-is a physical memory store (created by \palcall{PhysicalMemoryStore});
-To migrate a process, the library OS
-can send application memory to the physical memory store (using \palcall{PhysicalMemoryCommit}), which will keep a snapshot of the memory, set as copy-on-write.
-The child process can then attach to the physical memory store,
-and map the memory snapshot into its memory (using \palcall{PhysicalMemoryMap}).
-The Bulk IPC feature can large reduce the amount of physical memory copied during process migration,
-and thus optimize the latency of forking.
+\palcall{PhysicalMemoryStore} creates or attaches to a physical memory store,
+based on a given index number.
+The indexing of physical memory stores is independent for each sandbox (the container abstraction discussed in Section~\ref{sec:abi:proc:sandbox}),
+so unrelated guests cannot share a physical memory store by specifying the same index number.
+If \palcall{PhysicalMemoryStore} succeeds,
+it returns a handle that references to the physical memory store.
+The store is alive until every related processes close the corresponding store handles,
+and no data is left in the store.
 
 
 
 
-\subsubsection*{Sandboxing}
+\begin{paldef}
+u64    PhysicalMemoryCommit (HANDLE store_handle,
+                             u64 addr, u64 size);
+u64    PhysicalMemoryMap    (HANDLE store_handle,
+                             u64 addr, u64 size,
+                             u16 protect_flags);
+\end{paldef}
+
+
+\palcall{PhysicalMemoryCommit} commits the data in a memory range to a physical memory store.
+Both \palkeyword{addr} and \palkeyword{size} must be aligned to pages,
+so that the host can enable copy-on-write sharing if possible.
+\palcall{PhysicalMemoryMap} maps the data from a physical memory store
+to a memory range in the current process.
+\palkeyword{protect_flags} specifies the page protection assigned to the mapped memory ranges.
+
+
+
+
+\subsection{Sandboxing}
+\label{sec:abi:proc:sandbox}
 
 
 The security isolation of \graphene{} is based on a {\bf sandbox}, a container isolating a number of coordinating library OS instances.
@@ -665,16 +740,23 @@ cannot be subverted during execution.
 
 
 
-However, sometimes, an application may want to reassign the policies,
-for security isolation inside of the application.
-Processes in an application may have different privilege levels, or belong to different sessions which should be isolated from each other.
+The host ABI also introduces a \hostapi{}, \palcall{SandboxSetPolicy},
+to dynamically move a process to a new sandbox.
+Sometimes, an application needs to reassign the rules of security isolation,
+for enforcing stricter rules inside the application.
+A multi-sandbox environment can protect an application with multiple privilege levels, or an application that creates session for separating the processing for each client.
+%belong to different sessions which should be isolated from each other.
+With \palcall{SandboxSetPolicy}, a process that requires less security privilege
+or serves a separate session can voluntarily moves itself to a new sandbox,
+with stricter rules.
 \palcall{SandboxSetPolicy} can dynamically
-assign a new manifest file specifying a stricter policy
-than the original manifest,
-to restrict a process from accessing the resources shared by other processes.
-\palcall{SandboxSetPolicy}
-moves a process to a new sandbox.
-An option, \palkeyword{sandbox_rpc}, can block all RPC streams from other processes running in the original sandbox.
+assign a new manifest file that specifies the new rules,
+to be applied to the
+new sandbox created for the current process.
+%to restrict a process from accessing the resources shared by other processes.
+%\palcall{SandboxSetPolicy}
+%moves a process to a new sandbox.
+%An option, \palkeyword{sandbox_rpc}, can block all RPC streams from other processes running in the original sandbox.
 
 
 
@@ -683,9 +765,12 @@ An option, \palkeyword{sandbox_rpc}, can block all RPC streams from other proces
 
 
 \begin{paldef}
-bool SandboxSetPolicy (const char *sandbox_manifest,
-                       bool sandbox_rpc);
+bool SandboxSetPolicy (const char *manifest_uri,
+                       u16 sandbox_flags);
 \end{paldef}
 
 
-
+\palcall{SandboxSetPolicy} receives a URI of the manifest file that specifies the sandboxing rules,
+and an optional \palkeyword{sandbox_flags} argument.
+The \palkeyword{sandbox_flags} argument currently can only contain one value:
+\palkeyword{SANDBOX_RPC}, for isolating the RPC streams between the original sandbox and the new sandbox.

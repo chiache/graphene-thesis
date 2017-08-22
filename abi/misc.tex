@@ -2,11 +2,13 @@
 \label{sec:abi:misc}
 
 
-Besides managing host resources, such as memory or I/O, some miscellaneous features needs to be provided by the host.
-Some features, such as exception handling, are required
+Besides managing host resources, 
+some miscellaneous features is needed from the host OSes.
+Some features, such as exception handling, are specific to the implementation of Linux functionality
+in the guest.
 %by the library OS
-for implementing functionality specific to Linux.
-%This section lists these miscellaneous functions in the host ABI.
+%for implementing functionality specific to Linux.
+This section lists these miscellaneous \hostapis{} defined in the host ABI.
 
 
 
@@ -16,40 +18,98 @@ for implementing functionality specific to Linux.
 
 The exception handling in the host ABI
 is strictly designed for returning hardware exceptions,
-or failures inside the PAL,
-to the library OS.
-The library OS specifies a {\bf handler} function which the host ABI
-jumps to, when a certain exception is triggered.
-To have a design independent from the host,
-the handler will receive an object,
-for temporarily storing the state of execution,
-and a data structure
-specifying the information regarding the triggered exception,
-such as the register values in the faulting context.
-
+or failures inside the PAL.
+The host ABI allows the guest to specify a {\bf handler},
+which the execution will be redirected to, when a specific exception is triggered.
+%To have a design independent from the host,
+%the handler will receive an object,
+%for temporarily storing the state of execution,
+%and a data structure
+%specifying the information regarding the triggered exception,
+%such as the register values in the faulting context.
+The feature of assigning handlers to specific exceptions
+grants a guest the ability of recovering from hardware or host OS failures.
 
 
 
 
 \begin{paldef}
 typedef void (*EXCEPTION_HANDLER)
-            (void *exception_obj, EXCEPTION_INFO info);
+            (void *exception_obj, EXCEPTION_INFO *info);
+\end{paldef}
 
-bool ExceptionSetHandler (uint exception,
-                          EXCEPTION_HANDLER handler);
+
+
+The host ABI defines \palkeyword{EXCEPTION_HANDLE} as the data type of a valid handler function.
+A valid handler accepts two arguments.
+The first is an exception object, as an opague pointer
+which the host OS maintains to store a host-specific state regarding the exception.
+The second is a piece of exception information that
+is revealed to the exception handler.
+The content of the exception information is defined as follows:
+
+\begin{paldef}
+typedef struct {
+    u8  exception_code;
+    u64 fault_addr, registers[REGISTER_NUM];
+} EXCEPTION_INFO;
+\end{paldef}
+
+The \palkeyword{EXCEPTION_INFO} data structures consists of three fields.
+\palkeyword{exception_code} specifies the type of exception.
+\palkeyword{fault_addr} specifies the address that triggers a memory fault, or an illegal instruction.
+\palkeyword{registers} returns the value of all \graphenearch{} general-purpose registers
+when the exception is raised.
+The exception code can be one of the following values:
+\begin{compactitem}
+\item \palkeyword{MEMFAULT}: a protection or segmentation fault.
+\item \palkeyword{DIVZERO}: a divide-by-zero fault.
+\item \palkeyword{ILLEGAL}: an illegal instruction fault.
+\item \palkeyword{TERMINATED}: terminated by the host.
+\item \palkeyword{INTERRUPTED}: interrupted by \palcall{ThreadInterrupt} (defined in Section~\ref{sec:abi:thread}).
+\item \palkeyword{FAILURE}: a failure in the host ABI.
+\end{compactitem}
+
+When an exception is raised,
+the current execution is interrupted and redirected to the assigned handler function.
+The handler function can try to recover the execution,
+based on the information given in the \palkeyword{EXCEPTION_INFO} data structure.
+For example, a handler function
+can print the interrupted register values to the terminal.
+Once a handler function finishes processing the exception, it can return to the original execution,
+by calling \palcall{ExceptionReturn} with the exception object given by the host.
+
+
+\begin{paldef}
 void ExceptionReturn     (void *exception_obj);
 \end{paldef}
 
-The library OS specifies the handler
-using \palcall{ExceptionSetHandler}.
-The handler is assigned to the whole process,
-instead of individual threads.
-The function also
-cancels out any handler previously assigned to the exception.
+The host ABI defines \palcall{ExceptionReturn} to keep the semantics of exception handling clear and flexible
+across host OSes.
+A handler function does not assume that it can return to the original execution
+using the \code{ret} or \code{iret} instruction.
+Instead, a handler function must explicitly call \palcall{ExceptionReturn},
+so that the host can destroy the frame that belongs to the handler function,
+and return to the interrupted frame.
+Also, \palcall{ExceptionReturn} can update the register values pushed to the interrupted frame,
+based on the \palkeyword{registers} field in \palkeyword{EXCEPTION_INFO}.
+
+
+
+\begin{paldef}
+bool ExceptionSetHandler (u8 exception_code,
+                          EXCEPTION_HANDLER handler);
+\end{paldef}
+
+\palcall{ExceptionSetHandler} assigns a handler function to a specific exception.
+The assignment of exception handlers
+applies to every threads in the same process.
+If \palcall{ExceptionSetHandler} is given a null pointer as the handler,
+it cancels any handler previously assigned to the exception.
 If no handler is ever assigned to a specific exception,
-the PAL kills the whole process when the exception happens.
-Once a handler finishes handling an exception,
-it must call \palcall{ExceptionReturn} to return to the execution.
+the default behavior of handling the exception is to kill the whole process.
+%Once a handler finishes handling an exception,
+%it must call \palcall{ExceptionReturn} to return to the execution.
 
 
 
