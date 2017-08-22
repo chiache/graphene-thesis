@@ -273,10 +273,10 @@ void   MutexUnlock (HANDLE mutex_handle);
 \end{paldef}
 
 
-\palcall{MutexCreate} creates a mutex (mutual-exclusive) lock for atomic execution of a critical section in the code.
+\palcall{MutexCreate} creates a mutex (mutually-exclusive) lock for atomic execution of a critical section in the code.
 A mutex lock can only be acquired by one thread at a time;
 if multiple threads are competing over a mutex lock, only one thread will proceed while other threads will block until the lock is released.
-A mutex lock can be acquired by \palcall{ObjectsWaitAny} (described later),
+A mutex lock can be acquired by \palcall{ObjectsWaitAny} (defined later),
 and be released by \palcall{MutexUnlock}.
 
 
@@ -284,7 +284,8 @@ and be released by \palcall{MutexUnlock}.
 \begin{paldef}
 HANDLE SynchronizationEventCreate (void);
 HANDLE NotificationEventCreate    (void);
-void   EventSet (HANDLE event_handle);
+void   EventSet   (HANDLE event_handle);
+void   EventClear (HANDLE event_handle);
 \end{paldef}
 
 
@@ -304,21 +305,28 @@ void   EventSet (HANDLE event_handle);
 
 
 
-\palcall{SynchronizationEventCreate} and \palcall{NotificationEventCreate} create a waitable event for synchronizing the execution of multiple threads.
-These two \hostapis{} create two types of waitable events, namely synchronization event and notification event.
-Both types of events can be waited by a thread. %, using \palcall{ObjectsWaitAny}.
-The difference is that
-setting a synchronization event
-wakes up at most one thread that are currently waiting for the event,
-whereas setting a notification event stops any thread from
-further blocking on the event.
-An event can be set by \palcall{EventSet}, and be waited by \palcall{ObjectsWaitAny}.
+\palcall{SynchronizationEventCreate} and \palcall{NotificationEventCreate} create two different types of waitable events for synchronizing the execution of multiple threads.
+Both types of events can be signaled by a thread.
+Signaling a synchronization event allows exactly one waiting thread to continue execution.
+A synchronization event can synchronize producer and consumer threads,
+since a producer thread can signal exactly one consumer at a time.
+On the other hand, a notification event can stay signaled until a thread manually resets the event using \palcall{EventClear}.
+A notification event can be used for notifying the occurrence of a one-time event,
+such as the start of a new thread.
+%Both types of events can be waited by a thread. %, using \palcall{ObjectsWaitAny}.
+%The difference is that
+%singaling a synchronization event
+%wakes up at most one thread that are currently waiting for the event,
+%whereas signaling a notification event stops any thread from
+%further blocking on the event.
+An event can be signal by \palcall{EventSet}, and a thread can wait for the event
+using \palcall{ObjectsWaitAny} (defined later).
 
 
-Synchronization events and notification events are designed for different purposes.
-A synchronization event can be used in a producer-consumer model, wherein a consumer thread can block until a producer thread submits a task or a result.
-On the other hand, a notification event can be used for notifying the occurrence of a one-time event;
-for example, a thread calling \palcall{ThreadCreate} can use a notification event to block until a new thread is created and starts execution.
+%Synchronization events and notification events are designed for different purposes.
+%A synchronization event can be used in a producer-consumer model, wherein a consumer thread can block until a producer thread signals the event.
+%On the other hand, a notification event can be used for notifying the occurrence of a one-time event;
+%for example, a thread calling \palcall{ThreadCreate} can use a notification event to block until a new thread is created and starts execution.
 
 
 \subsubsection*{Waiting for scheduling events}
@@ -335,9 +343,22 @@ for example, a thread calling \palcall{ThreadCreate} can use a notification even
 
 
 \begin{paldef}
-HANDLE ObjectsWait    (HANDLE *handles, u8 nhandles,
+HANDLE ObjectsWaitAny (HANDLE *handles, u8 nhandles,
                        u64 timeout);
 \end{paldef}
+
+
+\palcall{ObjectsWaitAny} will block on one or multiple event handles, until one of the events occur.
+For the least,
+\palcall{ObjectsWaitAny} allows a thread to
+wait until a mutex lock is released, or an event is signaled.
+Moreover, \palcall{ObjectsWaitAny} can be used to poll %for certain events
+an I/O stream handle,
+to wait for events such as arrival or delivery of data,
+a stream being shut down.
+\palcall{ObjectsWaitAny}
+
+
 
 
 \begin{paldef}
