@@ -101,7 +101,7 @@ bool ExceptionSetHandler (u8 exception_code,
                           EXCEPTION_HANDLER handler);
 \end{paldef}
 
-\palcall{ExceptionSetHandler} assigns a handler function to a specific exception.
+\palcall{ExceptionSetHandler} assigns a handler function to a specific exception, based on the given \palkeyword{exception_code}.
 The assignment of exception handlers
 applies to every threads in the same process.
 If \palcall{ExceptionSetHandler} is given a null pointer as the handler,
@@ -121,44 +121,70 @@ the default behavior of handling the exception is to kill the whole process.
 
 
 
-\paragraph{System time.} To calculate the system time,
-the library OS must rely on the host to have a reliable time source.
+\subsubsection*{Querying the system time}
+
+
+\begin{paldef}
+u64 SystemTimeQuery (void);
+\end{paldef}
+
+
+\palcall{SystemTimeQuery} returns the current system time as
+the number of microseconds passed since the Epoch, 1970-01-01 00:00:00 Universal Time (UTC).
+Querying the system time
+requires the host to have a reliable time source.
+A common reliable, time source on \graphenearch{}
+is a system timer incremented by the hardware alarm interrupts~\cite{love10linux-kernel},
+combined with the Time Stamp Counter (TSC), a CPU counter tracing the number of cycles since the system reset.
+\palcall{SystemTimeQuery} exports a reliable, simple time source
+to the guest, based on the calculation of any arbitrary time sources used in the host.
 
 
 
 
-
-
+\subsubsection*{Reading random bits}
 
 
 
 \begin{paldef}
-ulong SystemTimeQuery (void);
+u64 RandomBitsRead (void *buffer, u64 size);
 \end{paldef}
 
 
+\palcall{RandomBitsRead} fills the given buffer with data read from the host random number generator (RNG).
+If \palcall{RandomBitsRead} successfully reads up to the number of bytes
+specified by \palkeyword{size}, it returns the number of bytes that are actually read.
+Based on the host random number generator,
+\palcall{RandomBitsRead} may block until there is enough entropy for generating the random data.
+
+
+The purpose of \palcall{RandomBitsRead} is to leverage the hardware random number generators,
+either on-chip or off-chip.
+For example, recent Intel and AMD CPUs support the \code{RDRAND} instruction,
+which generates random bytes based on an on-chip entropy source.
+Other hardware RNGs also exist, mostly based on thermodynamical or photoelectric patterns of the hardware.
+\graphene{} only requires each host to export
+one trustworthy source of random data,
+such as \code{/dev/random}, a pseudo-device in POSIX.
 
 
 
-\begin{paldef}
-ulong RandomBitsRead (void *buffer, ulong size);
-\end{paldef}
 
-
-On some architectures, such as MIPS, the instruction cache inside the CPU 
-has to be flushed whenever the application code is changed.
-Both Windows and Linux contain system API for flushing the instruction cache.
-Inherited from \drawbridge{},
-\graphene{} defines a function called \palcall{ICacheFlush} in the host ABI,
-for architectures which requires such a feature.
-On \graphenearch{}, this function is not implemented,
-because the architecture
-does not require the instruction cache to be explicitly flushed.
-Still, Graphene keeps the definition
-for future porting to other architectures.
-
-
-
-\begin{paldef}
-void ICacheFlush (void *addr, ulong size);
-\end{paldef}
+%\subsubsection*{Flushing the instruction cache (optional)}
+%
+%\begin{paldef}
+%void ICacheFlush (void *addr, ulong size);
+%\end{paldef}
+%
+%
+%On some architectures, such as MIPS, the instruction cache inside the CPU 
+%has to be flushed whenever the application code is changed.
+%Both Windows and Linux contain system API for flushing the instruction cache.
+%Inherited from \drawbridge{},
+%\graphene{} defines a function called \palcall{ICacheFlush} in the host ABI,
+%for architectures which requires such a feature.
+%On \graphenearch{}, this function is not implemented,
+%because the architecture
+%does not require the instruction cache to be explicitly flushed.
+%Still, Graphene keeps the definition
+%for future porting to other architectures.

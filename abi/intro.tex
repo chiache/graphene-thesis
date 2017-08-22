@@ -132,28 +132,25 @@ according to the experience of porting the host ABI to several host examples, su
 
 
 
-The key component to implement the features of the host ABI
-is a PAL (platform adaption layer).
-The host ABI
-%is not only a description of the interface to the host and library OS,
-is essentially a specification of how to develop a PAL.
-The specification of a PAL
-includes two parts: the first is the functions used in the programming of the library OS;
-the second is the calling convention
-that a PAL enforces for the library OS to interact with the host ABI.
-This section will discuss the PAL calling convention.
+%The key component to implement the features of the host ABI
+%is a PAL (platform adaption layer).
+%The host ABI
+%%is not only a description of the interface to the host and library OS,
+%is essentially a specification of how to develop a PAL.
+%The specification of a PAL
+%includes two parts: the first is the functions used in the programming of the library OS;
+%the second is the calling convention
+%that a PAL enforces for the library OS to interact with the host ABI.
+%This section will discuss the PAL calling convention.
 
 
 
-The library is loaded by the hosts as a user library.
-The features of a PAL include dynamically linking the library OS
-as one executable.
-The host ABI avoids making assumption about the host,
-including the host system call convention.
-Every call from the library OS to enter the PAL is a normal function call.
-To resolve function call addresses,
-the PAL has to work as a dynamic loader, similar to \code{ld.so}.
-Dynamic linking allows shipping the library OS as a separate binary from the host-specific PAL binaries.
+%The host ABI avoids making assumption about the host,
+%including the host system call convention.
+%Every call from the library OS to enter the PAL is a normal function call.
+%To resolve function call addresses,
+%the PAL has to work as a dynamic loader, similar to \code{ld.so}.
+%Dynamic linking allows shipping the library OS as a separate binary from the host-specific PAL binaries.
 %and thus can be loaded on any hosts.
 %We choose to dynamically link the library OS for keeping the initialization
 %adaptable to different hosts;
@@ -178,7 +175,7 @@ Dynamic linking allows shipping the library OS as a separate binary from the hos
 
 \fixmedp{Make this sentence more direct: "The library OS is loaded by the host OS as user libraries."}
 The host ABI inherits the \graphenearch{} Linux convention. %, to simplify compilation and linking.
-A PAL can load the library OS as ELF (executable and linkable format) binary~\cite{elf-format}, similar as loading a Linux library.
+A PAL loader can load the library OS as an ELF (executable and linkable format) binary~\cite{elf-format}, similar to \code{ld.so} loading a user library.
 %The host ABI inherit the Linux calling convention,
 %for the convenience of development.
 %The primary architecture targeted by \graphene{} is \graphenearch{};
@@ -251,8 +248,8 @@ a non-zero number or pointer if the function succeeds, or zero if it fails.
 Unlike the Linux call convention, the host ABI does not return negative values as error codes (e.g., \code{-EINVAL}).
 Instead, the host ABI delivers the failure of a function call
 as an exception, with the library OS capturing the failure by an assigned exception handler.
-The design is to avoid confusing
-the interpretation of return values from the host ABI.
+The design avoids confusing semantics
+when interpreting return values.
 
 
 
@@ -269,7 +266,7 @@ to running most of the Linux applications without modification or recompilation.
 
 
 However, there are cases where static linking is preferred on a host (e.g., SGX), and recompilation is acceptable to the users.
-Compiling the applications, library OS, and potential a PAL
+Compiling an application, library OS, and PAL
 into a single binary is similar to the technique of unikernels~\cite{unikernels},
 which has the benefit of compiling out unnecessary code and execution paths
 from the binary. 
