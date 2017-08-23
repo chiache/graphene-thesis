@@ -5,12 +5,10 @@
 \Thelibos{}
 relies on the host OSes to manage hardware and privileged OS resources.
 \Thehostabi{}
-defines a set of host abstractions,
-including I/O streams, virtual memory areas (VMAs), and threads,
-for the development of \libos{}.
+defines a set of host abstractions---such as I/O streams, virtual memory areas (VMAs), and threads---for the development of a \libos{}.
 %that are available for its guest.
 These host abstractions delegate
-the management of a few hardware resources, such as I/O devices, memory pages, and CPUs,
+the management of a few ubiquitously-installed hardware resources, such as I/O devices, memory, and CPUs,
 to the host OSes.
 Other abstractions defined
 by \thehostabi{},
@@ -34,13 +32,13 @@ At a high level, the purpose of \thelibos{} is to recreate the Linux abstraction
 \Thelibos{} implements the Linux abstractions
 based on managing the host abstractions instead of
 the underlying resources.
-For example, if a Linux abstraction requires memory pages
-for either application usage or
+For example, if a Linux abstraction requires allocating pages
+for either usage in an application or
 internal bookkeeping,
 the implementation in
-\thelibos{} will allocate a VMA as the memory abstraction of \thehostabi{}, instead of physical pages.
+\thelibos{} will allocate a VMA, which is the memory abstraction of \thehostabi{}, instead of physical pages.
 %in a unified, guest virtual address space.
-Such a \libos{} design operates on the faith that the host OS will assign physical pages to each VMA, with acceptable fairness and efficiency.
+Such a \libos{} design operates on the faith that the host OS will manage and assign pages to VMAs, with reasonable fairness as well as efficiency.
 Unless the allocation exceeds user quotas or host limitations,
 the \libos{} should be allowed to obtain more host-manged resources,
 by increasing the allocation of a host abstraction.
@@ -52,30 +50,65 @@ A language runtime generally relies on system APIs exported by the OSes
 for resource management.
 A common behavior of a language runtime
 is to use \linuxapis{} like \syscall{mmap} to allocate a large heap,
-which is chunked into objects
-and assigned to application variables.
-Similar strategies also apply to
-filesystem or threading abstractions of a language runtime, which %are likely to
-usually leverage the filesystem or threading APIs of the OSes.
-By managing the abstractions
-exported by the OSes,
-a language runtime creates an independent, consistent view
-of system resources, for its own applications.
-Such a design resonates with \thelibos{}. 
+which is later chunked into objects
+and assigned to variables in an application.
+Similar strategies have been applied to
+filesystem or threading abstractions in a language runtime. %, which %are likely to
+%usually leverage the filesystem or threading APIs of the OSes.
+%By managing the OS abstractions,
+%exported by the OSes,
+%the language runtime creates an independent view
+%of system resources for applications.
+%Such a design resonates with \thelibos{}. 
+
+
+
+A primary task and challenge to managing resources in \thelibos{}
+is to reproduce the idiosyncratic resource allocation features and requirements of Linux, % in Linux,
+using only the host abstractions
+defined by \thehostabi{}.
+Take page management for example.
+Linux contains several memory abstractions, including VMAs allocated by \syscall{mmap}, a self-growing stack in each process, and a fine-grained heap allocated by \syscall{brk}.
+Since \thelibos{} does not directly manage pages,
+it requires particular emulation strategies to
+implement the allocation models that applications expect when using these Linux abstractions.
+A strategy repeatedly used in \thelibos{} and language runtimes
+is to ``overallocate'' certain host abstractions when an application requests for resources.
+The purpose of overallocation is
+to keep the flexibility of adjusting the resources afterward.
+The caveat of using these kinds of strategies
+is that they are based on an assumption that the host
+allocates the resources
+on demand, instead of populating the resources all at once.
+However, such an assumption does not apply to all host OSes;
+for an environment like a SGX enclave, overallocating resources such as virtual memory can still have a huge impact on resource footprints.
+
+
+
+
+Since emulation has its cost,
+an important problem to solve in \thelibos{}
+
+
+
 
 
 
 
 
 \paragraph{Alternatives.}
-An alternative approach for managing resources in a guest environment
-is to virtualize the resources
+An alternative approach for resource management in a guest environment
+is to virtualize the hardware resources,
+such as memory and IO devices,
 using a hypervisor or hardware virtualization.
 
 
 
+Compared with full virtualization, the \graphene{} approach
 
 
+
+Exokernel~\cite{engler95exokernel} also uses a \libos{}
 
 
 
