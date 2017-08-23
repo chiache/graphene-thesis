@@ -64,7 +64,8 @@ filesystem or threading abstractions in a language runtime. %, which %are likely
 
 
 A primary task and challenge to managing resources in \thelibos{}
-is to reproduce the idiosyncratic resource allocation features and requirements of Linux, % in Linux,
+is to reproduce the idiosyncratic %resource allocation
+features or requirements of Linux, % in Linux,
 using only the host abstractions
 defined by \thehostabi{}.
 Take page management for example.
@@ -80,14 +81,18 @@ The caveat of using these kinds of strategies
 is that they are based on an assumption that the host
 allocates the resources
 on demand, instead of populating the resources all at once.
-However, such an assumption does not apply to all host OSes;
-for an environment like a SGX enclave, overallocating resources such as virtual memory can still have a huge impact on resource footprints.
+However, such an assumption does not apply to all hosts;
+%for an environment like a SGX enclave, overallocating resources such as virtual memory can still have a huge impact on resource footprints.
+for example, the current version of SGX requires a static virtual memory layout,
+and each VMA is at least fully populated once at enclave creation
+for checking the integrity of memory data.
+Therefore, overallocating VMAs slows down the creation of an enclave.
 
 
 
 
-Since emulation has its cost,
-an important problem to solve in \thelibos{}
+%Since emulation has its cost,
+%an important problem to solve in \thelibos{}
 
 
 
@@ -97,14 +102,19 @@ an important problem to solve in \thelibos{}
 
 
 \paragraph{Alternatives.}
-An alternative approach for resource management in a guest environment
-is to virtualize the hardware resources,
-such as memory and IO devices,
-using a hypervisor or hardware virtualization.
+Virtualization is another approach to realize guest-level resource management.
+%managing resources in a guest OS
+%is to virtualize the hardware resources,
+%such as memory and IO devices,
+Hardware resources, such as CPUs, memory, and I/O devices,
+can be virtualized by a hypervisor, such as QEMU~\cite{qemu} or VMWare ESX~\cite{wldspurger02vmware-esx},
+or hardware virtualization, such as VT~\cite{VT} or IOMMU~\cite{VT-d}.
+Virtualization allows a guest OS to directly manage hardware resources, by either emulating a set of virtual hardware,
+or dedicating physical hardware to a guest OS instance.
 
 
 
-Compared with full virtualization, the \graphene{} approach
+%Compared with full virtualization, the \graphene{} approach
 
 
 
