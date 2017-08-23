@@ -87,6 +87,7 @@ for example, the current version of SGX requires a static virtual memory layout,
 and each VMA is at least fully populated once at enclave creation
 for checking the integrity of memory data.
 Therefore, overallocating VMAs slows down the creation of an enclave.
+\fixme{End with a summary of the paragraph?}
 
 
 
@@ -102,16 +103,22 @@ Therefore, overallocating VMAs slows down the creation of an enclave.
 
 
 \paragraph{Alternatives.}
-Virtualization is another approach to realize guest-level resource management.
+Virtualization is another approach to allow guest-level resource management.
 %managing resources in a guest OS
 %is to virtualize the hardware resources,
 %such as memory and IO devices,
-Hardware resources, such as CPUs, memory, and I/O devices,
-can be virtualized by a hypervisor, such as QEMU~\cite{qemu} or VMWare ESX~\cite{wldspurger02vmware-esx},
-or hardware virtualization, such as VT~\cite{VT} or IOMMU~\cite{VT-d}.
-Virtualization allows a guest OS to directly manage hardware resources, by either emulating a set of virtual hardware,
-or dedicating physical hardware to a guest OS instance.
-
+There are two primary strategies to fully virtualize hardware resources for a guest OS.
+The first strategy is to rely on a hypervisor,
+such as QEMU~\cite{qemu} or VMWare ESX~\cite{wldspurger02vmware-esx},
+to emulate the physical hardware,
+giving the guest OS the illusion of having full control of all the hardware resources.
+Another strategy to leverage the hardware virtualization,
+such as VT~\cite{VT} or IOMMU~\cite{VT-d},
+which allows a hypervisor to dedicate physical hardware resources
+to guest OS instances.
+%Virtualization allows a guest OS to directly manage hardware resources, by either emulating a set of virtual hardware,
+%or dedicating physical hardware to a guest OS instance.
+Both of the virtualization strategies grant a guest OS with more control on managing hardware resources than \thelibos{} in the \graphene{} architecture.
 
 
 %Compared with full virtualization, the \graphene{} approach
