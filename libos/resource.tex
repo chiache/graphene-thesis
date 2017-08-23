@@ -2,42 +2,43 @@
 \label{sec:libos:resource}
 
 
-The \libos{}
-relies on the host to manage hardware and privileged OS resources.
-The host ABI
+\Thelibos{}
+relies on the host OSes to manage hardware and privileged OS resources.
+\Thehostabi{}
 defines a set of host abstractions,
-including I/O streams, virtual memory areas (VMAs), and threads.
+including I/O streams, virtual memory areas (VMAs), and threads,
+for the development of \libos{}.
 %that are available for its guest.
 These host abstractions delegate
 the management of a few hardware resources, such as I/O devices, memory pages, and CPUs,
 to the host OSes.
 Other abstractions defined
-by the host ABI
-include local RPC streams and the system clock,
-which depend on low-level, privileged resources in most OSes,
+by \thehostabi{},
+such as a local RPC stream and a system clock,
+depend on low-level, privileged resources in the host OSes,
 such as in-kernel queues and time sources.
-To support the \libos{} as a guest,
-the host ABI avoids the requirement of exposing or virtualizing %the management of
+To support \thelibos{} as a guest,
+\thehostabi{} avoids the requirement of exposing or virtualizing %the management of
 these hardware and privileged OS resources,
-by encapsulating the resources as the generic, user-space-level abstractions
-of the host ABI.
+by encapsulating the resources as generic, user-space abstractions.
+%of the host ABI.
 
 
 
 \issuedone{1.2.a}{discuss the role of libOS in resource management}
-For resource management, the role of the \libos{}
+For resource management, the role of \thelibos{}
 is to allocate the host abstractions,
 as unambiguous requests %to the host
 for the host-managed resources.
-At a high level, the purpose of the \libos{} is to realize Linux abstractions.
-The \libos{} implements Linux abstractions
+At a high level, the purpose of \thelibos{} is to recreate the Linux abstractions.
+\Thelibos{} implements the Linux abstractions
 based on managing the host abstractions instead of
 the underlying resources.
 For example, if a Linux abstraction requires memory pages
-either for applications or
-to maintain internal bookkeeping,
+for either application usage or
+internal bookkeeping,
 the implementation in
-the \libos{} will allocate a VMA as the host memory abstraction, instead of directly managing physical pages.
+\thelibos{} will allocate a VMA as the memory abstraction of \thehostabi{}, instead of physical pages.
 %in a unified, guest virtual address space.
 Such a \libos{} design operates on the faith that the host OS will assign physical pages to each VMA, with acceptable fairness and efficiency.
 Unless the allocation exceeds user quotas or host limitations,
@@ -45,10 +46,37 @@ the \libos{} should be allowed to obtain more host-manged resources,
 by increasing the allocation of a host abstraction.
 
 
-\placeholder[write about the challenges.]{}
+
+The role of \thelibos{} in resource management is close to a language runtime, such as a Java virtual machine~\cite{hotspot,j9,alpern2000jalapeno}, or a Python~\cite{python} or Perl~\cite{perl} runtime.
+A language runtime generally relies on system APIs exported by the OSes
+for resource management.
+A common behavior of a language runtime
+is to use \linuxapis{} like \syscall{mmap} to allocate a large heap,
+which is chunked into objects
+and assigned to application variables.
+Similar strategies also apply to
+filesystem or threading abstractions of a language runtime, which %are likely to
+usually leverage the filesystem or threading APIs of the OSes.
+By managing the abstractions
+exported by the OSes,
+a language runtime creates an independent, consistent view
+of system resources, for its own applications.
+Such a design resonates with \thelibos{}. 
 
 
-\placeholder[list the ``virtual'' resources managed by libOS]{}
+
+
+
+\paragraph{Alternatives.}
+An alternative approach for managing resources in a guest environment
+is to virtualize the resources
+using a hypervisor or hardware virtualization.
+
+
+
+
+
+
 
 
 \input{vma}
