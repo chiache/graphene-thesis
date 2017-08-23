@@ -1,8 +1,54 @@
 \section{Resource Management}
 \label{sec:libos:resource}
 
-\issue{1.2.a}{discuss the role of library OS for resource management}
 
+The \libos{}
+relies on the host to manage hardware and privileged OS resources.
+The host ABI
+defines a set of host abstractions,
+including I/O streams, virtual memory areas (VMAs), and threads.
+%that are available for its guest.
+These host abstractions delegate
+the management of a few hardware resources, such as I/O devices, memory pages, and CPUs,
+to the host OSes.
+Other abstractions defined
+by the host ABI
+include local RPC streams and the system clock,
+which depend on low-level, privileged resources in most OSes,
+such as in-kernel queues and time sources.
+To support the \libos{} as a guest,
+the host ABI avoids the requirement of exposing or virtualizing %the management of
+these hardware and privileged OS resources,
+by encapsulating the resources as the generic, user-space-level abstractions
+of the host ABI.
+
+
+
+\issuedone{1.2.a}{discuss the role of libOS in resource management}
+For resource management, the role of the \libos{}
+is to allocate the host abstractions,
+as unambiguous requests %to the host
+for the host-managed resources.
+At a high level, the purpose of the \libos{} is to realize Linux abstractions.
+The \libos{} implements Linux abstractions
+based on managing the host abstractions instead of
+the underlying resources.
+For example, if a Linux abstraction requires memory pages
+either for applications or
+to maintain internal bookkeeping,
+the implementation in
+the \libos{} will allocate a VMA as the host memory abstraction, instead of directly managing physical pages.
+%in a unified, guest virtual address space.
+Such a \libos{} design operates on the faith that the host OS will assign physical pages to each VMA, with acceptable fairness and efficiency.
+Unless the allocation exceeds user quotas or host limitations,
+the \libos{} should be allowed to obtain more host-manged resources,
+by increasing the allocation of a host abstraction.
+
+
+\placeholder[write about the challenges.]{}
+
+
+\placeholder[list the ``virtual'' resources managed by libOS]{}
 
 
 \input{vma}

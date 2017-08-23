@@ -62,13 +62,17 @@
 
 
 \ifx \debug \undefined
-\newcommand{\placeholder}[0]{{}}
+\newcommand{\placeholder}[1][]{{}}
 \newcommand{\fixme}[1]{{}}
 \newcommand{\fixmedp}[1]{{}}
 \else
 \usepackage[textsize=footnotesize,textwidth=1.3in,shadow,colorinlistoftodos]{todonotes}
 \WarningFilter{latex}{Marginpar on page}
-\newcommand{\placeholder}[0]{\todo[caption=\thechapterorsection, inline, size=\normalsize, color=yellow!40, list]{\bf To be written.}}
+\newcommand{\placeholder}[1][To be written.]{%
+  \vspace*{1.0\baselineskip}%
+  \todo[caption={\thechapterorsection: #1}, inline, size=\normalsize, color=yellow!40, list]{\bf #1}%
+  \vspace*{0.5\baselineskip}%  
+}
 \newcommand{\fixme}[2][]{{\todo[#1, fancyline, nolist]{
   \begin{spacing}{1.0}
     \vspace*{-0.5\baselineskip}
