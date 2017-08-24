@@ -1,2 +1,43 @@
 \subsection{Virtual address space}
 \label{sec:libos:vma}
+
+\thelibos{} allocates memory resources
+for two reasons.
+The first reason is to service the requests from the applications and user libraries,
+through 
+system APIs such as \syscall{mmap}.
+The second reason
+is to maintain the internal states
+of the \libos{},
+for either implementing the Linux features and APIs, or managing the allocated host abstractions.
+
+
+
+To allocate memory, \thelibos{} creates VMAs (virtual memory areas)
+in the host OS.
+
+
+
+\thelibos{} is in control of the whole virtual address space of a \picoproc{},
+except the initial PAL mappings.
+
+
+
+
+
+
+
+
+Internally, \thelibos{} maintains a list of VMA records, for managing the virtual address space.
+
+
+
+
+
+\paragraph{VMA bookkeeping.}
+
+
+
+
+\paragraph{Address Space Layout Randomization (ASLR).}
+
