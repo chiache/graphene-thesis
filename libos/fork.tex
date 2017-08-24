@@ -40,7 +40,7 @@ or whether a checkpoint should be loaded instead.
 \section{Multi-Process Abstractions} 
 
 
-\subsection{Forking a process}
+\subsection{Cloning a process}
 
 
 \issue{1.3.b}{describe the workflow of forking}
@@ -108,7 +108,7 @@ Pipes, however, are not easily recreated without host support.
 
 %A second option, which we pursue, is to only create anonymous bytes streams,
 \paragraph{Inheriting File Handles.}
-Graphene adds two PAL ABI functions that transfer 
+\thelibos{} uses two \hostapis{}, \palcall{RPCSendHandle} and \palcall{RPCRecvHandle}, to transfer 
 stream handles out-of-band over reviously 
 established byte streams within a sandbox.  Handle passing facilitates inheritance
 and general-purpose RPC.
@@ -143,13 +143,18 @@ and facilitates extensibility.
 
 \end{comment}
 
-
-\subsection{\syscall{execve}}
-
-
-
-\subsection{Inter-process communication}
-
-
 \issue{1.3.b}{discuss alternative strategies of forking}
+
+
+\subsection{Multi-process \syscall{execve}}
+
+
+
+
+\subsection{Signaling}
+
+
+
+
+\subsection{System V IPC}
 

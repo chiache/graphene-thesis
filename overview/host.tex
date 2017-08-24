@@ -4,9 +4,9 @@
 \issuedone{1.1.b}{describe the host ABI specification}
 \graphene{} facilitates compatibility
 by partitioning an OS
-at a host ABI which contains
+at a narrowed interface that contains
 OS abstractions
-that are essential to applications.
+that are essential to application execution.
 %and minimal specifications for the host OSes and hardware.
 %The host ABI is a new boundary between OSes (or hypervisors) and applications.
 The host ABI separates the low-level, hardware management features, from the idiosyncrasy of system interface. 
@@ -87,7 +87,7 @@ for any hosts.
 
 
 %The host ABI is defined with partitioning in mind.
-The host ABI 
+\Thehostabi{} 
 determines a boundary which partitions several upper-level OS components, %, such as system calls and namespaces,
 into a library OS,
 %, as a dynamically-linked library which can be deployed
@@ -123,7 +123,7 @@ inside the host OS.
 
 
 
-The host ABI shares several characteristics of a virtual hardware interface for running a VM.
+\Thehostabi{}  shares several characteristics of a virtual hardware interface for running a VM.
 A hypervisor usually export a generic, but backward-compatible
 virtual hardware interface,
 %a set of generic, virtual hardware,
@@ -137,21 +137,21 @@ emualates an Intel E1000 device.
 %As a result, the host ABI contains the
 %typical OS features and interfaces, similar to the API of early UNIX systems.
 However, unlike a virtual hardware interface, the host ABI does not reuse a whole, unmodified OS.
-Instead, the host ABI expects the library OS
+Instead, \thehostabi{} expects the \libos{}
 to be rewritten and
-customized for the host ABI,
+customized for \thehostabi{},
 similar to a 
 para-virtualizated VM.
 %Compared to an actual para-virtualized VM,
 Moreover, \graphene{} deduplicates OS components,
-such as scheduler, page fault handler, filesystem, and network stack,
-between the host and the library OS.
+such as scheduler, page fault handler, file system, and network stack,
+between the host and the \libos{}.
 %Another difference is that the host ABI is called by normal function calls, whereas para-virtualization relies on hypercalls.
-Overall, we can put the \graphene{} library OS and VMs on a spectrum:
+Overall, we can put a \libos{} and a VM on a spectrum:
 while a VM tries to reuse most of an OS and runs on a virtual hardware interface,
-a library OS
-is partitioned and customized
-for running on a narrowed host ABI.
+a \libos{}
+partitions an OS
+at a narrowed interface.
 
 
 

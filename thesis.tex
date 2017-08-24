@@ -1,4 +1,4 @@
-\documentclass[12pt]{report}
+\documentclass[11pt]{report}
 
 
 \newcommand{\thesistitle}{A Library Operating System for Compatibility and Security Isolation}
@@ -62,13 +62,17 @@
 
 
 \ifx \debug \undefined
-\newcommand{\placeholder}[0]{{}}
+\newcommand{\placeholder}[1][]{{}}
 \newcommand{\fixme}[1]{{}}
 \newcommand{\fixmedp}[1]{{}}
 \else
 \usepackage[textsize=footnotesize,textwidth=1.3in,shadow,colorinlistoftodos]{todonotes}
 \WarningFilter{latex}{Marginpar on page}
-\newcommand{\placeholder}[0]{\todo[caption=\thechapterorsection, inline, size=\normalsize, color=yellow!40, list]{\bf To be written.}}
+\newcommand{\placeholder}[1][To be written.]{%
+  \vspace*{1.0\baselineskip}%
+  \todo[caption={\thechapterorsection: #1}, inline, size=\normalsize, color=yellow!40, list]{\bf #1}%
+  \vspace*{0.5\baselineskip}%  
+}
 \newcommand{\fixme}[2][]{{\todo[#1, fancyline, nolist]{
   \begin{spacing}{1.0}
     \vspace*{-0.5\baselineskip}
@@ -250,30 +254,37 @@ This page is optional.
 \newpage
 %\centerline{\bf{Table of Contents}}
 \renewcommand{\contentsname}{\centerline{\Large\bf{Table of Contents}}}
-\renewcommand{\cftchapfont}{\normalsize\bf\def\\{}\def\em{}}
+\renewcommand{\cftchapfont}{\large\bfseries\def\\{}\def\em{}}
 \renewcommand{\cftsecfont}{\normalsize\def\\{}\def\em{}}
 \renewcommand{\cftsubsecfont}{\normalsize\def\\{}\def\em{}}
 \pdfbookmark[0]{Table of Contents}{Contents}
 \tableofcontents
 
-\titlespacing{\subsubsection}{0pt}{3.5ex plus .1ex minus .2ex}{.5ex minus .05ex}
-\titlespacing{\paragraph}{0pt}{3.5ex plus .1ex  minus .2ex}{1pc}
+\titlespacing{\subsubsection}{0pt}{3.5ex plus .1ex minus .2ex}{0ex}
+\titlespacing{\paragraph}{0pt}{1.5ex plus .1ex}{1pc}
 
-\titleformat{\section}{\normalfont\fontsize{14}{28}\bfseries}{\thesection}{1em}{}
-\titleformat{\subsection}{\normalfont\fontsize{12}{15}\bfseries}{\thesubsection}{0.5em}{}
-\titleformat{\subsubsection}{\normalfont\fontsize{12}{15}\bfseries}{\thesubsubsection}{0.5em}{}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{\charwidth}{}
+\titleformat{\subsubsection}{\normalfont\bfseries}{\thesubsubsection}{\charwidth}{}
 
 
 
 \newpage
 \addcontentsline{toc}{chapter}{List of Tables}
 \renewcommand{\listtablename}{\centerline{\Large\bf{List of Tables}}}
-\listoftables
+{
+  \sloppy
+  \listoftables
+}
+
 
 \newpage
 \addcontentsline{toc}{chapter}{List of Figures}
 \renewcommand{\listfigurename}{\centerline{\Large\bf{List of Figures}}}
-\listoffigures
+{
+  \sloppy
+  \listoffigures
+}
 
 
 \setdefaultleftmargin{0.5in}{}{}{}{}{}
