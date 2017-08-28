@@ -7,80 +7,8 @@
 
 
 
-%\paragraph{Implementing Linux Personality.} 
-%\fixmedp{Revisit the logical flow of these paragraphs}
-\Thelibos{} implements a subset 
-of the Linux \linuxapis{} (currently at \graphenesyscallnum{} calls)
-using only \thehostabi{} to interact with the host.
-We note that Linux exports a very long tail of infrequently used calls.
-%applications.
-A rough analysis of this tail indicates roughly 100 additional calls that can be implemented
-with the existing \pal{} ABI and coordination framework, less than 10 administrative calls that will not make sense to expose to 
-an application, such as loading a kernel module or rebooting the system, and roughly 54 that will require 
-\pal{} extensions to meaningfully implement, such as controlling scheduling,
-NUMA placement, I/O privilege, and shared memory.
-In the last category of system calls, the degree to which actual host details should be exported versus emulated is debatable.
-
-%We believe represent the most commonly used system calls.
-%When an application requests a call or argument that {\tt libLinux.so} does not implement,
-%the picoprocess exits with a distinct error message. 
-Each time we have tested \graphene{} with a new application, the number of extra system calls
-required has dropped---most recently we only added 4 calls
-(namely, epoll\_create, epoll\_wait, semget and semop)
-to support the Apache web server.
-Thus, we believe \graphene{} implements a representative sample of Linux calls.
-
-%such as {\tt sched\_setparam}, which manipulates scheduler-specific
-%parameters or 
-%{\tt uselib}, which has been abandoned 
-%in {\tt glibc} version 2 in favor of a user-space dynamic linker.
-%We do not plan to implement administrative interfaces, such as {\tt reboot}.
-%The growth in the set of supported system calls has been driven by 
-%the requirements of new applications we use to exercise \graphene{}, and has been 
-%slowing considerably over time.
 
 
-
-\subsection{Bootstrapping}
-
-
-
-%directly to guests, and thus will not implement them in {\tt libLinux.so}.
-
-% dp: :(
-\begin{comment}
-Most {\tt libLinux.so} code reimplements
-Linux kernel functionality.  We found it expedient to 
-read the Linux source in order to understand its behavior and then reimplement 
-that behavior on the \pal{} ABI in most cases.
-In some cases, such as the file caching code,
-%directory entry (dentry) cache, 
-we refactored code directly from the Linux kernel.
-%% In these cases, we simplified data structures to only include data
-%% we needed for a single application, and to hook in with other 
-%% {\tt libLinux} subsystems.
-%% An interesting direction for future work would identify techniques
-%% to automatically import larger swaths of Linux kernel code, facilitating
-%% adoption of new features and bugfixes.
-\end{comment}
-
-In order to use {\tt libLinux.so}, we modified \libclines{} lines of {\tt glibc} to replace 
-system instructions with function calls into {\tt lib\-Linux.so},
-and to cooperatively manage thread-local storage with {\tt libLinux.so} (Table~\ref{tab:graphene:loc}).
-
-%All totaled, we only needed to modify \libclines{} lines of glibc source code to redirect all 
-%system calls to {\tt libLinux} 
-
-\begin{comment}
-\vspace{5pt}
-\noindent{\bf ABI Extensions.~}
-\graphene{} extends the Drawbridge ABI with 9 additional \pal{} calls.
-As discussed above, one creates a new sandbox, and 
-5 additional calls were added for IPC.
-We also add 3 calls to manage x86 segmentation registers
-and exceptions (Bascule~\cite{baumann13bascule} adds
-similar extensions).
-\end{comment}
 
 
 
