@@ -1,5 +1,5 @@
 \small
-\begin{tabular}{|p{.15\textwidth}|p{.33\textwidth}|p{.45\textwidth}|}
+\begin{tabular}{|p{.12\textwidth}|p{.35\textwidth}|p{.43\textwidth}|}
 \hline
 {\bf Abstraction} & {\bf Function Names} & {\bf Description} \\
 \hline
@@ -7,15 +7,15 @@
 Streams & 
 \raggedright
 {\tt StreamOpen} \newline
-{\tt StreamMap} \newline
-{\tt StreamFlush} \newline
-{\tt StreamSetLen} \newline
 {\tt StreamRead} \newline
 {\tt StreamWrite} \newline
+{\tt StreamMap} \newline
+{\tt StreamFlush} \newline
+{\tt StreamSetLength} \newline
 {\tt StreamWaitforClient} \newline
 {\tt StreamAttrQuery} \newline
 {\tt StreamAttrQuerybyHandle} \newline
-{\tt StreamAttrSetbyHandle} \newline
+{\tt StreamAttrSetbyHandle} $\dagger$ \newline
 {\tt StreamDelete}
 & 
 Opening streams using URIs, with prefixes representing stream types (e.g., \code{file:},\code{tcp:},\code{pipe:}),
@@ -39,21 +39,26 @@ Threads \& scheduling &
 {\tt ThreadExit} \newline
 {\tt ThreadDelayExecution} \newline
 {\tt ThreadYieldExecution} \newline
-{\tt SemaphoreCreate} \newline
-{\tt SemaphoreRelease} \newline
-{\tt EventCreate} \newline
+{\tt ThreadInterrupt} \newline
+{\tt MutexCreate} \newline
+{\tt MutexUnlock} \newline
+{\tt SynchronizationEventCreate} \newline
+{\tt NotificationEventCreate} \newline
 {\tt EventSet} \newline
-{\tt HandlesWaitAny}
+{\tt EventClear} \newline
+{\tt ObjectsWaitAny} \newline
+{\tt SegmentRegisterAccess} $\dagger$
 &
 Creation and termination of threads; 
 Using scheduling primitives, including suspension, semaphores, events, and pollable IO events.
 \\
 \hline
 \raggedright
-Process & 
+Processes & 
 \raggedright
 {\tt ProcessCreate} \newline
-{\tt ProcessExit}
+{\tt ProcessExit} \newline
+{\tt SandboxSetPolicy} $\dagger$
 & 
 Creating or terminate a process with a library OS instance.
 \\
@@ -62,36 +67,22 @@ Creating or terminate a process with a library OS instance.
 Mis\-cel\-la\-ne\-ous & 
 \raggedright
 {\tt SystemTimeQuery} \newline
-{\tt RandomBitsRead}
+{\tt RandomBitsRead} \newline
+{\tt ExceptionSetHandler} $\dagger$ \newline
+{\tt ExceptionReturn} $\dagger$
 & 
 Querying system time, and random number generation.
-\\
-\hline
-\raggedright
-Exceptions $\dagger$ & 
-\raggedright
-{\tt ExceptionSetHandler} \newline
-{\tt ExceptionReturn}
-& 
 Setting an exception handler, and returning from the handler.
 \\
 \hline
 \raggedright
-TLS $\dagger$ & 
+Remote Procedure Call & 
 \raggedright
-{\tt SegmentRegisterSet}
-& 
-Setting the \code{FS}/\code{GS} registers.
-\\
-\hline
-\raggedright
-Remote Procedure Call $\dagger$ (optional)& 
-\raggedright
-{\tt RpcSendHandle} \newline
-{\tt RpcRecvHandle} \newline
-{\tt PhysicalMemoryStoreOpen} \newline
-{\tt PhysicalMemoryCommit} \newline
-{\tt PhysicalMemoryMap}
+{\tt RpcSendHandle} $\dagger$ \newline
+{\tt RpcRecvHandle} $\dagger$ \newline
+{\tt PhysicalMemoryStore} $\dagger$ \newline
+{\tt PhysicalMemoryCommit} $\dagger$ \newline
+{\tt PhysicalMemoryMap} $\dagger$
 & 
 Sending opened stream handles or physical memory across processes.
 \\

@@ -1,0 +1,153 @@
+\section{The \thelibos{} Architecture}
+
+
+The \graphene{} \libos{}, or \thelibos{},
+is a single library being loaded beneath an unmodified application,
+for serving Linux compatibility requirements.
+A Linux application
+is developed with an assumption of running upon a Linux kernel or equivalent.
+A Linux kernel has defined a set of idiosyncratic features and behaviors,
+or the {\bf Linux personality},
+which shapes the development of a Linux application.
+\thelibos{} implements the Linux personality in a user-space, ELF library (i.e., \code{\tt libLinux.so}),
+which can be loaded by any PAL upon the corresponding host.
+%at the beginning of a \picoproc{}.
+
+
+A central piece of the Linux kernel implemented by \thelibos{} is a Linux system call table.
+The Linux system call table is
+the primary entry point of a Linux kernel,
+and defines most of the interaction between an application and the kernel.
+A Linux kernel assigns
+an interrupt handler for \linuxapi{} invocation inside an application.
+When an application makes a \linuxapi{} using a \graphenearch{} instruction (``\code{syscall}'' or ``\code{int \$80}''),
+the current process
+context-switches to the kernel
+and calls a kernel function according to a \linuxapi{} number
+given by the application.
+Both the \linuxapi{} number and the arguments
+are passed in \graphenearch{} general-purpose registers, as regulated by the Linux kernel's calling convention.
+A prerequisite for \thelibos{}
+is to intercept all the Linux \linuxapis{} from an unmodified application,
+and redirect %the \linuxapis{}
+to  a set of \linuxapi{} handlers inside \thelibos{}.
+%\thelibos{} implements the callback functions for a subset of the Linux \linuxapis{}.
+%For reference, Linux kernel \linuxversion{}
+%has defined \linuxsyscallnum{} \linuxapis{} in total.
+
+
+%\paragraph{Implementing Linux Personality.} 
+%\fixmedp{Revisit the logical flow of these paragraphs}
+\Thelibos{} implements a subset 
+of the Linux \linuxapis{} (currently at \graphenesyscallnum{} calls).
+%upon \thehostabi{}. % to interact with the host.
+%Among the whole Linux \linuxapi{} table,
+A Linux kernel exports a long tail of infrequently-used \linuxapis{}.
+For reference, the Linux \linuxversion{} kernel exports \linuxsyscallnum{} \linuxapis{}.
+A study of the Linux \linuxapi{} usage~\cite{tsai16apistudy}
+indicates that there are only 40 \linuxapis{} that are indispensable to every applications in the Ubuntu official repositories.
+%The study also shows that
+More than 100 \linuxapis{} are used by only a single application,
+or none at all.
+The development of \thelibos{} begins with
+implementing 12 \linuxapis{} necessary for running a ``Hello World'' program,
+and gradually growing the \linuxapi{} count
+for new application targets.
+%Each time \thelibos{} is tested against a new application, the number of extra \linuxapis{}
+%to be added has dropped.
+The current \thelibos{} implementation
+includes a set of high-valued Linux \linuxapis{} for the types of applications
+that \graphene{} has targeted,
+including servers, command-line programs, and runtimes.
+The remaning \linuxapis{} may require extending \thehostabi{} with more privileged abstractions,
+including administrative operations
+and host-specific features.
+\thelibos{} demonstrates that \thehostabi{} is sufficient
+for exporting the host abstractions, to support a representative sample of Linux applications.
+
+%such as memory sharing, scheduler configuration, and NUMA (non-uniform memory architecture) support.
+
+
+%Linux exports a very long tail of infrequently-used \linuxapis{}.
+%applications.
+
+
+
+
+%An analysis indicates roughly 100 additional calls that can be implemented
+%with the existing \pal{} ABI and coordination framework, less than 10 administrative calls that will not make sense to expose to 
+%an application, such as loading a kernel module or rebooting the system, and roughly 54 that will require 
+%\pal{} extensions to meaningfully implement, such as controlling scheduling,
+%NUMA placement, I/O privilege, and shared memory.
+%In the last category of system calls, the degree to which actual host details should be exported versus emulated is debatable.
+
+%We believe represent the most commonly used system calls.
+%When an application requests a call or argument that {\tt libLinux.so} does not implement,
+%the picoprocess exits with a distinct error message. 
+%Each time we have tested \graphene{} with a new application, the number of extra system calls
+%required has dropped---most recently we only added 4 calls
+%(namely, epoll\_create, epoll\_wait, semget and semop)
+%to support the Apache web server.
+%Thus, we believe \graphene{} implements a representative sample of Linux calls.
+
+%such as {\tt sched\_setparam}, which manipulates scheduler-specific
+%parameters or 
+%{\tt uselib}, which has been abandoned 
+%in {\tt glibc} version 2 in favor of a user-space dynamic linker.
+%We do not plan to implement administrative interfaces, such as {\tt reboot}.
+%The growth in the set of supported system calls has been driven by 
+%the requirements of new applications we use to exercise \graphene{}, and has been 
+%slowing considerably over time.
+
+
+
+\subsection{\Linuxapi{} redirection}
+
+For most applications,
+\thelibos{} 
+uses a modified, standard C library (\libc{}) to intercept and redirect \linuxapis{}.
+%from an unmodified Linux application.
+In general, an executable or library in Linux and similar OSes invokes \linuxapis{} through \libc{},
+instead of directly containing the \code{syscall} instructions.
+The \libc{}
+contains a large set of \linuxapi{} wrappers,
+which encapsulate direct \linuxapis{} to the kernel as functions.
+For example, the \libc{} function \syscall{read} is a simple wrapper to the \syscall{read} \linuxapi{}.
+\thelibos{} uses a patched version
+of the {\bf GNU C library (\glibc{})}~\cite{glibc},
+the default \libc{} of most Linux distributions, including Ubuntu, Debian, Solaris, and Gentoo;
+%\thelibos{}
+Modifying \glibc{}
+ensures
+\linuxapi{} redirection
+in more than 99\% of Ubuntu executables and libraries~\cite{tsai16apistudy},
+which are dynamically linked against \glibc{}.
+%Other \libc{} variants, ,
+%which are either fully or partially compatible with \glibc{},
+%can be also modified to redirect \linuxapis{} to \thelibos{}.
+%are alternatives upon \thelibos{} as long as they are modified for .
+The feasibility is also demonstrated
+in other \libc{} variants,
+such as \projname{uClibc}~\cite{uclibc} and \projname{musl}~\cite{musl}. 
+
+
+
+For \glibc{}, the modifications
+needed for \graphene{}
+are limited to a few architecture-specific macros or functions.
+The \glibc{} source code uses a macro called
+\code{INLINE\_SYSCALL},
+which copies \linuxapi{} arguments to corresponding registers, and executes the \code{syscall} instruction.
+\graphene{} modifies \code{INLINE\_SYSCALL}
+to jump to an entry inside \thelibos{} called \funcname{syscalldb}.
+
+
+
+
+
+
+
+
+
+
+
