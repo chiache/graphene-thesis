@@ -101,7 +101,8 @@ for exporting the host abstractions, to support a representative sample of Linux
 
 
 
-\paragraph{\Linuxapi{} redirection.}
+\subsection{\Linuxapi{} redirection}
+
 For most applications,
 \thelibos{} 
 uses a modified, standard C library (\libc{}) to intercept and redirect \linuxapis{}.
@@ -115,17 +116,30 @@ For example, the \libc{} function \syscall{read} is a simple wrapper to the \sys
 \thelibos{} uses a patched version
 of the {\bf GNU C library (\glibc{})}~\cite{glibc},
 the default \libc{} of most Linux distributions, including Ubuntu, Debian, Solaris, and Gentoo;
-\thelibos{}
-guarantees
-the \linuxapi{} redirection
-in more than 99\% of the Ubuntu executables and libraries, which are all dynamic linked against \glibc{}~\cite{tsai16apistudy}.
-Other \libc{} variants, such as \projname{uClibc}~\cite{uclibc} and \projname{musl}~\cite{musl},
-which are either fully or partially compatible with \glibc{},
-can be modified with \linuxapi{} redirection to \thelibos{}.
+%\thelibos{}
+Modifying \glibc{}
+ensures
+\linuxapi{} redirection
+in more than 99\% of Ubuntu executables and libraries~\cite{tsai16apistudy},
+which are dynamically linked against \glibc{}.
+%Other \libc{} variants, ,
+%which are either fully or partially compatible with \glibc{},
+%can be also modified to redirect \linuxapis{} to \thelibos{}.
 %are alternatives upon \thelibos{} as long as they are modified for .
+The feasibility is also demonstrated
+in other \libc{} variants,
+such as \projname{uClibc}~\cite{uclibc} and \projname{musl}~\cite{musl}. 
 
 
 
+For \glibc{}, the modifications
+needed for \graphene{}
+are limited to a few architecture-specific macros or functions.
+The \glibc{} source code uses a macro called
+\code{INLINE\_SYSCALL},
+which copies \linuxapi{} arguments to corresponding registers, and executes the \code{syscall} instruction.
+\graphene{} modifies \code{INLINE\_SYSCALL}
+to jump to an entry inside \thelibos{} called \funcname{syscalldb}.
 
 
 
