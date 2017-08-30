@@ -3,7 +3,7 @@
 
 
 \Thelibos{}
-relies on the host OSes to manage hardware and privileged OS resources.
+relies on the hosts to manage hardware and privileged OS resources.
 \Thehostabi{}
 defines a set of host abstractions---such as I/O streams, virtual memory areas (VMAs), and threads---for the development of a \libos{}.
 %that are available for its guest.
@@ -24,7 +24,7 @@ by encapsulating the resources as generic, user-space abstractions.
 
 
 \issuedone{1.2.a}{discuss the role of libOS in resource management}
-For resource management, the role of \thelibos{}
+The role of \thelibos{} in resource management
 is to allocate the host abstractions,
 as unambiguous requests %to the host
 for the host-managed resources.
@@ -128,6 +128,15 @@ Both of the virtualization strategies grant a guest OS with more control on mana
 
 
 Exokernel~\cite{engler95exokernel} also uses a \libos{}
+to implement the system APIs and abstractions, but allows the \libos{} to manage hardware resources directly.
+The rationale behind Exokernel is to avoid the kernel overhead of encapsulating and redirecting hardware resources.
+Exokernel allows application-level resource management, by exposing low-level resources, such as physical pages, storage disks, and network devices, at the kernel interface.
+
+
+
+
+
+
 
 
 

@@ -2,35 +2,38 @@
 
 
 The \graphene{} \libos{}, or \thelibos{},
-is a single library being loaded beneath an unmodified application,
-for serving Linux compatibility requirements.
-A Linux application
-is developed with an assumption of running upon a Linux kernel or equivalent.
-A Linux kernel has defined a set of idiosyncratic features and behaviors,
-or the {\bf Linux personality},
+is a single library to be loaded beneath an unmodified Linux application,
+to export a compatible system interface.
+\thelibos{} facilitates the reuse of
+a Linux application,
+which is developed upon the assumption of running on a Linux kernel or equivalent.
+The key to developing \thelibos{}
+is to recreate the
+idiosyncratic features and behaviors of a Linux kernel,
+or {\bf Linux personality},
 which shapes the development of a Linux application.
-\thelibos{} implements the Linux personality in a user-space, ELF library (i.e., \code{\tt libLinux.so}),
-which can be loaded by any PAL upon the corresponding host.
+\thelibos{} implements the Linux personality in a user-space, ELF dynamic library (i.e., \code{\tt libLinux.so}),
+which can be initialized by a PAL upon the corresponding host.
 %at the beginning of a \picoproc{}.
 
 
-A central piece of the Linux kernel implemented by \thelibos{} is a Linux system call table.
+A central piece of the Linux kernel that \thelibos{} implements is the Linux system call table.
 The Linux system call table is
-the primary entry point of a Linux kernel,
-and defines most of the interaction between an application and the kernel.
+an entry of the Linux kernel,
+and defines the interaction between applications and kernel.
 A Linux kernel assigns
-an interrupt handler for \linuxapi{} invocation inside an application.
+an interrupt handler for \linuxapi{} invocation from an application.
 When an application makes a \linuxapi{} using a \graphenearch{} instruction (``\code{syscall}'' or ``\code{int \$80}''),
-the current process
-context-switches to the kernel
-and calls a kernel function according to a \linuxapi{} number
-given by the application.
-Both the \linuxapi{} number and the arguments
+the process
+context switches to the kernel
+and triggers one of the \linuxapi{} callbacks according to the given \linuxapi{} number.
+%given by the application.
+The \linuxapi{} number and arguments
 are passed in \graphenearch{} general-purpose registers, as regulated by the Linux kernel's calling convention.
 A prerequisite for \thelibos{}
-is to intercept all the Linux \linuxapis{} from an unmodified application,
+is to intercept the \linuxapis{} from an unmodified application,
 and redirect %the \linuxapis{}
-to  a set of \linuxapi{} handlers inside \thelibos{}.
+to \linuxapi{} handlers of \thelibos{}.
 %\thelibos{} implements the callback functions for a subset of the Linux \linuxapis{}.
 %For reference, Linux kernel \linuxversion{}
 %has defined \linuxsyscallnum{} \linuxapis{} in total.
@@ -144,7 +147,7 @@ to jump to an entry inside \thelibos{} called \funcname{syscalldb}.
 
 
 
-
+\subsection{Bootstrapping}
 
 
 

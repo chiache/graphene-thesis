@@ -607,16 +607,21 @@ bool StreamAttrSetbyHandle (HANDLE stream_handle,
 \end{paldef}
 
 
-\palcall{StreamAttrSetByHandle} is a \hostapi{} newly introduced by \graphene{}.
-\palcall{StreamAttrSetByHandle} changes the attributes initially assigned to an I/O stream, and externalizes the change to the host OS.
+%\palcall{StreamAttrSetByHandle} is a \hostapi{} newly 
+Introduced by \graphene{},
+\palcall{StreamAttrSetByHandle} is a \hostapi{} for changing
+the attributes of a file or an I/O stream
+at the host level.
+%, and externalizes the change to the host OS.
 \palcall{StreamAttrSetByHandle} is given an updated \palkeyword{STREAM_ATTRS} data structure,
 which contains the new attributes to be assigned to the I/O stream.
 \palkeyword{stream_type} cannot be changed, as well as any attributes that violate the limitation imposed by the host.
 
 
-A dilemma for defining the \palkeyword{STREAM_ATTRS} data structure is
-to decide which stream attributes,
-especially the attributes for a network stream (i.e., flags included in \palkeyword{network_option}), should be exposed by the host,
+A dilemma for defining this \palkeyword{STREAM_ATTRS} data structure is
+to determine which stream attributes
+should be exposed to the guest.
+especially the attributes for a network stream (i.e., flags included in \palkeyword{network_option}), ,
 A network stream attribute can be derived from an optional feature inside the host network stack,
 or a configuration at the NIC level.
 Exposing these stream attributes allows the guest to export APIs for applications
