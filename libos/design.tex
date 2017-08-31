@@ -2,25 +2,37 @@
 
 
 The \graphene{} \libos{}, or \thelibos{},
-is a single library to be loaded beneath an unmodified Linux application,
-to export a compatible system interface.
-\thelibos{} facilitates the reuse of
-a Linux application,
-which is developed upon the assumption of running on a Linux kernel or equivalent.
-The key to developing \thelibos{}
-is to recreate the
-idiosyncratic features and behaviors of a Linux kernel,
-or {\bf Linux personality},
-which shapes the development of a Linux application.
-\thelibos{} implements the Linux personality in a user-space, ELF dynamic library (i.e., \code{\tt libLinux.so}),
-which can be initialized by a PAL upon the corresponding host.
+is a single library to be loaded beneath a Linux executable and the related libraries,
+for exporting the required Linux API and features.
+\thelibos{} facilitates the execution of an unmodified Linux application,
+by cooperating with a host to behave as an equivalence of a lightweight Linux kernel. 
+%which is developed upon the assumption of running on a Linux kernel or equivalent.
+The main purpose of \thelibos{} is to reproduce
+the idiosyncratic features and behaviors of a Linux kernel,
+or the {\bf Linux personality},
+which is the key to resurrecting a Linux application upon an incompatible
+host OS or hardware platform.
+\thelibos{} is built as a user-space, ELF dynamic library (i.e., \code{\tt libLinux.so}),
+to be booted by a PAL upon a corresponding
+host option.
 %at the beginning of a \picoproc{}.
 
 
-A central piece of the Linux kernel that \thelibos{} implements is the Linux system call table.
+\thelibos{} implements the Linux system call table,
+a key component of the Linux kernel that directly impacts the interaction with applications. 
+%that \thelibos{} implements is the Linux system call table.
 The Linux system call table is
-an entry of the Linux kernel,
-and defines the interaction between applications and kernel.
+a primary entry point to the Linux kernel space,
+and triggers a number of the in-kernel operations for serving the application-level requests.
+%and defines the interaction between applications and kernel.
+\graphene{} moves the Linux system call table into \thelibos{},
+to serve the redirected \linuxapis{} from an application as in-process function calls.
+The system call table in \thelibos{} contains a number of
+Linux \linuxapi{} callbacks,
+which faithfully implement the individual \linuxapis{}, as described
+in the Linux man pages~\cite{linux-man-syscall}.
+
+
 A Linux kernel assigns
 an interrupt handler for \linuxapi{} invocation from an application.
 When an application makes a \linuxapi{} using a \graphenearch{} instruction (``\code{syscall}'' or ``\code{int \$80}''),
