@@ -214,13 +214,20 @@ therefore, \graphene{} leaves \code{libm.so} and similar \libc{} libraries unmod
 
 
 
-\paragraph{Hard-coded \linuxapis{}.}
-Static binaries, and a few applications, may contain hard-coded \code{syscall} instructions
-which cannot be redirected by modified \libc{} libraries.
-Application developers can choose to statically compile an executable or library,
-or to write assembly code
-with direct \linuxapi{} invocations, instead of calling
-one of the \libc{} functions or \funcname{syscall}.
+\paragraph{Hard-coded \code{syscall} instructions.}
+A static binary, or sometimes a platform-dependent application, may contain hard-coded \code{syscall} instructions
+that cannot be redirected by a modified \libc{}.
+Some application developers choose to statically link an executable against \libc{},
+and thus create a static binary
+with embedded \code{syscall} instructions.
+In other cases, application developers may program an application
+with direct \linuxapi{} invocation,
+by writing a piece of inline or standalone assembly code with
+\code{syscall} instructions.
+Direct \linuxapi{} invocation is more common in a language runtime or system software
+
+
+one of the \linuxapi{} wrappers in \libc{}, or \funcname{syscall}.
 Either way leads to hard-coding \code{syscall} instructions in the ELF binaries.
 Running an unmodified executable or library
 with \linuxapis{} that are not redirected to \thelibos{}
@@ -275,7 +282,7 @@ to spot and modify hard-code \code{syscall} instructions.
 \subsection{Bootstrapping}
 
 
-
+\thelibos{}
 
 
 
