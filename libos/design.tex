@@ -207,10 +207,64 @@ When using \graphene{}, an application must be deployed with the modified \libc{
 including \code{libc.so}, \libpthread{}, and \libdl{}.
 Despite that \glibc{} has partitioned its code into separate libraries, not every libraries of \glibc{} need to be modified for \linuxapi{} redirection.
 Only \code{libc.so}, \libpthread{}, and \libdl{} have included \code{syscall} instructions,
-and thus have to be modified.
+and thus have to be modified for \graphene{}.
 Other \libc{} libraries, such as \code{libm.so},
-only invoke \linuxapis{} through \libc{} functions;
+only invoke \linuxapis{} through existing \libc{} functions;
 therefore, \graphene{} leaves \code{libm.so} and similar \libc{} libraries unmodified.
+
+
+
+\paragraph{Statically-compiled \linuxapis{}.}
+Statically-linked binaries, and a few applications, contain hard-coded \code{syscall} instructions,
+which cannot be redirected by modified \libc{} libraries.
+Application developers can choose to statically compile an executable or library,
+or to write assembly code
+with direct \linuxapi{} invocations, instead of calling
+one of the \libc{} functions or \funcname{syscall}.
+Either way leads to hard-coding \code{syscall} instructions in the ELF binaries.
+Running an unmodified executable or library
+with \linuxapis{} that are not redirected to \thelibos{}
+has the risk of exposing
+unauthorized host resources and states
+to the application.
+
+
+To redirect statically-compiled \linuxapis{}, \thelibos{} relies on the hosts to enforce restricted on
+\linuxapi{} invocation,
+to prevent \linuxapis{} from anywhere other than a PAL.
+The implementation can be based on either a pre-installed \linuxapi{} filter
+(e.g., SECCOMP filter~\cite{seccomp}),
+or architectural limitation on \code{syscall} instructions
+(e.g., SGX restriction).
+The details of the \linuxapi{} restriction mechanisms are discussed in
+\fixme{update labels}
+Section~\ref{sec:linux:syscall} and Section~\ref{sec:sgx:syscall}.
+If a binary makes an illegal \linuxapi{},
+the host-level \linuxapi{} restriction will trigger an \code{ILLEGAL} exception
+at \thehostabi{},
+and thus the \linuxapi{} is redirected by an exception handler
+assigned by \thelibos{}.
+The exception handler will retrieve the \linuxapi{} number and arguments
+from the register contexts,
+call the \linuxapi{} handler,
+and eventually push the \linuxapi{} return value back to the \code{RAX} register.
+
+
+The \linuxapi{} redirection based on
+host-level exceptions
+is expensive, because each \linuxapi{} redirected this way
+suffers extra overhead
+from context-switching back and forth between the application and the host.
+Potentially,
+\thelibos{} can use {\bf binary translation} to modify the hard-coded \code{syscall} instructions;
+binary translation
+can be triggered when a host-level exception is raised
+for an illegal \linuxapi{},
+to optimize consecutive \linuxapi{} invocation at the same location.
+\thelibos{} can also perform a full scan in application binaries
+to spot and modify all the hard-code \code{syscall} instructions.
+
+
 
 
 
