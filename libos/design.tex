@@ -156,7 +156,7 @@ For most unmodified Linux applications,
 In general,  a Linux executable or user library does not invoke \linuxapis{} directly.
 Instead, \linuxapis{}
 are usually wrapped by \libc{} functions,
-which internally execute ``\code{syscall}'' or ``\code{int \$80}'' instructions.
+which internally execute the \assembly{syscall} instructions.
 %an executable or library in Linux and similar OSes invokes \linuxapis{} through \libc{},
 %instead of directly containing the \code{syscall} instructions.
 %The \libc{}
@@ -203,73 +203,98 @@ Figure~\ref{fig:syscall-redirection} summarizes the mechanism of \linuxapi{} red
 from \glibc{} to \thelibos{}.
 
 
-When using \graphene{}, an application must be deployed with the modified \libc{} libraries,
+\graphene{} assumes deploying an application %to be deployed
+with modified \glibc{} binaries,
 including \code{libc.so}, \libpthread{}, and \libdl{}.
-Despite that \glibc{} has partitioned its code into separate libraries, not every libraries of \glibc{} need to be modified for \linuxapi{} redirection.
-Only \code{libc.so}, \libpthread{}, and \libdl{} have included \code{syscall} instructions,
-and thus have to be modified for \graphene{}.
+Despite that \glibc{} has partitioned its code into separate libraries, not every libraries need to be modified for \linuxapi{} redirection.
+Only \code{libc.so}, \libpthread{}, and \libdl{} contain \code{syscall} instructions.
 Other \libc{} libraries, such as \code{libm.so},
 only invoke \linuxapis{} through existing \libc{} functions;
-therefore, \graphene{} leaves \code{libm.so} and similar \libc{} libraries unmodified.
+thus, \graphene{} leaves \code{libm.so} and similar \libc{} libraries unmodified.
 
 
 
-\paragraph{Hard-coded \code{syscall} instructions.}
-A static binary, or sometimes a platform-dependent application, may contain hard-coded \code{syscall} instructions
-that cannot be redirected by a modified \libc{}.
-Some application developers choose to statically link an executable against \libc{},
-and thus create a static binary
-with embedded \code{syscall} instructions.
-In other cases, application developers may program an application
+\paragraph{Hard-coded \linuxapis{}.}
+If a static executable or a platform-dependent binary
+includes hard-coded \assembly{syscall} instructions,
+a modified \libc{} would fail to redirect the \linuxapi{} invocations to the \linuxapi{} table in \thelibos{}. % from the binary.
+An executable
+statically linked against an unmodified \libc{}
+includes
+the \libc{} functions
+with embedded \assembly{syscall} instructions.
+Running these static executables with \graphene{} causes a security risk
+of exposing the host resources and states to the application,
+or a compatibility issue of corrupting the guest OS view on a Linux host.
+Besides, some applications---usually a language runtime (e.g., the go runtime)
+or system software---are programmed
+%In some cases, application developers may program an application
 with direct \linuxapi{} invocation,
-by writing a piece of inline or standalone assembly code with
+using a piece of inline or standalone assembly code
+containing
 \code{syscall} instructions.
-Direct \linuxapi{} invocation is more common in a language runtime or system software
 
 
-one of the \linuxapi{} wrappers in \libc{}, or \funcname{syscall}.
-Either way leads to hard-coding \code{syscall} instructions in the ELF binaries.
-Running an unmodified executable or library
-with \linuxapis{} that are not redirected to \thelibos{}
-has the risk of exposing
-unauthorized host resources and states
-to the application.
+%Either way leads to hard-coding \code{syscall} instructions in the ELF binaries.
+%Running an unmodified executable or library
+%with \linuxapis{} that are not redirected to \thelibos{}
+%has the risk of exposing
+%unauthorized host resources and states
+%to the application.
 
 
-To redirect statically-compiled \linuxapis{}, \thelibos{} relies on the hosts to enforce restricted on
-\linuxapi{} invocation,
-to prevent \linuxapis{} from anywhere other than a PAL.
-The implementation can be based on either a pre-installed \linuxapi{} filter
-(e.g., SECCOMP filter~\cite{seccomp}),
-or architectural limitation on \code{syscall} instructions
-(e.g., SGX restriction).
-The details of the \linuxapi{} restriction mechanisms are discussed in
-\fixme{update labels}
-Section~\ref{sec:linux:syscall} and Section~\ref{sec:sgx:syscall}.
-If a binary makes an illegal \linuxapi{},
-the host-level \linuxapi{} restriction will trigger an \code{ILLEGAL} exception
-at \thehostabi{},
-and thus the \linuxapi{} is redirected by an exception handler
-assigned by \thelibos{}.
-The exception handler will retrieve the \linuxapi{} number and arguments
-from the register contexts,
+To redirect hard-coded \linuxapis{},
+\thelibos{} depends on the host OS or hardware, to prevent an unexpected \linuxapi{} interrupt from entering the host kernel.
+The host needs to restrict \linuxapi{} invocation,
+by either installing a \linuxapi{} filter,
+such as the Linux SECCOMP filter,
+or capturing the hardware exception caused by illegal \linuxapis{},
+%architectural limitation on \code{syscall} instructions
+similar to the enclave restriction on SGX.
+%The details of the \linuxapi{} restriction mechanisms are discussed in
+%\fixme{update labels}
+%Section~\ref{sec:linux:syscall} and Section~\ref{sec:sgx:syscall}.
+\graphene{} encapsulates
+the notification of a restricted \linuxapi{} as a host-level exception
+defined in \thehostabi{};
+\thelibos{} the uses \palcall{ExceptionSetHandler}
+to assign a handler for illegal \linuxapi{} invocation.
+The handler will
+%If an application invokes an \linuxapi{} illegally,
+%the host should trigger an exception as defined in \thehostabi{},
+%and thus the \linuxapi{} is redirected by an exception handler
+%assigned by \thelibos{}.
+%The exception handler 
+retrieve the \linuxapi{} number and arguments
+from the saved context,
 call the \linuxapi{} handler,
-and eventually push the \linuxapi{} return value back to the \code{RAX} register.
+and push the \linuxapi{} return value back to the saved context.
 
 
-The \linuxapi{} redirection based on
-host-level exceptions
-is expensive, because each \linuxapi{} redirected this way
-suffers extra overhead
-from context-switching back and forth between the application and the host.
-Potentially,
-\thelibos{} can use {\bf binary translation} to modify the hard-coded \code{syscall} instructions;
-binary translation
-can be triggered when a host-level exception is raised
-for an illegal \linuxapi{},
-to optimize consecutive \linuxapi{} invocation at the same location.
-\thelibos{} can also perform a full scan in application binaries
-to spot and modify hard-code \code{syscall} instructions.
+
+Redirecting hard-coded \linuxapis{} by exception handling
+can be relatively expensive,
+due to the overhead of back-and-forth context switches.
+Without triggering a host-level exception,
+redirecting a \linuxapi{} through a modified \libc{} is much faster than
+a \linuxapi{} on a Linux kernel.
+However, if a \linuxapi{} is trapped by the host
+and the host delivers an exception to the handler in \thelibos{},
+at least four context switches
+are needed for servicing a single \linuxapi{}.
+A potential optimization is to rewrite %the binary, to replace 
+a \assembly{SYSCALL} instruction
+to jump to \funcname{syscalldb} in \thelibos{}.
+%binary translation
+%can be triggered when a host-level exception is raised
+%for an illegal \linuxapi{},
+\thelibos{} can either rewrite all the \assembly{syscall} instructions in
+the whole binary when the binary is dynamically loaded,
+or lazily replace the \assembly{syscall} instructions in the exception handler.
+
+%to optimize consecutive \linuxapi{} invocation at the same location.
+%\thelibos{} can also perform a full scan in application binaries
+%to spot and modify hard-code \code{syscall} instructions.
 
 
 
