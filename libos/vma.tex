@@ -2,17 +2,21 @@
 \label{sec:libos:vma}
 
 
+Instead of directly managing physical pages, \thelibos{} manages the virtual address space of the current process.
+\thelibos{} divides the virtual address apace into VMAs (virtual memory areas),
+either serving a VMA to a memory-allocating \linuxapi{} such as \syscall{mmap},
+or keeping a VMA 
+for internal usage of \thelibos{}.
 
 
-
-There are two primary reasons
-that \thelibos{} needs to allocate memory.
-The first reason is to service the requests from the applications and user libraries,
-through system APIs such as \syscall{mmap}.
-The second reason
-is to maintain the internal states
-of the \libos{},
-for either implementing the Linux features and APIs, or managing the allocated host abstractions.
+%There are two primary reasons
+%that \thelibos{} needs to allocate memory.
+%The first reason is to service the requests from the applications and user libraries,
+%through system APIs such as \syscall{mmap}.
+%The second reason
+%is to maintain the internal states
+%of the \libos{},
+%for either implementing the Linux features and APIs, or managing the allocated host abstractions.
 
 
 

@@ -135,7 +135,7 @@ a representative sample of applications.
 \subsection{\Linuxapi{} redirection}
 
 
-\thelibos{} mimics a Linux kernel. A Linux kernel assigns an interrupt handler for \linuxapis{} triggered by an application, using ``\code{syscall}'' or ``\code{int \$80}'' instructions.
+\thelibos{} mimics a Linux kernel. A Linux kernel assigns an interrupt handler for \linuxapis{} triggered by an application, using ``\assembly{syscall}'' or ``\assembly{int \$80}'' instructions.
 A \linuxapi{} interrupt handler
 ensures the context switches from applications to the kernel,
 and passes up to six \linuxapi{} arguments given by applications to kernel routines that services the \linuxapis{}.
@@ -199,8 +199,7 @@ Once \funcname{syscalldb} is called, it saves the current state of register cont
 indicated by the given \linuxapi{} number, to trigger operations inside \thelibos{}.
 The only exception is the assembly code in \glibc{}, which has
 to be modified at every \linuxapi{} invocations to redirect to \funcname{syscalldb}.
-Figure~\ref{fig:syscall-redirection} summarizes the mechanism of \linuxapi{} redirection
-from \glibc{} to \thelibos{}.
+Figure~\ref{fig:syscall-redirection} summarizes the mechanism of \linuxapi{} redirection in \graphene{}.
 
 
 \graphene{} assumes deploying an application %to be deployed
@@ -226,13 +225,13 @@ with embedded \assembly{syscall} instructions.
 Running these static executables with \graphene{} causes a security risk
 of exposing the host resources and states to the application,
 or a compatibility issue of corrupting the guest OS view on a Linux host.
-Besides, some applications---usually a language runtime (e.g., the go runtime)
-or system software---are programmed
+Sometimes, an application---usually a language runtime (e.g., the go runtime)
+or system software---is programmed
 %In some cases, application developers may program an application
 with direct \linuxapi{} invocation,
 using a piece of inline or standalone assembly code
 containing
-\code{syscall} instructions.
+\assembly{syscall} instructions.
 
 
 %Either way leads to hard-coding \code{syscall} instructions in the ELF binaries.
@@ -247,10 +246,10 @@ To redirect hard-coded \linuxapis{},
 \thelibos{} depends on the host OS or hardware, to prevent an unexpected \linuxapi{} interrupt from entering the host kernel.
 The host needs to restrict \linuxapi{} invocation,
 by either installing a \linuxapi{} filter,
-such as the Linux SECCOMP filter,
-or capturing the hardware exception caused by illegal \linuxapis{},
+such as the Linux SECCOMP filter~\cite{seccomp},
+or capturing the hardware exception caused by illegal \linuxapis{}.
 %architectural limitation on \code{syscall} instructions
-similar to the enclave restriction on SGX.
+%similar to the enclave restriction on SGX.
 %The details of the \linuxapi{} restriction mechanisms are discussed in
 %\fixme{update labels}
 %Section~\ref{sec:linux:syscall} and Section~\ref{sec:sgx:syscall}.
