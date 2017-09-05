@@ -230,7 +230,7 @@ that copies \linuxapi{} number and arguments to registers,
 and then uses \assembly{syscall} to enter a Linux kernel.
 \graphene{} modifies \funcname{INLINE\_SYSCALL}
 to redirect a \linuxapi{} to
-an entry point of \thelibos{}, \funcname{syscalldb}.
+an entry point of \thelibos{} called \funcname{syscalldb}.
 \funcname{syscalldb} saves the current register state, similar to a context switch,
 and then
 calls the \linuxapi{} handler
@@ -242,6 +242,18 @@ a dynamic call to
 \funcname{syscalldb}, given the address of \funcname{syscalldb} is dynamically determined.
 Figure~\ref{fig:syscall-redirection} summarizes the mechanism of \linuxapi{} redirection.
 %to \thelibos{}.
+
+
+\begin{figure}[t!]
+\centering
+%\includegraphics[width=\linewidth]{syscall-restriction.pdf}
+\footnotesize
+\caption{System call redirection for \thelibos{}.
+In the normal case (first line of {\tt main}), {\tt malloc} is invoked causing the invocation of {\tt brk} ({\tt libLinux}) and {\tt mmap} in the \pal{}. In the second line, the application jumps to an address in \pal{}, which is permissible.
+Files are accessed through {\tt ioctl} to {\tt /dev/graphene} and checked by reference monitor.
+The third line invokes {\tt brk} with an {\tt int} instruction, which is redirected to the {\tt libLinux} function.}
+\label{fig:libos:syscall-redirection}
+\end{figure}
 
 
 \graphene{} modifies several \glibc{} libraries with individual purposes,
