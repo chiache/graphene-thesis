@@ -317,7 +317,7 @@ is expected to be expensive,
 due to the overhead of context-switching between the host and guest.
 Whenever an application invokes a direct \linuxapi{},
 it traps into the host kernel, and then returns to the \libos{} to handle the \linuxapi{}.
-Therefore, the process includes at least two times of context-switching.
+Therefore, the process of redirecting a \linuxapi{} includes at least two times of context-switching, which can take up to microseconds.
 To bypass the overhead,
 \thelibos{} can 
 rewrite the binary at run-time to redirect the hard-coded \linuxapis{};
@@ -331,7 +331,8 @@ or rewrites a single \assembly{SYSCALL} instruction in the exception handler.
 %to optimize consecutive \linuxapi{} invocation at the same location.
 %\thelibos{} can also perform a full scan in application binaries
 %to spot and modify hard-code \code{syscall} instructions.
-\Linuxapi{} redirection based on binary rewriting is kept as future work.
+\graphene{} leaves the implementation of binary rewriting
+as future work.
 
 
 
