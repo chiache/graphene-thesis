@@ -2,44 +2,93 @@
 \label{sec:libos:vma}
 
 
-Instead of directly managing physical pages, \thelibos{} manages the virtual address space of the current process.
-\thelibos{} divides the virtual address apace into VMAs (virtual memory areas),
-either serving a VMA to a memory-allocating \linuxapi{} such as \syscall{mmap},
-or keeping a VMA 
-for internal usage of \thelibos{}.
-
-
-%There are two primary reasons
-%that \thelibos{} needs to allocate memory.
-%The first reason is to service the requests from the applications and user libraries,
-%through system APIs such as \syscall{mmap}.
-%The second reason
-%is to maintain the internal states
-%of the \libos{},
-%for either implementing the Linux features and APIs, or managing the allocated host abstractions.
-
-
-
-To allocate memory, \thelibos{} creates VMAs (virtual memory areas)
-in the host OS.
-
-
-
-\thelibos{} is in control of the whole virtual address space of a \picoproc{},
-except the initial PAL mappings.
+\thelibos{} allocates memory resources by creating VMAs (virtual memory areas).
+\Thehostabi{} defines a VMA
+as the basic abstraction for allocating memory pages
+in a host;
+\thelibos{} either creates an anonymous VMA using a \hostapi{}, \palcall{VirtMemAlloc},
+or maps a host file into a VMA using another \hostapi{}, \palcall{StreamMap}.
+Both \hostapis{} creates a page-aligned, fixed-size range in the
+current virtual memory space,
+assuming that each virtual page in the range
+will map to an individual physical page, either zeroed or filled with file content.
+\thelibos{} does not assume
+that the host will always implement demand paging
+for every allocated VMAs.
+The only assumption that \thelibos{} makes, when using \palcall{VirtMemAlloc} or \palcall{StreamMap},
+is that each physical page of an allocated VMA
+will be assigned
+before any access to the page, including reading or writing data,
+or executing code.
+In other word, any future, authorized memory access
+in an allocated VMA
+should never cause any segmentation or memory protection faults.
 
 
 
+\thelibos{} allocates VMAs for two usages.
+One usage is to allocate pages for internal use of \thelibos{},
+including mapping the \thelibos{} binary
+(i.e., \thelibos\code{.so})
+into the guest environment for execution,
+and storing the internal OS states.
+For example, \thelibos{} allocates a thread control block (TCB), or thread handle, for each user thread that an application creates, to store thread-specific attributes
+such as a thread identifier and a given stack address.
+To reduce the memory cost of \graphene{},
+\thelibos{} tries to reduce the VMA allocation for its internal usage
+as long as it does not add significant performance overhead to an application.
+Another usage of a VMA
+is to assign the VMA to a memory area that an application
+assumes to be accessible, such as a heap area created by \syscall{mmap} or a self-growing stack.
+If \thelibos{} allocates a VMA for supporting the memory access in an application,
+the VMA must be at least as large as the size that the application has requested.
+
+
+
+In terms of page management,
+the role of \thelibos{} is to keep track of memory addresses that already belong to a VMA.
+In many cases,
+an application or \thelibos{}
+simply needs to allocate a new memory region that has not overlapped
+with existing memory regions.
+If an application gives a memory address
+as an argument to a \linuxapi{},
+\thelibos{} needs verifying the validity of address by checking against existing memory regions. 
+As a result,
+\thelibos{} maintains a list of currently-allocated VMAs,
+and dynamically updates the list whenever allocating, deallocating, or protecting any memory mappings.
+For each VMA, \thelibos{} records
+the starting address, size, protection mode (whether the VMA is readable, writable, or executable), and usage of the VMA.
+
+
+
+
+By maintaining a list of allocated VMAs,
+%Instead of managing physical pages, 
+\thelibos{} controls the virtual address space layout
+of a guest environment (i.e., a \picoproc{}).
+\thelibos{} keeps track of the free addresses in the current virtual address space,
+to prevent allocating overlapping VMAs.
+If \thelibos{} needs to allocate a VMA without a specific address,
+it walks the list of VMAs
+to discover an unallocated address range.
+Then, \thelibos{} can use \palcall{VirtMemAlloc} or \palcall{StreamMap} with the discovered address,
+to create a memory mapping suitable for the expected usage.
+Therefore, \thelibos{} can control the address
+for allocating a new VMA,
+to service a \syscall{mmap} \linuxapi{},
+or to extend the internal slab allocator of \thelibos{}.
+The bookkeeping of VMAs also includes
+the VMAs preserved by PAL and the VMAs for the \thelibos{} binary mapping,
+to prevent future VMAs
+corrupting the internal states of PAL or \thelibos{}.
+\thelibos{} records these VMAs at the beginning of a \picoproc{}, based on address ranges specified by the PAL control block.
 
 
 
 
 
-Internally, \thelibos{} maintains a list of VMA records, for managing the virtual address space.
-
-
-
-
+\paragraph{Implementing \syscall{brk}.}
 
 
 
