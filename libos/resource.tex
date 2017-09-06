@@ -127,22 +127,34 @@ Therefore, overallocating VMAs slows down the creation of an enclave.
 
 
 \paragraph{Alternatives.}
-Virtualization is a common approach to allowing guest-level resource management for an application.
+Virtualization is one of the alternative approaches of guest-level resource management. % for an application.
 %managing resources in a guest OS
 %is to virtualize the hardware resources,
 %such as memory and IO devices,
-There are two primary strategies to fully virtualize hardware resources for a guest OS.
-The first strategy is to rely on a hypervisor,
-such as QEMU~\cite{qemu} or VMWare ESX~\cite{wldspurger02vmware-esx},
-to emulate the physical hardware,
-giving the guest OS the illusion of having full control of all the hardware resources.
+A virtual machine often runs an unmodified OS kernel,
+which has control over the allocation of virtualized or dedicated hardware resources.
+To fully virtual hardware resources,
+a hypervisor can take one of the two common strategies.
+A strategy
+is to export a virtual hardware interface
+as an emulation of the physical hardware interface,
+in a hypervisor
+such as QEMU~\cite{qemu} or VMWare ESX~\cite{wldspurger02vmware-esx}.
+A virtual hardware interface
+allows an unmodified OS kernel to
+directly manage virtualized hardware resources like physical hardware resources,
+using a set of generic hardware drivers.
+%and have full control of hardware resources.
+%giving the guest OS the illusion of having full control of all the hardware resources.
 Another strategy to leverage the hardware virtualization,
 such as IOMMU~\cite{VT-d},
-which allows a hypervisor to dedicate physical hardware resources
-to guest OS instances.
+%which allows a hypervisor
+to dedicate physical hardware resources
+to a virtual machine.
 %Virtualization allows a guest OS to directly manage hardware resources, by either emulating a set of virtual hardware,
 %or dedicating physical hardware to a guest OS instance.
-Both of the virtualization strategies grant a guest OS with more control on managing hardware resources than \thelibos{} in the \graphene{} architecture.
+Both of the virtualization strategies grant a virtual machine with more control over resource management %managing hardware resources
+than \thelibos{} in \graphene{}.
 
 
 %Compared with full virtualization, the \graphene{} approach
