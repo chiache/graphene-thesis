@@ -141,7 +141,7 @@ To sum up, \thelibos{} can recycle the holes between VMAs allocated by the appli
 \paragraph{Implementing \syscall{brk}.}
 
 
-\syscall{brk} is a Linux \linuxapi{} for extending or shrinking a fine-grained heap following the application's data segment.
+\syscall{brk} is a Linux \linuxapi{} for expanding or shrinking a fine-grained heap following the application's data segment.
 Most applications 
 use \syscall{brk} 
 for its speed of allocating 
@@ -168,4 +168,21 @@ or it will return \code{-ENOMEM} to the application.
 
 
 \paragraph{Address Space Layout Randomization (ASLR).}
+
+
+Linux and similar OSes tend to randomize the user address space layout to defeat or confuse remote attacks.
+With ASLR, a Linux kernel creates VMAs at unpredictable addresses,
+to increase the difficulty for a remote attacker to launch an effective buffer overflow or ROP (return-oriented programming) attack in an application.
+
+
+
+\thelibos{} implements ASLR completely in the \libos{}. Although some host OSes may already support ASLR, \thelibos{} enforces another layer of randomization.
+When \thelibos{} initializes its VMA list, it also assigns a random factor to the internal function that searches for free regions in the virtual address space.
+The randomization will cause \syscall{mmap} to return an unpredictable address, if the application does not specify the address.
+\thelibos{} also randomizes the address of the \code{brk} region, within 32MB behind the data segment of the application executable.
+
+
+
+
+
 
