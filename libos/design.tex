@@ -184,8 +184,9 @@ to the system call table implemented inside \thelibos{}.
 %has defined \linuxsyscallnum{} \linuxapis{} in total.
 
 
-For most unmodified Linux applications,
-\thelibos{} redirects \linuxapis{} using a modified C library (\libc{}).
+In normal cases,
+\thelibos{} can redirect \linuxapis{} from an unmodified Linux application
+using a modified C library (\libc{}).
 %from an unmodified Linux application.
 Most Linux executables and libraries avoid invoking \linuxapis{} directly,
 but use \libc{} functions as wrappers to \linuxapis{}.
@@ -240,7 +241,7 @@ For assembly code in \glibc{},
 \graphene{} replaces each \code{syscall} instruction with
 a dynamic call to
 \funcname{syscalldb}, given the address of \funcname{syscalldb} is dynamically determined.
-Figure~\ref{fig:syscall-redirection} summarizes the mechanism of \linuxapi{} redirection.
+Figure~\ref{fig:libos:syscall-redirection} summarizes the mechanism of \linuxapi{} redirection.
 %to \thelibos{}.
 
 
@@ -274,31 +275,28 @@ therefore, \graphene{} leaves \code{libm.so} and other similar \libc{} libraries
 
 
 \paragraph{Hard-coded \linuxapis{}.}
-A static binary, or occasionally a platform-dependent application, may contain hard-coded \assembly{syscall} instructions
+A static binary, or a platform-dependent application, may contain hard-coded \assembly{syscall} instructions
 that cannot be redirected by a modified \libc{}.
 Some application developers choose to statically link an executable against \libc{},
-and create a static binary with embedded \linuxapis{}. %\code{syscall} instructions.
-Moreover, application developers may program an application
-%with direct \linuxapis{}
-with assembly code that invokes direct \linuxapis{}
-% with
-%\code{syscall} instructions.
-Direct \linuxapis{} are common in a language runtime or system software,
-for using platform-depenedent,
+as a static binary with hard-coded \linuxapis{}. %\code{syscall} instructions.
+Other application developers may program an application---usually a language runtime (e.g., go runtime) or system software (e.g., \projname{busybox})---with assembly code that directly invokes
+platform-depenedent,
 rare \linuxapis{} that are not wrapped by \libc{} functions.
 %one of the \linuxapi{} wrappers in \libc{}, or \funcname{syscall}.
-As a result, a ELF binary may contain hard-coded \assembly{syscall} instructions.
+%As a result, a ELF binary may contain hard-coded \assembly{syscall} instructions.
 %Either way leads to hard-coding \code{syscall} instructions in the ELF binaries.
-Since hard-coded \linuxapis{} cannot be redirected by the modified \funcname{INLINE\_SYSCALL} in \glibc{},
-the host risks exposing
-unauthorized host resources and states
-to the application.
+Because modified \glibc{} does not redirect hard-coded \linuxapis{},
+the \linuxapis{}
+trigger context-switching into the host kernel,
+causing security and compatibility issues as
+exposing unauthorized, or unsynchronized host resources and states to the application.
 
 
+As a solution,
 \thelibos{} depends on host-level \linuxapi{} restriction to redirect hard-coded \linuxapis{}.
 %to prevent \linuxapis{} from anywhere other than a PAL.
 A direct \linuxapi{} traps into the host kernel,
-unless the host virtualizes the interrupt handler to the \libos{}.
+unless the host has virtualized the interrupt handler to the \libos{}.
 \graphene{} depends on each host to
 detect unauthorized \linuxapis{} either from a wrong code location or with an unexpected \linuxapi{} number.
 On Linux or a similar OS, the PAL can install a \linuxapi{} filter,
@@ -325,7 +323,7 @@ and eventually pushes the return value back to the saved context. %\code{RAX} re
 
 
 Redirecting \linuxapis{} based on exceptions
-is expected to be expensive,
+can be expensive,
 due to the overhead of context-switching between the host and guest.
 Whenever an application invokes a direct \linuxapi{},
 it traps into the host kernel, and then returns to the \libos{} to handle the \linuxapi{}.
@@ -345,19 +343,5 @@ or rewrites a single \assembly{SYSCALL} instruction in the exception handler.
 %to spot and modify hard-code \code{syscall} instructions.
 \graphene{} leaves the implementation of binary rewriting
 as future work.
-
-
-
-
-
-
-
-
-
-\subsection{Bootstrapping}
-
-
-\thelibos{}
-
 
 

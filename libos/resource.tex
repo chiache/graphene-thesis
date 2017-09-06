@@ -3,31 +3,36 @@
 
 
 \Thelibos{}
-relies on the host OSes or hypervisors to manage hardware and privileged OS resources.
+depends on a host OS or hypervisor to manage hardware and privileged OS resources.
 \Thehostabi{}
-defines a set of host abstractions---such as I/O streams, virtual memory areas (VMAs), and threads---for the development of a \libos{}.
+defines the abstractions managed by a host---from an I/O stream, a virtual memory area (VMAs), to a thread. %---for the development of a \libos{}.
 %that are available for its guest.
-These host abstractions delegate
-the management of a few ubiquitously-installed hardware resources, such as I/O devices, memory, and CPUs,
-to the host OSes.
-Other host abstractions defined
-by \thehostabi{},
+These abstractions encapsulate the ubiquitously-installed hardware resources.
+%, such as I/O devices, memory, and CPUs,
+%to the host OSes.
+Other host abstractions, %defined
+%by \thehostabi{},
 such as a local RPC stream and a system clock,
-depend on low-level, privileged resources in the host OSes,
-such as in-kernel queues and time sources.
-To support \thelibos{} as a guest,
-\thehostabi{} avoids the requirement of exposing or virtualizing %the management of
-these hardware and privileged OS resources,
-by encapsulating the resources as generic, user-space abstractions.
+represents the low-level, privileged resources of a host OS.
+%such as in-kernel queues and time sources.
+To run an application with \thelibos{} as a guest,
+\graphene{} is able to drop the assumption of exporting or virtualizing %management of
+any low-level resources,
+and program \thelibos{} with the simplified, easy-to-implement host abstractions of \thehostabi{}.
+%to program these resources.
+
+%hardware and privileged OS resources,
+%by encapsulating the resources as generic, user-space abstractions.
 %of the host ABI.
 
 
 
 \issuedone{1.2.a}{discuss the role of libOS in resource management}
 The role of \thelibos{} in resource management
-is to allocate the host abstractions,
+can be summarized
+as allocating the host abstractions using \thehostabi{},
 as unambiguous requests %to the host
-for the host-managed resources.
+for host-managed resources.
 At a high level, the purpose of \thelibos{} is to recreate the Linux abstractions.
 \Thelibos{} implements the Linux abstractions
 based on managing the host abstractions instead of
@@ -45,34 +50,53 @@ by increasing the allocation of a host abstraction.
 
 
 
-The role of \thelibos{} in resource management is close to a language runtime, such as a Java virtual machine~\cite{hotspot,j9,alpern2000jalapeno}, or a Python~\cite{python} or Perl~\cite{perl} runtime.
-A language runtime generally relies on system APIs exported by the OSes
-for resource management.
-A common behavior of a language runtime
-is to use \linuxapis{} like \syscall{mmap} to allocate a large heap,
-which is later chunked into objects
-and assigned to variables in an application.
-Similar strategies have been applied to
-filesystem or threading abstractions in a language runtime. %, which %are likely to
+A language runtime, such as a Java virtual machine~\cite{hotspot,j9,alpern2000jalapeno}, or a Python~\cite{python} or Perl~\cite{perl} runtime,
+also allocates OS-managed abstractions,
+with a similar role as \thelibos{} in resource management.
+%The role of \thelibos{} in resource management is close to 
+%A language runtime generally relies on system APIs exported by the OSes
+%for resource management.
+A language runtime commonly uses the existing system interface
+to request for resources needed by an application.
+For example, a language runtime may use the \syscall{mmap} linuxapi{} to allocate a large heap,
+to assign chunks of the heap to an application.
+%\linuxapis{} like \syscall{mmap} to allocate a large heap,
+%which is chunked into objects
+%and assigned to variables in an application.
+%Similar strategies have been applied to
+%filesystem or threading abstractions in a language runtime. %, which %are likely to
 %usually leverage the filesystem or threading APIs of the OSes.
 %By managing the OS abstractions,
 %exported by the OSes,
 %the language runtime creates an independent view
 %of system resources for applications.
 %Such a design resonates with \thelibos{}. 
+Therefore, the development of \thelibos{} and the development of a language runtime share
+several challenges,
+including bridging the gap of resource allocation models
+between the guest and host,
+and influencing the host OS to efficiently assign hardware resources to applications.
 
 
-
-A primary task and challenge to managing resources in \thelibos{}
-is to reproduce the idiosyncratic %resource allocation
-features or requirements of Linux, % in Linux,
-using only the host abstractions
-defined by \thehostabi{}.
+\thelibos{} reproduces the resource allocation models of Linux
+using \thehostabi{}.
+To be portable across various hosts,
+\thehostabi{} encapsulates the management of host resources.
+%A primary task and challenge to managing resources in \thelibos{}
+%is to reproduce the idiosyncratic %resource allocation
+%features or requirements of Linux, % in Linux,
+%using only the host abstractions
+%defined by \thehostabi{}.
+\graphene{} also simplifies the definition of \thehostabi{},
+to include a narrowed set of host abstractions that are necessary
+for a guest environment.
+A responsibility of \thelibos{}
+is to implement different Linux models of allocating a resource.
 Take page management for example.
-Linux contains several memory abstractions, including VMAs allocated by \syscall{mmap}, a self-growing stack in each process, and a fine-grained heap allocated by \syscall{brk}.
+Linux supports several way of memory allocations, including \syscall{mmap} for allocating a fixed-size VMA, growing the stack of a process, and \syscall{brk} for more fine-grained heap allocation.
 Since \thelibos{} does not directly manage pages,
-it requires particular emulation strategies to
-implement the allocation models that applications expect when using these Linux abstractions.
+it requires different emulation strategies to
+implement the allocation models needed by an application. %s expect when using these Linux abstractions.
 A strategy repeatedly used in \thelibos{} and language runtimes
 is to ``overallocate'' certain host abstractions when an application requests for resources.
 The purpose of overallocation is
