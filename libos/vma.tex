@@ -2,44 +2,187 @@
 \label{sec:libos:vma}
 
 
+\thelibos{} allocates memory resources by creating VMAs (virtual memory areas).
+\Thehostabi{} defines a VMA
+as the basic abstraction for allocating memory pages
+in a host;
+\thelibos{} either creates an anonymous VMA using a \hostapi{}, \palcall{VirtMemAlloc},
+or maps a host file into a VMA using another \hostapi{}, \palcall{StreamMap}.
+Both \hostapis{} creates a page-aligned, fixed-size range in the
+current virtual memory space,
+assuming that each virtual page in the range
+will map to an individual physical page, either zeroed or filled with file content.
+\thelibos{} does not assume
+that the host will always implement demand paging
+for every allocated VMAs.
+The only assumption that \thelibos{} makes, when using \palcall{VirtMemAlloc} or \palcall{StreamMap},
+is that each physical page of an allocated VMA
+will be assigned
+before any access to the page, including reading or writing data,
+or executing code.
+In other word, any future, authorized memory access
+in an allocated VMA
+should never cause any segmentation or memory protection faults.
 
 
 
-There are two primary reasons
-that \thelibos{} needs to allocate memory.
-The first reason is to service the requests from the applications and user libraries,
-through system APIs such as \syscall{mmap}.
-The second reason
-is to maintain the internal states
-of the \libos{},
-for either implementing the Linux features and APIs, or managing the allocated host abstractions.
+\thelibos{} allocates VMAs for two usages.
+One usage is to allocate pages for internal use of \thelibos{},
+including mapping the \thelibos{} binary
+(i.e., \thelibos\code{.so})
+into the guest environment for execution,
+and storing the internal OS states.
+For example, \thelibos{} allocates a thread control block (TCB), or thread handle, for each user thread that an application creates, to store thread-specific attributes
+such as a thread identifier and a given stack address.
+To reduce the memory cost of \graphene{},
+\thelibos{} tries to reduce the VMA allocation for its internal usage
+as long as it does not add significant performance overhead to an application.
+Another usage of a VMA
+is to assign the VMA to a memory area that an application
+assumes to be accessible, such as a heap area created by \syscall{mmap} or a self-growing stack.
+If \thelibos{} allocates a VMA for supporting the memory access in an application,
+the VMA must be at least as large as the size that the application has requested.
 
 
 
-To allocate memory, \thelibos{} creates VMAs (virtual memory areas)
-in the host OS.
-
-
-
-\thelibos{} is in control of the whole virtual address space of a \picoproc{},
-except the initial PAL mappings.
-
-
-
-
-
-
-
-
-Internally, \thelibos{} maintains a list of VMA records, for managing the virtual address space.
-
-
+In terms of page management,
+the role of \thelibos{} is to keep track of memory addresses that already belong to a VMA.
+In many cases,
+an application or \thelibos{}
+simply needs to allocate a new memory region that has not overlapped
+with existing memory regions.
+If an application gives a memory address
+as an argument to a \linuxapi{},
+\thelibos{} needs verifying the validity of address by checking against existing memory regions. 
+As a result,
+\thelibos{} maintains a list of currently-allocated VMAs,
+and dynamically updates the list whenever allocating, deallocating, or protecting any memory mappings.
+For each VMA, \thelibos{} records
+the starting address, size, protection mode (whether the VMA is readable, writable, or executable), and usage of the VMA.
 
 
 
 
+By maintaining a list of allocated VMAs,
+%Instead of managing physical pages, 
+\thelibos{} controls the virtual address space layout
+of a guest environment (i.e., a \picoproc{}).
+\thelibos{} keeps track of the free addresses in the current virtual address space,
+to prevent allocating overlapping VMAs.
+To allocate a VMA without a specific address,
+\thelibos{} first walks the VMA list
+to discover an unallocated, large enough address range.
+Then, \thelibos{} can use \palcall{VirtMemAlloc} or \palcall{StreamMap} with the discovered address,
+to create a memory mapping suitable for the expected usage.
+Therefore, \thelibos{} can control the address
+for allocating a new VMA,
+to service a \syscall{mmap} \linuxapi{},
+or to extend the internal slab allocator of \thelibos{}.
+The bookkeeping of VMAs also includes
+the VMAs preserved by PAL and the VMAs for the \thelibos{} binary mapping,
+to prevent future VMAs
+corrupting the internal states of PAL or \thelibos{}.
+\thelibos{} records these VMAs at the beginning of a \picoproc{}, based on address ranges specified by the PAL control block.
 
+
+
+
+To maintain a VMA list,
+\thelibos{} needs to dynamically modify, shrink, or divide VMAs, to support all corner cases
+of memory allocation.
+Three key \linuxapis{} in Linux---\syscall{mmap}, \syscall{mprotect}, and \syscall{munmap}---permit allocation, protection, and deallocation of pages
+at arbitrary page-aligned addresses.
+If a \syscall{mmap}, \syscall{mprotect}, or \syscall{munmap} \linuxapi{}
+partially frees or modifies a VMA,
+\thelibos{} divides the VMA bookkeeping into two, and then destroys of rewrites one of the VMAs.
+\thelibos{} is responsible of synchronizing the VMA lists of the host OS and \thelibos{}.
+
+
+
+Arbitrary allocation and deallocation of VMAs can cause {\bf external fragmentation} in the virtual address space.
+Arbitrarily freeing or shrinking existing VMAs
+creates holes between the remaining VMAs, which may not be large enough
+to accommodate future allocation.
+Creating holes in the virtual address space
+is normally acceptable if the virtual address space is enormously large and the host OS can swap out physical pages.
+\thelibos{} can simply ignore the address space holes and
+allocate new VMAs at higher or lower addresses. 
+The assumption is problematic on a host where the virtual address space of
+a guest is a limited resource.
+For example, a SGX enclave has a limited virtual address space in the enclave, constrained by the enclave initialization.
+As a result, external fragmentation in the virtual address space
+can potentially cause a significant waste of resources on a specific host like SGX.
+
+
+To reduce the impact of external fragmentation, \thelibos{} allows internal VMAs to interleave with the VMAs allocated by the application.
+Despite that \thelibos{} cannot relocates VMAs
+for defragmenting the whole virtual address space,
+\thelibos{} can internally recycle fragmented space for buffering or expanding a slab allocator.
+Interleaving different types of VMAs
+helps filling up the fragmented free space
+with smaller objects or buffers.
+Moreover, there are opportunities to recycle or consolidate the internal heap of \thelibos{},
+once \thelibos{} detects pressure on utilizing the virtual address space.
+To sum up, \thelibos{} can recycle the holes between VMAs allocated by the application, and utilize the space for internal buffering or bookkeeping.
+
+
+
+%Even if a address space hole
+%is much smaller than a normal internal VMA, \thelibos{} can still repurpose the space
+%to allocating a small amount of internal object.
+%Unlike application VMAs, most internal VMAs can be recycled or relocated if \thelibos{} can trace back pointers to these VMAs.
+%Because \thelibos{} interleaves different types of VMAs,
+%there is opportunities for \thelibos{} to consolidate 
+
+
+
+
+
+\paragraph{Implementing \syscall{brk}.}
+
+
+\syscall{brk} is a Linux \linuxapi{} for expanding or shrinking a fine-grained heap following the application's data segment.
+Most applications 
+use \syscall{brk} 
+for its speed of allocating 
+small objects by moving the top of heap by a small offset.
+Different from \syscall{mmap},
+\syscall{brk} only allocates a physical page
+when moving the top of heap across page boundaries.
+%to allow gradual allocation of application objects.
+Some applications, such as \gcc{}, can bypass \syscall{brk} by switching to \syscall{mmap}.
+However, to support other applications that depends on \syscall{brk},
+\thelibos{} internally implements the fine-grained heap
+based on VMAs.
+
+
+
+\thelibos{} preallocates a \code{brk} area for future \syscall{brk} \linuxapis{}.
+The \code{brk} area has a limited, configurable capacity,
+and maintains a \code{brk} pointer to the top of heap currently assigned by the application.
+Whenever the application calls \syscall{brk} (or \funcname{sbrk}, a \libc{} function internally calling \syscall{brk}),
+\thelibos{} adjusts the \code{brk} pointer
+and returns the latest top of heap.
+A \syscall{brk} call cannot move the \code{brk} pointer beyond the capacity of the \code{brk} area,
+or it will return \code{-ENOMEM} to the application.
 
 
 \paragraph{Address Space Layout Randomization (ASLR).}
+
+
+Linux and similar OSes tend to randomize the user address space layout to defeat or confuse remote attacks.
+With ASLR, a Linux kernel creates VMAs at unpredictable addresses,
+to increase the difficulty for a remote attacker to launch an effective buffer overflow or ROP (return-oriented programming) attack in an application.
+
+
+
+\thelibos{} implements ASLR completely in the \libos{}. Although some host OSes may already support ASLR, \thelibos{} enforces another layer of randomization.
+When \thelibos{} initializes its VMA list, it also assigns a random factor to the internal function that searches for free regions in the virtual address space.
+The randomization will cause \syscall{mmap} to return an unpredictable address, if the application does not specify the address.
+\thelibos{} also randomizes the address of the \code{brk} region, within 32MB behind the data segment of the application executable.
+
+
+
+
+
 
