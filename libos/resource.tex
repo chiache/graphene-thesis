@@ -126,7 +126,7 @@ Therefore, overallocating VMAs slows down the creation of an enclave.
 
 
 
-\paragraph{Alternatives.}
+\paragraph{Comparison with alternative approaches.}
 Virtualization is one of the alternative approaches of guest-level resource management. % for an application.
 %managing resources in a guest OS
 %is to virtualize the hardware resources,
@@ -163,13 +163,16 @@ than \thelibos{} in \graphene{}.
 %which calls out to the host OS or hypervisor for allocating resources.
 
 
-Exokernel~\cite{engler95exokernel}\fixme{talk about Exokernel, and maybe Arrakis/IX}
-
-
-
-%also uses a \libos{}
+Exokernel~\cite{engler95exokernel} adopts a \libos{}-like approach
+to export application-level system APIs, but grants each application instance the privilege of directly managing hardware resources. 
 %to implement the system APIs and abstractions, but allows the \libos{} to manage hardware resources directly.
-%The rationale behind Exokernel is to avoid the kernel overhead of encapsulating and redirecting hardware resources.
+The rationale behind Exokernel is to bypass the complicated kernel logics
+for abstracting and multiplexing hardware resources,
+and to allow opportunities of domain-based optimization for each application.
+Exokernel assigns each application instance
+with physically hardware resources, such as physical pages, storage disks, and network devices, with hardware-aided isolation.
+
+
 %Exokernel allows application-level resource management, by exposing low-level resources, such as physical pages, storage disks, and network devices, at the kernel interface.
 
 

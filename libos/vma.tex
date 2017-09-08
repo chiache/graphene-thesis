@@ -2,6 +2,11 @@
 \label{sec:libos:vma}
 
 
+In Linux and similar OSes, each application instance expects a contiguous, sufficiently-large virtual address space,
+for allocating a set of unique, identifiable memory objects.
+
+
+
 \thelibos{} allocates memory resources by creating VMAs (virtual memory areas).
 \Thehostabi{} defines a VMA
 as the basic abstraction for allocating memory pages
@@ -138,9 +143,9 @@ To sum up, \thelibos{} can recycle the holes between VMAs allocated by the appli
 
 
 
-\paragraph{Implementing \syscall{brk}.}
+%\paragraph{Implementing \syscall{brk}.}
 
-
+Take \syscall{brk} for example.
 \syscall{brk} is a Linux \linuxapi{} for expanding or shrinking a fine-grained heap following the application's data segment.
 Most applications 
 use \syscall{brk} 
