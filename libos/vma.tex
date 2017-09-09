@@ -297,16 +297,16 @@ often depends on certain level of knowledge about the virtual address space layo
 For example, in order to launch an effective buffer overflow,
 the attackers often try to corrupt a pointer on the stack to make it points to a piece of security-sensitive code or data.
 With ASLR, a Linux kernel increases the unpredictability of memory mappings,
-so that it becomes harder for a remote attacker
-to pinpoint the memory target.
+so that a remote attacker is harder
+to pinpoint a memory target.
 %to launch an effective buffer overflow or ROP (return-oriented programming) attack in an application.
 To support ASLR,
 %Although some host OSes may already support ASLR, \thelibos{} enforces another layer of randomization.
-\thelibos{} adds a random factor to the procedure of determining the VMA addresses.
+\thelibos{} adds a random factor to the procedure of determining the addresses for allocating new VMAs.
 %function that searches for free regions in the virtual address space.
-The randomization will cause \syscall{mmap} to return an unpredictable address, if the application does not specify the address.
-\thelibos{} also randomizes the results of \syscall{brk};
-\thelibos{} reserves a random-sized gap between the executable's data segment and the brk region.
+%The randomization will cause \syscall{mmap} to return an unpredictable address, if the application does not specify the address.
+\thelibos{} randomizes the results of both \syscall{mmap} and \syscall{brk};
+for \syscall{brk}, \thelibos{} creates a random gap between the executable's data segment and the space reserved for the brk region.
 
 
 
