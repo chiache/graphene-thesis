@@ -2,51 +2,88 @@
 \label{sec:libos:vma}
 
 
-In Linux and similar OSes, each application instance expects a contiguous, sufficiently-large virtual address space,
-for allocating a set of unique, identifiable memory objects.
+\fixme{start with what applications need}
+A Linux application usually expects a contiguous, large virtual address space,
+to allocate a number of numerically-addressable memory regions.
+A program usually uses a \libc{} allocator, requested by \funcname{malloc} and \funcname{calloc},
+or a heap allocator of a managed language runtime,
+or reserves space on the current stack,
+to allocate fine-grained memory objects.
+To support application-level allocation,
+an OS is responsible of
+maintaining a unique, consistent mapping between virtual memory areas (VMAs) and physical pages,
+and managing the virtual address space layout
+to prevent collision of VMAs.
+The Linux kernel, specifically, provides several ways of memory allocation, such as calling \syscall{mmap} or \syscall{brk},
+and transparently growing a stack when accessing beyond the stack boundary.
+A application-level allocator may try several ways of requesting memory resources;
+for example, the \glibc{} allocator
+uses both \syscall{brk} and \syscall{mmap} to allocate different sizes of memory objects.
+Applications depend on different memory allocation mechanisms
+of a Linux kernel,
+to dynamically allocate space for storing application data.
+ 
 
 
 
-\thelibos{} allocates memory resources by creating VMAs (virtual memory areas).
-\Thehostabi{} defines a VMA
-as the basic abstraction for allocating memory pages
-in a host;
-\thelibos{} either creates an anonymous VMA using a \hostapi{}, \palcall{VirtMemAlloc},
-or maps a host file into a VMA using another \hostapi{}, \palcall{StreamMap}.
-Both \hostapis{} creates a page-aligned, fixed-size range in the
-current virtual memory space,
-assuming that each virtual page in the range
-will map to an individual physical page, either zeroed or filled with file content.
+\thelibos{} manages VMAs of a virtual address space.
+To emulate a Linux kernel,
+\thelibos{} creates VMAs using two \hostapis{}:
+\palcall{VirtMemAlloc} for creating an anonymous memory mapping,
+and \palcall{StreamMap} for mapping a file into the virtual address space.
+%or maps a file into a new VMA using \palcall{StreamMap}.
+Both \hostapis{} creates a page-aligned, fixed range in the
+virtual memory space,
+with the assumption that the host OS or hypervisor
+will assign a physical page to each virtual page being accessed,
+and fill the physical page with file content or zeros.
 \thelibos{} does not assume
-that the host will always implement demand paging
-for every allocated VMAs.
-The only assumption that \thelibos{} makes, when using \palcall{VirtMemAlloc} or \palcall{StreamMap},
-is that each physical page of an allocated VMA
-will be assigned
-before any access to the page, including reading or writing data,
-or executing code.
-In other word, any future, authorized memory access
-in an allocated VMA
-should never cause any segmentation or memory protection faults.
+a host to always implement demand paging.
+The only assumption that \thelibos{} makes, when \palcall{VirtMemAlloc} or \palcall{StreamMap} returns successfully,
+is that 
+the the application or 
+\thelibos{} is authorized to access any part of the created VMA,
+without causing a segmentation fault
+or memory protection fault.
+It is possible that a host may have statically assign
+physical pages to the whole VMA instead of gradually increasing the memory usage.
+
+%each physical page of an allocated VMA
+%will be assigned
+%before any access to the page, including reading or writing data,
+%or executing code.
+%In other word, any future, authorized memory access
+%in an allocated VMA
+%should never cause any segmentation or memory protection faults.
 
 
 
-\thelibos{} allocates VMAs for two usages.
-One usage is to allocate pages for internal use of \thelibos{},
-including mapping the \thelibos{} binary
-(i.e., \thelibos\code{.so})
-into the guest environment for execution,
-and storing the internal OS states.
-For example, \thelibos{} allocates a thread control block (TCB), or thread handle, for each user thread that an application creates, to store thread-specific attributes
-such as a thread identifier and a given stack address.
-To reduce the memory cost of \graphene{},
-\thelibos{} tries to reduce the VMA allocation for its internal usage
-as long as it does not add significant performance overhead to an application.
-Another usage of a VMA
-is to assign the VMA to a memory area that an application
-assumes to be accessible, such as a heap area created by \syscall{mmap} or a self-growing stack.
-If \thelibos{} allocates a VMA for supporting the memory access in an application,
-the VMA must be at least as large as the size that the application has requested.
+\thelibos{} creates VMAs for two reasons.
+First, \thelibos{} allocates memory regions on applications' request.
+\thelibos{} also allocates memory for internal usages,
+such as maintaining
+the bookkeeping of OS states,
+and reserving space for buffering and caching.
+\thelibos{} contains a {\em slab allocator} (for internal \funcname{malloc}) and several object-caching memory allocators.
+For each abstraction, \thelibos{} allocates a handle (e.g., a thread handle)
+using internal allocation functions.
+Therefore, the memory overhead of \thelibos{} %, regardless of the memory footprint of application itself,
+is primarily caused by allocating various types of handles for maintaining or caching OS states,
+and is roughly correlated with
+the abstractions used by the application. 
+
+
+
+%For example, \thelibos{} allocates a thread control block (TCB), or thread handle, for each user thread that an application creates, to store thread-specific attributes
+%such as a thread identifier and a given stack address.
+%To reduce the memory cost of \graphene{},
+%\thelibos{} tries to reduce the VMA allocation for its internal usage
+%as long as it does not add significant performance overhead to an application.
+%Another usage of a VMA
+%is to assign the VMA to a memory area that an application
+%assumes to be accessible, such as a heap area created by \syscall{mmap} or a self-growing stack.
+%If \thelibos{} allocates a VMA for supporting the memory access in an application,
+%the VMA must be at least as large as the size that the application has requested.
 
 
 
