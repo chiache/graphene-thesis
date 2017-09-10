@@ -3,7 +3,7 @@
 
 
 \fixme{start with what applications need}
-A Linux application usually expects a contiguous, large virtual address space,
+A Linux application expects a contiguous, large virtual address space,
 to allocate a number of numerically-addressable memory regions.
 A program usually uses a \libc{} allocator, requested by \funcname{malloc} and \funcname{calloc},
 or a heap allocator of a managed language runtime,
@@ -14,8 +14,8 @@ an OS is responsible of
 maintaining a unique, consistent mapping between virtual memory areas (VMAs) and physical pages,
 and managing the virtual address space layout
 to prevent collision of VMAs.
-The Linux kernel, specifically, provides several ways of memory allocation, such as calling \syscall{mmap} or \syscall{brk},
-and transparently growing a stack when accessing beyond the stack boundary.
+The Linux kernel, specifically, provides several ways of memory allocation, such as allocation by \syscall{mmap} and \syscall{brk},
+and transparently growing a user stack downward. % exceeding the stack boundary.
 A application-level allocator may try several ways of requesting memory resources;
 for example, the \glibc{} allocator
 uses both \syscall{brk} and \syscall{mmap} to allocate different sizes of memory objects.
@@ -306,7 +306,7 @@ To support ASLR,
 %function that searches for free regions in the virtual address space.
 %The randomization will cause \syscall{mmap} to return an unpredictable address, if the application does not specify the address.
 \thelibos{} randomizes the results of both \syscall{mmap} and \syscall{brk};
-for \syscall{brk}, \thelibos{} creates a random gap between the executable's data segment and the space reserved for the brk region.
+for \syscall{brk}, \thelibos{} creates a random gap (up to 32MB) between the data segment and the brk region.
 
 
 
