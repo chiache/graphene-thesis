@@ -164,13 +164,39 @@ than \thelibos{} in \graphene{}.
 
 
 Exokernel~\cite{engler95exokernel} adopts a \libos{}-like approach
-to export application-level system APIs, but grants each application instance the privilege of directly managing hardware resources. 
+to export application-level system APIs, but grants each application the privilege to directly manage hardware resources. 
 %to implement the system APIs and abstractions, but allows the \libos{} to manage hardware resources directly.
 The rationale behind Exokernel is to bypass the complicated kernel logics
 for abstracting and multiplexing hardware resources,
 and to allow opportunities of domain-based optimization for each application.
-Exokernel assigns each application instance
-with physically hardware resources, such as physical pages, storage disks, and network devices, with hardware-aided isolation.~\fixme{not finished yet}
+%Exokernel assigns available hardware resources %, such as physical pages, storage disks, and network devices, 
+%to each application,
+%with hardware-aided protection.
+Exokernel enforces a security binding from machine resources to applications,
+so that each application can
+manage its own resources using an untrusted \libos{}.
+The similarity between the Exokernel and \graphene{} approaches is that
+they both delegate the protection and security isolation of hardware resources to the host kernel or hypervisor.
+
+
+In terms of resource management,
+Exokernel and \graphene{} have made different decisions for
+the division of labour
+between the host and \libos{}. % on managing hardware resources.
+Exokernel prioritizes the efficiency of resource management for each application. 
+To eliminate overhead of multiplexing resources,
+Exokernel exports the low-level hardware primitives, including physical memory, CPU, disks, TLB and page tables. 
+Each \libos{} in Exokernel contains drivers to directly interfacing
+these hardware primitives,
+so that the choice of hardware is not longer
+transparent to an application.
+\graphene{}, on the other hand, prioritizes compatibility upon plenty of host OS and hardware platforms.
+Compared with the primitives exported by Exokernel,
+\thehostabi{} of \graphene{} defines abstractions
+that are much more high-level and independent from the host OSes, such as files, virtual memory areas, and network sockets.
+\graphene{} sacrifices the application-specific opportunities
+for optimizing the resource management,
+but ensures the compatibility upon any hosts with \thehostabi{}.
 
 
 %Exokernel allows application-level resource management, by exposing low-level resources, such as physical pages, storage disks, and network devices, at the kernel interface.
