@@ -1,6 +1,11 @@
 \subsection{File systems}
 \label{sec:libos:fs}
 
+This section will discuss the implementation of file systems in \thelibos{}, including a pass-through, sandboxed ``chroot'' file system, the virtual file system layer for abstracting common file system operations, and other supported file system types.
+
+
+\subsubsection{A ``chroot'' file system}
+
 
 A Linux application depends on a list of indispensable resources
 within a POSIX-style, hierarchical file system.
@@ -15,44 +20,105 @@ or hard-codes the path in one of the application binaries.
 An application can heavily rely on the existence of specific paths in a file system,
 such as \code{/tmp} (a default temporary directory)
 and \code{/bin} (a directory for system programs),
-or POSIX file sytem features,
+as well as the POSIX file system features,
 such as directory listing and symbolic links.
 
 
 
-\thelibos{} creates a consistent file system view containing the dependencies of an application.
-A file system in \thelibos{} can be a combination of multiple 
-partial file systems,
-and the basic file system is a ``chroot (change root)'' file system.
+\thelibos{} creates a consistent, guest file system view containing the dependencies of an application.
+%A file system in \thelibos{} can be a combination of multiple 
+%partial file systems,
+A basic file system in \thelibos{} is a ``{\bf chroot (change root)}'' file system.
 A chroot file system isolates a directory in the host file system,
 and maps the directory
 to a custom path inside \thelibos{}.
 If the application searches for a path under the mapped directory,
 \thelibos{} translates the path to a path in the host file system, and supports pass-through operations on the translated path.
-The host-level security isolation
-should ensure that any access in a chroot file system cannot escape the corresponding directory in the host (hence the name ``chroot''). 
-According to the user configuration, \thelibos{} can {\em mount} multiple chroot file systems to different paths in the root file system,
-as a way of cherry-picking file resources for an application.
+For each application,
+\thelibos{} can mount multiple chroot file systems for cherry-picking a few necessary host directories.
+The host reference monitor isolates
+a \thelibos{} instance within the host directories that are mounted as chroot file systems.
+\thelibos{} cannot escape these host directories,
+similar to a Linux program calling \syscall{chroot} before starting untrusted execution.
+
+
+ 
+%should ensure that any access in a chroot file system cannot escape the corresponding directory in the host (hence the name ``chroot''). 
+%According to the user configuration, \thelibos{} can {\em mount} multiple chroot file systems to different paths in the guest file system,
+%as a way of cherry-picking host file resources for an application.
 
 
 
-For example, an application can map a host-level directory ``\code{file:/foo}'' as a chroot file system in \thelibos{}, under ``\code{/bin}'' in the guest file system.
-If the application search for a path called ``\code{/bin/bash}'', \thelibos{} translates the path to ``\code{file:/foo/bash}'', and redirects access of \code{/bin/bash} to \hostapis{} for accessing \code{file:/foo/bash} in the host OS.
-Moreover, the host-level reference monitor enforces policies
+For example, \thelibos{} can mount a host directory ``\code{file:/foo}'' as a chroot file system under ``\code{/bin}'' in the guest file system.
+If the application search a path called ``\code{/bin/bash}'', \thelibos{} translates the path to ``\code{file:/foo/bash}'', and redirects access of \code{/bin/bash} to \hostapis{} for accessing \code{file:/foo/bash} in the host OS.
+Moreover, the host reference monitor enforces policies
 to prevent the untrusted application
 to escape the mapped directory, even if the application uses ``dot-dot'' to walk back to last level of directory; for example, \thelibos{} cannot redirect a path \code{/bin/../etc/passwd} to \code{file:/etc/passwd}, because \code{file:/etc/passwd} does not belong to the chroot file system mounted at \code{/bin}.
-By creating a chroot file system, \thelibos{} creates a sandbox that disguises an unprivileged local directory (i.e., \code{/foo})
-as a privileged system directory (i.e., \code{/bin}).
+By mounting a chroot file system, \thelibos{} creates a sandbox that disguises an unprivileged local directory (i.e., \code{/foo})
+as a privileged system directory (i.e., \code{/bin}) in an application.
+  
 
+
+
+\subsubsection{The virtual file system layer}
+
+
+
+
+
+
+
+\thelibos{} includes a {\bf virtual file system} layer for abstracting the operations
+of different types of file systems,
+such as the chroot file system, a pseudo file system (e.g., a ``proc'' or ``devtmpfs'' file system), and a networked file system (NFS).
+Similar to the virtual file system in Linux,
+the virtual file of \thelibos{} defines a set of file and directory operations that
+each file system must implement.
+When an application opens a file,
+\thelibos{} searches all the mounted file systems for the target path,
+and creates a generic file handle containing pointers
+to the file and directory operations implemented by the residing file system.
+\fixme{not enough explanation}
+A virtual file system layer decouples
+the implementation of \linuxapis{} and file system operations.
+
+
+As a feature of the virtual file system, \thelibos{} implements
+a local file system directory cache
+to reduce the \hostapis{} for retrieving directory information
+or attempting to access a nonexistent path.
 
 
 
 
 %An application
 %often depends on the existence of several paths,
-%including paths that are conventional to a POSIX file system (e.g., ``\code{/bin}'', ``\code{/proc}'', and ``\code{/dev}'').
+%including paths that are conventional to a POSIX file system (e.g., ``\code{/bin}'', ``\code{/proc}'', and ``\code{/dev}'')
 
 
+
+
+
+
+
+\subsubsection{Other file systems}
+
+
+Besides a chroot file system,
+%A file system in \thelibos{}
+\thelibos{} also supports various types of file systems,
+such as a pseudo file system
+(e.g., a ``proc'' or ``devtmpfs'' file system).
+A pseudo file system is not linked with any physical storage devices,
+but a dummy file system
+purely designed for retrieving or configuring OS kernel states.
+A pseudo file system can be considered as an extension of the \linuxapi{} interface,
+for exporting features with more administrative purposes.
+A pseudo file system usually re-purposes the operations of a file system, such as \syscall{read}, \syscall{write}, and directory listing,
+for administrative-type operations,
+such as retrieving a process list and individual process status.
+\thelibos{} has selectively implements a set of pseudo file system entries,
+based on the importance to the applications targeted by \graphene{}.
 
 
 
