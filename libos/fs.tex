@@ -2,21 +2,48 @@
 \label{sec:libos:fs}
 
 
-A Linux application depends on a list of indispensable paths
+A Linux application depends on a list of indispensable resources
 within a POSIX-style, hierarchical file system.
-A POSIX-style file system is composed with directories and files, which have a common ancestor as the root directory (``/'').
-A POSIX application references each file or directory in the file system
-by describing the path %to traverse
+A POSIX-style file system is composed with a number of directories and files, including a common ancestor as the root directory (``/'').
+A POSIX application searches each file or directory in the file system
+by describing the {\em path} %to traverse
 from the root directory to the target. % file or directory.
-For opening a file during execution,
-an application either obtains a canonical or relative path
-from the user interface or configuration,
+%For opening a file during execution,
+An application either obtains a canonical or relative path
+from a user interface or configuration,
 or hard-codes the path in one of the application binaries.
+An application can heavily rely on the existence of specific paths in a file system,
+such as \code{/tmp} (a default temporary directory)
+and \code{/bin} (a directory for system programs),
+or POSIX file sytem features,
+such as directory listing and symbolic links.
 
 
 
+\thelibos{} creates a consistent file system view containing the dependencies of an application.
+A file system in \thelibos{} can be a combination of multiple 
+partial file systems,
+and the basic file system is a ``chroot (change root)'' file system.
+A chroot file system isolates a directory in the host file system,
+and maps the directory
+to a custom path inside \thelibos{}.
+If the application searches for a path under the mapped directory,
+\thelibos{} translates the path to a path in the host file system, and supports pass-through operations on the translated path.
+The host-level security isolation
+should ensure that any access in a chroot file system cannot escape the corresponding directory in the host (hence the name ``chroot''). 
+According to the user configuration, \thelibos{} can {\em mount} multiple chroot file systems to different paths in the root file system,
+as a way of cherry-picking file resources for an application.
 
-%or reads a hard-coded path from an application binary.
+
+
+For example, an application can map a host-level directory ``\code{file:/foo}'' as a chroot file system in \thelibos{}, under ``\code{/bin}'' in the guest file system.
+If the application search for a path called ``\code{/bin/bash}'', \thelibos{} translates the path to ``\code{file:/foo/bash}'', and redirects access of \code{/bin/bash} to \hostapis{} for accessing \code{file:/foo/bash} in the host OS.
+Moreover, the host-level reference monitor enforces policies
+to prevent the untrusted application
+to escape the mapped directory, even if the application uses ``dot-dot'' to walk back to last level of directory; for example, \thelibos{} cannot redirect a path \code{/bin/../etc/passwd} to \code{file:/etc/passwd}, because \code{file:/etc/passwd} does not belong to the chroot file system mounted at \code{/bin}.
+By creating a chroot file system, \thelibos{} creates a sandbox that disguises an unprivileged local directory (i.e., \code{/foo})
+as a privileged system directory (i.e., \code{/bin}).
+
 
 
 
