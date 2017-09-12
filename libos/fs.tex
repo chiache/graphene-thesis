@@ -9,7 +9,7 @@ This section will discuss the implementation of file systems in \thelibos{}, inc
 
 A Linux application depends on a list of indispensable resources
 within a POSIX-style, hierarchical file system.
-A POSIX-style file system is composed with a number of directories and files, including a common ancestor as the root directory (``/'').
+A POSIX-style file system is composed of a number of directories and files, including a root directory (``/'') as the common ancestor.
 A POSIX application searches each file or directory in the file system
 by describing the {\em path} %to traverse
 from the root directory to the target. % file or directory.
@@ -25,21 +25,27 @@ such as directory listing and symbolic links.
 
 
 
-\thelibos{} creates a consistent, guest file system view containing the dependencies of an application.
+\thelibos{} creates a consistent, guest file system view containing the file dependencies of an application.
 %A file system in \thelibos{} can be a combination of multiple 
 %partial file systems,
-A basic file system in \thelibos{} is a ``{\bf chroot (change root)}'' file system.
+A basic file system type in \thelibos{} is a pass-through, sandboxed file system called a ``{\bf chroot (change root)}'' file system.
 A chroot file system isolates a directory in the host file system,
-and maps the directory
+and maps such directory
 to a custom path inside \thelibos{}.
-If the application searches for a path under the mapped directory,
-\thelibos{} translates the path to a path in the host file system, and supports pass-through operations on the translated path.
-For each application,
-\thelibos{} can mount multiple chroot file systems for cherry-picking a few necessary host directories.
-The host reference monitor isolates
-a \thelibos{} instance within the host directories that are mounted as chroot file systems.
-\thelibos{} cannot escape these host directories,
-similar to a Linux program calling \syscall{chroot} before starting untrusted execution.
+The mapping creates a restricted view for the application to access the files and directories inside the mounted host directory.
+%If the application searches for a path under the mapped directory,
+A chroot file simply replaces the prefix of each searched path
+with the URI of the mounted host directory,
+and redirects the file operations to the host using \thehostabi{}.
+For an application, each chroot file system has cherry-picked
+file resources in a host directory.
+The host reference monitor ensures that
+a chroot file system 
+is sandboxed within the mounted host directory,
+%within the host directories that are mounted as chroot file systems.
+so that any \hostapis{} can only access files and directories under the host directory,
+similar to a Linux program being \syscall{chroot}'ed
+before running any untrusted execution.
 
 
  
@@ -50,7 +56,7 @@ similar to a Linux program calling \syscall{chroot} before starting untrusted ex
 
 
 For example, \thelibos{} can mount a host directory ``\code{file:/foo}'' as a chroot file system under ``\code{/bin}'' in the guest file system.
-If the application search a path called ``\code{/bin/bash}'', \thelibos{} translates the path to ``\code{file:/foo/bash}'', and redirects access of \code{/bin/bash} to \hostapis{} for accessing \code{file:/foo/bash} in the host OS.
+If the application search a path called ``\code{/bin/bash}'', \thelibos{} will translate the path to ``\code{file:/foo/bash}'', and redirects access of \code{/bin/bash} to \hostapis{} for accessing \code{file:/foo/bash} in the host OS.
 Moreover, the host reference monitor enforces policies
 to prevent the untrusted application
 to escape the mapped directory, even if the application uses ``dot-dot'' to walk back to last level of directory; for example, \thelibos{} cannot redirect a path \code{/bin/../etc/passwd} to \code{file:/etc/passwd}, because \code{file:/etc/passwd} does not belong to the chroot file system mounted at \code{/bin}.
@@ -58,10 +64,77 @@ By mounting a chroot file system, \thelibos{} creates a sandbox that disguises a
 as a privileged system directory (i.e., \code{/bin}) in an application.
   
 
+The implementation of common file operations in a chroot file system is mostly as straightforward as translating to one or few \hostapis{}.
+As previously stated, opening a file in a chroot file system
+simply requires calling \palcall{StreamOpen} with the file URI translated from the requested path.
+If the chroot file system successfully opens the file in the host,
+it associates the returned PAL handle with a file descriptor, to translate common file system \linuxapis{} such as \syscall{pread} and \syscall{pwrite}
+as \hostapis{} such as \palcall{StreamRead} ad \palcall{StreamWrite}, since \thehostabi{} defines these two \hostapis{} to be positionless.
+For the more commonly-used \syscall{read} and \syscall{write},
+%Besides any further optimization, 
+the chroot file system
+simply tracks the current offset of the file descriptor, and atomically retrieves and updates the offset in each \linuxapi{}.
+%for implementing \syscall{read} and \syscall{write}
+%are merely to store the PAL handle
+%and to atomically retrieve and update the current offset inside the opened file.
+The batched \syscall{readv} and \syscall{writev}
+is translated to multiple \palcall{StreamRead} ad \palcall{StreamWrite} calls
+on the same file.
+Another two common \linuxapis{},
+\syscall{stat} and \syscall{fstat}, which retrieve the metadata of a file or a directory,
+need only one more step as
+translating the returned host-level stream attributes
+(i.e., \code{STREAM\_ATTR})
+to the POSIX-style data structure (i.e., \code{struct stat}).
+
+
+The definition of \thehostabi{} allows several opportunities of optimizing the latency of file system \linuxapi{}.
+Two common techniques being broadly used in \thelibos{}
+are buffering and caching.
+To improve the latency of reading and writing a file,
+\thelibos{} effectively buffers the content of multiple \syscall{read} and \syscall{write} \linuxapis{},
+until the application calls \syscall{fsync} or the file offset exceeds the range of buffering.
+Buffering file changes potentially delay the timing of writing the data
+to physical disks,
+but \thelibos{} accelerates the process
+by making the buffer a pass-through mapping of the file (using \palcall{StreamMap}).
+For an application which
+performs lots of small, sequential reads or writes,
+or lots of small, random reads or writes with significant spatial locality,
+buffering the data
+can significantly improve the performance;
+evaluation shows that
+running \projname{GCC} in \graphene{} to compile 0.7MLoC, on a Linux host, 
+is only 1\% slower than running on Linux.
+In terms of caching, \thelibos{} contains a file system directory cache
+in the virtual file system,
+which will aggressively cache any directory information
+retrieved from \thehostabi{}.
+The file system directory cache of \thelibos{} also benefits other file systems,
+and the details will be further discussed in Section~\ref{sec:resource:fs:vfs}.
+
+
+
+Using chroot file systems, \thelibos{} is able to implement container-style sandboxing inside a few host directories,
+but enables sharing of host-level file resources
+among multiple applications.
+A Linux container~\cite{lxc-docker} often operates upon a local directory, which contains a separate file system tree of both system and application files.
+By sandboxing the file operations %of a Linux container
+inside a local directory,
+a Linux container prevents an untrusted application from corrupting or leaking a file owned by superusers or other applications.
+\thelibos{} allows users to stack multiple chroot file system,
+similar to a stackable file system~\cite{aufs},
+and relies on the host reference monitor to enforce simple, white-list rules
+on shared directories.
+%on read-only or readable-writable sharing.
+
+
+
+
 
 
 \subsubsection{The virtual file system layer}
-
+\label{sec:resource:fs:vfs}
 
 
 
