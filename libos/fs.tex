@@ -1,10 +1,10 @@
 \subsection{File systems}
 \label{sec:libos:fs}
 
-This section will discuss the implementation of file systems in \thelibos{}, including a pass-through, sandboxed ``chroot'' file system, the virtual file system layer for abstracting common file system operations, and other supported file system types.
+This section will discuss the implementation of file systems in \thelibos{}, including a pass-through, sandboxed file system, the virtual file system layer for abstracting common file system operations, and other supported file system types.
 
 
-\subsubsection{A ``chroot'' file system}
+\subsubsection{A pass-through file system}
 
 
 A Linux application depends on a list of indispensable resources
@@ -111,30 +111,64 @@ in the virtual file system,
 which will aggressively cache any directory information
 retrieved from \thehostabi{}.
 The file system directory cache of \thelibos{} also benefits other file systems,
-and the details will be further discussed in Section~\ref{sec:resource:fs:vfs}.
+and the details will be further discussed in Section~\ref{sec:libos:vfs}.
 
 
 
-Using chroot file systems, \thelibos{} is able to implement container-style sandboxing inside a few host directories,
-but enables sharing of host-level file resources
-among multiple applications.
-A Linux container~\cite{lxc-docker} often operates upon a local directory, which contains a separate file system tree of both system and application files.
-By sandboxing the file operations %of a Linux container
-inside a local directory,
-a Linux container prevents an untrusted application from corrupting or leaking a file owned by superusers or other applications.
-\thelibos{} allows users to stack multiple chroot file system,
-similar to a stackable file system~\cite{aufs},
-and relies on the host reference monitor to enforce simple, white-list rules
-on shared directories.
-%on read-only or readable-writable sharing.
+A chroot file system enforces container-style sandboxing of an application,
+but simultaneously
+allows sharing part of the guest file system
+with other applications and \picoprocs{}.
+Since \thelibos{} supports mounting multiple chroot file systems in a \picoproc{},
+\graphene{} users can configure a host to selectively export a few host directories containing the file resources in use.
+The security isolation of a single chroot file system %enforces the security isolation
+is similar to the sandboxing of a Linux container~\cite{lxc}, which restricts all the file operations of an application within a local file system tree unless the container is running on a stackable file system~\cite{aufs}.
+\graphene{} allows multiple applications to share a host directory, either read-only or with full access,
+and uses a host reference monitor
+to enforce AppArmor~\cite{apparmor}-like, white-listed rules
+for isolating every file access.
+\graphene{} can share most of the system files and binaries,
+such as \code{/etc/hosts} and \code{/bin/bash},
+without compromising the security isolation of each application.
+
+
+
+
+
+\subsubsection{Guest-level file systems}
+%A file system in \thelibos{}
+
+Another approach of implementing a guest file system
+is to introduce a 
+
+
+
+\thelibos{} also supports various types of file systems,
+such as a pseudo file system
+(e.g., a ``proc'' or ``devtmpfs'' file system).
+A pseudo file system is not linked with any physical storage devices,
+but a dummy file system
+purely designed for retrieving or configuring OS kernel states.
+A pseudo file system can be considered as an extension of the \linuxapi{} interface,
+for exporting features with more administrative purposes.
+A pseudo file system usually re-purposes the operations of a file system, such as \syscall{read}, \syscall{write}, and directory listing,
+for administrative-type operations,
+such as retrieving a process list and individual process status.
+\thelibos{} has selectively implements a set of pseudo file system entries,
+based on the importance to the applications targeted by \graphene{}.
+
+
+\issuedone{1.2.e}{describe POSIX file system vs NFS/other approaches}
 
 
 
 
 
 
-\subsubsection{The virtual file system layer}
-\label{sec:resource:fs:vfs}
+
+
+\subsubsection{A virtual file system layer}
+\label{sec:libos:vfs}
 
 
 
@@ -142,7 +176,10 @@ on shared directories.
 
 
 \thelibos{} includes a {\bf virtual file system} layer for abstracting the operations
-of different types of file systems,
+of different file systems.
+
+
+
 such as the chroot file system, a pseudo file system (e.g., a ``proc'' or ``devtmpfs'' file system), and a networked file system (NFS).
 Similar to the virtual file system in Linux,
 the virtual file of \thelibos{} defines a set of file and directory operations that
@@ -152,8 +189,13 @@ When an application opens a file,
 and creates a generic file handle containing pointers
 to the file and directory operations implemented by the residing file system.
 \fixme{not enough explanation}
-A virtual file system layer decouples
-the implementation of \linuxapis{} and file system operations.
+The virtual file system layer has decoupled
+the implementation of \linuxapis{} and file system operations in \thelibos{}.
+
+
+
+
+
 
 
 As a feature of the virtual file system, \thelibos{} implements
@@ -174,25 +216,3 @@ or attempting to access a nonexistent path.
 
 
 
-\subsubsection{Other file systems}
-
-
-Besides a chroot file system,
-%A file system in \thelibos{}
-\thelibos{} also supports various types of file systems,
-such as a pseudo file system
-(e.g., a ``proc'' or ``devtmpfs'' file system).
-A pseudo file system is not linked with any physical storage devices,
-but a dummy file system
-purely designed for retrieving or configuring OS kernel states.
-A pseudo file system can be considered as an extension of the \linuxapi{} interface,
-for exporting features with more administrative purposes.
-A pseudo file system usually re-purposes the operations of a file system, such as \syscall{read}, \syscall{write}, and directory listing,
-for administrative-type operations,
-such as retrieving a process list and individual process status.
-\thelibos{} has selectively implements a set of pseudo file system entries,
-based on the importance to the applications targeted by \graphene{}.
-
-
-
-\issue{1.2.e}{describe POSIX file system vs NFS/object stores/other approaches}
