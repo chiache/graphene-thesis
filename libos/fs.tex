@@ -140,10 +140,12 @@ without compromising the security isolation of each application.
 
 
 \issuedone{1.2.e}{describe POSIX file system vs NFS/other approaches}
-Other than mounting a pass-through, chroot file system,
-another approach is to introduce a guest-level file system which internally implements all file operations.
-A guest-level file system does not export host files and directories
-to any application;
+Other than a pass-through file system,
+\thelibos{} can use a different approach as 
+implementing the file operations
+in a guest-level file system. % which internally implements all file operations.
+A guest-level file system does not expose any host files and directories
+to applications;
 instead, a guest-level file system maintains its own file system states either in memory or in a raw format unknown by the host OS.
 A guest-level file system
 provides a different option for managing file resources in \thelibos{}. 
@@ -207,53 +209,81 @@ is most likely to be restricted to a single-process application.
 
 
 
-\subsubsection{The virtual file system}
+\subsubsection{A virtual file system}
 \label{sec:libos:vfs}
 
 
-A POSIX file system defines a set of file and directory operations,
-which are independent from
-the underlying file system implementations.
-The file and directory operations in a POSIX file system
-is based on a few generic primitives,
-such as file descriptors and directory entries.
-Whenever an application accesses a file using a \linuxapi{} such as \syscall{read} or \syscall{write},
-the arguments given to the \linuxapi{}, including a numeric file descriptor, are irrelevant with the type of file system
-where the file is located.
-For example, a user can choose to mount a NTFS partition
-or a NFS share as a root file system;
-yet, the \linuxapis{} for accessing any files on the file system
-will mostly not differ upon different mounts.
+A POSIX file system defines a set of generic file system operations and primitives, making the underlying file system implementations
+transparent to most applications.
+An administrator can mount a file system at an arbitrary directory, to select among different solutions of managing file resources.
+When an application successfully opens a file
+under the mount point of a file system,
+a generic file descriptor is returned to represent the opened file resources
+and is fully independent from the underlying implementations.
+By presenting different resources as a generic primitive
+as file descriptors,
+an application can consistently use identical \linuxapis{},
+such as \syscall{read} and \syscall{write}, to invoke file and directory operations
+defined by the file system drivers.
+In a POSIX file system, an application can mostly be reused
+upon different file systems, as long as the required file resources are available in the chosen file systems.
 
 
 
-Similar to a Linux kernel, \thelibos{} includes a {\bf virtual file system} layer
-to abstract the file and directory operations of different file system implementations .
-
-
-
-such as the chroot file system, a pseudo file system (e.g., a ``proc'' or ``devtmpfs'' file system), and a networked file system (NFS).
-Similar to the virtual file system in Linux,
-the virtual file of \thelibos{} defines a set of file and directory operations that
-each file system must implement.
-When an application opens a file,
-\thelibos{} searches all the mounted file systems for the target path,
-and creates a generic file handle containing pointers
-to the file and directory operations implemented by the residing file system.
-\fixme{not enough explanation}
-The virtual file system layer has decoupled
-the implementation of \linuxapis{} and file system operations in \thelibos{}.
-
-
+%A POSIX file system defines a set of file and directory operations,
+%which are independent from
+%the underlying file system implementations.
+%The file and directory operations in a POSIX file system
+%is based on a few generic primitives,
+%such as file descriptors and directory entries.
+%Whenever an application accesses a file using a \linuxapi{} such as \syscall{read} or \syscall{write},
+%the arguments given to the \linuxapi{}, including a numeric file descriptor, are irrelevant with the type of file system
+%where the file is located.
+%For example, a user can choose to mount a NTFS partition
+%or a NFS share as a root file system;
+%yet, the \linuxapis{} for accessing any files on the file system
+%will mostly not differ upon different mounts.
 
 
 
 
+%Similar to a Linux kernel, \thelibos{} includes a {\bf virtual file system} layer
+%to abstract the file and directory operations of different file system implementations .
 
-As a feature of the virtual file system, \thelibos{} implements
-a local file system directory cache
-to reduce the \hostapis{} for retrieving directory information
-or attempting to access a nonexistent path.
+
+
+%such as the chroot file system, a pseudo file system (e.g., a ``proc'' or ``devtmpfs'' file system), and a networked file system (NFS).
+%Similar to the virtual file system in Linux,
+%the virtual file of \thelibos{} defines a set of file and directory operations that
+%each file system must implement.
+%When an application opens a file,
+%\thelibos{} searches all the mounted file systems for the target path,
+%and creates a generic file handle containing pointers
+%to the file and directory operations implemented by the residing file system.
+%\fixme{not enough explanation}
+%The virtual file system layer has decoupled
+%the implementation of \linuxapis{} and file system operations in \thelibos{}.
+
+
+
+Similar to a Linux kernel, \thelibos{} includes an abstraction layer for exporting the generic operations and primitives of a POSIX file system,
+generally known as {\bf a virtual file system}.
+A virtual file system defines a set of file and directory operations as the shared interface of every file system implementation.
+When an application opens or queries a target file resource,
+the virtual file system
+searches the file path among all mounted points,
+and then invokes the corresponding file or directory operations implemented by the file system.
+In \thelibos{}, each file system, such as a chroot file system
+or a pseudo file system,
+must provide a data structure to the virtual file system, containing function pointers
+referencing to all the file and directory operations  
+implemented by the file system.
+
+
+%As a feature of the virtual file system, \thelibos{} implements
+%a local file system directory cache
+%to reduce the \hostapis{} for retrieving directory information
+%or attempting to access a nonexistent path.
 
 
 
@@ -261,6 +291,69 @@ or attempting to access a nonexistent path.
 %An application
 %often depends on the existence of several paths,
 %including paths that are conventional to a POSIX file system (e.g., ``\code{/bin}'', ``\code{/proc}'', and ``\code{/dev}'')
+
+
+The virtual file system in \thelibos{} enables several file system features
+and optimizations
+which indistinguishably benefit every file system.
+A few atypical file operations, such as the batched \syscall{readv} and \syscall{writev},
+can be emulated in the virtual file system
+using file operations exported by the underlying file system.
+More importantly, 
+the virtual file system in \thelibos{} 
+includes a local {\bf directory cache},
+as an optimization to the latency of searching a path in the guest file system tree,
+and retrieving file metadata.
+A directory cache
+is designed to reduce the frequency
+of executing the file operation of walking the file system data structures,
+by aggressively caching any directory information
+and file metadata
+returned from a file system implementation.
+
+
+The directory cache in \thelibos{} stores each searched path and its parent directories as directory entries
+using the spared \picoproc{} memory.
+The directory cache in \thelibos{} has a similar architecture
+as the Linux file system directory cache.
+Each directory entry in the directory cache records the existence or nonexistence of a file system path,
+as well as the file attributes
+(e.g., file types, sizes, and permissions).
+If an application has given a path as a \linuxapi{} argument,
+\thelibos{} first looks up
+in the directory cache to find any directory entries
+that matches with the given path.
+If a directory entry is already created for a path, \thelibos{} can bypass the file system operations of querying the paths
+in the host file systems or other storage media.
+
+
+The directory cache in \thelibos{} adopts several techniques for optimizing the latency of \linuxapis{}.
+First, the directory cache
+can confirm the existence of every parent directory
+of a canonical path
+found in the whole guest file system.
+For example, if \thelibos{} successfully opens a file at \code{/home/foo/bar},
+\thelibos{} knows for sure that both \code{/home}
+and \code{/home/foo} exist in the guest file system tree,
+without doing any extra file system lookups.
+%like \palcall{StreamAttributesQuery}. 
+By reducing the amount of file system lookups for searching each path
+from multiple to exactly one,
+the directory cache reduces the overhead of a cache miss,
+especially since each directory cache
+only caches directory information for one single application.
+Second, to look up a path inside the directory cache,
+\thelibos{} can use a fast-path algorithm which searches the whole canonical path
+instead of each path prefixes~\cite{tsai15dcache}.
+For example, in order to search \code{/home/foo/bar} in the directory cache,
+a traditional design will have to search
+\code{/home}, \code{/home/foo}, and then \code{/home/foo/bar}.
+Using the fast-path algorithm,
+\thelibos{} can directly search the whole path without walking through each parent directories.
+Finally, the directory cache aggressively stores {\em negative} directory entries
+for the paths known to be non-existent.
+Whenever an application has unlinked or moved a file, \thelibos{} can conclude that the path no longer exists
+and create a negative directory entry.
 
 
 
