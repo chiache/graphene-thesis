@@ -1,4 +1,4 @@
-\subsection{Threads}
+\subsection{Threading and synchronization}
 \label{sec:libos:thread}
 
 
@@ -58,7 +58,15 @@ by inserting the TCB of \thelibos{} into the pthread TCB.
 
 
 \paragraph{The \syscall{futex} API.}
-
+Most of pthread's synchronization primitives, including mutexes, semaphores, conditional variables, and barriers,
+are based on the \syscall{futex} API.
+The \syscall{futex} API contains two primary types of operations:
+blocking on a specific memory address to be updated, or waking up threads that are currently blocking. % on a specific memory address.
+The futex API allows a thread to forfeit the CPU resources
+to a progressing thread,
+and can be combined with atomic operation
+to simultaneously update a critical variable and notify threads that are waiting for the variable to change to certain condition.
+\fixme{not finished yet; maybe add a figure to explain how futex is implemented}
 
 
 
