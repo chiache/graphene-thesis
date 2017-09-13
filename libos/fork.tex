@@ -39,20 +39,68 @@ or whether a checkpoint should be loaded instead.
 
 \section{Multi-Process Abstractions} 
 
+%A characteristic of Linux application development is the opportunity of using one of 
+This section explains the \thelibos{} implementation of
+the plenty Linux multi-process abstractions,
+including forking, \syscall{execve}, and a variety of IPC (inter-process communication) mechanisms. 
 
-\subsection{Cloning a process}
 
 
-\issue{1.3.b}{describe the workflow of forking}
-Copy-on-write fork presented a particular challenge.
+
+\subsection{Forking a process}
+
+
+
+Implementing the UNIX-style, copy-on-write forking presented a particular challenge in the \thelibos{} architecture.
 %when implemented using only a VM-like picoprocess abstraction.
-As with a virtual machine, each new picoprocess 
-is created in a ``clean'' state; fork is implemented in the \libos{}.
+As with a virtual machine, \graphene{} creates each new \picoproc{} in a ``clean'' state, along with an individual \thelibos{} instance. % fork is implemented in the \libos{}.
 %yet applications require common Unix abstractions such as file handle inheritance and copy-on-write fork.
+Forking a process requires both cloning the state of application memory
+and migrating the handles in \thelibos{}, such as file descriptors and signal handlers
+to the new process.
+\graphene{} drops the assumption that every host can share physical pages among multiple processes,
+to broaden the domains of supportable hosts.
+Since \thelibos{} cannot rely on copy-on-write sharing
+to clone that state of both \thelibos{} and the application, it is challenging for \thelibos{} to implement the UNIX-style forking.
 
-Graphene implements file Unix-style {\tt fork}
-by leveraging portions of the checkpoint and migration code,
-which can programmatically save and restore OS state (e.g., file handles, and memory mappings).
+
+\issuedone{1.3.b}{describe the work flow of forking}
+Without the host support of page sharing,
+\thelibos{} implements \syscall{fork} by leveraging process checkpoint and migration.
+When an application forks a process,
+\thelibos{} walks through a list of allocated resources,
+and creates a snapshot of the current \picoproc{}.
+The snapshotted resources include all the application memory mappings, file handles,
+the current thread handle, signal handlers,
+and other miscellaneous states of the \libos{}.
+Since \graphene{} does not allow \picoprocs{} to share memory,
+\thelibos{} sends the snapshot over a RPC stream,
+and restores the states in the new \picoproc{}. % to create a forked process. 
+
+
+
+A simple but naive way of checkpointing an application process
+is to snapshot the whole virtual address space
+of a \picoproc{}, including memory mapping of both the application and \thelibos{}.
+The benefit of snapshotting the whole virtual address space
+is that the feature
+can be implemented as a transparent layer below \thelibos{},
+with no need to introspect the data structures in the \thelibos{} memory mappings.
+However, snapshotting the whole virtual address space
+also faces several fundamental restrictions upon \thehostabi{}.
+First, the new \picoproc{} cannot reuse PAL handles snapshotted from the previous \picoproc{}.
+Therefore, after migrating the whole virtual address space,
+either \thelibos{} has to scan its internal heap to recreate or nullify all the PAL handles, or \thehostabi{} has to detect any migrated PAL handles.
+Moreover, to consistently snapshot a \picoproc{},
+\thelibos{} has to stop the execution of every running threads,
+or iteratively trace dirty pages after copying a certain amount of pages to the snapshot.
+Either approach requires more control over host-level page management
+in order to prevent significant interruption in the application.
+
+
+
+
+
 Rather than writing the checkpoint to a file, 
 we developed an efficient bulk IPC mechanism to 
 permit copy-on-write sharing of memory pages among processes.
@@ -143,7 +191,7 @@ and facilitates extensibility.
 
 \end{comment}
 
-\issue{1.3.b}{discuss alternative strategies of forking}
+%\issue{1.3.b}{discuss alternative strategies of forking}
 
 
 \subsection{Multi-process \syscall{execve}}
@@ -151,7 +199,7 @@ and facilitates extensibility.
 
 
 
-\subsection{Signaling}
+\subsection{Signaling and exit notification}
 
 
 

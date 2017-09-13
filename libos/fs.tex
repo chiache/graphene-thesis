@@ -1,4 +1,361 @@
 \subsection{File systems}
 \label{sec:libos:fs}
 
-\issue{1.2.e}{describe POSIX file system vs NFS/object stores/other approaches}
+This section will discuss the implementation of file systems in \thelibos{}, including a pass-through, sandboxed file system, the virtual file system layer for abstracting common file system operations, and other supported file system types.
+
+
+\subsubsection{A ``chroot'' file system}
+
+
+A Linux application depends on a list of indispensable resources
+within a hierarchical, POSIX file system.
+A POSIX file system is composed of a number of directories and files, including a root directory (``/'') as the common ancestor.
+A POSIX application searches each file or directory in the file system
+by describing the {\em path} %to traverse
+from the root directory to the target. % file or directory.
+%For opening a file during execution,
+An application either obtains a canonical or relative path
+from a user interface or configuration,
+or hard-codes the path in one of the application binaries.
+An application can heavily rely on the existence of specific paths in a file system,
+such as \code{/tmp} (a default temporary directory)
+and \code{/bin} (a directory for system programs),
+as well as the POSIX file system features,
+such as directory listing and symbolic links.
+
+
+
+\thelibos{} creates a consistent, guest file system view containing the file dependencies of an application.
+%A file system in \thelibos{} can be a combination of multiple 
+%partial file systems,
+A basic file system type in \thelibos{} is a pass-through, sandboxed file system called a ``{\bf chroot (change root)}'' file system.
+A chroot file system isolates a directory in the host file system,
+and maps such directory
+to a custom path inside \thelibos{}.
+The mapping creates a restricted view for the application to access the files and directories inside the mounted host directory.
+%If the application searches for a path under the mapped directory,
+A chroot file simply replaces the prefix of each searched path
+with the URI of the mounted host directory,
+and redirects the file operations to the host using \thehostabi{}.
+For an application, each chroot file system has cherry-picked
+file resources in a host directory.
+The host reference monitor ensures that
+a chroot file system 
+is sandboxed within the mounted host directory,
+%within the host directories that are mounted as chroot file systems.
+so that any \hostapis{} can only access files and directories under the host directory,
+similar to a Linux program being \syscall{chroot}'ed
+before running any untrusted execution.
+
+
+ 
+%should ensure that any access in a chroot file system cannot escape the corresponding directory in the host (hence the name ``chroot''). 
+%According to the user configuration, \thelibos{} can {\em mount} multiple chroot file systems to different paths in the guest file system,
+%as a way of cherry-picking host file resources for an application.
+
+
+
+For example, \thelibos{} can mount a host directory ``\code{file:/foo}'' as a chroot file system under ``\code{/bin}'' in the guest file system.
+If the application search a path called ``\code{/bin/bash}'', \thelibos{} will translate the path to ``\code{file:/foo/bash}'', and redirects access of \code{/bin/bash} to \hostapis{} for accessing \code{file:/foo/bash} in the host OS.
+Moreover, the host reference monitor enforces policies
+to prevent the untrusted application
+to escape the mapped directory, even if the application uses ``dot-dot'' to walk back to last level of directory; for example, \thelibos{} cannot redirect a path \code{/bin/../etc/passwd} to \code{file:/etc/passwd}, because \code{file:/etc/passwd} does not belong to the chroot file system mounted at \code{/bin}.
+By mounting a chroot file system, \thelibos{} creates a sandbox that disguises an unprivileged local directory (i.e., \code{/foo})
+as a privileged system directory (i.e., \code{/bin}) in an application.
+  
+
+The implementation of common file operations in a chroot file system is mostly as straightforward as translating to one or few \hostapis{}.
+As previously stated, opening a file in a chroot file system
+simply requires calling \palcall{StreamOpen} with the file URI translated from the requested path.
+If the chroot file system successfully opens the file in the host,
+it associates the returned PAL handle with a file descriptor, to translate common file system \linuxapis{} such as \syscall{pread} and \syscall{pwrite}
+as \hostapis{} such as \palcall{StreamRead} ad \palcall{StreamWrite}, since \thehostabi{} defines these two \hostapis{} to be positionless.
+For the more commonly-used \syscall{read} and \syscall{write},
+%Besides any further optimization, 
+the chroot file system
+simply tracks the current offset of the file descriptor, and atomically retrieves and updates the offset in each \linuxapi{}.
+%for implementing \syscall{read} and \syscall{write}
+%are merely to store the PAL handle
+%and to atomically retrieve and update the current offset inside the opened file.
+The batched \syscall{readv} and \syscall{writev}
+is translated to multiple \palcall{StreamRead} ad \palcall{StreamWrite} calls
+on the same file.
+Another two common \linuxapis{},
+\syscall{stat} and \syscall{fstat}, which retrieve the metadata of a file or a directory,
+need only one more step as
+translating the returned host-level stream attributes
+(i.e., \code{STREAM\_ATTR})
+to the POSIX data structure (i.e., \code{struct stat}).
+
+
+The definition of \thehostabi{} allows several opportunities of optimizing the latency of file system \linuxapi{}.
+Two common techniques being broadly used in \thelibos{}
+are buffering and caching.
+To improve the latency of reading and writing a file,
+\thelibos{} effectively buffers the content of multiple \syscall{read} and \syscall{write} \linuxapis{},
+until the application calls \syscall{fsync} or the file offset exceeds the range of buffering.
+Buffering file changes potentially delay the timing of writing the data
+to physical disks,
+but \thelibos{} accelerates the process
+by making the buffer a pass-through mapping of the file (using \palcall{StreamMap}).
+For an application which
+performs lots of small, sequential reads or writes,
+or lots of small, random reads or writes with significant spatial locality,
+buffering the data
+can significantly improve the performance;
+evaluation shows that
+running \projname{GCC} in \graphene{} to compile 0.7MLoC, on a Linux host, 
+is only 1\% slower than running on Linux.
+In terms of caching, \thelibos{} contains a file system directory cache
+in the virtual file system,
+which will aggressively cache any directory information
+retrieved from \thehostabi{}.
+The file system directory cache of \thelibos{} also benefits other file systems,
+and the details will be further discussed in Section~\ref{sec:libos:vfs}.
+
+
+
+A chroot file system enforces container-style sandboxing of an application,
+but simultaneously
+allows sharing part of the file system tree
+with other applications and \picoprocs{}.
+Since \thelibos{} supports mounting multiple chroot file systems in a \picoproc{},
+\graphene{} users can configure a host to selectively export a few host directories containing the file resources in use.
+The security isolation of a single chroot file system %enforces the security isolation
+is similar to the sandboxing of a Linux container~\cite{lxc}, which restricts all the file operations of an application within a local file system tree unless the container is running on a stackable file system~\cite{aufs}.
+\graphene{} allows multiple applications to share a host directory, either read-only or with full access,
+and uses a host reference monitor
+to enforce AppArmor~\cite{apparmor}-like, white-listed rules
+for isolating every file access.
+\graphene{} can share most of the system files and binaries,
+such as \code{/etc/hosts} and \code{/bin/bash},
+without compromising the security isolation of each application.
+
+
+
+
+
+\subsubsection{Guest-level file systems}
+%A file system in \thelibos{}
+
+
+\issuedone{1.2.e}{describe POSIX file system vs NFS/other approaches}
+Other than a pass-through file system,
+\thelibos{} can use a different approach as 
+implementing the file operations
+in a guest-level file system. % which internally implements all file operations.
+A guest-level file system does not expose any host files and directories
+to applications;
+instead, a guest-level file system maintains its own file system states either in memory or in a raw format unknown by the host OS.
+A guest-level file system
+provides a different option for managing file resources in \thelibos{}. 
+Using a guest-level file system,
+\thelibos{} potentially has more control over assigning physical resources to each file or directory.
+
+
+One example of a guest-level file system is a pseudo file system,
+including the \code{proc}, \code{sys}, and \code{dev} file systems in Linux and similar OSes.
+A pseudo file system %are common features of Linux and similar OSes,
+exports an extended system interface for accessing kernel states or raw devices.
+%Take a proc file system for example.
+An application can use the \code{proc} and \code{sys} file systems %(normally mounted at \code{/proc} and \code{/sys}) 
+to obtain information about processes
+as well as the whole kernel. 
+The \code{proc} and \code{sys} file system have both redefined the common file operations such as \syscall{read}, \syscall{write}, and \syscall{readdir}, for ad-hoc operations of accessing different types of process or kernel states.
+%Different from the proc file system, 
+On the other hand, the \code{dev} file system %(normally mounted at \code{/dev})
+exports both raw, physical devices and dummy, miscellaneous devices to an application.
+Examples of miscellaneous devices include \code{/dev/zero}, which outputs an infinite zero stream, and \code{/dev/urandom}, which outputs software-generated, pseudo-random bits.
+\thelibos{} has implemented several critical entries of the \code{proc}, \code{sys}, and \code{dev} file systems,
+according to the command-line workloads targeted by \graphene{}. 
+
+
+
+Anther guest-level file system implemented in \thelibos{}
+is a networked file system (NFS), which connects to a NFSv3 server running on either the local host or a remote machine.
+A networked file system provides another solution (besides a chroot file system)
+for \thelibos{} to share file resources among applications or \picoprocs{}, by relying on a centralized NFS server to multiplex the file resources. 
+A benefit of using a networked file system in \thelibos{}
+is the natural support of a complete set of POSIX file system features.
+A networked file system does not depend on any local file resources, so all the file system features are implemented over a network connection.
+Therefore, the implementation of a networked file system is not restricted by
+the \hostapis{} defined for file access.
+However, 
+the overhead of networking \hostapis{}
+can have significant impact on
+the performance of a networked file system in \thelibos{},
+which can be
+much slower than an application-level NFS client on Linux (using \code{libnfs}).
+
+
+%and the client side, which runs in an \thelibos{} instance,
+%only depends on a host-level network connection.
+
+
+
+Other guest-level file systems can potentially introduce a pre-formatted virtual disk into \thelibos{}.
+Several popular file system formats,
+including EXT2, FAT, and NTFS, have been supported in either an application-level library (e.g., \code{libext2fs}) or a FUSE (Filesystem in userspace) driver (e.g., \code{NTFS-3G}).
+\thelibos{} can potentially modify
+these libraries or FUSE drivers as guest-level file system drivers,
+to decompose a virtual disk.
+The drawback of using a pre-formated virtual disk
+is the difficulty of coordinating multiple \picoprocs{} that simultaneously access the same virtual disk.
+Since each single write to a file can involves writing to multiple physical blocks (the superblock, inodes, and data blocks),
+a guest-level file system driver must consistently coordinate multiple \thelibos{} instances in order to share a virtual disk.
+Therefore, without inter-process coordination or a fully-distributed design, the usage of a pre-formated virtual disk in \thelibos{}
+is most likely to be restricted to a single-process application.
+
+
+
+
+\subsubsection{A virtual file system}
+\label{sec:libos:vfs}
+
+
+A POSIX file system defines a set of generic file system operations and primitives, making the underlying file system implementations
+transparent to most applications.
+An administrator can mount a file system at an arbitrary directory, to select among different solutions of managing file resources.
+When an application successfully opens a file
+under the mount point of a file system,
+a generic file descriptor is returned to represent the opened file resources
+and is fully independent from the underlying implementations.
+By presenting different resources as a generic primitive
+as file descriptors,
+an application can consistently use identical \linuxapis{},
+such as \syscall{read} and \syscall{write}, to invoke file and directory operations
+defined by the file system drivers.
+In a POSIX file system, an application can mostly be reused
+upon different file systems, as long as the required file resources are available in the chosen file systems.
+
+
+
+%A POSIX file system defines a set of file and directory operations,
+%which are independent from
+%the underlying file system implementations.
+%The file and directory operations in a POSIX file system
+%is based on a few generic primitives,
+%such as file descriptors and directory entries.
+%Whenever an application accesses a file using a \linuxapi{} such as \syscall{read} or \syscall{write},
+%the arguments given to the \linuxapi{}, including a numeric file descriptor, are irrelevant with the type of file system
+%where the file is located.
+%For example, a user can choose to mount a NTFS partition
+%or a NFS share as a root file system;
+%yet, the \linuxapis{} for accessing any files on the file system
+%will mostly not differ upon different mounts.
+
+
+
+
+%Similar to a Linux kernel, \thelibos{} includes a {\bf virtual file system} layer
+%to abstract the file and directory operations of different file system implementations .
+
+
+
+%such as the chroot file system, a pseudo file system (e.g., a ``proc'' or ``devtmpfs'' file system), and a networked file system (NFS).
+%Similar to the virtual file system in Linux,
+%the virtual file of \thelibos{} defines a set of file and directory operations that
+%each file system must implement.
+%When an application opens a file,
+%\thelibos{} searches all the mounted file systems for the target path,
+%and creates a generic file handle containing pointers
+%to the file and directory operations implemented by the residing file system.
+%\fixme{not enough explanation}
+%The virtual file system layer has decoupled
+%the implementation of \linuxapis{} and file system operations in \thelibos{}.
+
+
+
+Similar to a Linux kernel, \thelibos{} includes an abstraction layer for exporting the generic operations and primitives of a POSIX file system,
+generally known as {\bf a virtual file system}.
+A virtual file system defines a set of file and directory operations as the shared interface of every file system implementation.
+When an application opens or queries a target file resource,
+the virtual file system
+searches the file path among all mounted points,
+and then invokes the corresponding file or directory operations implemented by the file system.
+In \thelibos{}, each file system, such as a chroot file system
+or a pseudo file system,
+must provide a data structure to the virtual file system, containing function pointers
+referencing to all the file and directory operations  
+implemented by the file system.
+
+
+%As a feature of the virtual file system, \thelibos{} implements
+%a local file system directory cache
+%to reduce the \hostapis{} for retrieving directory information
+%or attempting to access a nonexistent path.
+
+
+
+
+%An application
+%often depends on the existence of several paths,
+%including paths that are conventional to a POSIX file system (e.g., ``\code{/bin}'', ``\code{/proc}'', and ``\code{/dev}'')
+
+
+The virtual file system in \thelibos{} enables several file system features
+and optimizations
+which indistinguishably benefit every file system.
+A few atypical file operations, such as the batched \syscall{readv} and \syscall{writev},
+can be emulated in the virtual file system
+using file operations exported by the underlying file system.
+More importantly, 
+the virtual file system in \thelibos{} 
+includes a local {\bf directory cache},
+as an optimization to the latency of searching a path in the guest file system tree,
+and retrieving file metadata.
+A directory cache
+is designed to reduce the frequency
+of executing the file operation of walking the file system data structures,
+by aggressively caching any directory information
+and file metadata
+returned from a file system implementation.
+
+
+The directory cache in \thelibos{} stores each searched path and its parent directories as directory entries
+using the spared \picoproc{} memory.
+The directory cache in \thelibos{} has a similar architecture
+as the Linux file system directory cache.
+Each directory entry in the directory cache records the existence or nonexistence of a file system path,
+as well as the file attributes
+(e.g., file types, sizes, and permissions).
+If an application has given a path as a \linuxapi{} argument,
+\thelibos{} first looks up
+in the directory cache to find any directory entries
+that matches with the given path.
+If a directory entry is already created for a path, \thelibos{} can bypass the file system operations of querying the paths
+in the host file systems or other storage media.
+
+
+The directory cache in \thelibos{} adopts several techniques for optimizing the latency of \linuxapis{}.
+First, the directory cache
+can confirm the existence of every parent directory
+of a canonical path
+found in the whole guest file system.
+For example, if \thelibos{} successfully opens a file at \code{/home/foo/bar},
+\thelibos{} knows for sure that both \code{/home}
+and \code{/home/foo} exist in the guest file system tree,
+without doing any extra file system lookups.
+%like \palcall{StreamAttributesQuery}. 
+By reducing the amount of file system lookups for searching each path
+from multiple to exactly one,
+the directory cache reduces the overhead of a cache miss,
+especially since each directory cache
+only caches directory information for one single application.
+Second, to look up a path inside the directory cache,
+\thelibos{} can use a fast-path algorithm which searches the whole canonical path
+instead of each path prefixes~\cite{tsai15dcache}.
+For example, in order to search \code{/home/foo/bar} in the directory cache,
+a traditional design will have to search
+\code{/home}, \code{/home/foo}, and then \code{/home/foo/bar}.
+Using the fast-path algorithm,
+\thelibos{} can directly search the whole path without walking through each parent directories.
+Finally, the directory cache aggressively stores {\em negative} directory entries
+for the paths known to be non-existent.
+Whenever an application has unlinked or moved a file, \thelibos{} caches the information that the original path no longer exists,
+by creating a negative directory entry.
+
+
+
+
+
