@@ -8,8 +8,8 @@ This section will discuss the implementation of file systems in \thelibos{}, inc
 
 
 A Linux application depends on a list of indispensable resources
-within a POSIX-style, hierarchical file system.
-A POSIX-style file system is composed of a number of directories and files, including a root directory (``/'') as the common ancestor.
+within a hierarchical, POSIX file system.
+A POSIX file system is composed of a number of directories and files, including a root directory (``/'') as the common ancestor.
 A POSIX application searches each file or directory in the file system
 by describing the {\em path} %to traverse
 from the root directory to the target. % file or directory.
@@ -85,7 +85,7 @@ Another two common \linuxapis{},
 need only one more step as
 translating the returned host-level stream attributes
 (i.e., \code{STREAM\_ATTR})
-to the POSIX-style data structure (i.e., \code{struct stat}).
+to the POSIX data structure (i.e., \code{struct stat}).
 
 
 The definition of \thehostabi{} allows several opportunities of optimizing the latency of file system \linuxapi{}.
@@ -183,8 +183,7 @@ the overhead of networking \hostapis{}
 can have significant impact on
 the performance of a networked file system in \thelibos{},
 which can be
-\fixme{Just prediction; the actual number needs to be collected.}
-20--30\% slower than an application-level NFS client on Linux (using \code{libnfs}).
+much slower than an application-level NFS client on Linux (using \code{libnfs}).
 
 
 %and the client side, which runs in an \thelibos{} instance,
@@ -192,39 +191,44 @@ which can be
 
 
 
-A guest-level file system can potentially introduce a pre-formatted partition or virtual disk into \thelibos{}.
+Other guest-level file systems can potentially introduce a pre-formatted virtual disk into \thelibos{}.
 Several popular file system formats,
 including EXT2, FAT, and NTFS, have been supported in either an application-level library (e.g., \code{libext2fs}) or a FUSE (Filesystem in userspace) driver (e.g., \code{NTFS-3G}).
 \thelibos{} can potentially modify
 these libraries or FUSE drivers as guest-level file system drivers,
-to decompose a pre-formated partition or virtual disk.
-The drawback of using a pre-formated partition or virtual disk
-is the complexity of coordinating multiple \picoprocs{} which access the same file system.
-Therefore, the usage of a pre-formated partition or virtual disk
-is mostly restricted to a single-process application.
-
-
-
- 
-
-
+to decompose a virtual disk.
+The drawback of using a pre-formated virtual disk
+is the difficulty of coordinating multiple \picoprocs{} that simultaneously access the same virtual disk.
+Since each single write to a file can involves writing to multiple physical blocks (the superblock, inodes, and data blocks),
+a guest-level file system driver must consistently coordinate multiple \thelibos{} instances in order to share a virtual disk.
+Therefore, without inter-process coordination or a fully-distributed design, the usage of a pre-formated virtual disk in \thelibos{}
+is most likely to be restricted to a single-process application.
 
 
 
 
-
-
-
-\subsubsection{A virtual file system layer}
+\subsubsection{The virtual file system}
 \label{sec:libos:vfs}
 
 
+A POSIX file system defines a set of file and directory operations,
+which are independent from
+the underlying file system implementations.
+The file and directory operations in a POSIX file system
+is based on a few generic primitives,
+such as file descriptors and directory entries.
+Whenever an application accesses a file using a \linuxapi{} such as \syscall{read} or \syscall{write},
+the arguments given to the \linuxapi{}, including a numeric file descriptor, are irrelevant with the type of file system
+where the file is located.
+For example, a user can choose to mount a NTFS partition
+or a NFS share as a root file system;
+yet, the \linuxapis{} for accessing any files on the file system
+will mostly not differ upon different mounts.
 
 
 
-
-\thelibos{} includes a {\bf virtual file system} layer for abstracting the operations
-of different file systems.
+Similar to a Linux kernel, \thelibos{} includes a {\bf virtual file system} layer
+to abstract the file and directory operations of different file system implementations .
 
 
 
