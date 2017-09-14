@@ -288,72 +288,78 @@ so \graphene{} leaves these libraries unmodified.
 
 \paragraph{Hard-coded \linuxapis{}.}
 A static binary, or a platform-dependent application, may contain hard-coded \assembly{syscall} instructions
-that cannot be redirected by a modified \libc{}.
-Some application developers choose to statically link an executable against \libc{},
-as a static binary with hard-coded \linuxapis{}. %\code{syscall} instructions.
-Other application developers may program an application---usually a language runtime (e.g., go runtime) or system software (e.g., \projname{busybox})---with assembly code that directly invokes
-platform-depenedent,
-rare \linuxapis{} that are not wrapped by \libc{} functions.
+and thus cannot be redirected by a modified \libc{}.
+Application developers can create an application with hard-coded \linuxapis{}
+by statically linking the executable with \libc{}.
+%as a static binary with hard-coded \linuxapis{}. %\code{syscall} instructions.
+It is also possible to program an application
+with assembly code that directly invokes \linuxapis{}---usually in a language runtime (e.g., the go language runtime) or a system software (e.g., \projname{busybox}).
+%---with assembly code that directly invokes
+%platform-depenedent,
+%rare \linuxapis{} that are not wrapped by \libc{} functions.
 %one of the \linuxapi{} wrappers in \libc{}, or \funcname{syscall}.
 %As a result, a ELF binary may contain hard-coded \assembly{syscall} instructions.
 %Either way leads to hard-coding \code{syscall} instructions in the ELF binaries.
-Because modified \glibc{} does not redirect hard-coded \linuxapis{},
-the \linuxapis{}
-trigger context-switching into the host kernel,
-causing security and compatibility issues as
-exposing unauthorized, or unsynchronized host resources and states to the application.
+Because a modified \libc{} cannot redirect hard-coded \linuxapis{},
+the application switches context into the host kernel,
+causing security and compatibility breaches by exposing unauthorized or unsynchronized host OS states to the application.
 
 
 
-\thelibos{} depends on host-level \linuxapi{} restriction to redirect hard-coded \linuxapis{}.
+\thelibos{} needs support from a host OS to restrict direct \linuxapis{} from an application instead of \libc{}.
+%\thelibos{} depends on host-level \linuxapi{} restriction to redirect hard-coded \linuxapis{}.
 %to prevent \linuxapis{} from anywhere other than a PAL.
-A direct \linuxapi{} traps into the host kernel,
-unless the host has virtualized the interrupt handler to the \libos{}.
-\graphene{} depends on each host to
-detect unauthorized \linuxapis{} either from a wrong code location or with an unexpected \linuxapi{} number.
-On Linux or a similar OS, the PAL can install a \linuxapi{} filter,
-such as SECCOMP filter~\cite{seccomp}.
-On some architecture, there are architectural limitation;
-for example, SGX forbids \linuxapis{} inside an enclave and triggers an exception for an in-enclave \linuxapi{}.
+A Linux kernel allows an application to install a \linuxapi{} filter in the Berkeley Packet Filter (BPF) format,
+called a SECCOMP filter~\cite{seccomp}.
+A SECCOMP filter can block or forward a \linuxapi{} based on the \linuxapi{} number,
+argument values, or the code address that invokes the \linuxapi{}.
+%A direct \linuxapi{} traps into the host kernel,
+%unless the host has virtualized the interrupt handler to the \libos{}.
+\graphene{} relies on the hosts to install a \linuxapi{} filter, or enforce architectural restriction, to detect direct \linuxapis{}.
+For example, SGX already has a restriction that an enclave application cannot trigger any \linuxapi{} to switch context into the untrusted kernel.
+% inside an enclave and triggers an exception for an in-enclave \linuxapi{}.
 %\code{syscall} instructions
 %(e.g., SGX restriction).
 %The details of the \linuxapi{} restriction mechanisms are discussed in
 %\fixme{update labels}
 %Section~\ref{sec:linux:syscall} and Section~\ref{sec:sgx:syscall}.
-\thehostabi{} specifies that the host captures unauthorizes \linuxapis{}
-and redirects to an exception handler (set up by \palcall{ExceptionSetHandler}).
+If the host detects a direct \linuxapi{} from an application,
+it can return
+a PAL exception to an exception handlers assigned by \thelibos{}, using  \palcall{ExceptionSetHandler}.
+%\thehostabi{} specifies that the host captures unauthorizes \linuxapis{}
+%and redirects to an exception handler (set up by \palcall{ExceptionSetHandler}).
 %If a binary makes an illegal \linuxapi{},
 %the host-level \linuxapi{} restriction will trigger an \code{ILLEGAL} exception
 %at \thehostabi{},
 %and thus the \linuxapi{} is redirected by an exception handler
 %assigned by \thelibos{}.
-The exception handler 
-retrieves the \linuxapi{} number and arguments
-from the saved context,
-runs the \linuxapi{} handler,
-and eventually pushes the return value back to the saved context. %\code{RAX} register.
+The exception handler can recover the \linuxapi{} number and arguments
+from the context saved at the \linuxapi{},
+and forward the \linuxapi{} to the \linuxapi{} handler
+inside \thelibos{}.
 
 
-Redirecting \linuxapis{} based on exceptions
-can be expensive,
-due to the overhead of context-switching between the host and guest.
-Whenever an application invokes a direct \linuxapi{},
-it traps into the host kernel, and then returns to the \libos{} to handle the \linuxapi{}.
-Therefore, the process of redirecting a \linuxapi{} includes at least two times of context-switching, which can take up to microseconds.
-To bypass the overhead,
+Using exceptions to forward direct \linuxapi{} is much slower than redirecting through a modified \libc{},
+due to the overhead of switching context between the application and the host kernel.
+To handle an exception from the host OS,
+the application at least switches context twice, including both triggering the exception handler and returning to the original execution.
+To mitigate the overhead,
 \thelibos{} can 
-rewrite the binary at run-time to redirect the hard-coded \linuxapis{};
+rewrite the hard-coded \assembly{syscall} or \assembly{int \$80} inside each application binary during the run time.
+% to redirect the hard-coded \linuxapis{};
 %use {\bf binary translation} to modify the hard-coded \code{syscall} instructions;
-\thelibos{} can
-either scan-and-rewrites the whole binary at loading time,
-or rewrites a single \assembly{SYSCALL} instruction in the exception handler.
+There can be two timings for rewriting the instructions:
+One is the timing when the runtime loader a new binary, and \thelibos{} can perform a full scan of the binary
+to replace \assembly{syscall} or \assembly{int \$80} with a jump to \thelibos{}'s \linuxapi{} table.
+\thelibos{} can also passively replace the instructions
+whenever the host detects a direct \linuxapi{} and triggers an exception handler.
 %binary translation
 %can be triggered when a host-level exception is raised
 %for an illegal \linuxapi{},
 %to optimize consecutive \linuxapi{} invocation at the same location.
 %\thelibos{} can also perform a full scan in application binaries
 %to spot and modify hard-code \code{syscall} instructions.
-\graphene{} leaves the implementation of binary rewriting
-as future work.
+\graphene{} leaves binary rewriting
+as a future feature.
 
 

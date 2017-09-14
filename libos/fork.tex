@@ -51,42 +51,61 @@ including forking, \syscall{execve}, and a variety of IPC (inter-process communi
 
 
 
-Implementing the UNIX-style, copy-on-write forking presented a particular challenge in the \thelibos{} architecture.
+Implementing the UNIX-style, copy-on-write forking presents a particular challenge to the \graphene{} architecture.
 %when implemented using only a VM-like picoprocess abstraction.
-As with a virtual machine, \graphene{} creates each new \picoproc{} in a ``clean'' state, along with an individual \thelibos{} instance. % fork is implemented in the \libos{}.
+As with a virtual machine, a \graphene{} host creates each new \picoproc{} in a ``clean'' state, along with an individual \thelibos{} instance. % fork is implemented in the \libos{}.
 %yet applications require common Unix abstractions such as file handle inheritance and copy-on-write fork.
-Forking a process requires both cloning the state of application memory
-and migrating the handles in \thelibos{}, such as file descriptors and signal handlers
-to the new process.
-\graphene{} drops the assumption that every host can share physical pages among multiple processes,
-to broaden the domains of supportable hosts.
-Since \thelibos{} cannot rely on copy-on-write sharing
-to clone that state of both \thelibos{} and the application, it is challenging for \thelibos{} to implement the UNIX-style forking.
+Forking a process includes cloning the state of running application and migrating all the resource handles inside \thelibos{}, such as file descriptors, to the new \picoproc{}.
+\graphene{} revokes the assumption that each of its hosts is capable of sharing physical pages between multiple applications or processes.
+Since \thelibos{} cannot enable copy-on-write sharing between \picoprocs{}, \thelibos{} needs an elaborate but efficient scheme for emulating the UNIX-style forking.
 
 
 \issuedone{1.3.b}{describe the work flow of forking}
-Without the host support of page sharing,
-\thelibos{} implements \syscall{fork} by leveraging process checkpoint and migration.
+Without host support of copy-on-write sharing,
+\thelibos{} emulates \syscall{fork} by checkpointing and migrating the process states.
 When an application forks a process,
-\thelibos{} walks through a list of allocated resources,
-and creates a snapshot of the current \picoproc{}.
-The snapshotted resources include all the application memory mappings, file handles,
-the current thread handle, signal handlers,
-and other miscellaneous states of the \libos{}.
-Since \graphene{} does not allow \picoprocs{} to share memory,
-\thelibos{} sends the snapshot over a RPC stream,
-and restores the states in the new \picoproc{}. % to create a forked process. 
+the current \thelibos{} instance holds a list of process resources that must be cloned for the new process.
+By checkpointing the process states,
+\thelibos{} creates a snapshot of the current process,
+which is expected to the initial state
+of the new process,
+%expects to be reproduced to new process,
+except a few minor changes.
+A process snapshot includes all allocated resources, such as VMA and file handles,
+and miscellaneous process states, such as signal handlers.
+After checkpointing,
+\thelibos{} can send the process snapshot over a RPC stream, so that the state of the forking process is faithfully migrated to a new \thelibos{} instance.
+
+
+To emulate forking, \thelibos{} implements
+a checkpoint and migration scheme
+for duplicating the resource handles and application states between \picoprocs{}.
+For each type of resources, \thelibos{} defines a function for decomposing a resource handle in a migratable form,
+and a function for reconstructing the resource handle inside another \picoproc{}.
+For example,
+for a VMA handle, \thelibos{} checkpoints the address, size, initial flags, and page protection,
+and only if the VMA is created by the application and not backed by a file,
+\thelibos{} copies the represented memory into the snapshot.
+For a file or network handle,
+\thelibos{} runs a virtual file system operation,
+\funcname{vfs\_checkout},
+to externalize the related states
+inside the file system implementations,
+but skip any temporary states such as buffers and directory cache entries.
+Finally, \thelibos{} checkpoints the current thread handle, but modifies the copy with a new process ID.
 
 
 
-A simple but naive way of checkpointing an application process
-is to snapshot the whole virtual address space.
-The benefit of snapshotting the whole virtual address space
-is that the feature
-can be implemented as a transparent layer below \thelibos{},
-with no need to introspect the data structures in the \thelibos{} memory mappings.
-However, snapshotting the whole virtual address space
-also faces several fundamental restrictions upon \thehostabi{}.
+The checkpoint and migration scheme of \thelibos{} is comparable to
+the VM migration of a hypervisor.
+A hypervisor migrates the whole guest physical memory of a VM, with hardware support of marking dirty pages during the transfer of page data.
+It is possible to use the same technique to
+migrate process states in \thelibos{};
+\thelibos{} can potentially implement a transparent layer belows all the other components,
+which seamlessly copies both application and \libos{} memory
+over a RPC stream.
+However, \graphene{} 
+
 First, the new \picoproc{} cannot reuse PAL handles snapshotted from the previous \picoproc{}.
 Therefore, after migrating the whole virtual address space,
 either \thelibos{} has to scan its internal heap to recreate or nullify all the PAL handles, or \thehostabi{} has to detect any migrated PAL handles.
