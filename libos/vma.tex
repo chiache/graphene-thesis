@@ -87,17 +87,17 @@ the abstractions used by the application.
 
 
 
-\thelibos{} maintains a list of VMAs allocated for either application use
-or internal use.
-In the VMA list, \thelibos{} records
-the starting address, size, and protection mode (whether the VMA is readable, writable, or executable) of each VMA created in the host.
-By maintaining a VMA list, \thelibos{} tracks the free memory regions in a virtual address space.
-When an application requests for a memory region,
-\thelibos{} has to query the VMA list to determine a valid mapping address.
-If the application has specified an address,
-\thelibos{} searches the VMA list to determine whether the address has overlapped with an existing VMA, to prevent corrupting states in the application or \thelibos{}.
-Otherwise, \thelibos{} walks the VMA list to find a large enough free space
-to allocate a VMA. 
+\thelibos{} maintains a list of VMAs allocated by either the application
+or \thelibos{} itself.
+For each VMA, \thelibos{} records
+the starting address, size, and the page protection (readable, writable, or executable).
+The VMA list traces the free space within the current virtual address space.
+When an application allocates a VMA,
+\thelibos{} queries the VMA list to search for a sufficient space.
+In another case, an application may specify the mapping address,
+and the VMA list can determine whether the address has overlapped with an existing VMA, to prevent corrupting the internal states of \thelibos{}.
+%Otherwise, \thelibos{} walks the VMA list to find a large enough free space
+%to allocate a VMA. 
 %In terms of page management,
 %the role of \thelibos{} is to keep track of memory addresses that already belong to a VMA.
 %In many cases,
@@ -121,13 +121,14 @@ to allocate a VMA.
 %To allocate a VMA without a specific address,
 %\thelibos{} first walks the VMA list
 %to discover an unallocated, large enough address range.
-Once \thelibos{} determines a mapping address,
-according to the type of mapping,
-it calls \palcall{VirtMemAlloc} or \palcall{StreamMap} 
+According to the new VMA, \thelibos{} uses
+%according to the type of mapping,
+\palcall{VirtMemAlloc} or \palcall{StreamMap} 
 to create the mapping in the host OS.
-The VMA list tracks the states of a
-virtual address space,
-including memory regions of the code and data segments of the PAL and \thelibos{} binaries.
+The VMA list also contains 
+%the states of a
+%virtual address space,
+the mappings of PAL and the \thelibos{} binary.
 %according to information given in the PAL control block.
 
 %with the discovered address,
