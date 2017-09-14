@@ -1,2 +1,57 @@
-%\subsection{Network sockets}
-%\label{sec:libos:socket}
+\subsection{Network sockets}
+\label{sec:libos:socket}
+
+\thelibos{} supports three most common types of network sockets: TCP stream sockets, UDP datagram sockets, and UNIX-style domain sockets.
+A TCP or UDP socket is bounded with a host network interface,
+such as an Ethernet card or an loopback interface,
+whereas a domain socket is a local IPC (inter-process communication) abstraction
+similar to a FIFO (first-in-first-out) or a pipe.
+This thesis argues that other types of network sockets
+in Linux, such as raw packet sockets, is generally used by administrative programs.
+Most networked applications, including server-side and client-side applications, tends to treat a network socket
+as a contiguous I/O stream and lacks the incentive to create raw packet sockets or other types of network sockets; based on the intuition,
+\thehostabi{} defines a network connection as an I/O stream, which encapsulates the composition and decomposition of network packets
+and omits platform-dependent features.
+
+The \graphene{} architecture makes the network stack strictly a component of the host OS.
+%and no virtualization of host network interfaces.
+The network stack inside an OS contains the implementation of various different network protocol suites or families on top of the network interfaces.
+A virtualization solution generally moves or duplicates
+the network stack to a guest OS,
+and allows the guest OS to implement its own packet processing mechanisms,
+on a physical or virtual network interface.
+Several Linux network features or APIs assume
+the OS owns the network stack, and thus are challenging to implement in \thelibos{}
+without any expansion to \thehostabi{}.
+For example,
+an \syscall{ioctl} opcode, \code{FIONREAD},
+returns the number of bytes currently received on a network socket, including the packets queued inside the network stack. 
+A use case of \syscall{recvfrom} also allows an application
+to ``peek'' into the top of a network queue
+and retrieve the first few packets without draining the network queue.
+Since \thelibos{} has no direct access to the network stack
+inside the host,
+it sometimes has to prefetch a network stream
+and buffer the incoming data inside the \picoproc{}.
+However, in normal cases, \thelibos{} can implement \syscall{sendto} and \syscall{recvfrom} by directly passing the user buffers to \palcall{StreamWrite} and \palcall{StreamRead} and prevents the overhead of memory copy between user buffers and \thelibos{}'s internal buffers. 
+
+
+
+
+%\thelibos{} creates a TCP or UDP socket
+%by calling the \hostapi{} \palcall{StreamOpen} with a URI consisting of an interface address and a port number
+%(e.g., \code{127.0.0.1:8000} in IPv4 or \code{[::1]:8000} in IPv6).
+%If the network connection is successfully established,
+%\thelibos{} stores the PAL stream handle for future socket operations, such as \syscall{sendto} and \syscall{recvfrom}.
+%A domain socket is not bounded with any network interface;
+%\thelibos{} implements an unnamed domain socket (created by \syscall{socketpair})
+%by sending data over a host RPC stream.
+
+
+
+
+
+
+
+
+

@@ -1,5 +1,5 @@
 \section{Coordinating Guest OS States}
-\label{sec:graphene:namespaces}
+\label{sec:libos:namespaces}
 
 %\fixmedp{RF: what are the few, powerful mechanisms?  Expect that there are many cases 
 %with shared state; re-read this to see if it is clear how to generalize the approach}
@@ -9,54 +9,64 @@
 
 %A key contribution of the \graphene{} 
 %design is robust and flexible support for multi-process applications.
-An application executes on \graphene{} 
-with the abstraction that all of its processes are running on a single OS.
-\graphene{} \libos{}es service system calls
-from local \libos{} state whenever possible,
-and state is coordinated across \picoprocs{} via RPC when necessary.
-Within a sandbox, \graphene{} \picoprocs{} 
-coordinate shared state used to implement multi-process
-abstractions, such as process identifiers, thread groups, and 
-System V IPC including message queues and semaphores, shared file system and file descriptor states (Table~\ref{tab:libos:multiproc}).
-Similar to previous designs~\cite{porter11drawbridge,baumann13bascule}, 
-\graphene{} uses the host file system; 
-the \libos{} implements file handles and translates between POSIX and the host ABI.
-Identifying the best division of labor for a \libos{} file system is 
-left for future work.
+A multi-process application executes on \graphene{} 
+with the abstraction that all of its processes runs on a single OS.
+Each \thelibos{} instance services \linuxapis{}
+from its local state whenever possible.
+However, whenever a \thelibos{} instance must share a \libos{} state with other instances,
+\thelibos{} has to coordinate the state across \picoprocs{}
+via a RPC stream.
+Within a sandbox, multiple \picoprocs{} 
+can securely coordinate shared states of multi-process abstractions, including process IDs, exit notification and signaling, 
+System V IPC mechanisms (message queues and semaphores), shared file system states, and shared file descriptor states (Table~\ref{tab:libos:multiproc}).
+%Similar to previous \liboses{}~\cite{porter11drawbridge,baumann13bascule}, 
+%\graphene{} uses the host file system; 
+%the \libos{} implements file handles and translates between POSIX and the host ABI.
+%Identifying the best division of labor for a \libos{} file system is 
+%left for future work.
+\thelibos{} contains a coordination framework
+with several building blocks for implementing a shared multi-process abstraction.
 
-\begin{comment}
 \begin{table}
 \footnotesize
 \centering
-\begin{tabular}{|p{0.9in}|p{1.5in}|p{3.6in}|}
+\begin{tabular}{|p{.16\textwidth}|p{.20\textwidth}|p{.55\textwidth}|}
 \hline
-{\bf Ab\-strac\-tion} & {\bf Shared State} & {\bf Strategy} \\
+{\bf Ab\-strac\-tion} & {\bf Shared State} & {\bf Coordination Strategy} \\
 \hline
 Fork & 
 \raggedright
 PID namespace & Batch allocations of PIDs, children generally created using local state at parent.  \\
 \hline
-Signaling & PID to \picoproc{} map & Local signals call handler; remote signal delivery by RPC.  Cache mapping of PID to \picoproc{} ID. \\
+Signaling & PID mapping & Local signals call handler; remote signal delivery by RPC.  Cache mapping of PID to \picoproc{} ID. \\
 \hline
 \raggedright
 Exit notification & 
 \raggedright
-Remote process status  & Exiting processes issue an RPC, or one synthesized if child becomes unavailable.  The {\tt wait} system call blocks until notification received by IPC helper. \\
+Process status  & Exiting processes issue an RPC, or one synthesized if child becomes unavailable.  The {\tt wait} system call blocks until notification received by IPC helper. \\
 \hline
 {\tt /proc/[pid]} & Process metadata & Read over RPC.  \\
 \hline
 Message Queues & 
 \raggedright
-Key mapping, queue contents & Mappings managed by a leader, contents stored in various \picoprocs{}.  When possible, send messages asynchronously, and migrate queues to the consumer.\\
+Key mapping \newline
+Queued messages &
+Mappings managed by a leader, contents stored in various \picoprocs{}.  When possible, send messages asynchronously, and migrate queues to the consumer.\\
 \hline
 Semaphores & 
 \raggedright
-Key mapping, count. & Mappings managed by leader, migrate ownership to \picoproc{} most frequently acquiring the semaphore. \\
+Key mapping \newline
+Semaphore count &
+Mappings managed by leader, migrate ownership to \picoproc{} most frequently acquiring the semaphore. \\
 \hline
 \raggedright
 File System & 
 \raggedright
-File truncate sizes, FIFO files, domain sockets, symbolic links, file locks & No coordination, create special files in the host to represent symbolic links and file locks. \\
+File truncate sizes \newline
+Deleted files \newline
+FIFO \& domain sockets \newline
+Symbolic links
+& No coordination; completely relying on \thehostabi{}; creating special files in the host to represent symbolic links. \\
 \hline
 \raggedright
 Shared File Descriptors & 
@@ -66,9 +76,9 @@ Seek pointers & Mappings managed by parent, migrate ownership to \picoproc{} mos
 \end{tabular}
 \caption[Multi-process abstractions implemented in sysname{}]
 {Multi-process abstractions implemented in \graphene{}, coordinated state, and implementation strategies.}
-\label{tab:graphene:multiproc}
+\label{tab:libos:multiproc}
 \end{table}
-\end{comment}
+
 
 %% Outline
 
@@ -80,24 +90,13 @@ Seek pointers & Mappings managed by parent, migrate ownership to \picoproc{} mos
 % Why different from microkernels?
 
 
-\begin{comment}
-The general problem underlying each multi-process API is 
-{\bf namespace management}.  Coordinating \picoprocs{} need a consistent mapping
-of names, such as a thread ID or System V message queue ID, 
-to the \picoproc{} implementing that particular item.  
-Picoprocesses then implement abstractions such as signals
-by issuing a remote procedure call (RPC) to the appropriate \picoproc{}.
-Because many multi-processing abstractions in Linux can also be used by single-process applications,
-a key design goal is to seamlessly transition between single-process uses, serviced 
-entirely from local \libos{} state, and multi-process cases, which
-leverage remote procedure calls (RPCs) to coordinate accesses to shared abstractions.
 
 As an example of balancing security isolation and coordination APIs,
 consider functionality that use the process ID namespace,
-such as  Unix signaling or exit notification (e.g., {\tt waitpid()}).
+such as UNIX signaling or exit notification (e.g., {\tt waitpid()}).
 In \graphene{}, the process ID namespace, 
 as well as signaling and related system calls,
-are implemented inside the library OS.
+are implemented inside \thelibos{}.
 A process can signal itself by having the \libos{} directly call the handler function.
 When \picoprocs{} are in the same sandbox, they coordinate
 to implement a consistent, shared process ID namespace,
@@ -109,10 +108,10 @@ they do not share a PID namespace, and cannot send signals to each other.
 The reference monitor ensures that IPC abstractions, such as signaling,
 cannot escape a sandbox by preventing the creation of kernel-level streams
 across sandboxes.
-\end{comment}
 
 
-%Figure~\ref{fig:sandbox} illustrates several sandboxes with \picoprocs{}
+
+%Figure~\ref{fig:libos:sandbox} illustrates several sandboxes with \picoprocs{}
 %collaborating to implement a process ID namespace.  
 %Because this namespace is a guest-level abstraction,
 %different sandboxes can have overlapping process IDs, and
@@ -121,7 +120,7 @@ across sandboxes.
 %is severed by subdividing the sandbox,
 %the processes will become inaccessible to each other
 %and each newly isolated library OS will treat the event as a process termination.
-%\fixmedp{See if we can get a better figure}
+%%\fixmedp{See if we can get a better figure}
 
 %dp:  Seems redundant, probably imported from S2
 \begin{comment}
@@ -151,91 +150,107 @@ We adopted this approach to maximize dynamic sandboxing flexibility,
 rather than, say, attempt to multiplex one single library OS instance across multiple processes.
 \end{comment}
 
-\begin{comment}
+
 A driving design insight is that the common case
 for coordination is among pairs of processes.
 Examples include a parent waiting on a child to exit, 
 one process signaling another, or a single producer and single consumer
 sharing a message queue.
 Thus, \graphene{} optimizes for the common case of pairwise coordination,
-reducing the overhead of replicating data (\S\ref{sec:namespaces:insights}).
-\end{comment}
+reducing the overhead of replicating data (see Section~\ref{sec:libos:namespaces:lessons}).
 
-The rest of this section describes our coordination framework, 
-beginning with the coordination building blocks,
-and then explains the implementation of several multi-process abstractions.
-We conclude with lessons learned from optimizing  multi-process performance.
 
-Although a straightforward implementation worked, tuning the performance was the most challenging
-aspect of this design;  we conclude with a summary of the lessons learned from optimizing the system.
-We conclude with lessons learned from tuning the performance of the system.
-then presenting the design and driving insights,
-followed by representative examples, 
-and concluding with a discussion of failure recovery.
+%The rest of this section describes our coordination framework, 
+%beginning with the coordination building blocks,
+%and then explains the implementation of several multi-process abstractions.
+%We conclude with lessons learned from optimizing  multi-process performance.
+
+Although a straightforward implementation worked, tuning the performance was the most challenging aspect of the coordination framework. 
+This section summarizes the lessons learned during the development of \graphene{}, from optimizing the coordination of various multi-process abstractions.
+This section then
+presents the design and driving insights of the coordination framework,
+followed by representative examples 
+and a discussion of failure recovery.
 
 \subsection{Building blocks}
-\label{sec:libos:namespaces:blocks}
+\label{sec:libos:namespaces:building-blocks}
 
-The general problem underlying each of these coordination APIs is 
-{\bf namespace management}.  In other words, coordinating \picoprocs{} need 
-a consistent mapping of names, such as a thread ID or System V message queue ID, 
+The general problem underlying each of the coordinated \libos{} states is 
+the coordination of {\bf namespaces}.  In other words, coordination between \picoprocs{} need 
+a consistent mapping of names, such as process IDs or System V IPC resource keys, 
 to the \picoproc{} implementing that particular item.  
 Because many multi-process abstractions in Linux can also be used by single-process applications,
 a key design goal is to seamlessly transition between single-process uses, serviced 
-entirely from local \libos{} state, and multi-process cases, which
-leverage remote procedure calls (RPCs) to coordinate accesses to shared abstractions.
+entirely from local \libos{} state, and multi-process cases, which coordinate shared abstractions over RPC.
 
 %Picoprocesses then implement abstractions such as signals
 %by issuing a remote procedure call (RPC) to the appropriate \picoproc{}.
 
-\graphene{} creates an  {\bf IPC helper} thread within each \picoproc{},
-which exchanges coordination messages with the IPC helper threads of \picoprocs{} 
-within the sandbox. %, using these broadcast and point-to-point streams.
-The IPC helper
-services RPCs from other \picoprocs{} and is
-hidden from the application. 
-GNU Hurd has a similar helper thread to implement signaling among a process's parent and
-immediate children~\cite{hurd};
-\graphene{} generalizes this idea to share a broader range of abstractions among any \picoprocs{}
-within a sandbox.
-%The IPC helpers are necessary 
-%in each \picoproc{} to serve remote messages and receive responses atomically.
+\thelibos{} creates an {\bf IPC helper} thread within each \picoproc{}
+to respond to coordination messages from other \picoprocs{}. 
+%within the sandbox. %, using these broadcast and point-to-point streams.
+An IPC helper
+maintains a list of point-to-point RPC streams, and indefinitely waits for incoming messages.
+For each multi-process abstractions coordinated over RPC,
+\thelibos{} defines a protocol for formating the header of each message,
+and determining the callback function for processing the message.
+GNU Hurd~\cite{hurd} has a similar helper thread to implement signaling among a process's parent and
+immediate children;
+\graphene{} generalizes this design to share a broader range of multi-process abstractions among any \picoprocs{}.
+IPC helpers in necessary 
+in \thelibos{} to serve remote messages and receive responses atomically,
+so one IPC helpers must be created in each \picoproc{}
+after the application spawned its first child process.
 To avoid deadlock among application threads and the IPC helper thread, 
 an application thread may not both hold locks required by the helper thread to service an RPC request
-and block
-on an RPC response from another \picoproc{}.
-All RPC requests are handled from local state and do not issue recursive RPCs.% \fixmedp{Check this}
+and block on an RPC response from another \picoproc{}.
+All RPC requests are handled from local state and do not issue recursive RPC messages.% \fixmedp{Check this}
 
 Within a sandbox, all IPC helper threads exchange messages using a
-combination of a {\bf broadcast stream} for global coordination,
-and {\bf point-to-point} streams for pairwise interactions, 
+combination of
+a {\bf broadcast stream} for global coordination,
+and {\bf point-to-point} RPC streams for pairwise interactions, 
 minimizing overhead for unrelated operations.
 The broadcast stream is created for the \picoproc{} as part of initialization.
 Unlike other byte-granularity streams, the broadcast stream sends data at the granularity of messages,
 to simplify the handling of concurrent writes to the stream.
-Point-to-point streams are simply byte streams between two \picoprocs{};
-two processes may establish a point-to-point stream by passing handles through 
-an intermediate stream or over the broadcast stream.
-The handle-passing ABI is discussed further in Section~\ref{sec:graphene:impl}.
+Point-to-point RPC streams include the streams between parent and child processes established during \palcall{ProcessCreate},
+and RPC streams created through connecting to a RPC server
+identified by its URI.
+% simply byte streams between two \picoprocs{};
+%two processes may establish a point-to-point stream by passing handles through 
+%an intermediate stream or over the broadcast stream.
+%The handle-passing ABI is discussed further in Section~\ref{sec:graphene:impl}.
+Because of the security isolation in the host,
+only \picoprocs{} in the same sandbox can connect to each other through RPC.
 %The broadcast stream is primarily used for failure 
 %recovery (\S\ref{sec:namespaces:failurerecovery}); 
 %Mmost operations use point-to-point streams to minimize overheads.
 If a \picoproc{} leaves a sandbox to create a new one,
-its broadcast stream is replaced
-with a new one, connected only to the \picoproc{} and any children created in the
+its broadcast stream is shutdown and replaced
+with a new one, connected only between the \picoproc{} and any children created in the
 new sandbox.
 
 Because message exchange over the broadcast stream does not scale well,
 we reduce the use of the broadcast stream to the minimum.
-Broadcast stream is merely used for {\bf \picoproc{} identifier allocation}
-and {\bf leader recovery}.
+One occasion of using the broadcast stream is
+{\bf \picoproc{} identifier allocation}.
+Because each \picoproc{} needs an unique identifier to be recognized as a source or a destination of RPC messages, \thelibos{} generates a random number as the identifier of each \picoproc{} and confirms the uniqueness of the identifier over the broadcast stream.
+Another occasion of using the broadcast stream
+is {\bf leader recovery}, which happens when a namespace leader unexpectedly crashes
+during coordination. The implementation of leader recovery will be discussed in Section~\ref{sec:libos:namespaces:details}.
 
-One \picoproc{} in each sandbox serves as the {\bf leader}.
-The leader is responsible for subdividing each namespace among other \picoprocs{} 
-in the sandbox.
-For example, the leader might allocate 50 process IDs to a \picoproc{}
-that wishes to create children.  The {\bf owner} of the allocation can then allocate process IDs
-to children from its local allocation without further involving the leader.
+
+For each namespace (e.g., process IDs, System V IPC resource keys), \thelibos{} elects one of the \picoprocs{} in a sandbox to serves as the {\bf leader}.
+A leader is responsible for
+managing and memorizing the allocation of identifiers or resources in a namespace,
+in behave of all other \picoprocs{}.
+For a namespace like the process ID namespace,
+the leader subdivides the namespace for each \picoproc{} to reduce the RPC cost of allocation.
+For example, the leader might allocate 50 process IDs to a \picoproc{} which intends to clone a new thread or process.
+The \picoproc{} who receives the 50 process IDs becomes the {\bf owner},
+and can further assign the process IDs
+to children without involving the leader.
 For a given identifier, the owner is the serialization point for all updates,
 ensuring serializability and consistency for that resource.
 %%% the leader's IPC helper has the added responsibility of coordinating 
@@ -253,20 +268,43 @@ ensuring serializability and consistency for that resource.
 %messages.
 
 \subsection{Examples and discussion}
+\label{sec:libos:namespaces:details}
 
 %This subsection describes \libos{} coordination by example.
 %\vspace{5pt}
-\noindent{\bf Signals.~} Inside a {\tt libLinux} instance, signals are implemented using a combination of 
-{\tt sigaction} data structures %adapted from Linux
-to track signal masks and pending signals;
-\pal{}-provided hardware exception upcalls (e.g., for {\tt SIGSEGV});
-and  RPCs for cross-\picoproc{} signals (e.g., for  {\tt SIGUSR1}).
-If a process signals itself, {\tt libLinux} simply uses internal data structures
-to call the appropriate signal handler directly.
+\paragraph{Signals and exit notification.}
+{\tt libLinux} implements signals
+in various ways according to the causes of sigals.
+For signals triggered by hardware exceptions (e.g., \code{SIGSEGV}),
+\thelibos{} uses the hardware exception upcalls
+in \thehostabi{}.
+If a signal is sent from one of the processes for IPC purposes (e.g., \code{SIGUSR1}),
+\thelibos{} exchanges RPC messages between \picoprocs{} to deliver the signal to the destination \picoproc{}.
+%mplemented using a combination of 
+%{\tt sigaction} data structures %adapted from Linux
+%to track signal masks and pending signals;
+%\pal{}-provided hardware exception upcalls (e.g., for {\tt SIGSEGV});
+%and  RPCs for cross-\picoproc{} signals (e.g., for  {\tt SIGUSR1}).
+If a process simply signals itself, {\tt libLinux} interrupts the targeted threads inside the process
+and uses internal data structures
+to call the appropriate user signal handler.
 %this section describes how this local model is extended with RPCs for remote PIDs.
 %For cross-process signals, we use the namespace coordination mechanism.
-\graphene{} implements all three of Linux's signaling namespaces:
+\thelibos{} implements all three of Linux's signaling namespaces:
 process, process group, and thread IDs.
+If a signal is sent for a process or a process group,
+every threads within the process or the process group receives a copy of the signal,
+even if the threads belong to different \picoprocs{}.
+
+
+Exit notification in Linux is based on the same mechanism as signaling.
+When a process exits, normally a \code{SIGCHLD} signal
+is delivered from the child process to its parent,
+to unblock the parent who might be waiting for exit notification using \syscall{wait} or \syscall{waitpid}.
+Exit notification is always coordinated over RPC streams
+between parent and child \picoprocs{}.
+
+
 
 \begin{figure}
 \centering
@@ -281,17 +319,23 @@ waits on an {\tt exitnotify} RPC from  \picoproc{} 3 over stream 2. }
 \label{fig:graphene:coordination}
 \end{figure}
 
+
 Figure~\ref{fig:graphene:coordination} illustrates two sandboxes with \picoprocs{}
-collaborating to implement a process ID (PID) namespace.  
-Because PIDs and signals are a \libos{} abstraction,
+collaborating to implement 
+signaling and exit notification
+within their own
+process ID (PID) namespaces.  
+Because process IDs and signals are \libos{} abstractions,
 \picoprocs{} in 
-each sandbox can have overlapping PIDs, and
+each sandbox can have overlapping process IDs, and
 cannot signal each other.
-Picoprocesses in different sandboxes cannot 
+The host reference monitor ensures that
+picoprocesses in different sandboxes cannot 
 exchange RPC messages or otherwise communicate.
 %If the connection between \picoprocs{} 1 and 2 is severed by subdividing the sandbox,
 %the processes will become inaccessible to each other
 %and each newly isolated library OS will treat the event as a process termination.
+
 
 
 If \picoproc{} 1 (PID 1) sends a {\tt SIGUSR1} to \picoproc{} 2 (PID 2), illustrated in Figure~\ref{fig:graphene:coordination},
@@ -320,20 +364,20 @@ an {\tt exitnotify} RPC to \picoproc{} 4.
 %%% \graphene{} handles PID namespace with global consistency inside a sandbox,
 %%% but requires no intensive RPCs to any centralized service.   
 
-The \graphene{} {\tt libLinux} signal semantics closely match Linux behavior, which
-delivers signals upon return from a system call or an interrupt or trap handler (\pal{} upcall).
-%Each process and thread have {\tt sigaction} structures adapted from the Linux source 
-%that implement the
-%POSIX specification, including handler functions, as well as masking signals and
-%reentrant behavior.
-The {\tt libc} signal handling code is unmodified on \graphene{}.
+The signaling semantics of \thelibos{} closely match the Linux behavior, which
+delivers signals upon returning from a system call
+or an exception handler.
+Each process and thread have \code{sigaction} structures from the Linux source 
+that implement the
+POSIX specification, including handler functions, as well as masking signals and
+reentrant behavior.
+\thelibos{} does not modify \libc{}'s signal handling code. % is unmodified on \graphene{}.
 %We extend the \pal{} with ABIs for explicit upcalls on certain hardware exceptions, such
 %as divide-by-zero or segmentation faults.
 %Signals from other processes, such as {\tt SIGUSR1}, are generally delivered upon 
 %return from a call into {\tt libLinux}; 
 If an application has a signal pending for too long,
-e.g., the application is in a CPU-intensive loop, {\tt libLinux} can use a \pal{} function to interrupt 
-the thread. 
+e.g., the application is in a CPU-intensive loop, {\tt libLinux} can use \palcall{ThreadInterrupt} in \thehostabi{} to interrupt the running thread. 
 
 
 % Daniela Oliveira commented. old caption for coordination
@@ -359,23 +403,29 @@ for inodes in NFS~\cite{sandberg85nfs}.
 \paragraph{System V IPC.} System V IPC
 maps an application-specified key onto a unique identifier.
 All System V IPC abstractions, including message queues and semaphores,
-are then referenced by this identifier (ID).
-Similar to PIDs, 
+are then referenced by a resource ID, which is arbitrarily allocated.
+Similar to process IDs, 
 %In order to service IPC requests, including identifier creation, from local state,
-the leader divides the ID space among the \picoprocs{}, so that any \picoproc{}
-can allocate an ID from local state. %a pre-allocated range.
-The leader also dynamically allocates keys to \picoprocs{}.
-%%% Global coordination is required to ensure that the same key maps to the same queue ID;
-%%% the leader caches this information, but the owner of the queue ID or the semaphore ID 
-%%% makes the definitive decision about whether a ID mapping is still valid.
-%%% A key which does not have a valid mapping can be assigned to an ID by any \picoproc{}.
+the leader divides the namespace of resource IDs among the \picoprocs{},
+so that any \picoproc{}
+can allocate a resource ID from local state instead of involving the leader. %a pre-allocated range.
+Unlike the resouce IDs, System V IPC keys must be centrally managed
+by the leader,
+since an application might autonomously assign System V IPC keys to its processes.
+%The leader also dynamically allocates keys to \picoprocs{}.
+Global coordination is required to ensure that the same key maps to the same resource ID;
+the leader caches this information, but the owner of the resource ID 
+makes the definitive decision about whether a ID mapping is still valid.
+A key which does not have a valid mapping can be assigned to a resource ID by any \picoproc{} to allocate a {\em private} IPC resource.
 
-\paragraph{Message Queues.} In \graphene{}, the owner of a queue ID is responsible for 
-storing the messages written to the queue; all message sends and receives must 
-go through the owning \picoproc{}.  
-In our initial implementation, any sends to or receives from a remote queue were several
-orders of magnitude slower than an access to a local queue.
-This led to two essential optimizations.  
+
+
+\paragraph{System V IPC message queues.} In \graphene{}, the owner of a queue ID is responsible for 
+storing the messages written to a System V IPC message queue.
+To ensure the serializability and consistency of all messages, any delivery and reception of messages must go through the owner.  
+In the initial implementation of \thelibos{}, sending or receiving messages remotely over a RPC stream
+orders of magnitude slower than accessing a local message queue.
+This observation led to two essential optimizations.  
 First, sending to a remote
 message queue was made asynchronous.  In the common case, the sender can simply assume 
 the send succeeded, as the existence and location of the queue have already been determined.
@@ -393,8 +443,8 @@ which must read queue contents synchronously.
 Because non-concurrent processes can share a message queue,
 our implementation also uses a common file naming scheme to serialize message queues to disk.
 If a \picoproc{} which owns a message queue exits, 
-any pending messages are serialized to a file,
-and the receiving process may request ownership of the queue from the leader.
+any pending messages are serialized to a file in the host,
+and the receiving process may regain the ownership of the message queue later from the leader and recover the serialized messages.
 %In order to prevent happens-before violations in case of failure, 
 %message queues may be checkpointed more aggressively.
 
@@ -410,48 +460,81 @@ and the receiving process may request ownership of the queue from the leader.
 
 %\daniela{I wonder if the remainder of this section should be part of implementation details(section 5)}
 
-\paragraph{Semaphores.} IPC semaphores 
-follow a similar pattern to message queues, where ownership of a given semaphore is migrated
+\paragraph{System V IPC semaphores.} System V IPC semaphores 
+follow a similar pattern to message queues.
+Each semaphore is owned by a \picoproc{};
+a semaphore can be directly accessed by its owner as a local state,
+whereas other \picoprocs{} all have to access the semaphore through the owner over RPC.
+Since a semaphore shares the same performance pattern as a message queue,
+\thelibos{} applies the same optimization
+of migrating the ownership of a semaphore
+%, where ownership of a given semaphore is migrated
 to the \picoproc{} that most frequently acquires the semaphore.
 %If the owner of a semaphore exits, \graphene{} transfers ownership to the leader.  rather than serialize the semaphore to disk.
-Most of the overhead in the Apache benchmark (\S\ref{sec:graphene:eval:perf}) is attributable to semaphore overheads.
+Another optimization of message queues, by making the updates asynchronous,
+does not apply to semaphores,
+because a participating \picoproc{} cannot proceed before successfully acquiring the semaphore. 
+Most of the overhead in the Apache benchmark (see Section~\ref{sec:eval:graphene}) is attributable to semaphore overheads.
 %and, in ongoing work, we will likely optimize this by 
 %either expanding the host ABI to share synchronization primitives within a sandbox,
 %using shared memory to reduce semaphore latency.
 
-\paragraph{Shared File Descriptors.} 
-Open handle descriptors in the \graphene{} host ABI do not include a seek pointer; 
-Unix-style seek behavior is implemented in the library OS.
-The default Linux behavior is that children copy the open handles and file seek cursors,
-but subsequent cursor movements are not shared between parent and child.
-Shared file descriptor table can be requested by passing the {\tt CLONE\_FILES} flag to the {\tt clone} system call.
-Any new file descriptor opened in a shared table will be visible by every process cloned in this way, as well as subsequent cursor update.
+\paragraph{Shared file descriptors.}
+The seek pointer of each file descriptor is implemented as a \libos{} abstraction;
+when reading or writing to a host file,
+\thehostabi{} always obtains an absolute pointer from the beginning of the file.
+Although most applications
+do not share the seek pointer of an inherited file descriptor among processes,
+the {\tt clone} system call
+can can be called with the {\tt CLONE\_FILES} flag
+and create a process
+which shares the whole file descriptor table with its parent.
+%The default Linux behavior is that children copy the open handles and file seek cursors,
+%but subsequent cursor movements are not shared between parent and child.
+%Shared file descriptor table can be requested by passing the {\tt CLONE\_FILES} flag to the {\tt clone} system call.
+%Any new file descriptor opened in a shared table will be visible by every process cloned in this way, as well as subsequent cursor update.
 %None of our target applications have required a shared seek cursor, and it is not currently implemented,
 %but would be a straightforward extension to current RPC mechanisms.
 %We expect that the current RPC mechanisms could easily be extended to synchronize a seek pointer among \picoprocs{}.
-If multiple \picoprocs{} are sharing file descriptor table,
-the oldest one will coordinate the mapping of each file descriptor to the child \picoproc{} who owns the seek pointer.
-Every update to the seek pointer will require coordination
-if the \picoproc{} isn't owning it,
-and similar optimization using migration can be applied here. 
+To share a file descriptor table among \picoprocs{},
+one of \picoprocs{} (usually the oldest one)
+must be the leader of the file descriptor table to manage all mappings
+from file descriptors to the child \picoproc{} who owns the state of the file descriptors including the seek pointers.
+Every updates to a seek pointer must goes through the owner of the file descriptor (not the leader).
+The migration-based optimization for System V IPC message queues and semaphores is also effective for optimizing the performance of shared file descriptors. 
 
-\paragraph{File System States.} 
-In some cases file system states need to be shared across \picoprocs{},
-but the host ABI cannot export the result of Linux-specific behaviors.
-For example, Linux allows user to perform specialized operations on file system
-such as opening a FIFO, binding a domain socket, creating a symbolic link,
-or atomically locking a file.
-Coordinating these states can be cause significant slowdown on regular file system operations, so we simply export the state in regular files on the host,
- and atomically update them by renaming.
+\paragraph{Shared file system states.}
+A chroot file system in \thelibos{}
+is restricted by \thehostabi{} to externalize any file system states.
+Other shared file system states are implemented as \libos{} abstractions, and have to be coordinated among \picoprocs{}.
+For example, a POSIX file system can contain special files such as a FIFO (first-in-first-out); a path bound to a UNIX domain socket;
+a symbolic link; or a file system lock.
+Implementation of these special files cannot
+completely depend on \thehostabi{},
+since the abstractions of \thehostabi{} contains only regular files and directories.
 
-\paragraph{Shared Memory.} The \graphene{} host ABI 
+%Coordinating these states can be cause significant slowdown on regular file system operations, so we simply export the state in regular files on the host,
+% and atomically update them by renaming.
+
+A simple approach to coordinating file system states is to share a ``dummy'' host file.
+For example,  \thelibos{} can store the target of a symbolic link
+in a regular file on the chroot file system.
+For a FIFO, a bounded UNIX domain socket, or a file system lock,
+\thelibos{} can store a mapping to the corresponding RPC stream, or to the \picoproc{} which owns the abstraction.
+By using the host file system as a less efficient but permanent coordination medium,
+\thelibos{} can extend the coordination framework for sharing file system states.
+
+
+
+\paragraph{Shared memory.} The \graphene{} architecture 
 does not currently permit shared memory among \picoprocs{}.
-We expect that a host ABI and existing support for coordinating System V IDs would be sufficient to implement this,
+This thesis expects that an extra \hostapi{} and the existing support for System V IPC coordination would be sufficient to implement this,
 with the caveat that the host must be able to handle sandbox disconnection gracefully, perhaps converting the pages to copy-on-write.
-Thus far we have avoided the use of shared memory in the {\tt libLinux} implementation, both to maximize flexibility in placement of \picoprocs{}, potentially on different physical machines,
-and as a rough mechanism to keep all coordination requests explicit.
-%As discussed with semaphores, shared memory may also be useful to reduce latency for RPCs among picoproceses when 
-%all \picoprocs{} are on the same host.
+Thus far \graphene{} have avoided the use of shared memory in \thelibos{},
+both to maximize flexibility in placement of \picoprocs{}, potentially on an unconventional host (e.g., Intel SGX) or different physical machines.
+and to keep all coordination requests explicit.
+Shared memory may also be useful to reduce latency for RPC messaging among \picoprocs{} when 
+all \picoprocs{} are on the same host.
 
 
 %in \graphene{} are implemented by a simple producer-consumer model.
@@ -466,34 +549,29 @@ and as a rough mechanism to keep all coordination requests explicit.
 %%% IPC semaphores are intensively used in Apache web servers with a multi-process model. 
 
  
-\begin{comment}
-\paragraph{Limitations.} At the time of submission,
-\graphene{} does not recover from all cases where a leader \picoproc{} crashes.
-Our current prototype requires the IPC helper thread in the leader to remain 
-in the sandbox and respond to messages even if its process {\tt main} routine has completed,
-and the evaluation data reflects this state.
-\end{comment}
 
-\paragraph{Failure and Disconnection Tolerance.}  
-\graphene{} is designed to tolerate disconnection of collaborating \libos{} instances,
-either because of crashes or blocked RPCs.  In general, \graphene{} makes 
+
+\paragraph{Failure and disconnection tolerance.}  
+\thelibos{} must tolerate disconnection between collaborating \picoprocs{},
+either because of crashes or blocked RPC streams.  In general, \thelibos{} makes 
 these disconnections isomorphic to a reasonable application behavior,
 although there may be some edge cases that cannot be made completely transparent to the application.
 
-In the absence of crashes, placing shared state in a given \picoproc{} introduces the risk that an errant 
+In the absence of crash recovery, placing shared state in a given \picoproc{} introduces the risk that an errant 
 application will corrupt shared \libos{} state.  The \microkernel{} approach of 
 moving all shared state into a separate server process is more resilient to this problem.
-Anecdotally, \graphene{}'s performance optimization of migrating ownership to the process that 
+Anecdotally, \thelibos{}'s performance optimization of migrating ownership to the process that 
 most heavily uses a given shared abstraction also improves the likelihood that only the corrupted
 process will be affected.  
-Making \graphene{} resilient to arbitrary memory corruption of any \picoproc{} is left for future work.
+Making each \thelibos{} instance resilient to arbitrary memory corruption of any \picoproc{} is left for future work.
 
 
-\paragraph{Leader Recovery.}
-\graphene{} provides a leadership recovery mechanism when a leader failure is detected.
+\paragraph{Leader recovery.}
+\thelibos{} provides a leadership recovery mechanism when a leader failure is detected.
 A non-leader \picoproc{} can detect the failure of a leader by either observing the shutdown of RPC streams or timing out on waiting for responses. 
-Once the \picoproc{} detects leader failure, it sends out a message on the broadcast stream to volunteer for leadership.
-After a few rounds of competition, the winning \picoproc{} becomes the new leader and recover the namespace state by recollecting from every other \picoproc{} in the sandbox.
+Once the \picoproc{} detects leader failure, \thelibos{} sends out a message on the broadcast stream to volunteer for claiming the leadership.
+After a few rounds of competition, the winning \picoproc{} becomes the new leader and recover the namespace state by reading a namespace snapshot stored before the crash of the former leader
+or recollecting from other \picoprocs{} in the same sandbox.
 
 %After a \picoproc{} being elected as the leader,
 %the leader state,
@@ -505,11 +583,14 @@ After a few rounds of competition, the winning \picoproc{} becomes the new leade
 %To simplify the implementation,
 %we make the leaders of a namespace periodically serialize their states to disk for later recovery.
 
-%When a \picoproc{} is sandboxed, it will detect the failure of leader because all of its RPC streams are closed by the reference monitor.
+When a \picoproc{} is moved to a new sandbox, \thelibos{} will naturally detect the failure of leader because of blocked RPC. % streams are closed by the reference monitor.
+The sandboxed \picoproc{} will be the only candidate for leadership because the host has replaced the broadcast stream;
+as a result, the sandboxed \picoproc{} seamlessly transitions to new namespaces isolated from the previous sandbox.
+
 %Once it starts the leadership recovery, it will automatically win because no other \picoproc{} is sharing the broadcast stream. The procedure can be skipped by informing the sandboxed \picoproc{} before detaching.
 
 \subsection{Lessons learned}
-\label{sec:libos:namespaces:insights}
+\label{sec:libos:namespaces:lessons}
 
 The current coordination design is the product of several iterations, which began 
 with a fairly simple RPC-based implementation. %, and was then refined based on profiling.

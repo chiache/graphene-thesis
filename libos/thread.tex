@@ -1,72 +1,85 @@
-\subsection{Threading and synchronization}
+\subsection{Threads}
 \label{sec:libos:thread}
 
 
-A Linux application normally uses POSIX threads, or {\bf pthreads},
-for parallelizing computation on a multi-core machine.
+A Linux multi-threaded application
+is generally programmed with the POSIX threads, or {\bf pthreads}.
+%for parallelizing computation on a multi-core machine.
 %are commonly used in Linux and similar OSes, for developing multi-thread applications.
-The pthread library (i.e., \libpthread{}) creates a pthread
-by invoking the \syscall{clone} \linuxapi{},
-which creates a schedulable task inside the Linux kernel.
-The pthread library also maintains a descriptor (\code{pthread\_t}) for signaling or waiting for a pthread from the rest of application.
-Finally,
-the pthread library contains several scheduling or synchronization primitives,
-including mutexes, semaphores, conditional variables,
-and barriars.
-Few Linux applications may choose an alternative threading library, but no alternatives can avoid creating kernel tasks using \syscall{clone},
-to fully utilize the host CPU resources.
+The pthread library, or \libpthread{},
+is a user-space abstraction layer
+which creates schedulable tasks inside a Linux kernel or other OS kernel.
+Each pthread maps to a kernel thread,
+and \libpthread{} maintains a descriptor (\code{pthread\_t}) of each pthread,
+for signaling a pthread or blocking for the termination of a pthread.
+Moreover,
+\libpthread{}contains several scheduling or synchronization primitives, including mutexes, semaphores, conditional variables, and barriars.
+%Few Linux applications may choose an alternative threading library, but no alternatives can avoid creating kernel tasks using \syscall{clone},
+%to fully utilize the host CPU resources.
+
+
+The creation of a pthread in \libpthread{} is based on the \syscall{clone} \linuxapi{}.
+When \syscall{clone} is used to create a new thread,
+the application or \libpthread{} assigns a preallocated space as the stack of the new thread, and a user function to start the thread execution.
+\thelibos{} implement thread creation of \syscall{clone} by calling \palcall{ThreadCreate} in \thehostabi{}.
+\palcall{ThreadCreate} will start a new thread from a piece of trampoline code inside \thelibos{}, which switches the stack pointer and jumps to the user function assigned as the starting function.
 
 
 
-\thelibos{} supports creation of pthreads
-or other threading primitives
-by implementing \syscall{clone} with shared virtual address space. % (no \code{CLONE\_VM} flag).
-When creating a new thread, 
-\syscall{clone} is usually given a preallocated user stack, a starting function, and an argument to initiate the function.
-\thelibos{} implements \syscall{clone} using a \hostapi{}, \palcall{ThreadCreate}, which has similar semantics as \syscall{clone}.
-
-
-For \thelibos{}, supporting a threading library like pthread
-presents two primary challenges.
-The first challenge is the implementation
-of thread-local storage (TLS), a critical, thread-private region for storing the thread states (e.g., a \code{pthread\_t} structure).
-The other challenge is to recreate the OS support
-for many application-level scheduling and synchronization primitives.
-\thelibos{} achieves the latter by implementing majority of the Linux \syscall{futex} API.
 
 
 
-The pthread library allocates a {\bf thread control block (TCB)} for each pthread.
-On \graphenearch{} Linux, a pthread %references its own TCB
-uses the FS segment register
-to reference its own TCB,
-followed by the thread-private variables of the application
-and user libraries. 
-The FS segment register is a privileged context,
-and thus an application can only set the address of TCB using the \syscall{arch\_prctl} \linuxapi{}, or pass the address as an argument to \syscall{clone},
-unless there is architectural help (an opt-out \graphenearch{} instruction, \assembly{WRFSGSBASE}, allows setting FS/GS registers in the user space).
-Therefore, \thelibos{} implements both \syscall{arch\_prctl}
-and \syscall{clone} with a \hostapi{}, \palcall{SegmentRegisterSet}, to set the segment register from the host OS or hypervisor.
+
+%For \thelibos{}, supporting a threading library like pthread
+%presents two primary challenges.
+%The first challenge is the implementation
+%of thread-local storage (TLS), a critical, thread-private region for storing the thread states (e.g., a \code{pthread\_t} structure).
+%The other challenge is to recreate the OS support
+%for many application-level scheduling and synchronization primitives.
+%\thelibos{} achieves the latter by implementing majority of the Linux \syscall{futex} API.
 
 
-For each thread, \thelibos{} also maintain an internal TCB,
-for storing a pointer to the corresponding thread handle and preserving the register values when \thelibos{} intercepts a \linuxapi{} from \libc{}.
-To save the usage of segment registers, \thelibos{} shares the FS register with the pthread library,
-by inserting the TCB of \thelibos{} into the pthread TCB.
-\thelibos{} copies or recreates its own TCB whenever the pthread library calls \syscall{arch\_prctl} to swap the pthread TCB.
+For each pthread, \libpthread{} allocates an unique thread-local storage (TLS), which contains a {\bf thread control block (TCB)} and thread-private variables.
+A TCB stores the private states of a pthread, including at least a thread identifier.
+The definition of a TCB structure is up to the threading library;
+\libpthread{} defines the TCB structure of a pthread as \code{pthread\_t},
+containing the linked list heads for queuing the pthread
+in a ``join'' queue or a wait queue for a synchronization primitive.
+On \graphenearch{} Linux, \libpthread{}
+locates the TCB of each pthread using using the FS segment register.
+The TCB is often
+followed by thread-private variables (variables defined with the \code{\_\_thread} keyword) of the application
+and libraries,
+and both the TCB and thread-private variables
+are accessed by directly reading or writing at a specific offset from the FS segment register.
+Since accessing FS segment register is a privileged operation,
+an application can only set the TCB address
+by calling the \syscall{arch\_prctl} \linuxapi{} or passing the address as an argument to \syscall{clone}.
+\thelibos{} uses \palcall{SegmentRegisterSet} in the host ABI
+to set the FS segment register
+in the implementation of \syscall{arch\_prctl} and \syscall{clone}.
 
 
+Besides creation of pthreads, \libpthread{} contains a collection of synchronization primitives,
+including mutexes, semaphores, conditional variables, and barriers.
+On Linux, \libpthread{} implements all the synchronization primitives based on one single \syscall{futex} \linuxapi{}.
+\syscall{futex} supports various synchronization operations and two primary types of operations are waiting (\code{FUTEX\_WAIT}) and signaling (\code{FUTEX\_WAKE}).
+\code{FUTEX\_WAIT}
+blocks a thread until another thread updates a memory address
+and signals the blocking thread.
+\code{FUTEX\_WAKE} then allows a thread
+to signal one or multiple threads blocking for the memory update.
+\syscall{futex} 
+allows atomically checking the state of a critical variable
+and switching the current thread to the blocking state if the critical variable is not updated yet.
+Using \syscall{futex}, \libpthread{} can implement various types of synchronization primitives;
+for example, a two-phase mutex implementation~\fixme{cite the mutex with futex paper}
+uses \syscall{futex} to block a thread until an integer variable is set to zero.
 
-\paragraph{The \syscall{futex} API.}
-Most of pthread's synchronization primitives, including mutexes, semaphores, conditional variables, and barriers,
-are based on the \syscall{futex} API.
-The \syscall{futex} API contains two primary types of operations:
-blocking on a specific memory address to be updated, or waking up threads that are currently blocking. % on a specific memory address.
-The futex API allows a thread to forfeit the CPU resources
-to a progressing thread,
-and can be combined with atomic operation
-to simultaneously update a critical variable and notify threads that are waiting for the variable to change to certain condition.
-\fixme{not finished yet; maybe add a figure to explain how futex is implemented}
 
+To implement \syscall{futex}, \thelibos{} creates a host synchronization event using \palcall{SynchronizationEventCreate} in \thehostabi{}.
+Whenever a \syscall{futex} call checks a new word-aligned memory address for blocking, \thelibos{} creates a host event and a wait queue to be mapped to the memory address.
+While a waiting \syscall{futex} call blocks on a host event,
+another signaling \syscall{futex} call can wake up as many blocking threads in the wait queueue as it wants, using \palcall{EventSet} in \thehostabi{}.
 
 
