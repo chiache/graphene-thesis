@@ -171,8 +171,8 @@ triggers the kernel operations
 whenever an application executes
 a ``\assembly{syscall}'' or ``\assembly{int \$80}'' instruction.
 The interrupt handler
-includes a context switch from the application,
-and redirection to the kernel routine which serves the \linuxapis{}.
+switches the context of application,
+and then jumps to the kernel routines which serve the \linuxapis{}.
 %based on a kernel convention agreed by applications and Linux kernels.
 Because \thelibos{} reuses
 unmodified Linux executables and libraries,
@@ -269,20 +269,20 @@ and returned to \funcname{IllegalInstrHandler} in \thelibos{}.}
 \end{figure}
 
 
-\graphene{} modifies several \glibc{} libraries with individual purposes,
+\graphene{} modifies four \glibc{} libraries:
 %When using \graphene{}, an application must be deployed with the modified \libc{} libraries,
-including \code{ld.so}, \code{libc.so}, \libpthread{}, and \libdl{}.
-\Glibc{} partitions its code into separate libraries to reduce the binary sizes
-loaded by each application.
+the runtime loader (\code{ld.so}), the core library (\code{libc.so}), the pthread library (\libpthread{}), and the dynamic loading library (\libdl{}).
+Each of the \Glibc{} libraries has separate purposes and features,
+and is mostly loaded on demand except \code{ld.so}.
 %Despite that \glibc{} has partitioned its code into separate libraries,
-\graphene{} only modifies the libraries which contains direct \linuxapis{} (i.e., \assembly{syscall} instructions).
+\graphene{} only modifies the \glibc{} libraries which contains direct \assembly{syscall} instructions.
 %not every libraries of \glibc{} need to be modified for \linuxapi{} redirection.
 %Only \code{libc.so}, \libpthread{}, and \libdl{} have included \code{syscall} instructions,
 %and thus have to be modified for \graphene{}.
-Other \libc{} libraries, such as \code{libm.so},
-never directly invoke \linuxapis{} and only rely on 
-existing \libc{} functions;
-therefore, \graphene{} leaves \code{libm.so} and other similar \libc{} libraries unmodified.
+Other libraries, such as \code{libm.so},
+only rely on 
+existing \libc{} functions,
+so \graphene{} leaves these libraries unmodified.
 
 
 
