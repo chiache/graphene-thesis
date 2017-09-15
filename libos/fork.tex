@@ -104,22 +104,25 @@ and to implement the feature, the hypervisor needs hardware support for marking 
 \graphene{} also implements live migration of a \picoproc{} for \syscall{fork}
 because of the general expectation
 that \syscall{fork} should not halt the whole process.
-However, \graphene{} does not adopt the technique of live VM migration
-as copying the whole virtual address space of the \picoproc{}.
-Instead, the checkpoint scheme of \thelibos{}
-locks each handle when copying it to the heap or over a RPC stream.
-\graphene{} chooses not to copy the whole virtual address space for three reasons.
-First, a checkpoint scheme that snapshots the whole \picoproc{} memory
+However, unlike live VM migration, \graphene{} chooses not %adopt the technique of live VM migration
+copy the whole virtual address space
+of a \picoproc{}
+%Instead, the checkpoint scheme of \thelibos{}
+%locks each handle when copying it to the heap or over a RPC stream
+%\graphene{} chooses not to copy the whole virtual address space 
+for three primary reasons.
+First, a checkpoint scheme that snapshots the whole \picoproc{}
 cannot differentiate temporary and permanent states inside a \libos{}.
-To improve I/O performance, \thelibos{} tends to reserve a significant amount of virtual memory for caching and buffering, and thus \thelibos{} can reduce migration time by skipping these temporary states.
+To improve I/O performance, \thelibos{} tends to reserve %a significant amount of
+virtual memory for caching and buffering, and \thelibos{} can reduce migration time by skipping temporary states such as directory cache entries and I/O buffers.
 Second, by checkpointing handles individually,
-\thelibos{} can overwrite each handle and sanitize any sensitive states before sending the snapshot out to another \picoprocs{}.
-Finally, \thehostabi{} does not export any functions for tracing
+\thelibos{} can overwrite each handle and sanitize any sensitive states before sending the snapshot out to another \picoproc{}.
+Finally, \thehostabi{} does not export any functionality for tracing
 the dirty pages during live migration,
-since this feature requires low-level hardware support
-and is difficult to port on a restricted hardware platform like Intel SGX.
+because the low-level hardware support needed
+is not available on a more restricted hardware like Intel SGX.
 For all the reasons above,
-\thelibos{} only selectively checkpoints handles and \libos{} states, instead of snapshotting the whole \picoproc{} memory.
+\thelibos{} only selectively checkpoints \libos{} states rather than snapshotting the whole \picoproc{}.
 
 
 %new \picoproc{} cannot reuse PAL handles snapshotted from the previous \picoproc{}.
@@ -162,22 +165,23 @@ For all the reasons above,
 
 
 Migrating process states over a RPC stream adds a significant overhead to the latency of \syscall{fork} in \thelibos{}.
-
-
-
-
-
-To reduce the overhead of migrating process states over a RPC stream, \graphene{} introduces a {\bf bulk IPC} mechanism in \thehostabi{}.
+To reduce the overhead, \graphene{} introduces a {\bf bulk IPC} mechanism in \thehostabi{}, to send large chunks of memory across \picoprocs{}. 
 Using the bulk IPC mechanism, 
 %Using our bulk IPC mechanism,
-the sender (parent) can request that the host kernel copy
-a series of pages, which need not be virtually contiguous,
-into the receiver's address space.
-The receiver (child) specifies where these pages should be mapped.
-In both sender and receiver, the pages are marked copy-on-write.  
-This bulk IPC mechanism sends pages out-of-band on a byte stream and guests also use the stream to send control messages 
-indicating 
-how many pages are being sent and how they should be interpreted.
+the sender (i.e., the parent) can request the host kernel
+to preserve the physical pages of application memory and snapshot data,
+and the receiver (i.e., the child) can map these physical pages to its own virtual address space.
+This bulk IPC mechanism is an efficiency way of sending pages out-of-band,
+while the parent process still uses a RPC stream
+to send control messages including the parameters of bulk IPC.
+Although the implementation is up to the host kernel,
+the bulk IPC mechanism should map the same physical pages in both parent and child,
+to minimize the memory copy in the host kernel.
+The host kernel marks the physical pages copy-on-write in both \picoprocs{},
+to ensure that the child receives a snapshot of the sent pages from the parent without sharing any future changes.
+
+
+
 
 %Our IPC module is \gipclines{} lines of code (Table~\ref{tab:graphene:loc}), 
 %runs on multiple versions of Linux (2.6 and 3 series kernels), and
