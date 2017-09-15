@@ -179,7 +179,9 @@ the bulk IPC mechanism should map the same physical pages in both parent and chi
 to minimize the memory copy in the host kernel.
 The host kernel marks the physical pages copy-on-write in both \picoprocs{},
 to ensure that the child receives a snapshot of the sent pages from the parent without sharing any future changes.
-
+The bulk IPC mechanism is optional in \thehostabi{},
+and \thelibos{} can always fall back to sending process snapshots over RPC streams
+when the host fails to support bulk IPC.
 
 
 
@@ -204,16 +206,42 @@ Pipes, however, are not easily recreated without host support.
 %opening a host-level pipe outside of their sandbox.
 
 %A second option, which we pursue, is to only create anonymous bytes streams,
-\paragraph{Inheriting File Handles.}
-\thelibos{} uses two \hostapis{}, \palcall{RPCSendHandle} and \palcall{RPCRecvHandle}, to transfer 
-stream handles out-of-band over reviously 
-established byte streams within a sandbox.  Handle passing facilitates inheritance
-and general-purpose RPC.
-This mechanism is similar to Unix Domain Sockets,
-which are commonly used by sandboxing systems. % such as plash~\citep{plash}.
-This strategy allows a guest to seamlessly and explicitly 
-share an open handle with another guest in the same sandbox, but prevents
-a guest from sharing a handle with a guest outside of the sandbox.
+\paragraph{Inheriting PAL handles.}
+When a file handle to the child, \thelibos{} sometimes needs to send the stored PAL handle, especially when the file handle
+represents a network socket or a deleted file.
+\thelibos{} normally nullifies the PAL handle in the snapshot of a file handle
+since the PAL handle is only valid for the local PAL.
+However, if \thelibos{} cannot recreate a PAL handle by calling \palcall{StreamOpen} in the child \picoproc{}, \thelibos{} needs host support to inherit
+the PAL handle from the parent.
+There are generally two conditions when the child process
+cannot recreate a PAL handle.
+First, a \picoproc{} cannot reopen a bounded network handle
+if another \picoproc{} still holds the local port.
+Second, the parent process may delete a file while holding a file descriptor to access the file content, generally as a way of detaching the file from the file system.
+If the file is deleted in the host file system,
+the child process cannot reopen the file
+using \palcall{StreamOpen}.
+
+
+
+\thelibos{} uses two new \hostapis{},
+\palcall{RPCSendHandle} and \palcall{RPCRecvHandle}, to send PAL handles out-of-band over a PRC stream.
+As \thelibos{} walks through a file handle list for checkpointing, it marks the PAL handles that are network sockets or deleted files.
+If the parent deletes a file after migrating the file handle but before the child recreates the PAL handle,
+the child will either fail to reopen the file
+or accidentally open another file created afterward.
+\thelibos{} can detect this corner case by coordinating the file system state
+across \picoprocs{}.
+
+
+
+% within a sandbox.  Handle passing facilitates inheritance
+%and general-purpose RPC.
+%This mechanism is similar to Unix Domain Sockets,
+%which are commonly used by sandboxing systems. % such as plash~\citep{plash}.
+%This strategy allows a guest to seamlessly and explicitly 
+%share an open handle with another guest in the same sandbox, but prevents
+%a guest from sharing a handle with a guest outside of the sandbox.
 
 \begin{comment}
 \vspace{5pt}
