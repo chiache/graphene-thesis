@@ -77,15 +77,15 @@ After checkpointing,
 \thelibos{} can send the process snapshot over a RPC stream, so that the state of the forking process is faithfully migrated to a new \thelibos{} instance.
 
 
-To emulate forking, \thelibos{} implements
+To emulate \syscall{fork}, \thelibos{} implements
 a checkpoint and migration scheme
 for duplicating the resource handles and application states between \picoprocs{}.
 For each type of resources, \thelibos{} defines a function for decomposing a resource handle in a migratable form,
 and a function for reconstructing the resource handle inside another \picoproc{}.
 For example,
 for a VMA handle, \thelibos{} checkpoints the address, size, initial flags, and page protection,
-and only if the VMA is created by the application and not backed by a file,
-\thelibos{} copies the represented memory into the snapshot.
+and only if the VMA is accessed by the application and not backed by a file,
+\thelibos{} copies the memory data into the snapshot.
 For a file or network handle,
 \thelibos{} runs a virtual file system operation,
 \funcname{vfs\_checkout},
@@ -97,23 +97,40 @@ Finally, \thelibos{} checkpoints the current thread handle, but modifies the cop
 
 
 The checkpoint and migration scheme of \thelibos{} is comparable to
-the VM migration of a hypervisor.
-A hypervisor migrates the whole guest physical memory of a VM, with hardware support of marking dirty pages during the transfer of page data.
-It is possible to use the same technique to
-migrate process states in \thelibos{};
-\thelibos{} can potentially implement a transparent layer belows all the other components,
-which seamlessly copies both application and \libos{} memory
-over a RPC stream.
-However, \graphene{} 
+VM migration by a hypervisor.
+When migrating a VM, a hypervisor has to copy the VM's guest physical memory to another host machine.
+A useful feature of a hypervisor is to migrate a live VM,
+and to implement the feature, the hypervisor needs hardware support for marking the dirty pages when it is copying the pages.
+\graphene{} also implements live migration of a \picoproc{} for \syscall{fork}
+because of the general expectation
+that \syscall{fork} should not halt the whole process.
+However, \graphene{} does not adopt the technique of live VM migration
+as copying the whole virtual address space of the \picoproc{}.
+Instead, the checkpoint scheme of \thelibos{}
+locks each handle when copying it to the heap or over a RPC stream.
+\graphene{} chooses not to copy the whole virtual address space for three reasons.
+First, a checkpoint scheme that snapshots the whole \picoproc{} memory
+cannot differentiate temporary and permanent states inside a \libos{}.
+To improve I/O performance, \thelibos{} tends to reserve a significant amount of virtual memory for caching and buffering, and thus \thelibos{} can reduce migration time by skipping these temporary states.
+Second, by checkpointing handles individually,
+\thelibos{} can overwrite each handle and sanitize any sensitive states before sending the snapshot out to another \picoprocs{}.
+Finally, \thehostabi{} does not export any functions for tracing
+the dirty pages during live migration,
+since this feature requires low-level hardware support
+and is difficult to port on a restricted hardware platform like Intel SGX.
+For all the reasons above,
+\thelibos{} only selectively checkpoints handles and \libos{} states, instead of snapshotting the whole \picoproc{} memory.
 
-First, the new \picoproc{} cannot reuse PAL handles snapshotted from the previous \picoproc{}.
-Therefore, after migrating the whole virtual address space,
-either \thelibos{} has to scan its internal heap to recreate or nullify all the PAL handles, or \thehostabi{} has to detect any migrated PAL handles.
-Moreover, to consistently snapshot a \picoproc{},
-\thelibos{} has to stop the execution of every running threads,
-or iteratively trace dirty pages after copying a certain amount of pages to the snapshot.
-Either approach requires more control over host-level page management
-in order to prevent significant interruption in the application.
+
+%new \picoproc{} cannot reuse PAL handles snapshotted from the previous \picoproc{}.
+%Therefore, after migrating the whole virtual address space,
+%either \thelibos{} has to scan its internal heap to recreate or nullify all the PAL handles, or \thehostabi{} has to detect any migrated PAL handles.
+%Moreover, to consistently snapshot a \picoproc{},
+%\thelibos{} has to stop the execution of every running threads,
+%or iteratively trace dirty pages after copying a certain amount of pages to the snapshot.
+%Either approach requires more control over host-level page management
+%in order to prevent significant interruption in the application.
+
 
 
 
@@ -142,7 +159,17 @@ in order to prevent significant interruption in the application.
 %The Graphene bulk IPC abstraction adds 3 PAL calls 
 %that allow guests to efficiently transfer large regions of memory to each other\fixmedp{after reordering, add a forward or back ref}.
 
-Using our bulk IPC mechanism,
+
+
+Migrating process states over a RPC stream adds a significant overhead to the latency of \syscall{fork} in \thelibos{}.
+
+
+
+
+
+To reduce the overhead of migrating process states over a RPC stream, \graphene{} introduces a {\bf bulk IPC} mechanism in \thehostabi{}.
+Using the bulk IPC mechanism, 
+%Using our bulk IPC mechanism,
 the sender (parent) can request that the host kernel copy
 a series of pages, which need not be virtually contiguous,
 into the receiver's address space.
@@ -152,10 +179,10 @@ This bulk IPC mechanism sends pages out-of-band on a byte stream and guests also
 indicating 
 how many pages are being sent and how they should be interpreted.
 
-Our IPC module is \gipclines{} lines of code (Table~\ref{tab:graphene:loc}), 
-runs on multiple versions of Linux (2.6 and 3 series kernels), and
-does not require
-Linux kernel changes or recompilation.
+%Our IPC module is \gipclines{} lines of code (Table~\ref{tab:graphene:loc}), 
+%runs on multiple versions of Linux (2.6 and 3 series kernels), and
+%does not require
+%Linux kernel changes or recompilation.
 
 
 \begin{comment}
