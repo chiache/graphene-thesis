@@ -230,7 +230,7 @@ As \thelibos{} walks through a file handle list for checkpointing, it marks the 
 If the parent deletes a file after migrating the file handle but before the child recreates the PAL handle,
 the child will either fail to reopen the file
 or accidentally open another file created afterward.
-\thelibos{} can detect this corner case by coordinating the file system state
+\thelibos{} can detect this corner case by coordinating the file system states
 across \picoprocs{}.
 
 
@@ -271,9 +271,28 @@ and facilitates extensibility.
 %\issue{1.3.b}{discuss alternative strategies of forking}
 
 
-\subsection{Multi-process \syscall{execve}}
+\subsection{Process creation with \syscall{execve}}
 
 
+The specification of \syscall{execve} includes detaching a thread from a multi-threaded process and moving it to a clean, new process.
+Unlike the behavior in a single-threaded process,
+\syscall{execve} cannot replace the executable in a multi-threaded process since other running threads still run in the same context.
+Instead, \syscall{execve} creates a process
+with the same credentials of the calling thread, but the process runs a fresh, separate executable from the parent.
+Calling \syscall{execve} from a multi-threaded process 
+is especially common in a shell program (e.g., Bash).
+A shell program often calls \syscall{execve} after \syscall{vfork} to execute a command in a new process monitored by the job controller, similar to \funcname{spawn} in the POSIX API.
+
+
+\thelibos{} implements \syscall{execve} by partially migrating the \libos{} states
+to a new \picoproc{}.
+The specification of \syscall{execve} requires the OS to reset
+most of the process states, such as memory mappings, signal handlers, and IPC resources,
+but keep the thread ID and any file descriptors
+opened without the \code{CLOEXEC} flag.
+\thelibos{} uses the same checkpoint and migration scheme
+to migrate the process state for \syscall{execve},
+but only includes the current thread handle, all the non-\code{CLOEXEC} file handles, and the global OS states (e.g., namespace information) in the checkpoint data.
 
 
 \subsection{Signaling and exit notification}
