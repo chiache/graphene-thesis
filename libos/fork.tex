@@ -53,10 +53,11 @@ including forking, \syscall{execve}, and a variety of IPC (inter-process communi
 
 Implementing the UNIX-style, copy-on-write forking presents a particular challenge to the \graphene{} architecture.
 %when implemented using only a VM-like picoprocess abstraction.
-As with a virtual machine, a \graphene{} host creates each new \picoproc{} in a ``clean'' state, along with an individual \thelibos{} instance. % fork is implemented in the \libos{}.
+Using \palcall{ProcessCreate} in \thehostabi{}, each \graphene{} host
+creates a new \picoproc{} in a ``clean'' state, with an individual \thelibos{} instance maintaining the OS resources and features for an application process. % fork is implemented in the \libos{}.
 %yet applications require common Unix abstractions such as file handle inheritance and copy-on-write fork.
-Forking a process includes cloning the state of running application and migrating all the resource handles inside \thelibos{}, such as file descriptors, to the new \picoproc{}.
-\graphene{} revokes the assumption that each of its hosts is capable of sharing physical pages between multiple applications or processes.
+Forking a process involves cloning the state of running application and migrating all the resource handles inside \thelibos{}, such as file descriptors, to the new \picoproc{}.
+\graphene{} drops the assumption that each of its hosts is capable of sharing physical pages between multiple applications or processes.
 Since \thelibos{} cannot enable copy-on-write sharing between \picoprocs{}, \thelibos{} needs an elaborate but efficient scheme for emulating the UNIX-style forking.
 
 
@@ -74,10 +75,10 @@ except a few minor changes.
 A process snapshot includes all allocated resources, such as VMA and file handles,
 and miscellaneous process states, such as signal handlers.
 After checkpointing,
-\thelibos{} can send the process snapshot over a RPC stream, so that the state of the forking process is faithfully migrated to a new \thelibos{} instance.
+\thelibos{} calls \palcall{ProcessCreate} to create a new \picoproc{} in the host, and then migrates the process snapshot over the process handle as a RPC stream. %so that the state of the forking process is faithfully migrated to a new \thelibos{} instance.
 
 
-To emulate \syscall{fork}, \thelibos{} implements
+To fully emulate \syscall{fork}, \thelibos{} implements
 a checkpoint and migration scheme
 for duplicating the resource handles and application states between \picoprocs{}.
 For each type of resources, \thelibos{} defines a function for decomposing a resource handle in a migratable form,
@@ -92,7 +93,7 @@ For a file or network handle,
 to externalize the related states
 inside the file system implementations,
 but skip any temporary states such as buffers and directory cache entries.
-Finally, \thelibos{} checkpoints the current thread handle, but modifies the copy with a new process ID.
+Finally, \thelibos{} checkpoints the current thread handle, but modifies the handle snapshot with a new process ID.
 
 
 
@@ -274,25 +275,33 @@ and facilitates extensibility.
 \subsection{Process creation with \syscall{execve}}
 
 
-The specification of \syscall{execve} includes detaching a thread from a multi-threaded process and moving it to a clean, new process.
-Unlike the behavior in a single-threaded process,
-\syscall{execve} cannot replace the executable in a multi-threaded process since other running threads still run in the same context.
-Instead, \syscall{execve} creates a process
-with the same credentials of the calling thread, but the process runs a fresh, separate executable from the parent.
-Calling \syscall{execve} from a multi-threaded process 
-is especially common in a shell program (e.g., Bash).
-A shell program often calls \syscall{execve} after \syscall{vfork} to execute a command in a new process monitored by the job controller, similar to \funcname{spawn} in the POSIX API.
+Another Linux \linuxapi{}, \syscall{execve}, creates a process with a separate executable and a clean memory state.
+The specification of \syscall{execve}
+includes detaching the calling thread from a process and moving it to a brand-new virtual address space with the specified executable.
+As a common use case, a shell program (e.g., Bash) calls \syscall{execve} after creating a thread using \syscall{vfork},
+to execute a shell command (e.g., \code{ls}) in a separate process, while the main process continues and waits for the shell command to finish.
+%When one thread in a multi-threaded process
+%calls \syscall{execve}, other running threads still run in the same context.
+%Instead, \syscall{execve} creates a process
+%with the same credentials of the calling thread, but the process runs a fresh, separate executable from the parent.
+%Calling \syscall{execve} from a multi-threaded process 
+%is especially common in a shell program (e.g., Bash).
+%A shell program often calls \syscall{execve} after \syscall{vfork} to execute a command in a new process monitored by the job controller, similar to \funcname{spawn} in the POSIX API.
+Linux uses the combination of \syscall{vfork} and \syscall{execve}
+as an equivalent of \funcname{spawn} in the POSIX API, or \funcname{CreateProcess} in the Windows API.
 
 
-\thelibos{} implements \syscall{execve} by partially migrating the \libos{} states
-to a new \picoproc{}.
-The specification of \syscall{execve} requires the OS to reset
-most of the process states, such as memory mappings, signal handlers, and IPC resources,
-but keep the thread ID and any file descriptors
-opened without the \code{CLOEXEC} flag.
-\thelibos{} uses the same checkpoint and migration scheme
-to migrate the process state for \syscall{execve},
-but only includes the current thread handle, all the non-\code{CLOEXEC} file handles, and the global OS states (e.g., namespace information) in the checkpoint data.
+\thelibos{} implements \syscall{execve} by calling \palcall{ProcessCreate} with
+the host URI of the executable,
+and selectively migrating process states to the new \picoproc{}.
+When the application calls \syscall{execve} to run an executable, \thelibos{} first has to identify the executable on the chroot file systems,
+to determine its host URI for creating a \picoproc{}.
+Although \palcall{ProcessCreate} achieves the goal of creating a clean process with the target executable,
+\syscall{execve} further specifies that the child must inherit the parent's credentials and file descriptors, except file descriptors opened with a \code{CLOEXEC} flag.
+\thelibos{} uses the same checkpoint and migration scheme in \syscall{fork} to selectively migrate handles and \libos{} states in \syscall{execve}.
+The states migrated in \syscall{execve}
+include the caller's thread handle, all the non-\code{CLOEXEC} file handles, program arguments and environment variables given by the application, and global OS states that are shared across \thelibos{} instances
+(e.g., namespace information).
 
 
 \subsection{Signaling and exit notification}

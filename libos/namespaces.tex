@@ -24,39 +24,47 @@ the \libos{} implements file handles and translates between POSIX and the host A
 Identifying the best division of labor for a \libos{} file system is 
 left for future work.
 
-\begin{comment}
+
 \begin{table}
 \footnotesize
 \centering
-\begin{tabular}{|p{0.9in}|p{1.5in}|p{3.6in}|}
+\begin{tabular}{|p{.16\textwidth}|p{.25\textwidth}|p{.5\textwidth}|}
 \hline
-{\bf Ab\-strac\-tion} & {\bf Shared State} & {\bf Strategy} \\
+{\bf Ab\-strac\-tion} & {\bf Shared State} & {\bf Coordination Strategy} \\
 \hline
 Fork & 
 \raggedright
 PID namespace & Batch allocations of PIDs, children generally created using local state at parent.  \\
 \hline
-Signaling & PID to \picoproc{} map & Local signals call handler; remote signal delivery by RPC.  Cache mapping of PID to \picoproc{} ID. \\
+Signaling & PID mapping & Local signals call handler; remote signal delivery by RPC.  Cache mapping of PID to \picoproc{} ID. \\
 \hline
 \raggedright
 Exit notification & 
 \raggedright
-Remote process status  & Exiting processes issue an RPC, or one synthesized if child becomes unavailable.  The {\tt wait} system call blocks until notification received by IPC helper. \\
+Process status  & Exiting processes issue an RPC, or one synthesized if child becomes unavailable.  The {\tt wait} system call blocks until notification received by IPC helper. \\
 \hline
 {\tt /proc/[pid]} & Process metadata & Read over RPC.  \\
 \hline
 Message Queues & 
 \raggedright
-Key mapping, queue contents & Mappings managed by a leader, contents stored in various \picoprocs{}.  When possible, send messages asynchronously, and migrate queues to the consumer.\\
+Key mapping \newline
+Queued messages &
+Mappings managed by a leader, contents stored in various \picoprocs{}.  When possible, send messages asynchronously, and migrate queues to the consumer.\\
 \hline
 Semaphores & 
 \raggedright
-Key mapping, count. & Mappings managed by leader, migrate ownership to \picoproc{} most frequently acquiring the semaphore. \\
+Key mapping \newline
+Semaphore count &
+Mappings managed by leader, migrate ownership to \picoproc{} most frequently acquiring the semaphore. \\
 \hline
 \raggedright
 File System & 
 \raggedright
-File truncate sizes, FIFO files, domain sockets, symbolic links, file locks & No coordination, create special files in the host to represent symbolic links and file locks. \\
+File truncate sizes \newline
+Deleted files \newline
+FIFO \& domain sockets \newline
+Symbolic links \newline
+File system locks & No coordination, create special files in the host to represent symbolic links and file locks. \\
 \hline
 \raggedright
 Shared File Descriptors & 
@@ -66,9 +74,9 @@ Seek pointers & Mappings managed by parent, migrate ownership to \picoproc{} mos
 \end{tabular}
 \caption[Multi-process abstractions implemented in sysname{}]
 {Multi-process abstractions implemented in \graphene{}, coordinated state, and implementation strategies.}
-\label{tab:graphene:multiproc}
+\label{tab:libos:multiproc}
 \end{table}
-\end{comment}
+
 
 %% Outline
 
