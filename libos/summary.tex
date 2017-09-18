@@ -1,6 +1,35 @@
 \section{Summary}
 
+This chapter demonstrates the implementation of a \libos{}, or \thelibos{}, with a rich of Linux APIs and abstractions.
+Using \thehostabi{},
+\thelibos{} faithfully reproduces the behavior of a Linux kernel,
+for both single-process and multi-process applications.
+In each process of an application,
+a \thelibos{} instance serves as an intermediate layer
+between the application and the host,
+to manage and allocate host abstractions for a wide range of \libos{} abstractions.
+This thesis argues for the sufficiency of Linux APIs and abstractions
+supported by \thelibos{},
+based on the types of applications that are more likely to be ported across host platforms and the abstractions that these applications depend on.
 
 
+The implementation of \thelibos{} achieves three primary goals.
+First, the \thelibos{} implementation satisfies
+several resource management models and requirement, without duplicating or virtualizing the low-level components from the host OS or hypervisor.
+Although \thehostabi{} has encapsulated the host resources,
+such as pages, CPUs, and I/O devices,
+\thelibos{} introduces reasonable emulation and buffering to achieve the resource management model expected by the applications.
+Second, \thelibos{} extends a single-process implementation
+to multiple \picoprocs{},
+with multiple \thelibos{} instances coordinating with each other to present a single OS view.
+To maximize the flexibility of placing the \picoprocs{}
+on different hosts,
+\thelibos{} builds a coordination framework upon RPC messaging instead of shared memory.
+Third, \thelibos{} identifies the performance overheads
+caused by coordinating over RPC, 
+and designs several strategies of optimizing the coordination framework
+based on lessons learned during the development of \graphene{}.
 
 
+This chapter shows that, with reasonable amount of engineering effort,
+a \libos{} can be developed upon the previously-defined host ABI, with an extensive coverage of the Linux APIs and abstractions, and plenty of opportunities for reducing the performance overheads to an acceptable realm.
