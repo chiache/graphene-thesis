@@ -325,35 +325,54 @@ in the directory cache to find any directory entries
 that matches with the given path.
 If a directory entry is already created for a path, \thelibos{} can bypass the file system operations of querying the paths
 in the host file systems or other storage media.
+Since the directory cache in \thelibos{} only caches paths searched
+by the local process,
+\thelibos{} is likely to need less memory space
+for directory caching than a Linux kernel.
+The current implementation of \thelibos{} never shrinks the directory cache
+until the \picoproc{} is terminated.
+Shrinking or freeing the directory cache space
+is a future work to \thelibos{}.
 
 
-The directory cache in \thelibos{} adopts several techniques for optimizing the latency of \linuxapis{}.
-First, the directory cache
-can confirm the existence of every parent directory
-of a canonical path
-found in the whole guest file system.
+The directory cache in \thelibos{} contains several optimizations for reducing the latency of file-searching \linuxapis{}.
+As one of the optimizations, the directory cache can confirm the existence of every prefixes
+of a canonical path by using one \hostapi{}.
+Since \thelibos{} does not maintain the mapping between
+each level of directory and the corresponding inode,
+\thelibos{} simply needs to query the existence of each directory.
+When an application asks for a path
+and the path is not yet cached in the directory cache,
+\thelibos{} only calls \palcall{StreamAttrQuery} once
+to check the existence
+of the whole path, and uses the result to infer the existence of every parent directories.
 For example, if \thelibos{} successfully opens a file at \code{/home/foo/bar},
-\thelibos{} knows for sure that both \code{/home}
-and \code{/home/foo} exist in the guest file system tree,
-without doing any extra file system lookups.
+\thelibos{} knows for sure that both \code{/home} and \code{/home/foo} exist in the file system.
+%without further confirmation.
 %like \palcall{StreamAttributesQuery}. 
-By reducing the amount of file system lookups for searching each path
-from multiple to exactly one,
-the directory cache reduces the overhead of a cache miss,
-especially since each directory cache
-only caches directory information for one single application.
-Second, to look up a path inside the directory cache,
-\thelibos{} can use a fast-path algorithm which searches the whole canonical path
-instead of each path prefixes~\cite{tsai15dcache}.
-For example, in order to search \code{/home/foo/bar} in the directory cache,
-a traditional design will have to search
-\code{/home}, \code{/home/foo}, and then \code{/home/foo/bar}.
-Using the fast-path algorithm,
-\thelibos{} can directly search the whole path without walking through each parent directories.
-Finally, the directory cache aggressively stores {\em negative} directory entries
-for the paths known to be non-existent.
-Whenever an application has unlinked or moved a file, \thelibos{} caches the information that the original path no longer exists,
-by creating a negative directory entry.
+By reducing the amount of file system lookups for confirming path existence,
+\thelibos{} reduces the number of \hostapis{}
+for searching in a chroot file system or a guest-level file system.
+
+
+
+\thelibos{} also applies several optimizations of Tsai et al., 2015~\cite{tsai15dcache}, to improve the latency and frequency of cache hits
+in the directory cache.
+First, when searching a path inside the directory cache,
+\thelibos{} uses an optimized algorithm to look up the canonicalized path all at once,
+instead of iteratively searching each path components.
+The optimized algorithm speeds up searching \code{/home/foo/bar},
+from looking up
+\code{/home}, \code{/home/foo}, and \code{/home/foo/bar} in the directory cache,
+to directly searching
+an universal hash of the whole path.
+The optimization is based on the insight that \thelibos{}
+has delegated the permission checks on each parent directory to the host OS.
+Another optimization
+is to aggressively create {\em negative} directory entries
+for paths that are known to be non-existent.
+Whenever an application has unlinked or moved a file,
+a negative directory entry can be created inside the directory cache, to prevent future \linuxapis{} from calling \palcall{StreamAttrQuery} to query the existence of the path.
 
 
 
