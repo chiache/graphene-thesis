@@ -72,9 +72,14 @@ to signal one or multiple threads blocking for the memory update.
 \syscall{futex} 
 allows atomically checking the state of a critical variable
 and switching the current thread to the blocking state if the critical variable is not updated yet.
-Therefore, \syscall{futex} has been the foundation of different synchronization primitives in \libpthread{}.
+Using \syscall{futex}, \libpthread{} can implement various types of synchronization primitives;
+for example, a two-phase mutex implementation~\fixme{cite the mutex with futex paper}
+uses \syscall{futex} to block a thread until an integer variable is set to zero.
 
 
-
+To implement \syscall{futex}, \thelibos{} creates a host synchronization event using \palcall{SynchronizationEventCreate} in \thehostabi{}.
+Whenever a \syscall{futex} call checks a new word-aligned memory address for blocking, \thelibos{} creates a host event and a wait queue to be mapped to the memory address.
+While a waiting \syscall{futex} call blocks on a host event,
+another signaling \syscall{futex} call can wake up as many blocking threads in the wait queueue as it wants, using \palcall{EventSet} in \thehostabi{}.
 
 
