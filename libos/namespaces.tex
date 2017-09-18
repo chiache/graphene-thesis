@@ -503,23 +503,38 @@ from file descriptors to the child \picoproc{} who owns the state of the file de
 Every updates to a seek pointer must goes through the owner of the file descriptor (not the leader).
 The migration-based optimization for System V IPC message queues and semaphores is also effective for optimizing the performance of shared file descriptors. 
 
-\paragraph{File system states.} 
-In some cases file system states need to be shared across \picoprocs{},
-but the host ABI cannot export the result of Linux-specific behaviors.
-For example, Linux allows user to perform specialized operations on file system
-such as opening a FIFO, binding a domain socket, creating a symbolic link,
-or atomically locking a file.
-Coordinating these states can be cause significant slowdown on regular file system operations, so we simply export the state in regular files on the host,
- and atomically update them by renaming.
+\paragraph{Shared file system states.}
+A chroot file system in \thelibos{}
+is restricted by \thehostabi{} to externalize any file system states.
+Other shared file system states are implemented as \libos{} abstractions, and have to be coordinated among \picoprocs{}.
+For example, a POSIX file system can contain special files such as a FIFO (first-in-first-out); a path bound to a UNIX domain socket;
+a symbolic link; or a file system lock.
+Implementation of these special files cannot
+completely depend on \thehostabi{},
+since the abstractions of \thehostabi{} contains only regular files and directories.
 
-\paragraph{System V IPC shared memory.} The \graphene{} architecture 
+%Coordinating these states can be cause significant slowdown on regular file system operations, so we simply export the state in regular files on the host,
+% and atomically update them by renaming.
+
+A simple approach to coordinating file system states is to share a ``dummy'' host file.
+For example,  \thelibos{} can store the target of a symbolic link
+in a regular file on the chroot file system.
+For a FIFO, a bounded UNIX domain socket, or a file system lock,
+\thelibos{} can store a mapping to the corresponding RPC stream, or to the \picoproc{} which owns the abstraction.
+By using the host file system as a less efficient but permanent coordination medium,
+\thelibos{} can extend the coordination framework for sharing file system states.
+
+
+
+\paragraph{Shared memory.} The \graphene{} architecture 
 does not currently permit shared memory among \picoprocs{}.
-We expect that a host ABI and existing support for coordinating System V IDs would be sufficient to implement this,
+This thesis expects that an extra \hostapi{} and the existing support for System V IPC coordination would be sufficient to implement this,
 with the caveat that the host must be able to handle sandbox disconnection gracefully, perhaps converting the pages to copy-on-write.
-Thus far we have avoided the use of shared memory in the {\tt libLinux} implementation, both to maximize flexibility in placement of \picoprocs{}, potentially on different physical machines,
-and as a rough mechanism to keep all coordination requests explicit.
-%As discussed with semaphores, shared memory may also be useful to reduce latency for RPCs among picoproceses when 
-%all \picoprocs{} are on the same host.
+Thus far \graphene{} have avoided the use of shared memory in \thelibos{},
+both to maximize flexibility in placement of \picoprocs{}, potentially on an unconventional host (e.g., Intel SGX) or different physical machines.
+and to keep all coordination requests explicit.
+Shared memory may also be useful to reduce latency for RPC messaging among \picoprocs{} when 
+all \picoprocs{} are on the same host.
 
 
 %in \graphene{} are implemented by a simple producer-consumer model.
@@ -537,38 +552,42 @@ and as a rough mechanism to keep all coordination requests explicit.
 
 
 \paragraph{Failure and disconnection tolerance.}  
-\graphene{} is designed to tolerate disconnection of collaborating \libos{} instances,
-either because of crashes or blocked RPCs.  In general, \graphene{} makes 
+\thelibos{} must tolerate disconnection between collaborating \picoprocs{},
+either because of crashes or blocked RPC streams.  In general, \thelibos{} makes 
 these disconnections isomorphic to a reasonable application behavior,
 although there may be some edge cases that cannot be made completely transparent to the application.
 
-In the absence of crashes, placing shared state in a given \picoproc{} introduces the risk that an errant 
+In the absence of crash recovery, placing shared state in a given \picoproc{} introduces the risk that an errant 
 application will corrupt shared \libos{} state.  The \microkernel{} approach of 
 moving all shared state into a separate server process is more resilient to this problem.
-Anecdotally, \graphene{}'s performance optimization of migrating ownership to the process that 
+Anecdotally, \thelibos{}'s performance optimization of migrating ownership to the process that 
 most heavily uses a given shared abstraction also improves the likelihood that only the corrupted
 process will be affected.  
-Making \graphene{} resilient to arbitrary memory corruption of any \picoproc{} is left for future work.
+Making each \thelibos{} instance resilient to arbitrary memory corruption of any \picoproc{} is left for future work.
 
 
 \paragraph{Leader recovery.}
-\graphene{} provides a leadership recovery mechanism when a leader failure is detected.
+\thelibos{} provides a leadership recovery mechanism when a leader failure is detected.
 A non-leader \picoproc{} can detect the failure of a leader by either observing the shutdown of RPC streams or timing out on waiting for responses. 
-Once the \picoproc{} detects leader failure, it sends out a message on the broadcast stream to volunteer for leadership.
-After a few rounds of competition, the winning \picoproc{} becomes the new leader and recover the namespace state by recollecting from every other \picoproc{} in the sandbox.
+Once the \picoproc{} detects leader failure, \thelibos{} sends out a message on the broadcast stream to volunteer for claiming the leadership.
+After a few rounds of competition, the winning \picoproc{} becomes the new leader and recover the namespace state by reading a namespace snapshot stored before the crash of the former leader
+or recollecting from other \picoprocs{} in the same sandbox.
 
-After a \picoproc{} being elected as the leader,
-the leader state,
-including all the allocated IDs and the RPC stream addresses,
-must be recovered. 
-Recollecting the leader state from all the \picoprocs{} is possible
-but can be inefficient,
-given the new leader may not have knowledge about every \picoproc{}.
-To simplify the implementation,
-we make the leaders of a namespace periodically serialize their states to disk for later recovery.
+%After a \picoproc{} being elected as the leader,
+%the leader state,
+%including all the allocated IDs and the RPC stream addresses,
+%must be recovered. 
+%Recollecting the leader state from all the \picoprocs{} is possible
+%but can be inefficient,
+%given the new leader may not have knowledge about every \picoproc{}.
+%To simplify the implementation,
+%we make the leaders of a namespace periodically serialize their states to disk for later recovery.
 
-When a \picoproc{} is sandboxed, it will detect the failure of leader because all of its RPC streams are closed by the reference monitor.
-Once it starts the leadership recovery, it will automatically win because no other \picoproc{} is sharing the broadcast stream. The procedure can be skipped by informing the sandboxed \picoproc{} before detaching.
+When a \picoproc{} is moved to a new sandbox, \thelibos{} will naturally detect the failure of leader because of blocked RPC. % streams are closed by the reference monitor.
+The sandboxed \picoproc{} will be the only candidate for leadership because the host has replaced the broadcast stream;
+as a result, the sandboxed \picoproc{} seamlessly transitions to new namespaces isolated from the previous sandbox.
+
+%Once it starts the leadership recovery, it will automatically win because no other \picoproc{} is sharing the broadcast stream. The procedure can be skipped by informing the sandboxed \picoproc{} before detaching.
 
 \subsection{Lessons learned}
 \label{sec:libos:namespaces:lessons}
