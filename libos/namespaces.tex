@@ -443,8 +443,8 @@ which must read queue contents synchronously.
 Because non-concurrent processes can share a message queue,
 our implementation also uses a common file naming scheme to serialize message queues to disk.
 If a \picoproc{} which owns a message queue exits, 
-any pending messages are serialized to a file,
-and the receiving process may regain the ownership of the message queue from the leader.
+any pending messages are serialized to a file in the host,
+and the receiving process may regain the ownership of the message queue later from the leader and recover the serialized messages.
 %In order to prevent happens-before violations in case of failure, 
 %message queues may be checkpointed more aggressively.
 
@@ -460,32 +460,50 @@ and the receiving process may regain the ownership of the message queue from the
 
 %\daniela{I wonder if the remainder of this section should be part of implementation details(section 5)}
 
-\paragraph{System V IPC Semaphores.} System V IPC semaphores 
-follow a similar pattern to message queues, where ownership of a given semaphore is migrated
+\paragraph{System V IPC semaphores.} System V IPC semaphores 
+follow a similar pattern to message queues.
+Each semaphore is owned by a \picoproc{};
+a semaphore can be directly accessed by its owner as a local state,
+whereas other \picoprocs{} all have to access the semaphore through the owner over RPC.
+Since a semaphore shares the same performance pattern as a message queue,
+\thelibos{} applies the same optimization
+of migrating the ownership of a semaphore
+%, where ownership of a given semaphore is migrated
 to the \picoproc{} that most frequently acquires the semaphore.
 %If the owner of a semaphore exits, \graphene{} transfers ownership to the leader.  rather than serialize the semaphore to disk.
+Another optimization of message queues, by making the updates asynchronous,
+does not apply to semaphores,
+because a participating \picoproc{} cannot proceed before successfully acquiring the semaphore. 
 Most of the overhead in the Apache benchmark (see Section~\ref{sec:eval:graphene}) is attributable to semaphore overheads.
 %and, in ongoing work, we will likely optimize this by 
 %either expanding the host ABI to share synchronization primitives within a sandbox,
 %using shared memory to reduce semaphore latency.
 
-\paragraph{Shared File Descriptors.} 
-Open handle descriptors in the \graphene{} host ABI do not include a seek pointer; 
-Unix-style seek behavior is implemented in the library OS.
-The default Linux behavior is that children copy the open handles and file seek cursors,
-but subsequent cursor movements are not shared between parent and child.
-Shared file descriptor table can be requested by passing the {\tt CLONE\_FILES} flag to the {\tt clone} system call.
-Any new file descriptor opened in a shared table will be visible by every process cloned in this way, as well as subsequent cursor update.
+\paragraph{Shared file descriptors.}
+The seek pointer of each file descriptor is implemented as a \libos{} abstraction;
+when reading or writing to a host file,
+\thehostabi{} always obtains an absolute pointer from the beginning of the file.
+Although most applications
+do not share the seek pointer of an inherited file descriptor among processes,
+the {\tt clone} system call
+can can be called with the {\tt CLONE\_FILES} flag
+and create a process
+which shares the whole file descriptor table with its parent.
+%The default Linux behavior is that children copy the open handles and file seek cursors,
+%but subsequent cursor movements are not shared between parent and child.
+%Shared file descriptor table can be requested by passing the {\tt CLONE\_FILES} flag to the {\tt clone} system call.
+%Any new file descriptor opened in a shared table will be visible by every process cloned in this way, as well as subsequent cursor update.
 %None of our target applications have required a shared seek cursor, and it is not currently implemented,
 %but would be a straightforward extension to current RPC mechanisms.
 %We expect that the current RPC mechanisms could easily be extended to synchronize a seek pointer among \picoprocs{}.
-If multiple \picoprocs{} are sharing file descriptor table,
-the oldest one will coordinate the mapping of each file descriptor to the child \picoproc{} who owns the seek pointer.
-Every update to the seek pointer will require coordination
-if the \picoproc{} isn't owning it,
-and similar optimization using migration can be applied here. 
+To share a file descriptor table among \picoprocs{},
+one of \picoprocs{} (usually the oldest one)
+must be the leader of the file descriptor table to manage all mappings
+from file descriptors to the child \picoproc{} who owns the state of the file descriptors including the seek pointers.
+Every updates to a seek pointer must goes through the owner of the file descriptor (not the leader).
+The migration-based optimization for System V IPC message queues and semaphores is also effective for optimizing the performance of shared file descriptors. 
 
-\paragraph{File System States.} 
+\paragraph{File system states.} 
 In some cases file system states need to be shared across \picoprocs{},
 but the host ABI cannot export the result of Linux-specific behaviors.
 For example, Linux allows user to perform specialized operations on file system
@@ -494,7 +512,7 @@ or atomically locking a file.
 Coordinating these states can be cause significant slowdown on regular file system operations, so we simply export the state in regular files on the host,
  and atomically update them by renaming.
 
-\paragraph{Shared Memory.} The \graphene{} host ABI 
+\paragraph{System V IPC shared memory.} The \graphene{} architecture 
 does not currently permit shared memory among \picoprocs{}.
 We expect that a host ABI and existing support for coordinating System V IDs would be sufficient to implement this,
 with the caveat that the host must be able to handle sandbox disconnection gracefully, perhaps converting the pages to copy-on-write.
@@ -516,15 +534,9 @@ and as a rough mechanism to keep all coordination requests explicit.
 %%% IPC semaphores are intensively used in Apache web servers with a multi-process model. 
 
  
-\begin{comment}
-\paragraph{Limitations.} At the time of submission,
-\graphene{} does not recover from all cases where a leader \picoproc{} crashes.
-Our current prototype requires the IPC helper thread in the leader to remain 
-in the sandbox and respond to messages even if its process {\tt main} routine has completed,
-and the evaluation data reflects this state.
-\end{comment}
 
-\paragraph{Failure and Disconnection Tolerance.}  
+
+\paragraph{Failure and disconnection tolerance.}  
 \graphene{} is designed to tolerate disconnection of collaborating \libos{} instances,
 either because of crashes or blocked RPCs.  In general, \graphene{} makes 
 these disconnections isomorphic to a reasonable application behavior,
@@ -539,24 +551,24 @@ process will be affected.
 Making \graphene{} resilient to arbitrary memory corruption of any \picoproc{} is left for future work.
 
 
-\paragraph{Leader Recovery.}
+\paragraph{Leader recovery.}
 \graphene{} provides a leadership recovery mechanism when a leader failure is detected.
 A non-leader \picoproc{} can detect the failure of a leader by either observing the shutdown of RPC streams or timing out on waiting for responses. 
 Once the \picoproc{} detects leader failure, it sends out a message on the broadcast stream to volunteer for leadership.
 After a few rounds of competition, the winning \picoproc{} becomes the new leader and recover the namespace state by recollecting from every other \picoproc{} in the sandbox.
 
-%After a \picoproc{} being elected as the leader,
-%the leader state,
-%including all the allocated IDs and the RPC stream addresses,
-%must be recovered. 
-%Recollecting the leader state from all the \picoprocs{} is possible
-%but can be inefficient,
-%given the new leader may not have knowledge about every \picoproc{}.
-%To simplify the implementation,
-%we make the leaders of a namespace periodically serialize their states to disk for later recovery.
+After a \picoproc{} being elected as the leader,
+the leader state,
+including all the allocated IDs and the RPC stream addresses,
+must be recovered. 
+Recollecting the leader state from all the \picoprocs{} is possible
+but can be inefficient,
+given the new leader may not have knowledge about every \picoproc{}.
+To simplify the implementation,
+we make the leaders of a namespace periodically serialize their states to disk for later recovery.
 
-%When a \picoproc{} is sandboxed, it will detect the failure of leader because all of its RPC streams are closed by the reference monitor.
-%Once it starts the leadership recovery, it will automatically win because no other \picoproc{} is sharing the broadcast stream. The procedure can be skipped by informing the sandboxed \picoproc{} before detaching.
+When a \picoproc{} is sandboxed, it will detect the failure of leader because all of its RPC streams are closed by the reference monitor.
+Once it starts the leadership recovery, it will automatically win because no other \picoproc{} is sharing the broadcast stream. The procedure can be skipped by informing the sandboxed \picoproc{} before detaching.
 
 \subsection{Lessons learned}
 \label{sec:libos:namespaces:lessons}
