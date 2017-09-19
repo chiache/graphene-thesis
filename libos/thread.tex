@@ -60,21 +60,25 @@ to set the FS segment register
 in the implementation of \syscall{arch\_prctl} and \syscall{clone}.
 
 
-Besides creation of pthreads, \libpthread{} contains a collection of synchronization primitives,
-including mutexes, semaphores, conditional variables, and barriers.
-On Linux, \libpthread{} implements all the synchronization primitives based on one single \syscall{futex} \linuxapi{}.
-\syscall{futex} supports various synchronization operations and two primary types of operations are waiting (\code{FUTEX\_WAIT}) and signaling (\code{FUTEX\_WAKE}).
-\code{FUTEX\_WAIT}
+Besides creation of pthreads, \libpthread{} also provides a collection of synchronization primitives, including mutexes, semaphores, read-write locks, conditional variables, and barriers.
+\libpthread{} implements all these synchronization primitives based on futexes (accessed by Linux's \syscall{futex} \linuxapi{}). %one single \syscall{futex} \linuxapi{}.
+A futex is a blocking and notification mechanism
+supported by a Linux kernel.
+The primary types of operations on a futex: 
+%\syscall{futex} supports various synchronization operations and two primary types of operations are 
+waiting (\code{FUTEX\_WAIT}) and signaling (\code{FUTEX\_WAKE}).
+The \code{FUTEX\_WAIT} operation
 blocks a thread until another thread updates a memory address
 and signals the blocking thread.
-\code{FUTEX\_WAKE} then allows a thread
+The \code{FUTEX\_WAKE} operation then allows a thread
 to signal one or multiple threads blocking for the memory update.
-\syscall{futex} 
-allows atomically checking the state of a critical variable
-and switching the current thread to the blocking state if the critical variable is not updated yet.
-Using \syscall{futex}, \libpthread{} can implement various types of synchronization primitives;
-for example, a two-phase mutex implementation~\fixme{cite the mutex with futex paper}
-uses \syscall{futex} to block a thread until an integer variable is set to zero.
+Futexes provide a basic locking mechanism
+by combining two operations: checking a variable, and blocking until
+another thread updates the variable.
+Frank et al., 2002~\cite{franke02futex} has shown the versatility of futexes
+to implementing user-level synchronization primitives. The same technique drives the implementation of synchronization primitives in \libpthread{}.
+%for example, a two-phase mutex implementation~\fixme{cite the mutex with futex paper}
+%uses \syscall{futex} to block a thread until an integer variable is set to zero.
 
 
 To implement \syscall{futex}, \thelibos{} creates a host synchronization event using \palcall{SynchronizationEventCreate} in \thehostabi{}.
