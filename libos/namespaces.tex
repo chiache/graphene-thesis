@@ -628,12 +628,12 @@ must figure out whether the process id exists, to which \picoproc{} it maps,
 and establish a point-to-point stream to the \picoproc{}.
 If they exchange a second signal, the mapping is cached and reused, amortizing this 
 setup cost.  For instance, the first signal a process sends to a new processes
-takes \~{}2ms, but subsequent signals take only \~{}55 \us{}.
+takes \~{}2ms, but subsequent signals take only \roughly{}55 \us{}.
 
 \paragraph{Batched allocation of names minimizes leader workload.}
 In order to keep the leader off of the critical path of operations like {\tt fork}, 
 the leader typically allocates larger blocks of names, such as process IDs or System V queue IDs.
-In the case of {\tt fork}, if a \picoproc{} creates a child, it will request a batch of 
+In the case of \syscall{fork}, if a \picoproc{} creates a child, it will request a batch of 
 PIDs from the leader (50 by default).  Subsequent child PID allocations will be made from the same 
 batch without consulting the leader.
 Collaborating processes also cache the owner of a range of PIDs, avoiding 
@@ -651,7 +651,7 @@ Instead, we adopt a design where one \picoproc{} is authoritative for a given na
 For instance, all possible thread IDs are divided among the collaborating \picoprocs{},
 and the authoritative \picoproc{} either responds to RPC requests for this thread ID (e.g., a signal)
 or indicates that the thread does not exist.
-This trade does make commands like {\tt ps} slower, 
+This trade does make commands like ``\code{ps}'' slower, 
 but optimizes more common patterns, such as waiting for a child to exit.
 
 \paragraph{Make RPCs asynchronous whenever possible.} 

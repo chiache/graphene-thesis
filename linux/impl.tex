@@ -15,9 +15,8 @@ On a Linux host,
 the majority of \hostapis{} can be implemented with simple wrappers
 for similar Linux \linuxapis{},
 adding on less than 100 lines of code on average for each \hostapi{}.
-The most complex \hostapis{} on a Linux host are the \hostapis{} for exception handling, synchronization, and picoprocess
-creation, each of which requires multiple \linuxapis{} and roughly 500--800 lines of code.
-For example, picoprocess creation (i.e., \palcall{ProcessCreate}) requires 
+The most complex \hostapis{} on a Linux host are for exception handling, synchronization, and process creation, and each of these \hostapis{} requires multiple \linuxapis{} and roughly 500--800 lines of code in PAL.
+For example, process creation (i.e., \palcall{ProcessCreate}) requires 
 both the \syscall{vfork} and \syscall{execve} \linuxapis{}
 for creating a clean
 application instance, and would be more efficiently
@@ -81,12 +80,13 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 
 The rest of this section
 will discuss a few \hostapis{} or host abstractions which are particularly challenging on a Linux host.
-Similar challenges have been present %have been observed for implementing \thehostabi{}
+Similar challenges have been presented %have been observed for implementing \thehostabi{}
 on other alternative host kernels such as FreeBSD, OS X, and Windows.
 %except that other kernels might introduce additional host-specific challenges.
 
 
 \paragraph{Bootstrapping a \picoproc{}.}
+
 
 
 \paragraph{RPC streams.}
