@@ -1,15 +1,57 @@
-\section{Implementing the Host ABI}
+\section{Implementing \thehostabi{}}
 \label{sec:linux:impl}
 
-\issue{1.1.a}{extend the technical sections}
-The majority of \pal{} calls are simple wrappers for similar Linux system calls, 
-adding less than 100 LoC on average for translation between \pal{} and Linux abstractions.
-The largest \pal{} calls are for exception handling, synchronization, and picoprocess
-creation, which require multiple system calls and range from 500--800 LoC each.
-Creating a new picoprocesses internally requires a {\tt vfork} and {\tt exec} of a clean 
-application instance, and would be more efficiently implemented in the kernel.
+\issuedone{1.1.a}{extend the technical sections}
+The initial design of the Linux PAL is based on an unmodified Linux kernel.
+By default, a \graphene{} \picoproc{} should run upon
+an off-the-shelf Linux kernel as an unprivileged, normal process, with a PAL loaded inside the process for export \thehostabi{}.
+The Linux PAL demonstrates a minimal effort of implementing \thehostabi{}
+on a single host, considering Linux is rich with APIs for programming all sorts of applications.
+Only two \graphene{} components on the host requires extension or modification of the Linux kernel: a bulk IPC kernel module and a trusted reference monitor.
+
+
+
+On a Linux host,
+the majority of \hostapis{} can be implemented with simple wrappers
+for similar Linux \linuxapis{},
+adding on less than 100 lines of code on average for each \hostapi{}.
+The most complex \hostapis{} on a Linux host are the \hostapis{} for exception handling, synchronization, and picoprocess
+creation, each of which requires multiple \linuxapis{} and roughly 500--800 lines of code.
+For example, picoprocess creation (i.e., \palcall{ProcessCreate}) requires 
+both the \syscall{vfork} and \syscall{execve} \linuxapis{}
+for creating a clean
+application instance, and can potentially be more efficiently
+implemented inside the Linux kernel.
 Finally, the other major \pal{} components are an ELF loader (2 kLoC), headers (800 LoC),
 and internal support code (2.3 kLoC).
+Table~\ref{tab:libos:loc} lists the lines of code of each components of the \graphene{} architecture on a Linux host.
+
+
+\begin{table}[t!b!]
+\footnotesize
+\centering
+\begin{tabular}{|l|rr|}
+\hline
+{\bf Component} & {\bf Lines} & ({\bf \% Changed})\\
+\hline
+GNU Library C ({\tt libc}, {\tt ld}, {\tt libdl}, {\tt libpthread}) & \libclines{} & $0.07\%$ \\
+\hline
+Linux Library OS ({\tt libLinux}) & 31,112 & \\
+Linux host \pal{} & 11,644 & \\
+%Extra code for Linux SGX host \pal{} & 9.354 & \\
+% updated by Chia-Che on Oct. 10, 2013
+\hline
+%Storage Server & \fixmedp{XX} & \\
+Reference monitor bootstrapper & \reflines{} & \\
+Linux kernel reference monitor module ({\tt /dev/graphene}) & \sandboxmodlines{} & \\
+Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
+\hline
+\end{tabular}
+\caption[Lines of code written or changed in \graphene{}]
+{Lines of code written or changed to develop the whole \graphene{} architecture on a Linux hosts.  The application and other dynamically-loaded libraries are unmodified.}
+\label{tab:libos:loc}
+\end{table}
+
 
 %\paragraph{Alternative \pal{} Ports.}
 %We prove the platform independence of \graphene{}
@@ -25,30 +67,7 @@ and internal support code (2.3 kLoC).
 %\fix{We leave host \pal{} ports to non-unix OSes like Windows as future work,
 %but previous works~\cite{porter11drawbridge,baumann13bascule} have already shown it feasible.}
 
-\begin{table}[t!b!]
-\footnotesize
-\centering
-\begin{tabular}{|l|rr|}
-\hline
-{\bf Component} & {\bf Lines} & ({\bf \% Changed})\\
-\hline
-GNU Library C ({\tt libc}, {\tt ld}, {\tt libdl}, {\tt libpthread}) & \libclines{} & $0.07\%$ \\
-\hline
-Linux Library OS ({\tt libLinux}) & 31,112 & \\
-Linux host \pal{} & 11,644 & \\
-Extra code for Linux SGX host \pal{} & 9.354 & \\
-% updated by Chia-Che on Oct. 10, 2013
-\hline
-%Storage Server & \fixmedp{XX} & \\
-Reference monitor bootstrapper & \reflines{} & \\
-Linux kernel reference monitor module ({\tt /dev/graphene}) & \sandboxmodlines{} & \\
-Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
-\hline
-\end{tabular}
-\caption[Lines of code written or changed in \graphene{}]
-{Lines of code written or changed to produce \graphene{}.  Applications and other libraries are unchanged.}
-\label{tab:graphene:loc}
-\end{table}
+
 
 
 %% * most calls are a wrapper, \fixmedp{XX} LoC on average.
@@ -58,6 +77,21 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 
 %\fixmedp{Chia-Che, update LoC table}
 
+
+The rest of section
+will discuss a few \hostapis{} or host abstractions which are particularly challenging on a Linux host.
+Similar challenges are observed %have been observed for implementing \thehostabi{}
+on other alternative kernels such as FreeBSD, OSX, and Windows.
+%except that other kernels might introduce additional host-specific challenges.
+
+
+\paragraph{Dynamic loading.}
+
+
+\paragraph{RPC streams.}
+
+
+\paragraph{Exception handling.}
 
 
 \paragraph{Synchronization.} Perhaps surprisingly, implementing Linux
@@ -70,6 +104,11 @@ which are essentially kernel-level wait queues.
 %In Windows parlance, this is simply an Event associated with a virtual address.
 %Thus, our effort implementing synchronization was relatively straightforward.
 
-%\input{host}
+
+\paragraph{Picoprocess creation.}
+
+
+
+\paragraph{Bulk IPC.}
 
 
