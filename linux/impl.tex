@@ -20,10 +20,11 @@ creation, each of which requires multiple \linuxapis{} and roughly 500--800 line
 For example, picoprocess creation (i.e., \palcall{ProcessCreate}) requires 
 both the \syscall{vfork} and \syscall{execve} \linuxapis{}
 for creating a clean
-application instance, and can potentially be more efficiently
+application instance, and would be more efficiently
 implemented inside the Linux kernel.
-Finally, the other major \pal{} components are an ELF loader (2 kLoC), headers (800 LoC),
-and internal support code (2.3 kLoC).
+Finally, the other major \pal{} components are an ELF dynamic loader (2 kLoC),
+Linux kernel headers (800 LoC),
+and internal support code providing functions like \funcname{malloc} and \funcname{memcpy} (2.3 kLoC).
 Table~\ref{tab:libos:loc} lists the lines of code of each components of the \graphene{} architecture on a Linux host.
 
 
@@ -78,10 +79,10 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 %\fixmedp{Chia-Che, update LoC table}
 
 
-The rest of section
+The rest of this section
 will discuss a few \hostapis{} or host abstractions which are particularly challenging on a Linux host.
-Similar challenges are observed %have been observed for implementing \thehostabi{}
-on other alternative kernels such as FreeBSD, OSX, and Windows.
+Similar challenges have been present %have been observed for implementing \thehostabi{}
+on other alternative host kernels such as FreeBSD, OS X, and Windows.
 %except that other kernels might introduce additional host-specific challenges.
 
 
