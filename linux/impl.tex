@@ -4,7 +4,7 @@
 \issuedone{1.1.a}{extend the technical sections}
 The initial design of the Linux PAL is based on an unmodified Linux kernel.
 By default, a \graphene{} \picoproc{} should run upon
-an off-the-shelf Linux kernel as an unprivileged, normal process, with a PAL loaded inside the process for export \thehostabi{}.
+an off-the-shelf Linux kernel as an unprivileged, normal process, with a PAL loaded for exporting \thehostabi{}.
 The Linux PAL demonstrates a minimal effort of implementing \thehostabi{}
 on a single host, considering Linux is rich with APIs for programming all sorts of applications.
 Only two \graphene{} components on the host requires extension or modification of the Linux kernel: a bulk IPC kernel module and a trusted reference monitor.
@@ -14,17 +14,35 @@ Only two \graphene{} components on the host requires extension or modification o
 On a Linux host,
 the majority of \hostapis{} can be implemented with simple wrappers
 for similar Linux \linuxapis{},
-adding on less than 100 lines of code on average for each \hostapi{}.
-The most complex \hostapis{} on a Linux host are for exception handling, synchronization, and process creation, and each of these \hostapis{} requires multiple \linuxapis{} and roughly 500--800 lines of code in PAL.
+adding on less than 100 LoC on average for each \hostapi{}.
+The most complex \hostapis{} on a Linux host are for exception handling, synchronization, and process creation, and each of these \hostapis{} requires multiple \linuxapis{} and roughly 500--800 LoC in PAL.
 For example, process creation (i.e., \palcall{ProcessCreate}) requires 
 both the \syscall{vfork} and \syscall{execve} \linuxapis{}
 for creating a clean
 application instance, and would be more efficiently
 implemented inside the Linux kernel.
-Finally, the other major \pal{} components are an ELF dynamic loader (2 kLoC),
-Linux kernel headers (800 LoC),
+Finally, the other major \pal{} components are an ELF loader (2 kLoC),
+Linux kernel and PAL headers (800 LoC),
 and internal support code providing functions like \funcname{malloc} and \funcname{memcpy} (2.3 kLoC).
 Table~\ref{tab:libos:loc} lists the lines of code of each components of the \graphene{} architecture on a Linux host.
+
+
+Using the Linux PAL as an example, a PAL developer can estimate the baseline of development effort for porting \thehostabi{} to a new host.
+About half of the Linux PAL code turns out to be
+generic to different hosts
+and fully reusable in different PALs.
+The generic PAL components include
+the ELF loader, PAL headers, and internal support code, adding up to \roughly{}6,000 LoC.
+The rest of the Linux PAL are primarily
+wrappers for
+Linux \linuxapis{};
+the major effort for porting \thehostabi{} would be to swap the Linux \linuxapis{}
+with any APIs available on the target host.
+A PAL developer can expect the implementation of most \hostapis{}
+to be fairly straightforward using similar UNIX-style APIs or even the POSIX API.
+
+
+
 
 
 \begin{table}[t!b!]
@@ -36,8 +54,8 @@ Table~\ref{tab:libos:loc} lists the lines of code of each components of the \gra
 \hline
 GNU Library C ({\tt libc}, {\tt ld}, {\tt libdl}, {\tt libpthread}) & \libclines{} & $0.07\%$ \\
 \hline
-Linux Library OS ({\tt libLinux}) & 31,112 & \\
-Linux host \pal{} & 11,644 & \\
+Linux Library OS (\thelibos{}) & 31,112 & \\
+Linux PAL & 12,529 & \\
 %Extra code for Linux SGX host \pal{} & 9.354 & \\
 % updated by Chia-Che on Oct. 10, 2013
 \hline
