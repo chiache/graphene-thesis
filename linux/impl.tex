@@ -27,21 +27,20 @@ and internal support code providing functions like \funcname{malloc} and \funcna
 Table~\ref{tab:libos:loc} lists the lines of code of each components of the \graphene{} architecture on a Linux host.
 
 
-Using the Linux PAL as an example, a PAL developer can estimate the baseline of development effort for porting \thehostabi{} to a new host.
+A PAL developer can use the Linux PAL as a baseline of \thehostabi{} development effort on a full-featured host OS .
 About half of the Linux PAL code turns out to be
-generic to different hosts
-and fully reusable in different PALs.
-The generic PAL components include
+mostly generic to every host OSes
+and thus fully reusable for each PAL.
+The generic parts include
 the ELF loader, PAL headers, and internal support code, adding up to \roughly{}6,000 LoC.
 The rest of the Linux PAL are primarily
 wrappers for
-Linux \linuxapis{};
-the major effort for porting \thehostabi{} would be to swap the Linux \linuxapis{}
-with any APIs available on the target host.
-A PAL developer can expect the implementation of most \hostapis{}
-to be fairly straightforward by swapping the Linux \linuxapi{} with similar UNIX-style APIs or even POSIX APIs.
-For example, the FreeBSD PAL has reused most of the Linux PAL code,
-except for implementing a different system call convention.
+Linux \linuxapis{},
+and major effort of porting this part would be to replace the Linux \linuxapis{}
+with the target host APIs.
+If the host OS has exported a UNIX or POSIX-like API,
+porting the host-dependent code is mostly straightforward.
+For example, as a follow-up exercise, the development of a FreeBSD PAL has recycled most of the Linux PAL code.
 
 
 
@@ -99,13 +98,25 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 
 
 The rest of this section
-will discuss a few \hostapis{} or host abstractions which are particularly challenging on a Linux host.
+will discuss a few PAL ABI abstractions that are particularly challenging on a Linux host.
 Similar challenges have been presented %have been observed for implementing \thehostabi{}
 on other alternative host kernels such as FreeBSD, OS X, and Windows.
 %except that other kernels might introduce additional host-specific challenges.
 
 
 \paragraph{Bootstrapping a \picoproc{}.}
+The Linux PAL works as a run-time loader to the \graphene{} \libos{}, or \thelibos{}. % and Linux applications.
+First, for the dynamic loading of \thelibos{},
+the Linux PAL contains an ELF loader, similar to the functionality of a \libc{} loader (\code{ld.so}),
+to map the \thelibos{} binary into a \picoproc{} and resolve the addresses of \hostapis{}.
+Second, the Linux PAL constructs a process control block (PCB),
+providing information
+about the \picoproc{} and the host platform.
+For example, a member of the PCB exposes the basic CPU information (e.g., model name and number of cores) to \thelibos{}, 
+for implementing the \code{cpuinfo} entry of the \code{proc} file system
+as a \libos{} abstraction.
+Finally,
+the Linux PAL populates the stack with program augments and environment variables from the command line, and starts the execution of \thelibos{}.
 
 
 
