@@ -1,4 +1,4 @@
-\section{Security Isolation}
+\section{Host-Level Security Isolation}
 \label{sec:linux:security}
 
 \issuedone{1.1.d}{describe the security isolation story for Linux hosts}
@@ -10,7 +10,7 @@ in a Linux host.
 
 
 
-\subsection{Isolating mutually untrusting applications}
+\subsection{Motivation and threat model}
 
 \graphene{} ensures that mutually untrusting applications 
 cannot interfere with each other, providing security isolation
@@ -86,8 +86,7 @@ When a process detaches from a sandbox --- effectively splitting the sandbox ---
 the reference monitor closes
 any byte streams that could bridge the two sandboxes.
 
-\subsection{Threat model}
-
+\paragraph{Threat models.}
 We assume  a trustworthy host OS and reference monitor,
 which mediates all system calls with effects outside of a picoprocess's address space,
 such as file {\tt open} or network socket {\tt bind} or {\tt connect}.
@@ -234,7 +233,7 @@ We hasten to note this feature is only for backward compatibility,
 not security. 
 
 
-\subsection{Sandboxing host resources}
+\subsection{Sandboxing untrusted applications}
 
 
 \begin{comment}
