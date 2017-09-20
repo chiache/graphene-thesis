@@ -138,6 +138,50 @@ for prioritizing the RPC throughput of sending large messages, particularly for 
 
 
 \paragraph{Exception handling.}
+The Linux PAL can receive hardware exceptions (e.g., memory faults, illegal instructions, divide-by-zero) from an application, \thelibos{}, or the PAL itself.
+A Linux kernel delivers all hardware exceptions to the Linux PAL
+as signals.
+If an exception is external to the Linux PAL (from an application or \thelibos{}),
+a registered signal handler of the Linux PAL simply calls
+a guest exception handler assigned by \thelibos{} using \palcall{ExceptionSetHandler}.
+The Linux PAL also creates an exception object, either \funcname{malloc}'ed or allocated from the stack,
+to pass the exception type and the interrupted context
+to the guest exception handler.
+Otherwise, if an exception happens internally,
+the Linux PAL cannot deliver the exception to the guest exception handler because \thelibos{} does not know how to recover from the exception (the execution inside the Linux PAL is transparent to \thelibos{}).
+Unless an exception
+happens during the initialization,
+it must be triggered inside a \hostapi{} made by \thelibos{} or the application.
+To recover from an internal exception,
+the Linux PAL stores a piece of recovery information on stack
+at the entry of each \hostapi{}.
+The PAL signal handler
+identifies the internal exception by comparing the faulting program counter
+to the mapping address of the Linux PAL,
+discovers the recovery information from the stack,
+rolls back the context,
+and finally returns as failed \hostapi{} to the caller.
+
+
+
+The PAL signal handler must avoid further triggering any hardware exceptions from the handler itself, or it can cause a double fault.
+\graphene{} ensures that the signal handler is carefully developed
+that the handler prevents any memory faults or other exceptions
+caused by either defects in the handler code or corrupted inputs from the guest.
+An unrecoverable case is stack corruption,
+since by default the Linux kernel needs to dump the signal number and the interrupted context on stack
+before calling the PAL signal handler.
+The Linux PAL can avoid this case by assigning an alternative stack,
+or simply kill the \picoproc{} when a double fault happens.
+
+
+
+
+
+
+
+ 
+
 
 
 \paragraph{Synchronization.} Perhaps surprisingly, implementing Linux
