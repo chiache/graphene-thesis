@@ -211,15 +211,41 @@ No page needs to be shared among \picoprocs{}.
 A key challenge to implementing process creation in the Linux PAL
 is to reduce the overhead
 of initializing a new \picoproc{}.
-The elapsed time between a existing \thelibos{} instance calling \palcall{ProcessCreate} and a new \thelibos{} instance starting to run
-contributes to a major part of the \syscall{fork} latency overhead
+The elapsed time of process creation---from an existing \thelibos{} instance calling \palcall{ProcessCreate} to a new \thelibos{} instance starting to initialize---contributes a major part of the \syscall{fork} latency overhead
 in \graphene{}.
-
-
+There were several attempts of optimizing the process creation mechanism
+in the Linux PAL.
+The current design leverages \syscall{vfork} and \syscall{execve},
+but caches the result of relocating symbols in the Linux PAL loader to reduce consecutive \picoproc{} initialization time.
+A previous design
+uses \syscall{fork} to snapshot a \picoproc{} with a fully-initialized PAL,
+and create \picoprocs{} ahead of time.
+The preforking design shows higher latency than the current design
+due to the inter-process communication needed for obtaining a preforked \picoproc{}.
 
 
 
 
 \paragraph{Bulk IPC.}
+The Linux PAL provides a \code{gipc} kernel module for
+transferring the physical pages of a large chunk of memory to another \picoproc{}. 
+The \code{gipc} module exports a miscellaneous device, \code{/dec/gipc}, for committing physical pages from a \picoproc{} to an in-kernel store and mapping physical pages copy-on-write in another \picoproc{}.
+When \code{gipc} receives
+a request of committing a range of memory, it pins all the physical pages within the range,
+updates the page table to mark the pages copy-on-write,
+and awaits requests of mapping the pages to another \picoproc{}.
+Each physical memory store has a limited number of slots for queuing physical pages,
+so a \picoproc{} can block during committing a range of memory
+if the in-kernel queue is full.
+
+
+
+
+
+The bulk IPC abstraction honors the sandbox boundary. An in-kernel physical page store cannot be shared across sandboxes.
+Any \picoprocs{} in a sandbox
+can access the same physical page store using an unique store ID;
+\picoprocs{} in different sandboxes can
+use the same store ID but the ID will open different physical page stores.
 
 
