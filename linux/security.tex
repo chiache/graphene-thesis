@@ -1,7 +1,17 @@
 \section{Security Isolation}
 \label{sec:linux:security}
 
-\issuedone{1.1.d}{describe the security isolation story for Linux hosts (need polishing)}
+\issuedone{1.1.d}{describe the security isolation story for Linux hosts}
+\graphene{} separates OS features from security isolation by making the latter a duty of the host.
+This section explains the Linux PAL design for isolating mutually untrusting applications, with a reduce interface to attack the host kernel.
+This section starts with stating the motivation and threat model of the security isolation mechanism,
+followed by the technical discussion of implementation
+in a Linux host.
+
+
+
+\subsection{Isolating mutually untrusting applications}
+
 \graphene{} ensures that mutually untrusting applications 
 cannot interfere with each other, providing security isolation
 comparable to running in separate VMs.
@@ -76,7 +86,8 @@ When a process detaches from a sandbox --- effectively splitting the sandbox ---
 the reference monitor closes
 any byte streams that could bridge the two sandboxes.
 
-\paragraph{Threat Model.}
+\subsection{Threat model}
+
 We assume  a trustworthy host OS and reference monitor,
 which mediates all system calls with effects outside of a picoprocess's address space,
 such as file {\tt open} or network socket {\tt bind} or {\tt connect}.
@@ -111,7 +122,7 @@ trusted computing base; however, reducing the effective system call table
 size of a picoprocess does facilitate adoption of a smaller host kernel,
 which we leave for future work.
 
-\paragraph{System call restriction}
+\subsection{System call restriction}
 
 Unmodified Linux applications run on \graphene{} by issuing 
 system calls as library calls to {\tt libLinux}.
@@ -223,8 +234,7 @@ We hasten to note this feature is only for backward compatibility,
 not security. 
 
 
-\section{Enforcing Sandbox Rules}
-
+\subsection{Sandboxing host resources}
 
 
 \begin{comment}
