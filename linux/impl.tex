@@ -1,4 +1,4 @@
-\section{Implementing \thehostabi{}}
+\section{Exporting \thehostabi{}}
 \label{sec:linux:impl}
 
 \issuedone{1.1.a}{extend the technical sections}
@@ -38,7 +38,7 @@ The other half of the Linux PAL are host-dependent code containing mainly wrappe
 %host-dependent code.
 If the targeted host OS has exported a UNIX or POSIX-like API,
 porting the host-dependent code is mostly straightforward.
-For example, as a follow-up exercise, the development of a FreeBSD PAL has recycled most of the Linux PAL code.
+For example, a follow-up experiment of developing a FreeBSD PAL finds most of the Linux PAL code to be highly portable.
 
 
 
@@ -94,6 +94,8 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 
 %\fixmedp{Chia-Che, update LoC table}
 
+
+\subsection{Implementation details}
 
 The rest of this section
 will discuss a few PAL ABI abstractions that are particularly challenging on a Linux host.
@@ -221,7 +223,7 @@ A previous design
 uses \syscall{fork} to snapshot a \picoproc{} with a fully-initialized PAL,
 and create \picoprocs{} ahead of time.
 The preforking design shows higher latency than the current design
-due to the inter-process communication needed for obtaining a preforked \picoproc{}.
+due to the IPC overhead for coordinating preforked \picoprocs{}.
 
 
 

@@ -1,8 +1,8 @@
-\section{Host-Level Security Isolation}
+\section{Security Isolation}
 \label{sec:linux:security}
 
 \issuedone{1.1.d}{describe the security isolation story for Linux hosts}
-\graphene{} separates OS features from security isolation by making the latter a duty of the host.
+\graphene{} separates OS features from security isolation by making the latter a host feature.
 This section explains the Linux PAL design for isolating mutually untrusting applications, with a reduce interface to attack the host kernel.
 This section starts with stating the motivation and threat model of the security isolation mechanism,
 followed by the technical discussion of implementation
@@ -230,10 +230,10 @@ a {\tt SIGSYS} and is ultimately relayed back to {\tt libLinux}.
 Thus, {\tt libLinux} can catch and differentiate application-issued system calls
 from those that could also be issued by the \pal{}.
 We hasten to note this feature is only for backward compatibility,
-not security. 
+not security.
 
 
-\subsection{Sandboxing untrusted applications}
+\subsection{Enforcing sandbox rules}
 
 
 \begin{comment}
