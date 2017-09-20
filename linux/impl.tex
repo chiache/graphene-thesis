@@ -234,9 +234,9 @@ When \code{gipc} receives
 a request of committing a range of memory, it pins all the physical pages within the range,
 updates the page table to mark the pages copy-on-write,
 and awaits requests of mapping the pages to another \picoproc{}.
-Each physical memory store has a limited number of slots for queuing physical pages,
+Each physical page store has a limited number of slots for queuing physical pages,
 so a \picoproc{} can block during committing a range of memory
-if the in-kernel queue is full.
+if the physical page store is full.
 
 
 
