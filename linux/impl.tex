@@ -164,7 +164,7 @@ and returns as a failed \hostapi{}.
 
 
 
-The PAL signal handler must avoid triggering any hardware exceptions from the handler itself, or it can cause a double fault.
+The PAL signal handler must avoid further triggering any hardware exceptions from the handler itself, or it can cause a {\bf double fault}.
 \graphene{} ensures that the signal handler is carefully developed
 so that no memory faults or other exceptions
 can be caused by defects in the handler code.
@@ -196,6 +196,27 @@ or just kill the \picoproc{} when a double fault happens.
 
 
 \paragraph{Process creation.}
+Because the Linux PAL is designed as a runtime loader,
+a new, clean \picoproc{} can simply be created by calling \syscall{vfork} and \syscall{execve} with the Linux PAL as the executable.
+Within an application instance, the procedures for launching the first \picoproc{} and the consecutive ones
+are mostly identical,
+except a consecutive \picoproc{} is launched with a heritage of a global PAL data structure (containing a \graphene{} instance ID and a UNIX domain socket prefix), a broadcast stream,
+and an unnamed UNIX domain socket as a RPC stream to its parent.
+The Linux PAL keeps the other stream handles private to a \picoproc{}
+by marking the underlying file descriptors
+as \code{CLOEXEC} (close upon \syscall{execve}).
+No page needs to be shared among \picoprocs{}.
+
+
+A key challenge to implementing process creation in the Linux PAL
+is to reduce the overhead
+of initializing a new \picoproc{}.
+The elapsed time between a existing \thelibos{} instance calling \palcall{ProcessCreate} and a new \thelibos{} instance starting to run
+contributes to a major part of the \syscall{fork} latency overhead
+in \graphene{}.
+
+
+
 
 
 
