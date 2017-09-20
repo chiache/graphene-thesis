@@ -12,7 +12,7 @@ Only two \graphene{} components on the host requires extension or modification o
 
 
 On a Linux host,
-the majority of \hostapis{} can be implemented with simple wrappers
+the majority of \hostapis{} are simply wrappers
 for similar Linux \linuxapis{},
 adding on less than 100 LoC on average for each \hostapi{}.
 The most complex \hostapis{} on a Linux host are for exception handling, synchronization, and process creation, and each of these \hostapis{} requires multiple \linuxapis{} and roughly 500--800 LoC in PAL.
@@ -27,18 +27,16 @@ and internal support code providing functions like \funcname{malloc} and \funcna
 Table~\ref{tab:libos:loc} lists the lines of code of each components of the \graphene{} architecture on a Linux host.
 
 
-A PAL developer can use the Linux PAL as a baseline of \thehostabi{} development effort on a full-featured host OS .
+A PAL developer can use the Linux PAL to estimate the baseline of \thehostabi{} development effort on a full-featured host OS .
 About half of the Linux PAL code turns out to be
 mostly generic to every host OSes
 and thus fully reusable for each PAL.
 The generic parts include
 the ELF loader, PAL headers, and internal support code, adding up to \roughly{}6,000 LoC.
-The rest of the Linux PAL are primarily
-wrappers for
-Linux \linuxapis{},
-and major effort of porting this part would be to replace the Linux \linuxapis{}
-with the target host APIs.
-If the host OS has exported a UNIX or POSIX-like API,
+The other half of the Linux PAL are host-dependent code containing mainly wrappers for Linux \linuxapis{}.
+%and has to be replaced with
+%host-dependent code.
+If the targeted host OS has exported a UNIX or POSIX-like API,
 porting the host-dependent code is mostly straightforward.
 For example, as a follow-up exercise, the development of a FreeBSD PAL has recycled most of the Linux PAL code.
 
@@ -105,7 +103,7 @@ on other alternative host kernels such as FreeBSD, OS X, and Windows.
 
 
 \paragraph{Bootstrapping a \picoproc{}.}
-The Linux PAL works as a run-time loader to the \graphene{} \libos{}, or \thelibos{}. % and Linux applications.
+The Linux PAL works as a run-time loader to the \graphene{} \libos{} (\thelibos{}). % and Linux applications.
 First, for the dynamic loading of \thelibos{},
 the Linux PAL contains an ELF loader, similar to the functionality of a \libc{} loader (\code{ld.so}),
 to map the \thelibos{} binary into a \picoproc{} and resolve the addresses of \hostapis{}.
@@ -116,11 +114,27 @@ For example, a member of the PCB exposes the basic CPU information (e.g., model 
 for implementing the \code{cpuinfo} entry of the \code{proc} file system
 as a \libos{} abstraction.
 Finally,
-the Linux PAL populates the stack with program augments and environment variables from the command line, and starts the execution of \thelibos{}.
+the Linux PAL populates the stack with program augments and environment variables passed from the command line and switches to \thelibos{}.
 
 
 
 \paragraph{RPC streams.}
+Three Linux abstractions are candidates for implementing RPC streams: pipes, UNIX domain socket, and loopback network sockets (bound at \code{127.0.0.1}).
+Creation of loopback network sockets
+is restricted by 65,535 ports which can be used to bind a socket on a network interface. % putting an upper bound on the total number of RPC connections on the same host.
+The initial design of the Linux PAL uses pipes to implement RPC streams,
+but a later version switches to UNIX domain sockets.
+Although both pipes and UNIX domain sockets are viable options,
+different performance patterns are expected on these two Linux abstractions.
+The general expectation is that a pipe has much lower latency for sending small messages, whereas a UNIX domain socket has much higher throughput for sending large chunks of payloads.
+According to a micro-benchmark result of \lmbench{}, on Linux 4.10 kernel,
+the latencies of sending one byte over a pipe and a UNIX domain socket are \roughly{}2.2 \us{} and \roughly{}3.5--4.5 \us{}, respectively.
+As for throughput, when sending a 10MB buffer, the bandwidth of a UNIX domain socket can reach \roughly{}12 GB/s, whereas the bandwidth of a pipe is only \roughly{}5 GB/s (for reference, the bandwidth of a loopback network socket is \roughly{}7.5 GB/s), at less than half of the transfer rate of a UNIX domain socket.
+Based on the performance patterns described above, the latest design of the Linux PAL chooses UNIX domain socket
+for prioritizing the RPC throughput of sending large messages, particularly for migrating a snapshot of a forking process.
+
+
+
 
 
 \paragraph{Exception handling.}
