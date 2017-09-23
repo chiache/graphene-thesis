@@ -284,24 +284,25 @@ must rely on a trusted reference monitor (see Section~\ref{sec:linux:security:re
 %extend AppArmor~\cite{apparmor} 
 %to enforce file system isolation in the kernel.
 
-In order to reduce the impact of bugs in the reference monitor,
-the reference monitor itself runs with a seccomp filter,
-blocking unexpected system calls.
+%In order to reduce the impact of bugs in the reference monitor,
+%the reference monitor itself runs with a seccomp filter,
+%blocking unexpected system calls.
 
-\paragraph{Static Binaries.} 
-For compatibility with statically linked binaries, which 
-compile in system call instructions,
-we leverage seccomp to redirect these calls 
-back to {\tt libLinux}.  
-For system calls that could also be issued by the \pal{},
-we augment our BPF rules with program counter-based filters.
-In other words, an {\tt open} system call with a return PC address inside the \pal{} 
-will be sent to the reference monitor for further inspection;
-an {\tt open} system call with any other return PC address generates 
-a {\tt SIGSYS} and is ultimately relayed back to {\tt libLinux}.
-Thus, {\tt libLinux} can catch and differentiate application-issued system calls
-from those that could also be issued by the \pal{}.
-We hasten to note this feature is only for backward compatibility,
+\paragraph{Static binaries.}
+Besides security reasons, \graphene{} also requires \linuxapi{} restriction
+for a compatibility reason:
+to redirect hard-coded \linuxapis{} from
+statically-linked application binaries.
+\graphene{} leverage the \seccomp{} filter to redirect these leaked \linuxapis{}
+back to \thelibos{}. 
+The filter contains BPF rules to check program counters
+against the mapping range of the Linux PAL, to ensure only the Linux PAL can
+invoke any \linuxapis{}.
+The filter blocks any \linuxapi{} invoked from the rest of a \picoproc{}
+and raises a \code{SIGSYS} signal.
+The Linux PAL delivers an exception to \thelibos{},
+so that \thelibos{} can capture these \linuxapis{} and read arguments from a saved register context.
+This feature is only for backward compatibility,
 not security.
 
 
