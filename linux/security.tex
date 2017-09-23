@@ -4,12 +4,11 @@
 \issuedone{1.1.d}{describe the security isolation story for Linux hosts}
 \graphene{} separates OS features from security isolation.
 This section explains the Linux host design for isolating mutually untrusting applications, with a reduced attack surface for protecting Linux kernels.
-This section starts with goals and threat model,
-followed by technical discussion of implementing on a Linux host.
+The discussion starts with the security guarantees and threat model, followed by the technical details of security isolation on a Linux host.
 
 
 
-\subsection{Goals and threat model}
+\subsection{Security guarantees}
 
 The security isolation model of \graphene{} ensures that mutually-untrusting applications cannot interfere with each other.
 A goal of \graphene{} is to provide security isolation with comparable strength as
@@ -111,17 +110,23 @@ a developer specifies the URI prefix and the access type permitted, either as re
 For sharing network addresses,
 the reference monitor restricts a \picoproc{} from connecting through a local address or connecting to a remote address,
 using {\bf iptables-like firewall rules}~\cite{iptablesman}.
-Each network rule in a manifest file
+Each network rule in a manifest
 specifies the local or remote IP address and port range that a \picoproc{} is permitted to bind or connect a network socket.
 The rules in a manifest file
-specify a minimal list of files and network addresses that a \picoproc{} needs to access, and are largely based on existing security policies (e.g., AppArmor profiles, filewall rules).
+specify a minimal list of files and network addresses that a \picoproc{} needs to access, and are largely based on existing security policies (e.g., AppArmor profiles, firewall rules).
 
 
 
 
 
-\paragraph{Threat model.}
-We assume a trustworthy host OS and reference monitor,
+\paragraph{Threat model (details).}
+On a Linux host, \graphene{}
+assumes a trusted host kernel and reference monitor.
+
+
+
+
+
 which mediates all system calls with effects outside of a picoprocess's address space,
 such as file {\tt open} or network socket {\tt bind} or {\tt connect}.
 We assume that picoprocesses inside the same sandbox trust each other and that all untrusted code runs in sandboxed picoprocesses.
