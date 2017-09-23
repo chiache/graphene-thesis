@@ -159,7 +159,7 @@ to propagate the attack to other \picoprocs{}.
 \graphene{} ensures that
 the adversary cannot interfere with any victim \picoprocs{}
 in a separate sandbox.
-A sandbox strictly isolates the coordination of \thelibos[] instances;
+A sandbox strictly isolates the coordination of \thelibos{} instances;
 %if the only shared kernel abstractions are byte streams and files, 
 the reference monitor ensures
 that there is no writable intersection between sandboxes, so that
@@ -174,21 +174,21 @@ the adversary cannot interfere with any victim \picoprocs{}.
 %%% as well as preventing exploitation of vulnerabilities in picoprocesses
 %%% are beyond the scope of this work.
 
-\graphene{} reduces the attack surface of the host Linux kernel, but keeps the trusted computing base (TCB) unchanged; however, reducing the effective \linuxapi{} table size of a \picoproc{} does facilitate adoption of a smaller host kernel.
+\graphene{} reduces the attack surface of the host Linux kernel, but does not change the trusted computing base; however, reducing the effective \linuxapi{} table size of a \picoproc{} does facilitate adoption of a smaller host kernel.
 This thesis leaves the creation of a smaller host kernel for future work.
 
 \subsection{System call restriction}
+\label{sec:linux:security:syscall-restriction}
 
-Unmodified Linux applications run on \graphene{} by issuing 
-system calls as library calls to {\tt libLinux}.
-Application calls are serviced by {\tt libLinux}-internal data structures
-or \pal{} calls.
-The \pal{} is implemented using \hostsyscallnum{} host system calls.
-The host OS must block any 
-native system call that 
-does not appear in the \pal{} source code.
-Any allowed system call with external effects is checked by 
-the reference monitor.
+
+\graphene{} reduces the host ABI to \palcallnum{} calls
+and the Linux \linuxapi{} footprint to \hostsyscallnum{} \linuxapis{}.
+To reduce the effective attack surface to a Linux host,
+the Linux host restricts a \picoproc{} from accessing any \linuxapis{} that are not part of the ordinary footprint of a Linux PAL.
+The \linuxapi{} restriction on Linux focuses on blocking most of the \linuxapis{}
+that interferes with other processes.
+The remaining permitted \linuxapis{} with external effects are checked by 
+the reference monitor (see Section~\ref{sec:linux:security:ref-monitor}).
  
 %% dp: Meh
 %%% Any picoprocess implementation 
@@ -234,7 +234,7 @@ The third line invokes {\tt brk} with an {\tt int} instruction, which is redirec
 
 
 
-\issue{1.3.d}{extend the discussion of SECCOMP filter}
+\issuedone{1.3.d}{extend the discussion of SECCOMP filter}
 \graphene{} restricts the host system call table 
 using seccomp~\cite{seccomp}, introduced in Linux 2.6.12.
 % a recent Linux system call filtering mechanism, called 
@@ -290,6 +290,7 @@ not security.
 
 
 \subsection{Reference monitor}
+\label{sec:linux:security:ref-monitor}
 
 The \graphene{} reference monitor on a Linux host
 is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
