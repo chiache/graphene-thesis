@@ -31,13 +31,13 @@ The security isolation model prevents
 any vulnerabilities inside the VM or the \libos{} from compromising the host kernel and other applications.
 
 
-On a trusted host,
-\graphene{} strengthens the security isolation between applications
+
+\graphene{} enforces security isolation %between applications
 by separating 
 backward-compatible OS features from security mechanisms.
 A Linux kernel exports a wide range of \linuxapis{},
-either as a legacy inherited from previous kernel versions or as programmability features of newer kernels.
-By moving OS features into a \libos{},
+either as a legacy of previous kernels or as new programmability features. % of newer kernels.
+By implementing OS features in a \libos{},
 \graphene{} reduces the attack surface of a Linux kernel
 to a small amount of \linuxapi{} corner cases.
 %to implement \thehostabi{}.
@@ -117,31 +117,53 @@ specify a minimal list of files and network addresses that a \picoproc{} needs t
 
 
 \paragraph{Threat model (details).}
-On a Linux host, \graphene{}
-assumes a trusted host kernel and reference monitor.
+When running on a normal Linux host (without SGX or other security hardware), \graphene{} assumes a trusted host kernel and reference monitor.
+All the components inside the kernel space, including the \code{gipc} kernel module for bulk IPC, and the reference monitor,
+are fully trusted by the other parts of the host kernel and the \graphene{} \picoprocs{}.
+%which mediates all system calls with effects outside of a picoprocess's address space,
+%such as file {\tt open} or network socket {\tt bind} or {\tt connect}.
+On the other hand,
+the host Linux kernel does not trust the \picoproc{}, including the Linux PAL, a \thelibos{} instance, \glibc{}, and the application.
+The \linuxapi{} filter and reference monitor
+initialized before an application starts running
+defend the whole host kernel from malicious \linuxapis{} invoked by a \picoproc{}.
 
 
 
+All the components running within a \picoproc{}, including the Linux PAL, the \libos{} (\thelibos{}), \glibc{} libraries, and the application,
+mutually trust each other. %, because all these components
+%execute in the same guest address space.
+Without internal sandboxing, the Linux PAL or \thelibos{}
+cannot protect its internal states or control flows from an application.
+Although some scenarios might require protecting the PAL or \thelibos{}
+from the application,
+\graphene{} only restricts the adversary
+within a \picoproc{};
+in other word, an adversary
+only compromises the \libos{} in the same \picoproc{},
+but can never interfere the host kernel 
+or other unrelated \picoprocs{}.
 
 
-which mediates all system calls with effects outside of a picoprocess's address space,
-such as file {\tt open} or network socket {\tt bind} or {\tt connect}.
-We assume that picoprocesses inside the same sandbox trust each other and that all untrusted code runs in sandboxed picoprocesses.
-We assume the adversary can run arbitrary code inside of
-one or more picoprocesses within one or more sandboxes.
-The adversary can control all code in its
-picoprocesses, including {\tt libLinux} and the \pal{}. 
-%We also assume a trusted reference monitor process running on the host kernel that 
-%launches \graphene{} applications and mediates all system calls with external effects,\fixmedp{define precisely}
 
-\graphene{} ensures that %The key security property the \graphene{} design upholds is that 
-the adversary cannot interfere with any victim picoprocesses
-in a separate sandbox.  
-The \graphene{} sandbox design ensures strict isolation: 
-if the only shared kernel abstractions are byte streams and files, 
-and the reference monitor ensures
-there is no writable intersection between sandboxes,
-the adversary cannot interfere with any victim picoprocess.
+For a multi-process application,
+\graphene{} assumes that the \picoprocs{} 
+%launched by the same application instance
+running inside the same sandbox
+trust each other and that all untrusted code run in sandboxed \picoprocs{}.
+\graphene{} assumes the adversary can run arbitrary code inside
+one or multiple \picoprocs within a sandbox.
+The adversary can exploit any vulnerabilities in the \libos{}
+or IPC protocol,
+to propagate the attack to other \picoprocs{}.
+\graphene{} ensures that
+the adversary cannot interfere with any victim \picoprocs{}
+in a separate sandbox.
+A sandbox strictly isolates the coordination of \thelibos[] instances;
+%if the only shared kernel abstractions are byte streams and files, 
+the reference monitor ensures
+that there is no writable intersection between sandboxes, so that
+the adversary cannot interfere with any victim \picoprocs{}.
 
 
 %%% The only processes allowed to run as standard kernel processes (non-\graphene{}) 
@@ -152,10 +174,8 @@ the adversary cannot interfere with any victim picoprocess.
 %%% as well as preventing exploitation of vulnerabilities in picoprocesses
 %%% are beyond the scope of this work.
 
-\graphene{} reduces the system attack surface of the host, but does not change the size of its
-trusted computing base; however, reducing the effective system call table
-size of a picoprocess does facilitate adoption of a smaller host kernel,
-which we leave for future work.
+\graphene{} reduces the attack surface of the host Linux kernel, but keeps the trusted computing base (TCB) unchanged; however, reducing the effective \linuxapi{} table size of a \picoproc{} does facilitate adoption of a smaller host kernel.
+This thesis leaves the creation of a smaller host kernel for future work.
 
 \subsection{System call restriction}
 
