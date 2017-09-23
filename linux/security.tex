@@ -220,48 +220,43 @@ the reference monitor (see Section~\ref{sec:linux:security:ref-monitor}).
 %Thus, the host kernel 
 %only permits system calls that appear in the \pal{}'s source code and, through the reference monitor, further inspects calls that can have external effects.
 
-\begin{figure}[t!]
-\centering
-\includegraphics[width=\linewidth]{syscall-restriction.pdf}
-\footnotesize
-\caption[System call restriction approach in sysname{}]
-{System call restriction approach. The reference monitor loads policies into the LSM at startup.  A \graphene{} application requests OS services in three different ways. 
-In the normal case (first line of {\tt main}), {\tt malloc} is invoked causing the invocation of {\tt brk} ({\tt libLinux}) and {\tt mmap} in the \pal{}. In the second line, the application jumps to an address in \pal{}, which is permissible.
-Files are accessed through {\tt ioctl} to {\tt /dev/graphene} and checked by reference monitor.
-The third line invokes {\tt brk} with an {\tt int} instruction, which is redirected to the {\tt libLinux} function.}
-\label{fig:graphene:syscall-restriction}
-\end{figure}
+%\begin{figure}[t!]
+%\centering
+%\includegraphics[width=\linewidth]{syscall-restriction.pdf}
+%\footnotesize
+%\caption[System call restriction approach in sysname{}]
+%{System call restriction approach. The reference monitor loads policies into the LSM at startup.  A \graphene{} application requests OS services in three different ways. 
+%In the normal case (first line of {\tt main}), {\tt malloc} is invoked causing the invocation of {\tt brk} ({\tt libLinux}) and {\tt mmap} in the \pal{}. In the second line, the application jumps to an address in \pal{}, which is permissible.
+%Files are accessed through {\tt ioctl} to {\tt /dev/graphene} and checked by reference monitor.
+%The third line invokes {\tt brk} with an {\tt int} instruction, which is redirected to the {\tt libLinux} function.}
+%\label{fig:graphene:syscall-restriction}
+%\end{figure}
 
 
 
 \issuedone{1.3.d}{extend the discussion of \seccomp{} filter}
-\graphene{} restricts the host system call table 
-using a \seccomp{} (SECure COMPuting) filter~\cite{seccomp}, introduced in Linux 2.6.12.
+\graphene{} restricts the host \linuxapis{} 
+using a \seccomp{} (SECure COMPuting) filter~\cite{seccomp}. The feature of \seccomp{} filters is introduced to the Linux kernels since 2.6.12.
 % a recent Linux system call filtering mechanism, called 
 A \seccomp{} filter allows a Linux process to install an immutable Berkeley Packet Filter (BPF) program
 that specifies allowed \linuxapis{}, as well as specifies
 the consequence of invoking certain \linuxapis{}, such as creating a \code{ptrace} event or raising a \code{SIGSYS} signal.
-The filter can also be configured to filter scalar argument values,
-such as only permitting specific opcodes for \syscall{ioctl}.
-%The BPF grammar is rich enough to filter system calls by 
+The BPF grammar is rich enough to filter scalar argument values,
+such as only permitting specific opcodes for \syscall{ioctl} or specific process creation flags for \syscall{clone}.
 %This feature is particularly salient in the case of {\tt ioctl},
 %where the \pal{} uses 5 out of over 400 opcodes for our bulk IPC module and sandbox creation;
 %our BPF rules will block any other {\tt ioctl} opcode.
+The current \seccomp{} filter installed by the Linux PAL has \seccomplines{} lines 
+with straightforward rules written in BPF macros.  %Experiments show that adding more precise argument checks has no significant impact on \linuxapi{} latency.
+Once a \seccomp{} filter is installed in a process,
+the filter intermediates
+every \linuxapis{} from the process and its future children, and guarantees the processes can never bypass the restriction.
+The Linux PAL uses \code{SIGSYS} signals to capture rejected \linuxapis{},
+and can either terminate the whole application or
+redirect the \linuxapi{} to \thelibos{}.
+The consecutive steps of \linuxapi{} redirection are described in Section~\ref{sec:libos:syscall-redirection}.
 
 
-
-
-
-
-If a system call is rejected, the \pal{} will receive a {\tt SIGSYS} signal,
-and can either terminate the application or redirect the 
-call to {\tt libLinux}.
-Seccomp filters cannot be overridden by any picoprocess,
-and are always inherited.
-% by all descendant processes.
-The current \graphene{} filter is 79 lines 
-of straightforward BPF macros.  In our experience, adding more precise argument checks
-has not significantly changed performance.
 
 %Seccomp filters are installed using the {\tt prctl} system call;
 %blocking {\tt prctl} in a seccomp filter prevents further changes to the filter.
