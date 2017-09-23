@@ -39,35 +39,33 @@ A Linux kernel exports a wide range of \linuxapis{},
 either as a legacy inherited from previous kernel versions or as programmability features of newer kernels.
 By moving OS features into a \libos{},
 \graphene{} reduces the attack surface of a Linux kernel
-to a small amount of corner cases
-using \linuxapis{} to implement \thehostabi{}.
+to a small amount of \linuxapi{} corner cases.
+%to implement \thehostabi{}.
 %If a machine only runs applications in \graphene{},
 %a Linux developer can try to carve out a minimal Linux kernel, containing only features needed by the Linux PAL.
 A reduced attack surface
 eliminates majority of execution paths inside a Linux kernel in which a malicious application can explore for vulnerabilities.
-The complexity of Linux features implemented inside a \libos{} does not extend the attack surface of the host kernel,
-unless a Linux feature requires extra \hostapis{} from the host kernel.
-With certain amount of effort, a Linux developer
-can even carve out a minimal Linux kernel with only the features needed by \graphene{},
-similar to converting a Linux kernel into a microkernel.
-Otherwise, \graphene{} depends on host-level security mechanisms for restricting a \libos{} from accessing unauthorized \linuxapis{} and resources
-in an unmodified Linux kernel.
+The complexity of Linux features and APIs exported by a \libos{} is unrelated with the attack surface of the host kernel,
+unless the \libos{} asks for additional \hostapis{}.
+A Linux developer can even carve out a minimal Linux kernel with only the features needed by the Linux PAL,
+similar to shrinking a Linux kernel to a microkernel.
+Otherwise, \graphene{} depends on the host security mechanisms to restrict a \libos{} from accessing unauthorized \linuxapis{} and resources upon an unmodified Linux kernel.
 
 
 
 
 
 The Linux PAL installs a {\bf \linuxapi{} filter} and a {\bf reference monitor}
-for restricting a whole \picoproc{} from accessing
-unauthorized system calls, files, RPC streams, and network addresses.
-The Linux PAL uses \hostsyscallnum{} host \linuxapis{}
-for implementing \thehostabi{}, including both required and optional \hostapis{}.
-A \linuxapi{} filter, such as a SECCOMP filter~\cite{seccomp},
-can limit the \linuxapi{} footprint of each \picoproc{}
-to only the \hostsyscallnum{} \linuxapis{} needed by the Linux PAL, with additional constraints on the paramters and flags allowed for each \linuxapi{}.
-The \linuxapi{} filter
-forbids an application from invoking any \linuxapis{}
-that will interfere other \picoproc{} or increase the risk of exploitation in the host kernel.
+for restricting the \linuxapis{}, files, RPC streams, and network addresses
+accessed by a \picoproc{}.
+The Linux PAL requires \hostsyscallnum{} \linuxapis{} in total
+for implementing both required and optional \hostapis{}.
+A \linuxapi{} filter, such as the Linux SECCOMP filter~\cite{seccomp},
+can restrict the \linuxapi{} access of an application
+to only a small subset of all the \linuxapis{}, with additional constraints on the parameters and optional flags permitted for each \linuxapi{}.
+%The \linuxapi{} filter
+%forbids an application from invoking any \linuxapis{}
+%that will interfere other \picoproc{} or increase the risk of exploitation in the host kernel.
 A reference monitor further examines the arguments of permitted \linuxapis{} to restrict the host resources accessed by an application, based on security policies configured in a manifest file~\cite{hunt07rethink}.
 The \linuxapi{} filter and the reference monitor
 significantly limit the ability of an untrusted \graphene{} \picoproc{} to interfere with the rest of the system,
@@ -89,9 +87,8 @@ between the \picoprocs{}
 The access control over RPC streams
 enforces an all-or-nothing security isolation model:
 either two \picoprocs{} are in the same sandbox and share all the \libos{} states; or they are separated in two sandboxes and share nothing.
-Even though the \libos{} spans the multi-process abstractions for an application across multiple \picoprocs{},
-a host kernel does not have to examine access to any shared, multi-process
-\libos{} states, but still enforce security isolation between sandboxes.
+Even though the \libos{} instance can span its state across multiple \picoprocs{},
+a host kernel needs not to examine the accesses to shared \libos{} states, but still enforces security isolation between sandboxes.
 
 
 
@@ -106,7 +103,7 @@ creating a restricted view of the local file system
 The file rules
 in a manifest are similar to the policies of a {\bf AppArmor profile}~\cite{apparmor};
 for each permitted file or directory,
-a developer specifies the URI prefix and the access type permitted, either as read-only or readable-writable. %, within the target file or directory.
+a developer specifies the URI prefix and the permitted access type, either as read-only or readable-writable. %, within the target file or directory.
 For sharing network addresses,
 the reference monitor restricts a \picoproc{} from connecting through a local address or connecting to a remote address,
 using {\bf iptables-like firewall rules}~\cite{iptablesman}.
