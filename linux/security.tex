@@ -242,12 +242,12 @@ A \seccomp{} filter allows a Linux process to install an immutable Berkeley Pack
 that specifies allowed \linuxapis{}, as well as specifies
 the consequence of invoking certain \linuxapis{}, such as creating a \code{ptrace} event or raising a \code{SIGSYS} signal.
 The BPF grammar is rich enough to filter scalar argument values,
-such as only permitting specific opcodes for \syscall{ioctl} or specific process creation flags for \syscall{clone}.
+such as only permitting specific opcodes for \syscall{ioctl},
+as well as filter certain register values, such as blocking \linuxapis{} from program counters outside of the Linux PAL.
 %This feature is particularly salient in the case of {\tt ioctl},
 %where the \pal{} uses 5 out of over 400 opcodes for our bulk IPC module and sandbox creation;
 %our BPF rules will block any other {\tt ioctl} opcode.
-The current \seccomp{} filter installed by the Linux PAL has \seccomplines{} lines 
-with straightforward rules written in BPF macros.  %Experiments show that adding more precise argument checks has no significant impact on \linuxapi{} latency.
+The current \seccomp{} filter installed by the Linux PAL contains \seccomplines{} lines of straightforward BPF macros.  %Experiments show that adding more precise argument checks has no significant impact on \linuxapi{} latency.
 Once a \seccomp{} filter is installed in a process,
 the filter intermediates
 every \linuxapis{} from the process and its future children, and guarantees the processes can never bypass the restriction.
@@ -258,8 +258,14 @@ The consecutive steps of \linuxapi{} redirection are described in Section~\ref{s
 
 
 
-%Seccomp filters are installed using the {\tt prctl} system call;
-%blocking {\tt prctl} in a seccomp filter prevents further changes to the filter.
+Despite the straightforwardness of \seccomp{} filters, developing a robust filter for a \graphene{} application presents several challenges.
+First, the initially-installed filter must prevent consecutive \picoprocs{}
+from reverting the \linuxapis{} restriction.
+Since
+\seccomp{} filters are installed using the \syscall{prctl} \linuxapi{},
+blocking \syscall{prctl} in a filter prevents further changes to the \linuxapi{} restriction rules (there is no other usage of \syscall{prctl} in the Linux PAL).
+Second, 
+
 
 Unfortunately, the logic to check for allowed paths network addresses cannot be implemented 
 as a seccomp rule, because it involves reading user memory of unknown sizes. 
