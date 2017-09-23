@@ -60,7 +60,7 @@ for restricting the \linuxapis{}, files, RPC streams, and network addresses
 accessed by a \picoproc{}.
 The Linux PAL requires \hostsyscallnum{} \linuxapis{} in total
 for implementing both required and optional \hostapis{}.
-A \linuxapi{} filter, such as the Linux SECCOMP filter~\cite{seccomp},
+A \linuxapi{} filter, such as the Linux \seccomp{} filter~\cite{seccomp},
 can restrict the \linuxapi{} access of an application
 to only a small subset of all the \linuxapis{}, with additional constraints on the parameters and optional flags permitted for each \linuxapi{}.
 %The \linuxapi{} filter
@@ -234,19 +234,25 @@ The third line invokes {\tt brk} with an {\tt int} instruction, which is redirec
 
 
 
-\issuedone{1.3.d}{extend the discussion of SECCOMP filter}
+\issuedone{1.3.d}{extend the discussion of \seccomp{} filter}
 \graphene{} restricts the host system call table 
-using seccomp~\cite{seccomp}, introduced in Linux 2.6.12.
+using a \seccomp{} (SECure COMPuting) filter~\cite{seccomp}, introduced in Linux 2.6.12.
 % a recent Linux system call filtering mechanism, called 
-Seccomp allows a process to create an immutable Berkeley Packet Filter (BPF) program
-that specifies allowed system calls, as well as creates {\tt ptrace} 
-events on certain system calls.
-The filter can also filter scalar argument values,
-such as only permitting specific {\tt ioctl} opcodes.
+A \seccomp{} filter allows a Linux process to install an immutable Berkeley Packet Filter (BPF) program
+that specifies allowed \linuxapis{}, as well as specifies
+the consequence of invoking certain \linuxapis{}, such as creating a \code{ptrace} event or raising a \code{SIGSYS} signal.
+The filter can also be configured to filter scalar argument values,
+such as only permitting specific opcodes for \syscall{ioctl}.
 %The BPF grammar is rich enough to filter system calls by 
 %This feature is particularly salient in the case of {\tt ioctl},
 %where the \pal{} uses 5 out of over 400 opcodes for our bulk IPC module and sandbox creation;
 %our BPF rules will block any other {\tt ioctl} opcode.
+
+
+
+
+
+
 If a system call is rejected, the \pal{} will receive a {\tt SIGSYS} signal,
 and can either terminate the application or redirect the 
 call to {\tt libLinux}.
@@ -385,7 +391,7 @@ to check host system calls that could have external effects.
 The reference monitor interposes using ptrace events, 
 which can be raised for specific system calls by seccomp.
 We ensure that all processes created within a sandbox are traced
-by setting the {\tt PTRACE\_O\_TRACESECCOMP} option on all newly created picoprocesses
+by setting the {\tt PTRACE\_O\_TRACEseccomp{}} option on all newly created picoprocesses
 in the sandbox.
 
 %% from bpjain:
