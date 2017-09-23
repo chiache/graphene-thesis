@@ -243,7 +243,7 @@ that specifies allowed \linuxapis{}, as well as specifies
 the consequence of invoking certain \linuxapis{}, such as creating a \code{ptrace} event or raising a \code{SIGSYS} signal.
 The BPF grammar is rich enough to filter scalar argument values,
 such as only permitting specific opcodes for \syscall{ioctl},
-as well as filter certain register values, such as blocking \linuxapis{} from program counters outside of the Linux PAL.
+as well as filter certain register values, such as blocking \linuxapis{} from program counters (i.e., \code{RIP} register values) outside of the Linux PAL.
 %This feature is particularly salient in the case of {\tt ioctl},
 %where the \pal{} uses 5 out of over 400 opcodes for our bulk IPC module and sandbox creation;
 %our BPF rules will block any other {\tt ioctl} opcode.
@@ -258,20 +258,29 @@ The consecutive steps of \linuxapi{} redirection are described in Section~\ref{s
 
 
 
-Despite the straightforwardness of \seccomp{} filters, developing a robust filter for a \graphene{} application presents several challenges.
-First, the initially-installed filter must prevent consecutive \picoprocs{}
-from reverting the \linuxapis{} restriction.
-Since
-\seccomp{} filters are installed using the \syscall{prctl} \linuxapi{},
-blocking \syscall{prctl} in a filter prevents further changes to the \linuxapi{} restriction rules (there is no other usage of \syscall{prctl} in the Linux PAL).
-Second, 
-
-
-Unfortunately, the logic to check for allowed paths network addresses cannot be implemented 
-as a seccomp rule, because it involves reading user memory of unknown sizes. 
-In order to avoid the overhead of trapping to the reference monitor on 
-every use of {\tt open}, {\tt stat}, {\tt bind} or {\tt connect} system calls, we instead 
-force picoprocess to only use {\tt ioctl} system call to \graphene{} special device ({\tt /dev/graphene}) as alternative interface these system calls. Direct access to these system calls are banned by seccomp filter.
+Developing a \seccomp{} filter presents several technical challenges.
+First, a filter must prevent consecutive \picoprocs{}
+from reverting the \linuxapis{} restriction by installing a new filter.
+A \seccomp{} filter is installed using the \syscall{prctl} \linuxapi{}, so blocking \syscall{prctl} in a filter will prevent further changes to the filter.
+Second, the BPF grammar can only filter certain values or ranges of a register.
+The filter of \graphene{} needs to restrict the \linuxapis{}
+to be strictly from the Linux PAL, a shared library loaded at an address randomized by the Linux ASLR (Address Space Layout Randomization).
+If a filter only permits a specific range of program counters,
+a child \picoproc{}
+will load the Linux PAL at another randomized address,
+and the inherited filter will restrict the child \picoproc{} to invoke any \linuxapis{}.
+Therefore, the Linux PAL introduces a small, security loader
+with a fixed loading address
+inside each \picoproc{} to invoke any \linuxapis{}.
+Finally, a \seccomp{} filter
+cannot check a string argument, such as a file path for \syscall{open} or a network address for \syscall{bind}.
+Checking a string argument requires
+involves reading user memory of unknown sizes and string comparison, and the BPF grammar is insufficient for writing such a rule.
+Filtering permitted file paths and network addresses
+must rely on a trusted reference monitor (see Section~\ref{sec:linux:security:ref-monitor}).
+%In order to avoid the overhead of trapping to the reference monitor on 
+%every use of {\tt open}, {\tt stat}, {\tt bind} or {\tt connect} system calls, we instead 
+%force picoprocess to only use {\tt ioctl} system call to \graphene{} special device ({\tt /dev/graphene}) as alternative interface these system calls. Direct access to these system calls are banned by seccomp filter.
 %extend AppArmor~\cite{apparmor} 
 %to enforce file system isolation in the kernel.
 
