@@ -1,101 +1,169 @@
 \section{Security Isolation}
 \label{sec:linux:security}
 
-\issue{1.1.d}{describe the security isolation story for Linux hosts (need polishing)}
-\graphene{} ensures that mutually untrusting applications 
-cannot interfere with each other, providing security isolation
-comparable to running in separate VMs.
-\graphene{} reduces the attack surface exposed to applications
-by restricting access to the host kernel ABI 
-and prevents access to unauthorized system calls, files, byte streams,
-and network addresses with a \emph{reference monitor}.
-%The host kernel ABI exported by the \pal{} heavily 
-%limits the ability of a \graphene{} application to interact with the rest of the system;
-%any external interactions are further mediated by a reference monitor.
-%Unlike a typical Linux system, \graphene{} applications cannot interact with shared 
-%system daemons or other shared system resources.
-%As a result, \graphene{} enforces security isolation similar to running applications in separate VMs---even
-%applications that span multiple processes.
+\issuedone{1.1.d}{describe the security isolation story for Linux hosts}
+\graphene{} separates OS features from security isolation.
+This section explains the Linux host design for isolating mutually untrusting applications, with a reduced attack surface for protecting Linux kernels.
+The discussion starts with the security guarantees and threat model, followed by the technical details of security isolation on a Linux host.
+
+
+
+\subsection{Security guarantees}
+
+The security isolation model of \graphene{} ensures that mutually-untrusting applications cannot interfere with each other.
+A goal of \graphene{} is to provide security isolation with comparable strength as
+running applications in separate VMs.
+When running two unrelated applications on the same machine,
+the security requirement
+of the OS involves not only blocking unauthorized access under normal circumstance,
+but also preventing an application
+from maliciously exploiting OS vulnerabilities to attack the other application.
+Because a modern OS, such as Linux or Windows, contains a rich of features and APIs,
+it is difficult to eliminate OS vulnerabilities
+or even just to verify whether an OS contains any vulnerabilities. 
+A Linux container~\cite{lxc}
+does provide a separate OS view for each application,
+but still relies on the correctness of the whole Linux kernel to enforce security isolation.
+On the other hand, a VM or a \libos{}
+isolates the whole OS kernel or a part of the kernel in an unprivileged guest space
+for each application.
+The security isolation model prevents
+any vulnerabilities inside the VM or the \libos{} from compromising the host kernel and other applications.
+
+
+
+\graphene{} enforces security isolation %between applications
+by separating 
+backward-compatible OS features from security mechanisms.
+A Linux kernel exports a wide range of \linuxapis{},
+either as a legacy of previous kernels or as new programmability features. % of newer kernels.
+By implementing OS features in a \libos{},
+\graphene{} reduces the attack surface of a Linux kernel
+to a small amount of \linuxapi{} corner cases.
+%to implement \thehostabi{}.
+%If a machine only runs applications in \graphene{},
+%a Linux developer can try to carve out a minimal Linux kernel, containing only features needed by the Linux PAL.
+A reduced attack surface
+eliminates majority of execution paths inside a Linux kernel in which a malicious application can explore for vulnerabilities.
+The complexity of Linux features and APIs exported by a \libos{} is unrelated with the attack surface of the host kernel,
+unless the \libos{} asks for additional \hostapis{}.
+A Linux developer can even carve out a minimal Linux kernel with only the features needed by the Linux PAL,
+similar to shrinking a Linux kernel to a microkernel.
+Otherwise, \graphene{} depends on the host security mechanisms to restrict a \libos{} from accessing unauthorized \linuxapis{} and resources upon an unmodified Linux kernel.
+
+
+
+
+
+The Linux PAL installs a {\bf \linuxapi{} filter} and a {\bf reference monitor}
+for restricting the \linuxapis{}, files, RPC streams, and network addresses
+accessed by a \picoproc{}.
+The Linux PAL requires \hostsyscallnum{} \linuxapis{} in total
+for implementing both required and optional \hostapis{}.
+A \linuxapi{} filter, such as the Linux SECCOMP filter~\cite{seccomp},
+can restrict the \linuxapi{} access of an application
+to only a small subset of all the \linuxapis{}, with additional constraints on the parameters and optional flags permitted for each \linuxapi{}.
+%The \linuxapi{} filter
+%forbids an application from invoking any \linuxapis{}
+%that will interfere other \picoproc{} or increase the risk of exploitation in the host kernel.
+A reference monitor further examines the arguments of permitted \linuxapis{} to restrict the host resources accessed by an application, based on security policies configured in a manifest file~\cite{hunt07rethink}.
+The \linuxapi{} filter and the reference monitor
+significantly limit the ability of an untrusted \graphene{} \picoproc{} to interfere with the rest of the system,
+preventing the risk of exposing any unknown vulnerabilities
+on a kernel path never exercised by the \linuxapi{} footprint of \graphene{}.
+
+
+
 \graphene{} contributes a multi-process security model 
-based on the abstraction of a \emph{sandbox},
-or a set of mutually trusting picoprocesses.
+based on a {\bf sandbox},
+or a set of mutually-trusting \picoprocs{} running inside an isolated container.
 The reference monitor permits picoprocesses within the same sandbox
-to communicate and exchange RPC messages, but disallows cross-sandbox communication.
-The current work focuses on all-or-nothing security isolation, although we expect
-this design could support
-controlled communication among mutually untrusting \liboses{}
-in future work.
-
-The only kernel-level sharing abstractions the reference monitor must mediate
-are files, network sockets, and RPC streams
---- all other allowed kernel ABIs
-modify only local \picoproc{} state.
-%Thus, the reference monitor need only mediate file access, socket and RPC stream creation.
-%an unprivileged daemon
-%as well as extensions to the App\-Armor LSM~\cite{apparmor},
-%which checks file and socket policies in the kernel.
-%, reducing context switching overhead
-%and the risk of race conditions~\cite{garfinkel03traps}.
-In order for the reference monitor to restrict file access, socket and RPC stream creation,
-each application includes a \emph{manifest file}~\cite{hunt07rethink},
-which describes a {\tt chroot}-like, restricted view of the local 
-file system (similar to Plan 9's unioned file system views~\cite{pike90plan9}),
-%including read-only shared files,
-as well as \emph{iptables}-style~\cite{iptablesman} network restrictions.
-%%% To facilitate sharing read-only libraries,
-%%% a manifest may specify a file system view which 
-%%% combines several different sub-directories of the local file system,
-%%% and can prevent writing to files or directories.
+to communicate over RPC streams,
+allowing the \libos{} to share and coordinate any states
+to create an unified OS view.
+If two \picoprocs{} belong to different sandboxes,
+the reference monitor will block any attempt of connecting RPC streams
+between the \picoprocs{}
+The access control over RPC streams
+enforces an all-or-nothing security isolation model:
+either two \picoprocs{} are in the same sandbox and share all the \libos{} states; or they are separated in two sandboxes and share nothing.
+Even though the \libos{} instance can span its state across multiple \picoprocs{},
+a host kernel needs not to examine the accesses to shared \libos{} states, but still enforces security isolation between sandboxes.
 
 
-%The \graphene{} reference monitor on a Linux host
-%is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
-%A picoprocess is restricted by seccomp filter~\cite{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
-%It must use the \graphene{} special device to open or create streams,
-%so the file paths or network addresses can be checked against the sandbox rules.
-%The kernel module as the driver of the \graphene{} special device can coexist with any LSM such as \emph{AppArmor} or \emph{SELinux}.
 
 
-\fixme{Explain with a figure.}
-When a new picoprocess is launched by the reference monitor, it begins execution in 
-a new sandbox.  
-Child picoprocesses may either inherit their parent's sandbox, 
-or can be started in a separate sandbox
---- specified by a flag to the picoprocess creation ABI.
-A parent may specify a subset of its own file system view 
-when creating a child, but may not request access to new regions of the 
-host file system. 
-%The restrictive policy enforced on the child will be written in a new manifest file generated by the parent, and the policy will be checked by the reference monitor.
-The child may also issue an {\tt ioctl} call to 
-dynamically detach from the parent's sandbox. The reference monitor prevents byte stream creation 
-across sandboxes.
-%among picoprocesses
-%that are not in the same sandbox.
-%and restricts external connections to remote URIs according to firewall rules in the manifest.
-When a process detaches from a sandbox --- effectively splitting the sandbox ---
-the reference monitor closes
-any byte streams that could bridge the two sandboxes.
+Files and network addresses
+are the only host resources allowed to be shared across sandboxes,
+using well-studied, explicit rules.
+For sharing files, the reference monitor restricts the file access of a \picoproc{}
+within a few host file or directories,
+creating a restricted view of the local file system
+(close to Plan 9's unionized file system views~\cite{pike90plan9}).
+The file rules
+in a manifest are similar to the policies of a {\bf AppArmor profile}~\cite{apparmor};
+for each permitted file or directory,
+a developer specifies the URI prefix and the permitted access type, either as read-only or readable-writable. %, within the target file or directory.
+For sharing network addresses,
+the reference monitor restricts a \picoproc{} from connecting through a local address or connecting to a remote address,
+using {\bf iptables-like firewall rules}~\cite{iptablesman}.
+Each network rule in a manifest
+specifies the local or remote IP address and port range that a \picoproc{} is permitted to bind or connect a network socket.
+The rules in a manifest file
+specify a minimal list of files and network addresses that a \picoproc{} needs to access, and are largely based on existing security policies (e.g., AppArmor profiles, firewall rules).
 
-\paragraph{Threat Model.}
-We assume  a trustworthy host OS and reference monitor,
-which mediates all system calls with effects outside of a picoprocess's address space,
-such as file {\tt open} or network socket {\tt bind} or {\tt connect}.
-We assume that picoprocesses inside the same sandbox trust each other and that all untrusted code runs in sandboxed picoprocesses.
-We assume the adversary can run arbitrary code inside of
-one or more picoprocesses within one or more sandboxes.
-The adversary can control all code in its
-picoprocesses, including {\tt libLinux} and the \pal{}. 
-%We also assume a trusted reference monitor process running on the host kernel that 
-%launches \graphene{} applications and mediates all system calls with external effects,\fixmedp{define precisely}
 
-\graphene{} ensures that %The key security property the \graphene{} design upholds is that 
-the adversary cannot interfere with any victim picoprocesses
-in a separate sandbox.  
-The \graphene{} sandbox design ensures strict isolation: 
-if the only shared kernel abstractions are byte streams and files, 
-and the reference monitor ensures
-there is no writable intersection between sandboxes,
-the adversary cannot interfere with any victim picoprocess.
+
+
+
+\paragraph{Threat model (details).}
+When running on a normal Linux host (without SGX or other security hardware), \graphene{} assumes a trusted host kernel and reference monitor.
+All the components inside the kernel space, including the \code{gipc} kernel module for bulk IPC, and the reference monitor,
+are fully trusted by the other parts of the host kernel and the \graphene{} \picoprocs{}.
+%which mediates all system calls with effects outside of a picoprocess's address space,
+%such as file {\tt open} or network socket {\tt bind} or {\tt connect}.
+On the other hand,
+the host Linux kernel does not trust the \picoproc{}, including the Linux PAL, a \thelibos{} instance, \glibc{}, and the application.
+The \linuxapi{} filter and reference monitor
+initialized before an application starts running
+defend the whole host kernel from malicious \linuxapis{} invoked by a \picoproc{}.
+
+
+
+All the components running within a \picoproc{}, including the Linux PAL, the \libos{} (\thelibos{}), \glibc{} libraries, and the application,
+mutually trust each other. %, because all these components
+%execute in the same guest address space.
+Without internal sandboxing, the Linux PAL or \thelibos{}
+cannot protect its internal states or control flows from an application.
+Although some scenarios might require protecting the PAL or \thelibos{}
+from the application,
+\graphene{} only restricts the adversary
+within a \picoproc{};
+in other word, an adversary
+only compromises the \libos{} in the same \picoproc{},
+but can never interfere the host kernel 
+or other unrelated \picoprocs{}.
+
+
+
+For a multi-process application,
+\graphene{} assumes that the \picoprocs{} 
+%launched by the same application instance
+running inside the same sandbox
+trust each other and that all untrusted code run in sandboxed \picoprocs{}.
+\graphene{} assumes the adversary can run arbitrary code inside
+one or multiple \picoprocs within a sandbox.
+The adversary can exploit any vulnerabilities in the \libos{}
+or IPC protocol,
+to propagate the attack to other \picoprocs{}.
+\graphene{} ensures that
+the adversary cannot interfere with any victim \picoprocs{}
+in a separate sandbox.
+A sandbox strictly isolates the coordination of \thelibos{} instances;
+%if the only shared kernel abstractions are byte streams and files, 
+the reference monitor ensures
+that there is no writable intersection between sandboxes, so that
+the adversary cannot interfere with any victim \picoprocs{}.
 
 
 %%% The only processes allowed to run as standard kernel processes (non-\graphene{}) 
@@ -106,25 +174,21 @@ the adversary cannot interfere with any victim picoprocess.
 %%% as well as preventing exploitation of vulnerabilities in picoprocesses
 %%% are beyond the scope of this work.
 
-\graphene{} reduces the system attack surface of the host, but does not change the size of its
-trusted computing base; however, reducing the effective system call table
-size of a picoprocess does facilitate adoption of a smaller host kernel,
-which we leave for future work.
+\graphene{} reduces the attack surface of the host Linux kernel, but does not change the trusted computing base; however, reducing the effective \linuxapi{} table size of a \picoproc{} does facilitate adoption of a smaller host kernel.
+This thesis leaves the creation of a smaller host kernel for future work.
 
 \subsection{System call restriction}
-\label{sec:linux:security:syscalls}
+\label{sec:linux:security:syscall-restriction}
 
 
-Unmodified Linux applications run on \graphene{} by issuing 
-system calls as library calls to {\tt libLinux}.
-Application calls are serviced by {\tt libLinux}-internal data structures
-or \pal{} calls.
-The \pal{} is implemented using \hostsyscallnum{} host system calls.
-The host OS must block any 
-native system call that 
-does not appear in the \pal{} source code.
-Any allowed system call with external effects is checked by 
-the reference monitor.
+\graphene{} reduces the host ABI to \palcallnum{} calls
+and the Linux \linuxapi{} footprint to \hostsyscallnum{} \linuxapis{}.
+To reduce the effective attack surface to a Linux host,
+the Linux host restricts a \picoproc{} from accessing any \linuxapis{} that are not part of the ordinary footprint of a Linux PAL.
+The \linuxapi{} restriction on Linux focuses on blocking most of the \linuxapis{}
+that interferes with other processes.
+The remaining permitted \linuxapis{} with external effects are checked by 
+the reference monitor (see Section~\ref{sec:linux:security:ref-monitor}).
  
 %% dp: Meh
 %%% Any picoprocess implementation 
@@ -170,7 +234,7 @@ The third line invokes {\tt brk} with an {\tt int} instruction, which is redirec
 
 
 
-\issue{1.3.d}{extend the discussion of SECCOMP filter}
+\issuedone{1.3.d}{extend the discussion of SECCOMP filter}
 \graphene{} restricts the host system call table 
 using seccomp~\cite{seccomp}, introduced in Linux 2.6.12.
 % a recent Linux system call filtering mechanism, called 
@@ -222,7 +286,38 @@ a {\tt SIGSYS} and is ultimately relayed back to {\tt libLinux}.
 Thus, {\tt libLinux} can catch and differentiate application-issued system calls
 from those that could also be issued by the \pal{}.
 We hasten to note this feature is only for backward compatibility,
-not security. 
+not security.
+
+
+\subsection{Reference monitor}
+\label{sec:linux:security:ref-monitor}
+
+The \graphene{} reference monitor on a Linux host
+is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
+A picoprocess is restricted by seccomp filter~\cite{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
+It must use the \graphene{} special device to open or create streams,
+so the file paths or network addresses can be checked against the sandbox rules.
+The kernel module as the driver of the \graphene{} special device can coexist with any LSM such as \emph{AppArmor} or \emph{SELinux}.
+
+
+When a new picoprocess is launched by the reference monitor, it begins execution in 
+a new sandbox.  
+Child picoprocesses may either inherit their parent's sandbox, 
+or can be started in a separate sandbox
+--- specified by a flag to the picoprocess creation ABI.
+A parent may specify a subset of its own file system view 
+when creating a child, but may not request access to new regions of the 
+host file system. 
+%The restrictive policy enforced on the child will be written in a new manifest file generated by the parent, and the policy will be checked by the reference monitor.
+The child may also issue an {\tt ioctl} call to 
+dynamically detach from the parent's sandbox. The reference monitor prevents byte stream creation 
+across sandboxes.
+%among picoprocesses
+%that are not in the same sandbox.
+%and restricts external connections to remote URIs according to firewall rules in the manifest.
+When a process detaches from a sandbox --- effectively splitting the sandbox ---
+the reference monitor closes
+any byte streams that could bridge the two sandboxes.
 
 
 \begin{comment}
@@ -282,9 +377,7 @@ or promptly shut down RPC streams to stop sharing OS states.
 The picoprocess that moves to a separate sandbox will have a restrictive view of the filesystem, and no coordination with the previous sandboxes.
 In section~\ref{sec:graphene:eval}, we describe an experiment that improves security isolation of Apache web server without sacrificing functionality.
 
-\subsection{Reference monitor}
-\label{sec:linux:security:monitor}
-
+\paragraph{Reference monitor.}
 The reference monitor is a trusted process that runs on the host system.
 \graphene{} applications are launched by the reference monitor,
 which instantiates the seccomp filter and traces all children
