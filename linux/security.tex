@@ -347,26 +347,24 @@ on a small amount of the corner cases and execution paths to exhaustively test o
 
 \paragraph{Static binaries.}
 Besides security purposes,
-a \seccomp{} filter also introduces a compatibility feature
-to redirect hard-coded \linuxapis{}
-from a statically-linked application binary.
+a \seccomp{} filter implements a compatibility feature
+for redirecting hard-coded \linuxapis{}
+in a statically-linked application binary.
 \graphene{} leverages the \seccomp{} filter to redirect these leaked \linuxapis{}
 back to \thelibos{}. 
-The filter contains BPF rules to check program counters
-against the mapping range of the Linux PAL, to ensure only the Linux PAL can
-invoke any \linuxapis{}.
-The filter blocks any \linuxapi{} invoked from the rest of a \picoproc{}
-and raises a \code{SIGSYS} signal.
-The Linux PAL delivers an exception to \thelibos{},
-so that \thelibos{} can capture these \linuxapis{} and read arguments from a saved register context.
-This feature is only for backward compatibility,
-not security isolation.
+The filter contains BPF rules to check if the program counters
+invoking the \linuxapis{}
+are parts of the Linux PAL.
+The filter blocks \linuxapi{} invoked from outside of the Linux PAL
+and delivers a \code{SIGSYS} signal
+to the PAL signal handler, which redirects the \linuxapis{} to \thelibos{}.
+
 
 
 \subsection{Reference monitor}
 \label{sec:linux:security:ref-monitor}
 
-The \graphene{} reference monitor on a Linux host
+The reference monitor on a Linux host
 is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
 A picoprocess is restricted by seccomp filter~\cite{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
 It must use the \graphene{} special device to open or create streams,
