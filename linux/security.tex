@@ -415,7 +415,7 @@ fs.allow_ro.http_docs = file:/var/www/    # reading website files
 net.allow_bind.httpd = 0.0.0.0:80         # binding to local 80 port
 net.allow_connect.anything = 0.0.0.0:1-65535    # allow any connection
 \end{lstlisting}
-\caption{A example of a manifest file, containing security rules for the reference monitor to permit accessing sharable resources. The manifest file is for running a Apache http server with a multi-process worker model.}
+\caption{A example of a manifest file, containing security rules for the reference monitor to permit accessing sharable resources. The manifest file is for running a Apache http server (without php and other language engines).}
 \label{fig:linux:manifest-example}
 \end{figure}
 
@@ -424,7 +424,9 @@ The reference monitor enforces simple, host-independent, whitelisting rules
 already familiarized by users and developers.
 Figure~\ref{fig:linux:manifest-example} shows an example of resource access rules
 in a manifest.
-
+First, a manifest lists all the files or directories
+that an application is allowed to access and specifies the access types (readable-writable or read-only).
+The executable (\code{loader.exec}) and the preloaded \libos{} binaries (\code{loader.preload\_libs}) are permitted for read-only access unless other rules override the permission.
 
 
 %is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
