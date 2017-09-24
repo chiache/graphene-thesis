@@ -260,12 +260,17 @@ The consecutive steps of \linuxapi{} redirection are described in Section~\ref{s
 
 
 Developing a \seccomp{} filter presents several technical challenges.
-First, a filter must prevent consecutive \picoprocs{}
-from reverting the \linuxapis{} restriction by installing a new filter.
-A \seccomp{} filter is installed using the \syscall{prctl} \linuxapi{}, so blocking \syscall{prctl} in a filter will prevent further changes to the filter.
+First, a filter must restrict consecutive \picoprocs{}
+to install a new filter the reverts the \linuxapi{} restriction.
+%A \seccomp{} filter is installed using the \syscall{prctl} \linuxapi{}, so
+Blocking the \syscall{prctl} \linuxapi{} in a \seccomp{} filter will prevent further installation of \seccomp{} filters.
 Second, the BPF grammar can only filter certain values or ranges of a register.
-The filter of \graphene{} needs to restrict the \linuxapis{}
-to be strictly from the Linux PAL, a shared library loaded at an address randomized by the Linux ASLR (Address Space Layout Randomization).
+The filter needs to
+ensure that only the Linux PAL can invoke \linuxapis{};
+however,
+for satisfying the dynamic loading behavior of \thehostabi{},
+the Linux PAL
+is built as a shared library loaded at an address randomized by the Linux ASLR (Address Space Layout Randomization) feature.
 If a filter only permits a specific range of program counters,
 a child \picoproc{}
 will load the Linux PAL at another randomized address,
@@ -382,21 +387,51 @@ to the PAL signal handler for redirecting the \linuxapis{} to \thelibos{}.
 \label{sec:linux:security:ref-monitor}
 
 The reference monitor on a Linux host
-checks the arguments of a host \linuxapi{} for referencing a sharable resource.
+checks the arguments of host \linuxapis{} for referencing any sharable host resources.
 A host \linuxapi{} like \syscall{open}, \syscall{connect}, or \syscall{bind}
-specifies a file path or a network address
-for opening a file or network stream as an abstraction of \thehostabi{}.
+specifies a file system path or a network address
+for opening a file or network stream and cannot be filtered by a \seccomp{} filter.
 The host kernel trusts the reference monitor
-to only permit resource accesses specified by a manifest file.
+to only permit
+a list of sharable resources in a \picoproc{},
+based on
+rules in a manifest file.
 Once the reference monitor has permitted the creation of a file or network stream,
-consecutive \linuxapis{} 
+consecutive operations on the stream
+such as reading or writing data can be trusted
+as long as being mediated by one of the permitted \linuxapis{}.
 
 
-is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
-A picoprocess is restricted by seccomp filter~\cite{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
-It must use the \graphene{} special device to open or create streams,
-so the file paths or network addresses can be checked against the sandbox rules.
-The kernel module as the driver of the \graphene{} special device can coexist with any LSM such as \emph{AppArmor} or \emph{SELinux}.
+\begin{figure}
+\centering
+\begin{lstlisting}
+loader.exec = file:/usr/sbin/apache2    # allow loading the executable 
+loader.preload_libs = file:/graphene/libLinux.so    # loading libLinux
+fs.allow_ro.libc = file:/graphene/libc/        # loading modified libc
+fs.allow_ro.mods = file:/usr/lib/apache2/modules/   # loading modules
+fs.allow_ro.cond = file:/etc/apache2/     # reading configuration
+fs.allow_rw.logs = file:/var/log/apache2/ # writing to logs
+fs.allow_ro.http_docs = file:/var/www/    # reading website files
+net.allow_bind.httpd = 0.0.0.0:80         # binding to local 80 port
+net.allow_connect.anything = 0.0.0.0:1-65535    # allow any connection
+\end{lstlisting}
+\caption{A example of a manifest file, containing security rules for the reference monitor to permit accessing sharable resources. The manifest file is for running a Apache http server with a multi-process worker model.}
+\label{fig:linux:manifest-example}
+\end{figure}
+
+
+The reference monitor enforces simple, host-independent, whitelisting rules
+already familiarized by users and developers.
+Figure~\ref{fig:linux:manifest-example} shows an example of resource access rules
+in a manifest.
+
+
+
+%is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
+%A picoprocess is restricted by seccomp filter~\cite{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
+%It must use the \graphene{} special device to open or create streams,
+%so the file paths or network addresses can be checked against the sandbox rules.
+%The kernel module as the driver of the \graphene{} special device can coexist with any LSM such as \emph{AppArmor} or \emph{SELinux}.
 
 
 When a new picoprocess is launched by the reference monitor, it begins execution in 
