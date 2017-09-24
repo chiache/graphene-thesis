@@ -285,11 +285,9 @@ must rely on a trusted reference monitor (see Section~\ref{sec:linux:security:re
 %extend AppArmor~\cite{apparmor} 
 %to enforce file system isolation in the kernel.
 
-%In order to reduce the impact of bugs in the reference monitor,
-%the reference monitor itself runs with a seccomp filter,
-%blocking unexpected system calls.
 
-The \seccomp{} filter must block unauthorized \linuxapis{}
+
+The \seccomp{} filter blocks  unauthorized \linuxapis{}
 from anywhere inside a \picoproc{}.
 Even if none of the application binaries contains any \assembly{syscall} or \assembly{int \$80} instruction,
 a piece of malicious application code can always bypass the Linux PAL
@@ -304,7 +302,12 @@ and argument-based restrictions
 to block unauthorized \linuxapis{} from both the Linux PAL and the rest of \picoproc{}.
 
 
-Using an existing mechanism like \seccomp{},
+%In order to reduce the impact of bugs in the reference monitor,
+%the reference monitor itself runs with a \seccomp{} filter, blocking unexpected system calls.
+
+
+\paragraph{Security implications.}
+Using an existing \linuxapi{} restriction mechanism like \seccomp{},
 \graphene{} limits the ability of an untrusted application to attack a Linux kernel.
 Ideally, since \thelibos{} only requires \thehostabi{},
 \graphene{} can adopt a modified Linux kernel
@@ -313,33 +316,45 @@ that only exports \palcallnum{} \hostapis{} to each \picoproc{}.
 The \seccomp{} filter instead isolates a \picoproc{} on an unmodified Linux kernel,
 with a reduced attack surface 
 comparable to only exporting \thehostabi{}.
-The filter only permits \hostsyscallnum{} \linuxapis{} with specific flags and opcodes
-required for implementing the Linux PAL.
-In computer security, the principle of least privilege
-restricts each component or layer to only access the resources or abstractions
-needed for performing tasks.
-The filter limits the execution paths in a Linux kernel
-that a \picoproc{} can possibly trigger, to prevent the application running inside the \picoproc{} from exploiting any known or unknown vulnerabilities
-on remaining paths.
+%The filter only permits \hostsyscallnum{} \linuxapis{} with specific flags and opcodes
+%required by the Linux PAL.
+According to the principle of least privilege,
+each component or layer in a system should only be granted access to a minimal amount of resources or abstractions
+required for performing the expected tasks.
+The \seccomp{} filter only permits
+a minimal amount of \linuxapis{} with specific flags and opcodes
+required by the Linux PAL,
+so an untrusted application
+can only trigger
+a limited amount of execution paths inside the host Linux kernel.
+\graphene{} limits
+the ability of an untrusted application to explore
+known and unknown vulnerabilities
+on any kernel execution paths for servicing one of the blocked \linuxapis{}.
 
 
-Although a regular Linux process can also leverage a \seccomp{} filter
-for \linuxapi{} restriction,
+
+Although a regular Linux process can also leverage a \seccomp{} filter,
 \graphene{} makes a major contribution
-to reduce a massive \linuxapi{} footprint of a large-scale application
-to a fixed, simpler \linuxapi{} profile.
-Static analysis of applications and libraries
-in the official Ubuntu repositories
+to reduce the \linuxapi{} footprint of any large-scale application
+to a fixed, small \linuxapi{} profile.
+Analysis %of applications and libraries
+%in the official Ubuntu repositories
 shows that the \linuxapi{}  footprint of a large-scale application such as Apache or MySQL can contain more than 100 \linuxapis{}.
 Since \thelibos{} has absorbed the Linux \linuxapi{} table,
-running Apache or MySQL in \graphene{} in \graphene{}
-leads to the exactly same host \linuxapi{} profile as running any other applications.
-For running a wider range of applications
-on a system, \graphene{} allows OS developers to focus
-on testing or inspecting a small amount of the corner cases and execution paths
-in a Linux kernel.
-
-
+running Apache, MySQL, or any other application in \graphene{} leads to at most \hostsyscallnum{} host \linuxapis{}.
+As a system
+running a wide range of applications
+can exposes a different partial view of the \linuxapi{} table to each application,
+\graphene{}
+has a static \linuxapi{} profile for all applications,
+allowing OS developers to focus
+on testing or analyzing a small portion of execution paths and corner cases
+of a Linux kernel.
+Sun, et al, 2015~\cite{sun15unpredictability}
+proposes sandboxing an uncertain, potentially-malicious application
+in \graphene{}
+with an unpredictable \thelibos{} implementation.
 
 
 
@@ -349,7 +364,7 @@ in a Linux kernel.
 
 \paragraph{Static binaries.}
 Besides security purposes,
-a \seccomp{} filter implements a compatibility feature
+a \seccomp{} filter provides a compatibility feature
 for redirecting hard-coded \linuxapis{}
 in a statically-linked application binary.
 \graphene{} leverages the \seccomp{} filter to redirect these leaked \linuxapis{}
@@ -371,6 +386,10 @@ checks the arguments of a host \linuxapi{} for referencing a sharable resource.
 A host \linuxapi{} like \syscall{open}, \syscall{connect}, or \syscall{bind}
 specifies a file path or a network address
 for opening a file or network stream as an abstraction of \thehostabi{}.
+The host kernel trusts the reference monitor
+to only permit resource accesses specified by a manifest file.
+Once the reference monitor has permitted the creation of a file or network stream,
+consecutive \linuxapis{} 
 
 
 is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
