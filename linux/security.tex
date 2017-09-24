@@ -269,9 +269,9 @@ If a filter only permits a specific range of program counters,
 a child \picoproc{}
 will load the Linux PAL at another randomized address,
 and the inherited filter will restrict the child \picoproc{} to invoke any \linuxapis{}.
-Therefore, the Linux PAL introduces a small, security loader
-with a fixed loading address
-inside each \picoproc{} to invoke any \linuxapis{}.
+The Linux PAL introduces a small, initial loader
+loaded at a fixed address
+within each \picoproc{} and permitted to invoke \linuxapis{}.
 Finally, a \seccomp{} filter
 cannot check a string argument, such as a file path for \syscall{open} or a network address for \syscall{bind}.
 Checking a string argument requires
@@ -288,12 +288,69 @@ must rely on a trusted reference monitor (see Section~\ref{sec:linux:security:re
 %the reference monitor itself runs with a seccomp filter,
 %blocking unexpected system calls.
 
+The \seccomp{} filter must block unauthorized \linuxapis{}
+from anywhere inside a \picoproc{}.
+Even if none of the application binaries contains any \assembly{syscall} or \assembly{int \$80} instruction,
+a piece of malicious application code can always bypass the Linux PAL
+to invoke unauthorized \linuxapis{}.
+The application code can simply
+jump to a \assembly{syscall} instruction inside the Linux PAL,
+or corrupt a returned address on the current stack to launch a ROP (return-oriented programming) attack.
+Even if the Linux PAL is hidden or isolated from the application,
+an adversary can always leverage a gadget, a byte sequence that resembles the target instruction, within an executable or a library.
+Therefore, the \seccomp{} enforces both program-counter-based 
+and argument-based restrictions
+to block unauthorized \linuxapis{} from both the Linux PAL and the rest of \picoproc{}.
+
+
+Using an existing \linuxapi{} restriction mechanism like \seccomp{},
+\graphene{} limits the ability of an untrusted application to attack a Linux kernel.
+Ideally, since \thelibos{} only requires \thehostabi{},
+\graphene{} can adopt a modified Linux kernel
+only exporting \palcallnum{} \hostapis{} to each \picoproc{}.
+%However, as a usability feature, \graphene{} runs \graphene{} on an unmodified Linux kernel using a Linux PAL to translate among host interfaces.
+The \seccomp{} filter then isolates a \picoproc{} on an unmodified Linux kernel,
+with a reduced attack surface 
+comparable to only exporting \thehostabi{}.
+The filter only permits \hostsyscallnum{} \linuxapis{} with specific flags and opcodes
+required for implementing the Linux PAL.
+In computer security, the principle of least privilege
+restricts each component or layer to only access the resources or abstractions
+needed for performing tasks.
+The filter limits the execution paths in a Linux kernel
+that a \picoproc{} can possibly trigger, to prevent the application running inside the \picoproc{} from exploiting any known or unknown vulnerabilities
+on remaining paths.
+
+
+Although a regular Linux process can also leverage a \seccomp{} filter
+for \linuxapi{} restriction,
+\graphene{} makes a major contribution
+to reduce a massive \linuxapi{} footprint of a large-scale application
+to a fixed, simpler \linuxapi{} profile.
+Static analysis of applications and libraries
+in the official Ubuntu repositories
+shows that the \linuxapi{}  footprint of a large-scale application such as Apache or MySQL can contain more than 100 \linuxapis{}.
+Since \thelibos{} has absorbed the Linux \linuxapi{} table,
+running Apache or MySQL in \graphene{} in \graphene{}
+leads to the exactly same host \linuxapi{} profile as running any other applications.
+For running a wider range of applications
+on a system, \graphene{} ensures the OS developers to focus
+on a small amount of the corner cases and execution paths to exhaustively test or inspect the kernel code.
+
+
+
+
+
+
+
+
+
 \paragraph{Static binaries.}
-Besides security reasons, \graphene{} also requires \linuxapi{} restriction
-for a compatibility reason:
-to redirect hard-coded \linuxapis{} from
-statically-linked application binaries.
-\graphene{} leverage the \seccomp{} filter to redirect these leaked \linuxapis{}
+Besides security purposes,
+a \seccomp{} filter also introduces a compatibility feature
+to redirect hard-coded \linuxapis{}
+from a statically-linked application binary.
+\graphene{} leverages the \seccomp{} filter to redirect these leaked \linuxapis{}
 back to \thelibos{}. 
 The filter contains BPF rules to check program counters
 against the mapping range of the Linux PAL, to ensure only the Linux PAL can
@@ -303,7 +360,7 @@ and raises a \code{SIGSYS} signal.
 The Linux PAL delivers an exception to \thelibos{},
 so that \thelibos{} can capture these \linuxapis{} and read arguments from a saved register context.
 This feature is only for backward compatibility,
-not security.
+not security isolation.
 
 
 \subsection{Reference monitor}
