@@ -8,7 +8,7 @@ The discussion starts with the security guarantees and threat model, followed by
 
 
 
-\subsection{Security guarantees and threat model}
+\subsection{Security guarantees}
 
 The security isolation model of \graphene{} ensures that mutually-untrusting applications cannot interfere with each other.
 A goal of \graphene{} is to provide security isolation with comparable strength as
@@ -276,7 +276,7 @@ within each \picoproc{} and permitted to invoke \linuxapis{}.
 Finally, a \seccomp{} filter
 cannot check a string argument, such as a file path for \syscall{open} or a network address for \syscall{bind}.
 Checking a string argument requires
-involves reading user memory of unknown sizes and string comparison, and the BPF grammar is insufficient for writing such a rule.
+involves reading user memory of unknown sizes and string comparison, and the BPF grammar only allows checking an argument arithmetically.
 Filtering permitted file paths and network addresses
 must rely on a trusted reference monitor (see Section~\ref{sec:linux:security:ref-monitor}).
 %In order to avoid the overhead of trapping to the reference monitor on 
@@ -304,11 +304,11 @@ and argument-based restrictions
 to block unauthorized \linuxapis{} from both the Linux PAL and the rest of \picoproc{}.
 
 
-Using an existing \linuxapi{} restriction mechanism like \seccomp{},
+Using an existing mechanism like \seccomp{},
 \graphene{} limits the ability of an untrusted application to attack a Linux kernel.
 Ideally, since \thelibos{} only requires \thehostabi{},
 \graphene{} can adopt a modified Linux kernel
-only exporting \palcallnum{} \hostapis{} to each \picoproc{}.
+that only exports \palcallnum{} \hostapis{} to each \picoproc{}.
 %However, as a usability feature, \graphene{} runs \graphene{} on an unmodified Linux kernel using a Linux PAL to translate among host interfaces.
 The \seccomp{} filter instead isolates a \picoproc{} on an unmodified Linux kernel,
 with a reduced attack surface 
@@ -367,6 +367,12 @@ to the PAL signal handler for redirecting the \linuxapis{} to \thelibos{}.
 \label{sec:linux:security:ref-monitor}
 
 The reference monitor on a Linux host
+checks the arguments of a host \linuxapi{} for referencing a sharable resource.
+A host \linuxapi{} like \syscall{open}, \syscall{connect}, or \syscall{bind}
+specifies a file path or a network address
+for opening a file or network stream as an abstraction of \thehostabi{}.
+
+
 is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
 A picoprocess is restricted by seccomp filter~\cite{seccomp} to use any {\tt open} or socket {\tt connect} and {\tt bind} system calls.
 It must use the \graphene{} special device to open or create streams,
