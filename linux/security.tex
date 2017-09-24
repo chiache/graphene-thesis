@@ -8,7 +8,7 @@ The discussion starts with the security guarantees and threat model, followed by
 
 
 
-\subsection{Security guarantees}
+\subsection{Security guarantees and threat model}
 
 The security isolation model of \graphene{} ensures that mutually-untrusting applications cannot interfere with each other.
 A goal of \graphene{} is to provide security isolation with comparable strength as
@@ -236,7 +236,8 @@ the reference monitor (see Section~\ref{sec:linux:security:ref-monitor}).
 
 \issuedone{1.3.d}{extend the discussion of \seccomp{} filter}
 \graphene{} restricts the host \linuxapis{} 
-using a \seccomp{} (SECure COMPuting) filter~\cite{seccomp}. The feature of \seccomp{} filters is introduced to the Linux kernels since 2.6.12.
+using a \seccomp{} %(SECure COMPuting)
+filter~\cite{seccomp}, a feature introduced in Linux 2.6.12.
 % a recent Linux system call filtering mechanism, called 
 A \seccomp{} filter allows a Linux process to install an immutable Berkeley Packet Filter (BPF) program
 that specifies allowed \linuxapis{}, as well as specifies
@@ -309,7 +310,7 @@ Ideally, since \thelibos{} only requires \thehostabi{},
 \graphene{} can adopt a modified Linux kernel
 only exporting \palcallnum{} \hostapis{} to each \picoproc{}.
 %However, as a usability feature, \graphene{} runs \graphene{} on an unmodified Linux kernel using a Linux PAL to translate among host interfaces.
-The \seccomp{} filter then isolates a \picoproc{} on an unmodified Linux kernel,
+The \seccomp{} filter instead isolates a \picoproc{} on an unmodified Linux kernel,
 with a reduced attack surface 
 comparable to only exporting \thehostabi{}.
 The filter only permits \hostsyscallnum{} \linuxapis{} with specific flags and opcodes
@@ -334,8 +335,9 @@ Since \thelibos{} has absorbed the Linux \linuxapi{} table,
 running Apache or MySQL in \graphene{} in \graphene{}
 leads to the exactly same host \linuxapi{} profile as running any other applications.
 For running a wider range of applications
-on a system, \graphene{} ensures the OS developers to focus
-on a small amount of the corner cases and execution paths to exhaustively test or inspect the kernel code.
+on a system, \graphene{} allows OS developers to focus
+on testing or inspecting a small amount of the corner cases and execution paths
+in a Linux kernel.
 
 
 
@@ -355,9 +357,9 @@ back to \thelibos{}.
 The filter contains BPF rules to check if the program counters
 invoking the \linuxapis{}
 are parts of the Linux PAL.
-The filter blocks \linuxapi{} invoked from outside of the Linux PAL
+The filter blocks \linuxapi{} invoked outside of the Linux PAL
 and delivers a \code{SIGSYS} signal
-to the PAL signal handler, which redirects the \linuxapis{} to \thelibos{}.
+to the PAL signal handler for redirecting the \linuxapis{} to \thelibos{}.
 
 
 
