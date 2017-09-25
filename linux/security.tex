@@ -420,13 +420,50 @@ net.allow_connect.anything = 0.0.0.0:1-65535    # allow any connection
 \end{figure}
 
 
-The reference monitor enforces simple, host-independent, whitelisting rules
+The reference monitor enforces simple, white-listing rules
+based on security mechanisms
 already familiarized by users and developers.
 Figure~\ref{fig:linux:manifest-example} shows an example of resource access rules
 in a manifest.
-First, a manifest lists all the files or directories
-that an application is allowed to access and specifies the access types (readable-writable or read-only).
-The executable (\code{loader.exec}) and the preloaded \libos{} binaries (\code{loader.preload\_libs}) are permitted for read-only access unless other rules override the permission.
+First, a manifest lists
+the URI prefixes of permitted files or directories
+of an application,
+similar to an AppArmor profile.
+The executable (\code{loader.exec}) and the preloaded \libos{} binaries (\code{loader.preload\_libs})
+are permitted for read-only access by default.
+The reference monitor
+simply compares file URIs against each permitted URI prefix
+and checks the access types;
+unlike many existing security mechanisms in Linux and similar OSes, such as permission bits, Access Control Lists (ACLs), and SELinux labels,
+the reference monitor does not retrieve
+security policies from file metadata, but obtains the manifest from an out-of-band channel.
+
+
+Manifest-based security
+simplifies the inspection, authentication, and population
+of security policies.
+An Android application is deployed with a similar manifest,
+listing the accessed files and other resources,
+which users approve when installing the application.
+Developers can authenticate a security policy by signing the content of a manifest.
+Moreover, to run an application, a user can choose among multiple manifest files
+with different levels of security privileges.
+
+
+
+Network rules in a manifest are similar to {\bf iptables firewall rules} for defending a server or a desktop machine.
+A network rule specifies a local or remote address
+that the application is permitted to bind or connect a network stream.
+A local or remote address
+can be an IPv4 or IPv6 address (possible to specify an ``any'' address, i.e., \code{0.0.0.0} or \code{[::1]}), combined with a specific port number or range.
+When an application creates a network stream,
+the reference monitor checks whether the local and remote addresses
+match one of the network rules.
+
+
+
+
+
 
 
 %is implemented using {\tt ioctl} system call to a special device {\tt /dev/graphene}.
@@ -435,9 +472,59 @@ The executable (\code{loader.exec}) and the preloaded \libos{} binaries (\code{l
 %so the file paths or network addresses can be checked against the sandbox rules.
 %The kernel module as the driver of the \graphene{} special device can coexist with any LSM such as \emph{AppArmor} or \emph{SELinux}.
 
+The reference monitor on a Linux host
+is implemented as a Linux Security Module (LSM) extended from the existing AppArmor module.
+AppArmor is the default LSM of most Linux distributions,
+and a Linux kernel disallows multiple LSMs (e.g., AppArmor, SELinux) to be effective simultaneously.
+\graphene{} instruments
+a few security hooks of the AppArmor, to add checks for file system paths
+and network addresses.
+The security checks of the reference monitor are stackable with other host security mechanisms.
+For example, if a manifest lists a root-privileged file and the \graphene{} application runs in a unprivileged process,
+existing security checks in a Linux kernel
+still blocks the file access even though the reference monitor permits the access.
+The drawback of the implementation
+is that \graphene{} must run on a modified Linux kernel.
+Linux kernels do not support loading LSM as a dynamic kernel module.
+\graphene{} only replaces
+the AppArmor LSM in a Linux kernel; the rest of the Linux kernel remains unchanged.
 
-When a new picoprocess is launched by the reference monitor, it begins execution in 
-a new sandbox.  
+
+A trusted security loader initializes the reference monitor
+when launching an application in \graphene{}.
+When a user launches an application in \graphene{} from the command line,
+the first \picoproc{} begins in a new sandbox.
+The security loader
+reads the manifest file given by the user,
+and submits the resource rules to the reference monitor.
+Once the reference monitor
+starts a \picoproc{} in a sandbox, neither the first \picoproc{} nor any consecutive \picoprocs{} spawned in the sandbox can ever escape the sandbox or drop the restrictions on certain resources.
+
+
+\paragraph{Alternative approaches.}
+Other approaches can implement the reference monitor without modifying a Linux kernel, with a trade-off of performance or development simplicity.
+An approach is to implement the reference monitor as a trusted process receiving \code{ptrace} events from \graphene{} \picoprocs{}.
+Using the \syscall{ptrace} \linuxapi{}, this reference monitor can retrieve user memory from the monitored \picoprocs{},
+and block the \linuxapis{} which request for unpermitted resources.
+Unfortunately, intercepting every \linuxapis{} with \code{ptrace} events introduces significant overhead to \hostapis{};
+thus, this approach is not ideal for isolating \graphene{} applications on a Linux host.
+
+
+Another approach is to translate the resource rules in a manifest file
+to AppArmor or iptables rules.
+As explained in previous paragraph, the file and network rules in a manifest file are similar to the file lists in an AppArmor profile and the firewall rules enforced by iptables.
+Instead of implementing a \graphene{}-specific reference monitor,
+\graphene{} can convert a manifest file, either statically or dynamically,
+to security rules recognized by AppArmor and iptables.
+This approach requires no modification
+in a Linux kernel, and is likely to have low performance overhead
+due to existing optimizations in these security mechanisms.
+\graphene{} leaves the integration with AppArmor and iptables for future work.
+
+
+
+
+\paragraph{Process-specific isolation.} 
 Child picoprocesses may either inherit their parent's sandbox, 
 or can be started in a separate sandbox
 --- specified by a flag to the picoprocess creation ABI.
@@ -475,34 +562,34 @@ on a host system like Dune~\cite{belay12dune},
 or dynamically rewriting parts of the static binary~\cite{hunt99detours}.
 \end{comment}
 
-\paragraph{Example.}
-Figure~\ref{fig:graphene:syscall-restriction} illustrates three possible situations. 
-%% An unmodified Linux application is dynamically linked against the 
-%% \graphene{} {\tt libc}, 
-%% which then dynamically links its system calls from {\tt libLinux},
-%% which in turn links in the host kernel ABI from the \pal{}.
-%% The application requests OS functionality in three ways.
-An unmodified application first invokes the {\tt libc} function {\tt malloc}, which issues 
-a {\tt brk} system call to {\tt libLinux}, which requests memory 
-from the host via a {\tt Dk\-Virtual\-Memory\-Alloc} \pal{} call,
-which ultimately issues an {\tt mmap} host system call.
-The {\tt mmap} host system call is allowed by seccomp because it only 
-affects the picoprocess's address space.
-The second line of the application jumps to the \pal{} instruction that issues
-an {\tt open} system call.
-From a security perspective, this is permissible,
-as it is isomorphic to \pal{} functionality.
-In practice, this could cause
-corruption of {\tt libLinux} or application data structures,
-but the only harm is to the application itself. 
-Because this system call involves the file system, the reference monitor LSM first checks if the file to be opened is included in the sandbox definition (manifest) before allowing  the {\tt open} system call in the kernel.  
-Finally, the application uses inline assembly to issue a {\tt brk} system call;
-%in an attempt to obtain I/O port privilege; 
-because this system call was not issued by the \pal{},
-seccomp will redirect this call back to the \pal{},
-which then calls the {\tt libLinux} implementation.
+%\paragraph{Example.}
+%Figure~\ref{fig:graphene:syscall-restriction} illustrates three possible situations. 
+%%% An unmodified Linux application is dynamically linked against the 
+%%% \graphene{} {\tt libc}, 
+%%% which then dynamically links its system calls from {\tt libLinux},
+%%% which in turn links in the host kernel ABI from the \pal{}.
+%%% The application requests OS functionality in three ways.
+%An unmodified application first invokes the {\tt libc} function {\tt malloc}, which issues 
+%a {\tt brk} system call to {\tt libLinux}, which requests memory 
+%from the host via a {\tt Dk\-Virtual\-Memory\-Alloc} \pal{} call,
+%which ultimately issues an {\tt mmap} host system call.
+%The {\tt mmap} host system call is allowed by seccomp because it only 
+%affects the picoprocess's address space.
+%The second line of the application jumps to the \pal{} instruction that issues
+%an {\tt open} system call.
+%From a security perspective, this is permissible,
+%as it is isomorphic to \pal{} functionality.
+%In practice, this could cause
+%corruption of {\tt libLinux} or application data structures,
+%but the only harm is to the application itself. 
+%Because this system call involves the file system, the reference monitor LSM first checks if the file to be opened is included in the sandbox definition (manifest) before allowing  the {\tt open} system call in the kernel.  
+%Finally, the application uses inline assembly to issue a {\tt brk} system call;
+%%in an attempt to obtain I/O port privilege; 
+%because this system call was not issued by the \pal{},
+%seccomp will redirect this call back to the \pal{},
+%which then calls the {\tt libLinux} implementation.
 
-\paragraph{Process-specific Isolation.} 
+
 Sandbox creation in \graphene{} can provide
 more options than virtualization, to reflect the security policy of applications at any timing,
 in the granularity of picoprocess. 
@@ -513,50 +600,9 @@ or promptly shut down RPC streams to stop sharing OS states.
 The picoprocess that moves to a separate sandbox will have a restrictive view of the filesystem, and no coordination with the previous sandboxes.
 In section~\ref{sec:graphene:eval}, we describe an experiment that improves security isolation of Apache web server without sacrificing functionality.
 
-\paragraph{Reference monitor.}
-The reference monitor is a trusted process that runs on the host system.
-\graphene{} applications are launched by the reference monitor,
-which instantiates the seccomp filter and traces all children
-to check host system calls that could have external effects.
-The reference monitor interposes using ptrace events, 
-which can be raised for specific system calls by seccomp.
-We ensure that all processes created within a sandbox are traced
-by setting the {\tt PTRACE\_O\_TRACEseccomp{}} option on all newly created picoprocesses
-in the sandbox.
 
-%% from bpjain:
-% We have to set the option PTRACE\_O\_TRACESECCOMP on new children
-% using ptrace(PTRACE\_SETOPTIONS) and we get the event as
-% PTRACE\_EVENT\_SECCOMP whenever a syscall that is Traced is called.
-% It happens before the grandchild starts running. We get the
-% notification of creation of grandchildren by setting ptrace option
-% PTRACE\_O\_TRACECLONE on the child(i.e., parent of grandchild).  I
-% need to monitor every fork/clone (only clone since pal only calls
-% clone). I get this event even if fork/clone is just allowed.  And
-% the event that arrives on clone/fork is completely different from
-% seccomp event. Thats a ptrace event too.. but we get
-% PTRACE\_EVENT\_CLONE whenever a clone is done by a child on which
-% PTRACE\_O\_TRACECLONE option was set.
 
-Each application includes a \emph{manifest file}, which specifies restrictions,
-including network firewall rules and subsets of the host file system sandboxed
-applications are permitted to access.  The reference monitor enforces these
-rules by interposing on all system calls involving file paths or remote network addresses.
-%\fixmedp{Revise if we can do something smarter; 2x check implementation status before submission}.
-
-%% dp Sadface :(
-\paragraph{Privilege.~} 
-Although the reference monitor is trusted, it does not run 
-with administrative privilege.
-Linux 3.5, which we use as our host kernel, 
-introduced the {\tt NO\_NEW\_PRIVS} bit, which permits
-a non-privileged process to impose sandboxing restrictions on a child.
-%Ubuntu back-ported this feature to Linux 3.2, which we use as our host kernel.
-This flag prevents a process from acquiring root privilege, % (e.g., via executing a {\tt setuid} binary),
-is inherited by all descendant processes,
-and cannot be disabled.
-
-\paragraph{Creating New Sandboxes.~} We add a \pal{} call which
+We add a \pal{} call which
 permits a picoprocess to request that it be moved into a new sandbox.
 This call, as well as file system path checks, are implemented
 as extensions to the  AppArmor LSM~\cite{apparmor}.
