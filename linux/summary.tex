@@ -1,36 +1,41 @@
 \section{Summary}
 
 
-The development of a Linux PAL focuses
-on the simplicity of leveraging existing Linux \linuxapis{} to implement
-the whole PAL ABI,
-and the robustness of enforcing security isolation
-from the host kernel.
-The development of \thelibos{} proves the sufficiency of \thehostabi{} to emulate Linux abstractions and behaviors in a guest.
-\Thehostabi{} isolates each host
-and the corresponding PAL
-from the complexity of Linux features and APIs required by an applications.
-The Linux PAL
-shows an example of exporting \thehostabi{} using only \hostsyscallnum{} trimmed \linuxapis{},
-and enforcing VM-like security isolation
-with a reduced attack surface.
+
+The Linux PAL successfully leverages a limited subset of Linux \linuxapis{},
+to implement the whole PAL ABI for running a
+full-featured \libos{}.
+\Thehostabi{} separates the development of a host OS or hypervisor
+from the complexity of emulating a sufficiently-compatible
+Linux kernel.
+The chapter shows that most calls in \thehostabi{}
+can be directly translated to similar \linuxapis{} on a Linux host kernel.
+Only a few \hostapis{}, such as process creation and inter-thread synchronization, require additional attention for developing an efficient implementation strategy.
 
 
-The security isolation on a Linux host is based on \linuxapi{} restriction and a trusted reference monitor.
-Since \thelibos{} has significantly reduced the host interface,
-a host kernel further restricts the host \linuxapis{} and arguments from an untrusted \picoproc{},
-and access to sharable host resources.
-A \seccomp{} filter
-narrows down the execution path inside a Linux kernel that a \picoproc{} could directly trigger through \linuxapis{},
-and effectively eliminates
-the risk of exposing any vulnerabilities on the remaining kernel execution path to an untrusted application.
-The reference monitor enforces straightforward, white-listing rules
-for sharing files and network addresses.
-A sandbox created by the reference monitor restricts
-the files and network addresses accessed by a set of mutually-trusting \picoproc{}, based on a application-specific manifest.
-The reference monitor further enforces process-specific isolation,
-by dynamically moving an \picoproc{} to a new sandbox
-with a more restricted file and network view and no bridging RPC streams to \picoprocs{} of other sandboxes.
+
+The Linux PAL also enforces robust security isolation
+between mutually-untrusting applications,
+by placing applications in separate, VM-like sandboxes.
+The security isolation on a Linux host is based on \linuxapi{} restriction using a \seccomp{} filter, and a trusted reference monitor. % for checking resource access.
+Security isolation at the host interface
+restricts an untrusted application to explore vulnerable execution paths
+inside a Linux kernel.
+A \seccomp{} filter 
+enforce a fixed, minimal \linuxapi{} profile,
+no matter how bloated the dependency of an application can be.
+The reference monitor follows
+simple, white-listed manifest rules listing 
+all the authorized files and network addresses of an application,
+using well-known semantics
+such as AppArmor files or iptable-like firewall rules.
+The reference monitor can further enforce dynamic, process-specific isolation by splitting a sandbox
+to run a child \picoproc{} under more restricted
+resource permissions.
+\graphene{} on a Linux host can serve as a sandbox framework
+with a reduced attack surface
+to the host kernel.
+
 
 
 
