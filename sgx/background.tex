@@ -18,32 +18,43 @@ and current design points for running or porting applications on the SGX platfor
 
 
 SGX~\cite{intelsgx} is a feature added in the Intel sixth-generation CPUs,
-as a hardware support for trusted execution environments (TEEs)
+as a hardware support for trusted execution environments (TEEs)~\cite{santos09tccp,lie2003implementing,trustzone,amd-sme}
 with both confidentiality and integrity.
 SGX introduces a number of essential hardware features that allow an application
 to protect itself from the host OS, hypervisor, BIOS, and other software.
-SGX is particularly appealing in cloud computing, as users 
+The security guarantees of SGX is particularly appealing in cloud computing, as users 
 might not fully trust the cloud provider.
-That said, for any sufficiently-sensitive application, using SGX may be prudent,
-even within one administrative domain,
-as the security track record of commodity operating systems is not without blemish.
-Thus, a significant number of users would benefit from running
-security-sensitive applications on SGX as soon as possible.
+Even if the whole cloud infrastructure
+is under on administrative domain,
+commodity operating systems have a long history of exposing security vulnerabilities
+to untrusted users, due to \fixme{find even more citations}
+flaws in software and hardware
+~\cite{arbaugh00vulnerability,dirtycow,xu15ccs,liu15llc-attack,kim14rowhammer}.
+%That said, for any sufficiently-sensitive application, using SGX may be prudent,
+%even within one administrative domain,
+%as the security track record of commodity operating systems is not without blemish.
+%Thus, a significant number of users would benefit from running
+%security-sensitive applications on SGX as soon as possible.
+Any sufficiently-sensitive applications
+would benefit from running on SGX to evade the consequences of a compromised OS kernel.
 
 
-
-The primary abstraction of the SGX platform is an {\bf enclave}, an isolated execution environment within the virtual address space of a process.
+The primary abstraction of the SGX platform is an {\bf enclave}, an isolated execution environment within the virtual address space of an application process.
 %With SGX, part or all of an application can run in an {\em enclave}.
-Enclave features include confidentiality and integrity protection:
+The features of an enclave include confidentiality and integrity protection:
 %for the enclave's virtual address space;
 %restricting control flow into well-defined entry points for an enclave;
 %integrity checking memory contents at start time;
 %and remote attestation.
-the code and data in enclave memory do not leave the CPU
-package unencrypted or unauthenticated; when memory contents are read back into cache,
+the code and data in an enclave memory region do not leave the CPU package unencrypted or unauthenticated; when memory contents are read back into the last-level cache,
 the CPU decrypts the contents, and checks the integrity of cache lines and the virtual-to-physical mapping.
-SGX also cryptographically measures the integrity of enclaves at start-up, and 
-provide attestation to remote systems or other enclaves.
+The memory encryption
+prevents a OS kernel, hypervisor, or even firmware from physically fetching the application secret from DRAMs;
+SGX can even survive a stronger attack at the hardware level,
+such as cold-boot attack~\cite{halderman09coldboot}, an attack based on removing DRAM from the memory bus at a low temperature and placing it in another machine.
+SGX also cryptographically measures the integrity of enclave code and data at start up, and
+is able to generate
+attestation to remote systems or enclaves to prove the integrity of a local enclave.
 %Remote entities can identify the owners of enclaves by distinguishing the cryptographic measurements
 %generated with different signing keys.
 
@@ -88,12 +99,18 @@ provide attestation to remote systems or other enclaves.
 %needed for provisioning sensitive data.
 
 SGX enables the defense against a threat model where one only trusts the Intel CPUs and the 
-code running in the enclave(s).
+code running in the enclaves.
 %whereas the rest of application, system software, off-CPU-package hardware devices and providers are untrusted. 
-SGX protects applications from three different types of attacks on the same host, which are summarized in Figure~\ref{fig:sgx:threats}. Untrusted application code inside the same process but outside the enclave; operating systems, hypervisors, and other system software;
+SGX protects applications from three different types of attacks on the same host, which are summarized in Figure~\ref{fig:sgx:threats}. First, untrusted application code inside the same process but outside the enclave
+cannot access enclave memory or arbitrarily jump into enclave code. Second, OSes, hypervisors, and other system software cannot peek into enclaves from administrative domains;
 %\fixme{added Mona's suggestion}
-other applications on the same host; and off-chip hardware.
-A SGX enclave can also trust a remote service or enclave, and be trusted after inter-platform attestation~\cite{sgx-attestation}.
+Third, other applications on the same host
+cannot exploit vulnerabilities in a OS kernel or system software
+to escalate privileges.
+Finally, off-chip hardware, such as buses, DRAM, and peripheral devices can be hijacked or replaced with malicious components, but can never steal or corrupt enclave secrets
+both encrypted and authenticated. 
+A SGX enclave can choose to trust a remote service or enclave and be trusted in return
+after performing a procedure of inter-platform attestation~\cite{sgx-attestation}.
 
 
 \begin{figure}[t!]
@@ -408,7 +425,7 @@ and we are aware of ongoing projects using \graphenesgx{}.
 %buiding extensions to Graphene
 
 
-
+\subsection{Shielding complexity}
 
 
 \paragraph{How much functionality to pull into the enclave?}
