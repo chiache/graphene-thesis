@@ -481,25 +481,59 @@ Due to the complexity of shielding, leaving out OS features might result in addi
 A specific type of attacks called {\bf Iago attacks}~\cite{checkoway13iago}
 threaten a framework that shields against an existing API layer or system call table in an untrusted domain.
 \citeauthor{checkoway13iago}
+demonstrate several attacks to shielding systems like InkTag~\cite{inktag} and Overshadow~\cite{overshadow}, based on manipulating system call return values.
+A common feature of these shielding systems
+is the verification of a legacy API serviced by an untrusted kernel.
+Examples of Iago attacks include
+corrupting a protected stack by returning an address on stack to \syscall{mmap};
+forcing a replay attack on SSL (Secure Sockets Layers) protocol
+seeded by the returned values of \syscall{getpid} and \syscall{time}.
+As applications often abuse system APIs for implementing internal functionality,
+an untrusted OS gains huge advantage to explore vulnerabilities inside of either applications or a shielding system.
 
 
 
-An existing API layer like POSIX or system call table is not defined with an untrusted OS model in mind;
+A fundamental lesson learned from Iago attacks
+is that 
+an existing API layer like POSIX or system call table is not suitable for the context of untrusting an operating system.
+The definition of POSIX API or Linux system calls assumes an untrusted client
+and has specified explicit semantics for checking against malicious inputs.
+On the other hand,
+these existing APIs do not specify
+how the clients should defend against an untrusted OS,
+leaving the design of proper defenses
+an exercise for application developers.
+Moreover,
+these existing APIs require an application
+to endow sensitive states
+to the operating system, making the API results more difficult to verify. For example,
+a Linux kernel associates a file descriptor
+with the current offset for accessing the file contents, whereas the application
+only specifies the file descriptor and a user buffer to a \syscall{read} or \syscall{write} call.
+While an OS can simply refuse to trust the inputs from an application,
+the same cannot be said for an self-protecting application or a shielding system
+without fully anticipating
+the Iago attacks from an untrusted OS.
 
-SGX hardware can isolate an application from an untrusted OS, but 
-SGX alone can't protect an application that  requires
-functionality from the OS.  {\em Iago attacks}~\cite{checkoway13iago}
-are semantic attacks from the untrusted OS against the application, where an unchecked system call return 
-value or effect compromises the application.
-Iago attacks can be subtle and hard to comprehensively detect, at least with the current
-POSIX or Linux system call table interfaces.
 
-Thus, any SGX framework must provide some {\em shielding} support, to 
-validate or reject inputs from the untrusted OS.  
-The complexity of shielding is directly related to the interface complexity:
-inasmuch as a library OS or shim can reduce the size or complexity of the 
-enclave API, 
-the risks of a successful Iago attack are reduced.
+
+
+
+
+%SGX hardware can isolate an application from an untrusted OS, but 
+%SGX alone can't protect an application that  requires
+%functionality from the OS.  {\em Iago attacks}~\cite{checkoway13iago}
+%are semantic attacks from the untrusted OS against the application, where an unchecked system call return 
+%value or effect compromises the application.
+%Iago attacks can be subtle and hard to comprehensively detect, at least with the current
+%POSIX or Linux system call table interfaces.
+
+%Thus, any SGX framework must provide some {\em shielding} support, to 
+%validate or reject inputs from the untrusted OS.  
+%The complexity of shielding is directly related to the interface complexity:
+%inasmuch as a library OS or shim can reduce the size or complexity of the 
+%enclave API, 
+%the risks of a successful Iago attack are reduced.
 
 \paragraph{Application code complexity.}
 Common example applications for SGX in the literature 
