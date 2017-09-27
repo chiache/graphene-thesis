@@ -437,7 +437,7 @@ If the file is not authenticated,
 
 
 Figure~\ref{fig:syscall}(c) shows the overhead of forking a process.
-As described in \ref{sec:multiproc}, the latency of \syscall{fork} in \graphenesgx{} is affected by three factors:
+As described in \ref{sec:sgx:shield-multiproc}, the latency of \syscall{fork} in \graphenesgx{} is affected by three factors:
 creation of a new enclave, local attestation of the integrity, and duplicating the process state over an encrypted RPC stream.
 Combining these factors, \syscall{fork} is one of the most expensive calls in \graphenesgx{}.
 %, but at least it is supported natively on the current hardware.
@@ -532,7 +532,7 @@ We cannot analyze the size of \scone{} because it is closed source.
 %we suspect
 %Although it is unclear what is in the implementation of SCONE, because it is not yet open-sourced, we believe the largest portion of their TCB contributes to the cryptography library.
 \panoply{} has a smaller TCB in its shield, but within the same order of magnitude.
-Panoply only shields 91 out of 256 supported POSIX functions; for context, POSIX 1003.1 defines 1,191 APIs~\cite{POSIX1003-1-2008}.
+Panoply only shields 91 out of 256 supported POSIX functions; for context, POSIX 1003.1 defines 1,191 APIs~\cite{ieee-posix}.
 %out of 256 currently supported by \panoply{} \fixmedp{The better number is how many total functions in POSIX}.
 
 All three of these compatibility layers or shields are within the same

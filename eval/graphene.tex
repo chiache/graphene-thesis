@@ -140,7 +140,7 @@ size of the source base, even on Linux; we select compile of {\tt libLinux} as a
 Unixbench on \graphene{} uses substantially more memory at a given time than native Linux---more than double.
 In these samples, however, \graphene{} also had 3--4\x{} as many processes
 running; this is because Unixbench simply spawns all of the tasks in the background, rather than
-executing them sequentially.   Because \graphene{} processes execute more slowly (attributable to a slower {\tt fork}---\S\ref{sec:graphene:eval:perf}),
+executing them sequentially.   Because \graphene{} processes execute more slowly (attributable to a slower {\tt fork}---\S\ref{sec:eval:graphene}),
 a given sample will include more \picoprocs{}, pushing total memory usage higher.
 Thus, we expect that further tuning {\tt fork} performance will lower sampled memory usage.
 
@@ -226,7 +226,7 @@ Unixbench  & 0.55 & .00 & 0.55 & .00 &  0 \% & 1.49 & .00 & 192 \%  \\\hline
 
 Table~\ref{tab:graphene:apps} lists 
 execution time of our {\em unmodified} 
-application benchmarks (detailed in \S\ref{sec:graphene:eval:mem}).
+application benchmarks (detailed in \S\ref{sec:eval:graphene}).
 All applications create multiple processes,
 except for \lighttpd{}, which only creates multiple threads.
 Each data point is the average of at least six runs, 
@@ -451,7 +451,7 @@ fine-grained locks, two of which could be elided by using RCU to eliminate locki
 Most of the costs of persisting message queue contents are also attributable to locking.
 
 Although inter-process send and receive still induce substantial overhead, the optimizations
-discussed in \S\ref{sec:libos:namespaces:insights} reduced overheads compared to a naive implementation
+discussed in \S\ref{sec:libos:namespaces:lessons} reduced overheads compared to a naive implementation
 by a factor of ten.  The optimizations of asynchronous sending and migrating ownership of queues
 when a producer/consumer pattern were detected were particularly helpful.
 

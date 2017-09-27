@@ -1,4 +1,4 @@
-\section{Shielding Linux Abstractions}
+\section{Shielding a \Libos{}}
 \label{sec:sgx:shield}
 
 
@@ -12,8 +12,8 @@ implements and shields the Linux ABI for applications in enclaves.
 %the components of the \graphenesgx{} framework designed for isolating single-process applications in \sgx{} enclaves, and the design of the OS shielding layer against the untrusted hosts.
 
 
-\subsection{Dynamic loading}
-\label{sec:sgx:shield:linking}
+\subsection{Shielding dynamic loading}
+\label{sec:sgx:shield-loading}
 
 
 %\graphenesgx{} secures Linux COTS applications without any modification and recompilation.
@@ -87,7 +87,7 @@ the measurement will reflect the difference and it is computationally infeasible
 
 \graphenesgx{} extends the Haven model to generate a unique signature for
 any combination of executable and dynamically-linked libraries.
-Figure~\ref{fig:arch} shows the architecture and the dynamic-loading process
+Figure~\ref{fig:sgx:arch} shows the architecture and the dynamic-loading process
 of an enclave. % created by \graphenesgx{}.
 \graphenesgx{} starts with an untrusted Platform Adaption Layer ({\tt pal-sgx}), which calls the SGX drivers to initialize the enclave.
 %interacts with the \graphenesgx{} driver and the \intel{} \sgx{} driver to
@@ -125,7 +125,7 @@ The enclave includes an OS shield, a library OS, libc, and other user binaries.
 %are verified by \sgx{} during bootstrap. Applications and other libraries
 %are verified by \graphenesgx{}. The enclave interacts with the host kernel,
 %through untrusted PAL, on a narrowed untrusted interfaces with xx functions.}
-\label{fig:arch}
+\label{fig:sgx:arch}
 \end{figure}
 
 
@@ -293,8 +293,8 @@ undermining the integrity of the enclave.
 
 
 
-\subsection{Single-process API}
-\label{sec:sgx:shield:abi}
+\subsection{Shielding \thehostabi{}}
+\label{sec:sgx:shield-abi}
 
 
 %\begin{figure*}
@@ -329,7 +329,7 @@ as well as an SGX-specific platform adaptation layer (PAL),
 which implements \palcallnum{} functions of the host ABI that the library OS is programmed against.
 This PAL funnels to a slightly smaller set of
 %Between the enclave and untrusted code is a even simpler interface, that contains 
-\enclavecallnum{} interfaces which the enclave calls out to the untrusted OS (Table~\ref{tab:interface}).
+\enclavecallnum{} interfaces which the enclave calls out to the untrusted OS (Table~\ref{tab:sgx:enclave-abi}).
 %, summarized in Table~\ref{tab:interface}.
 %Table~\ref{tab:interface} lists the \enclavecallnum{} entries of the enclave interface defined in \graphenesgx{}.
 
@@ -428,11 +428,11 @@ including {\em safe} (host behavior can be checked), {\em benign} (no harmful ef
 %consisting of 17 functions to access host OS features when the \libos{} is insufficient to handle internally.
 %\graphenesgx{} shields its enclave interface from the untrusted host OS, assuming each input value of the interface to be potentially malicious.
 %%Most of the enclave interface is inherited from the \graphene{} host ABI.}
-\label{tab:interface}
+\label{tab:sgx:enclave-abi}
 \end{table}
 
 
-Table~\ref{tab:interface} lists our \enclavecallnum{} enclave interfaces,
+Table~\ref{tab:sgx:enclave-abi} lists our \enclavecallnum{} enclave interfaces,
 organized by risk.
 %easily-checked semantics (safeith risk assessed by whether each of them has predictable semantic or robust defense strategy.}
 %also assesses the risk of each enclave interface,

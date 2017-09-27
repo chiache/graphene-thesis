@@ -27,7 +27,6 @@
 \usepackage{alltt}
 \usepackage{color}
 \usepackage[titletoc,title]{appendix}
-\usepackage{lastpage}
 \usepackage{multirow}
 \usepackage[hyphens]{url}
 \usepackage{array}
@@ -42,7 +41,8 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{silence}
 \renewcommand*{\ttdefault}{cmtt}
-
+\lstset{basicstyle=\ttfamily\footnotesize}
+\pdfminorversion=7
 
 \newcommand{\thechapterorsection}{%
   \ifnum\value{chapter}=0
@@ -96,6 +96,9 @@
   \vspace{0.5\baselineskip}
 }
 \fi
+
+
+\hypersetup{pageanchor=false}
 
 
 \input{writing}
@@ -165,6 +168,8 @@
 %\centerline{Copyright by}
 %\centerline{\thesisauthor{}}
 %\centerline{\thesisyear{}}
+
+\hypersetup{pageanchor=true}
 
 \newpage
 \pagenumbering{roman}
@@ -352,7 +357,7 @@ This page is optional.
 \phantomsection
 \addcontentsline{toc}{chapter}{References}
 \renewcommand{\bibname}{\centerline{\normalsize\bf{References}}}
-\bibliographystyle{abbrv}
+\bibliographystyle{plainnat}
 \bibliography{bibliography}
 
 

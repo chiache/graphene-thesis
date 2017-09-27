@@ -316,11 +316,11 @@ The location of each PID is tracked in {\tt libLinux}; Picoprocess 1 signals
 and the signal is ultimately delivered using a 
 library implementation of the {\tt sigaction} interface. Picoprocess 4 
 waits on an {\tt exitnotify} RPC from  \picoproc{} 3 over stream 2. }
-\label{fig:graphene:coordination}
+\label{fig:libos:coordination}
 \end{figure}
 
 
-Figure~\ref{fig:graphene:coordination} illustrates two sandboxes with \picoprocs{}
+Figure~\ref{fig:libos:coordination} illustrates two sandboxes with \picoprocs{}
 collaborating to implement 
 signaling and exit notification
 within their own
@@ -338,22 +338,22 @@ exchange RPC messages or otherwise communicate.
 
 
 
-If \picoproc{} 1 (PID 1) sends a {\tt SIGUSR1} to \picoproc{} 2 (PID 2), illustrated in Figure~\ref{fig:graphene:coordination},
-the {\tt kill} call to {\tt libLinux} will check its cached mapping of PIDs to 
+If \picoproc{} 1 (PID 1) sends a \code{SIGUSR1} to \picoproc{} 2 (PID 2), illustrated in Figure~\ref{fig:libos:coordination},
+a \syscall{kill} call to \thelibos{} will check its cached mapping of PIDs to 
 point-to-point streams.
-If {\tt libLinux} cannot find a mapping, it may begin by sending a query to the leader
+If \thelibos{} cannot find a mapping, it may begin by sending a query to the leader
 to find the owner of PID 2,
 and then establish a coordination stream to \picoproc{} 2.
 %The leader may also pass a point-to-point coordination stream handle.
 Once this stream is established, \picoproc{} 1 can send a  
 signal RPC to \picoproc{} 2 (PID 2).
 When \picoproc{} 2 receives this RPC, 
-{\tt libLinux} will then query its local {\tt sigaction} 
-structure and mark {\tt SIGUSR1} as pending.
-The next time \picoproc{} 2 makes a {\tt libLinux} call,
-the {\tt SIGUSR1} handler will be called upon return. Also in Figure~\ref{fig:graphene:coordination}, \picoproc{} 4 (PID 2) waits on 
+\thelibos{} will then query its local \code{sigaction} 
+structure and mark \code{SIGUSR1} as pending.
+The next time \picoproc{} 2 calls \syscall{kill},
+the \code{SIGUSR1} handler will be called upon return. Also in Figure~\ref{fig:libos:coordination}, \picoproc{} 4 (PID 2) waits on 
 \picoproc{} 3 termination (in the same sandbox with PID 1). When \picoproc{} 3 terminates, it invokes the library implementation of exit, which issues
-an {\tt exitnotify} RPC to \picoproc{} 4.
+an \code{exitnotify} RPC to \picoproc{} 4.
 %In this example, \picoprocs{} in different sandboxes have the same PID number, but this does not cause conflict as they are isolated and can only communicate with processes in the same sandbox.
 
 %%% Using a helper thread alongside each process to asynchro-
