@@ -375,7 +375,7 @@ both in performance overhead and trusted computing base (TCB) bloat, and that on
 For instance, a feasibility analysis in the \scone{} paper
 concludes that ``On average, the library OS increases the TCB size by $5\times$, the service latency by $4\times$,
 and halves the service throughput''~\cite{osdi16scone}.
-Shinde et al.~\cite{shinde17panoply} argue that using a library OS, including libc, increases TCB size by two orders of magnitude over
+~\citet{shinde17panoply} argue that using a library OS, including libc, increases TCB size by two orders of magnitude over
 a thin API wrapper layer with shielding ability, called \panoply{}.
 
 
@@ -392,8 +392,8 @@ Haven has a large TCB due to using Drawbridge~\cite{porter11drawbridge},
 a full-featured \libos{}
 which recycles a significant portion of the Windows 7 source code.
 \graphenesgx{}, on the other hand,
-shows performance overheads comparable to the range of overheads reported in \scone{} and \panoply{}.
-The initial publication of \panoply{} also notes that \graphenesgx{}
+shows performance overheads comparable to the range of overheads reported in \scone{}.
+The authors of \panoply{} also notes that \graphenesgx{}
 is 5-10\% faster than \panoply{}~\cite{shinde17panoply}.
 Arguments about TCB size are more nuanced, and a significant amount of the discrepancies
 arise when comparing incidental choices like \libc{} implementation (e.g., musl vs.\ \glibc{}).
@@ -425,7 +425,7 @@ Users need only configure features and cryptographically sign the configuration.
 %\graphenesgx{} has been open-sourced since June 2016\footnote{Available at https://github.com/oscarlab/graphene}.
 \graphenesgx{} does not subvert
 any opportunities of optimizing an application for SGX or partitioning application code outside of an enclave for further reducing TCB size.
-A number of SGX frameworks and security enhancements~\cite{orenbach17eleos,kuvaiskii17sgxbound,shih2017t-sgx,seo2017sgx-shield} present techniques that are complementary to \graphenesgx{}. 
+A number of SGX frameworks and security enhancements~\cite{orenbach17eleos,kuvaiskii17sgxbound,shih2017t-sgx,seo2017sgx-shield} are complementary to \graphenesgx{}. 
 
 %Although our focus is unmodified applications, \graphenesgx{} can also run smaller pieces of
 %code in an enclave, as in a partitioned application.
@@ -445,28 +445,46 @@ A number of SGX frameworks and security enhancements~\cite{orenbach17eleos,kuvai
 \subsection{Shielding complexity}
 
 
-\paragraph{How much functionality to pull into the enclave?}
-At one extreme, a library OS like Haven~\cite{baumann14haven} pulls most
-of the application-supporting code of the OS into the enclave.
-On the other extreme, thin ``shim'' layers, like \scone{}~\cite{osdi16scone} and \panoply{}~\cite{shinde17panoply} 
-wrap an API layer such as the system call table.
-Pulling more code into the enclave increases the size of the TCB,
-but can reduce the size and complexity of the interface, and attack surface, 
-between the enclave
-and the untrusted OS.
-
-The impact of this choice on performance
-largely depends on two issues. First, entering or exiting the enclave 
-is expensive; if the division of labor reduces enclave border crossings, 
-it will improve performance.
-The second is the size of the Enclave Page Cache (EPC),
-limited to 128MB on version 1 of SGX.
-If a large supporting framework tips the application's working set size
-past this mark, the enclave will incur expensive swapping.
+A key question for developing a SGX framework is regarding how much OS functionality to pull into the enclave.
+A \libos{} and a thin shielding layer essentially make opposite decisions
+in protecting OS functionality on untrusted hosts.
+At one extreme, a \libos{} like \graphenesgx{} and \haven{} pulls most
+of the application-supporting code of an OS into an enclave.
+On the other extreme, thin shielding layers, such as \scone{} and \panoply{}, redirect
+an API layer (e.g., POSIX) or the system call table
+outside of an enclave and shield the application from malicious API or system call results.
 
 
-\paragraph{Shielding complexity.}
-\issue{1.2.f}{Clarify the details about Iago attacks}
+
+The decisions of pulling OS functionality into enclaves
+impact the complexity of shielding an application from the untrusted host.
+The code and data inside of an enclave
+gain confidentiality and integrity protection from SGX;
+If an OS feature is kept outside of an enclave, the application or a wrapper layer in the enclave must design
+sufficient shielding code to verify the results of the OS feature
+as part of the untrusted host.
+The concept of verifying an untrusted OS feature
+is comparable to verifying the results of an outsourced database or program~\cite{bajaj13correctdb,zhang15integridb,ben2013snarks}.
+To make sure that outsourcing an operation is beneficial,
+the complexity of verifying an operation must be sufficiently lower than performing the operation.
+Some OS features are relatively verifiable;
+for example, a shielding layer can verify the integrity of data sent to an untrusted storage using reasonably robust cryptographic functions.
+For other OS features, such a namespace,
+a shielding layer has no quick way to verify a result;
+an API or \linuxapi{} wrapper needs to predict the correct result for verification, and often ends up emulating the operation like a \libos{}.
+Due to the complexity of shielding, leaving out OS features from an enclave might result in introducing a fair amount of shielding code, diminishing the benefit on TCB reduction.
+
+
+
+\issuedone{1.2.f}{Clarify the details about Iago attacks}
+A specific type of attacks called {\bf Iago attacks}~\cite{checkoway13iago}
+threaten a framework for shielding against an existing API layer or system call table left untrusted.
+~\citeauthor{checkoway13iago}
+
+
+
+An existing API layer like POSIX or system call table is not defined with an untrusted OS model in mind;
+
 SGX hardware can isolate an application from an untrusted OS, but 
 SGX alone can't protect an application that  requires
 functionality from the OS.  {\em Iago attacks}~\cite{checkoway13iago}
@@ -531,6 +549,16 @@ coordinate shared state across enclaves.
 %%Patterned blocks represent the code and data included in the initial measurements of the enclaves.}
 %\label{fig:sdkvslibos}
 %\end{figure}
+
+
+The impact of this choice on performance
+largely depends on two issues. First, entering or exiting the enclave 
+is expensive; if the division of labor reduces enclave border crossings, 
+it will improve performance.
+The second is the size of the Enclave Page Cache (EPC),
+limited to 128MB on version 1 of SGX.
+If a large supporting framework tips the application's working set size
+past this mark, the enclave will incur expensive swapping.
 
 
 \begin{comment}
