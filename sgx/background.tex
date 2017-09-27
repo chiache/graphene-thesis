@@ -470,15 +470,16 @@ To make sure that outsourcing an operation is beneficial,
 the complexity of verifying an operation must be sufficiently lower than performing the operation.
 Some OS features are relatively verifiable;
 for example, a shielding layer can check the integrity of data sent to an untrusted storage using reasonably robust cryptographic functions.
-Other OS features, such a namespace, are less straightforward to check;
-an API or \linuxapi{} wrapper needs to predict the correct result for the check, and eventually emulates the operation like a \libos{}.
-Due to the complexity of shielding, leaving out OS features from an enclave might end up adding a fair amount of shielding code, diminishing the benefit on TCB reduction.
+Other OS features, such a namespace, are less straightforward to verify;
+without a cryptographic protocol or a zero-knowledge proof,
+an API or \linuxapi{} wrapper needs to predict the correct results to check for integrity, and might end up emulating part of the operations like a \libos{}.
+Due to the complexity of shielding, leaving out OS features might result in adding a fair amount of shielding code, diminishing the benefit on TCB reduction.
 
 
 
 \issuedone{1.2.f}{Clarify the details about Iago attacks}
 A specific type of attacks called {\bf Iago attacks}~\cite{checkoway13iago}
-threaten a framework that shields against an existing API layer or system call table in a untrusted domain.
+threaten a framework that shields against an existing API layer or system call table in an untrusted domain.
 \citeauthor{checkoway13iago}
 
 
