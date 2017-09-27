@@ -18,8 +18,7 @@ and current design points for running or porting applications on the SGX platfor
 
 
 SGX~\cite{intelsgx} is a feature added in the Intel sixth-generation CPUs,
-as a hardware support for trusted execution environments (TEEs)~\cite{santos09tccp,lie2003implementing,trustzone,amd-sme}
-with both confidentiality and integrity.
+as a hardware support for trusted execution environments (TEEs)~\cite{santos09tccp,lie2003implementing,trustzone,amd-sme}.
 SGX introduces a number of essential hardware features that allow an application
 to protect itself from the host OS, hypervisor, BIOS, and other software.
 The security guarantees of SGX is particularly appealing in cloud computing, as users 
@@ -376,7 +375,7 @@ For instance, a feasibility analysis in the \scone{} paper
 concludes that ``On average, the library OS increases the TCB size by $5\times$, the service latency by $4\times$,
 and halves the service throughput''~\cite{osdi16scone}.
 ~\citet{shinde17panoply} argue that using a library OS, including libc, increases TCB size by two orders of magnitude over
-a thin API wrapper layer with shielding ability, called \panoply{}.
+a thin API wrapper layer with shielding ability.
 
 
 
@@ -554,7 +553,29 @@ These techniques also apply to shielding applications in \graphenesgx{}.
 
 
 
-\Liboses{} like Haven~\cite{baumann14haven} and \graphenesgx{} provide an opportunity to redefine an interface with the assumption of untrusting operating systems.
+\Liboses{} like Haven~\cite{baumann14haven} and \graphenesgx{} provide an opportunity to redefine an API
+with the assumption of untrusting operating systems.
+A \libos{} absorbs API components or the system call table into an enclave,
+leaving a narrowed host interface
+which is much easier to defend than a bloated API layer.
+Both Haven and \graphenesgx{} customize
+a host ABI for enclaves, or an {\bf enclave ABI}, and treat the host OS as completely untrusted.
+Haven contains a proxy layer to redirect trustworthy OS services---besides the services already implemented inside the enclave---from a remote, trusted host.
+For example, Haven does not trust the host file system,
+and instead, loads a guest-level file system
+using an encrypted virtual disk provisioned from a remote host.
+
+
+\graphenesgx{} further defines an enclave ABI with shielding complexity in mind.
+\graphenesgx{} adds a trusted enclave PAL below
+the \thehostabi{}, to reduce the \palcallnum{} \hostapis{} to merely \enclavecallnum{} enclave calls (see Section~\ref{sec:sgx:shield-abi}).
+\graphenesgx{} defines each enclave call with clear strategies or semantics for checking the results.
+For each security-sensitive enclave call, \graphenesgx{} accepts exactly one correct result, either cryptographically signed or provable with minimum bookkeeping or emulation. 
+Among \enclavecallnum{} enclave calls defined in \graphenesgx{}, 18 calls are safe from Iago attacks; 8 calls are not security-senstive; 2 calls can be potentially blocked by the host (denial-of-the-service); and only 2 calls that are not yet shielded and left for future work.
+
+
+
+
 
 
 
