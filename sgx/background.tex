@@ -493,7 +493,7 @@ an untrusted OS gains huge advantage to explore vulnerabilities inside of either
 
 
 
-A fundamental lesson learned from Iago attacks
+An important lesson learned from Iago attacks
 is that 
 an existing API layer like POSIX or system call table is not suitable for the context of untrusting an operating system.
 The definition of POSIX API or Linux system calls assumes an untrusted client
@@ -534,6 +534,29 @@ the attacks from an untrusted OS.
 %inasmuch as a library OS or shim can reduce the size or complexity of the 
 %enclave API, 
 %the risks of a successful Iago attack are reduced.
+
+
+
+Existing shielding layers, including \scone{}~\cite{osdi16scone} and \panoply{}~\cite{shinde17panoply},
+contribute shielding techniques for parts of the Linux system call table
+or POSIX API.
+In hindsight of the \syscall{mmap} attack reported by \citet{checkoway13iago},
+\scone{} and \panoply{} prevent
+pointer-based Iago attacks by checking any memory addresses returned by the untrusted OS to be outside of the enclave memory,
+and the shielding layer will copy the memory contents into the enclave.
+\scone{} also
+enforces the confidentiality and integrity
+of file contents and network payloads
+using cryptographic techniques to encrypt and authenticate the data,
+for any files and network connections
+marked by the users as security-sensitive. 
+These techniques also apply to shielding applications in \graphenesgx{}.
+
+
+
+\Liboses{} like Haven~\cite{baumann14haven} and \graphenesgx{} provide an opportunity to redefine an interface with the assumption of untrusting operating systems.
+
+
 
 \paragraph{Application code complexity.}
 Common example applications for SGX in the literature 
