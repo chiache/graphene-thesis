@@ -15,10 +15,10 @@ Virtual Ghost~\cite{criswell2014virtualghost} uses both compile-time and run-tim
 from a potentially-compromised OS, but requires recompilation of the guest OS and application.
 Flicker~\cite{flicker}, MUSHI~\cite{zhang2012mushi}, SeCage~\cite{liu15secage}, InkTag~\cite{inktag}, and Sego~\cite{kwon16sego-sigops} protect applications from untrusted OS using SMM mode or virtualization
 to enforce memory isolation between the OS and a trusted application.
-Koberl et al.~\cite{koeberl2014trustlite}, isolate software on low-cost embedded devices using a Memory Protection Unit.
+\citet{koeberl2014trustlite}, isolate software on low-cost embedded devices using a Memory Protection Unit.
 Li et al.~\cite{li2014minibox} built a 2-way sandbox for x86 by separating the Native Client (NaCl)~\cite{yee2009native} sandbox into modules for sandboxing and service runtime to support application execution and use Trustvisor~\cite{trustvisor} to protect the piece of application logic from the untrusted OS.
-Jang et al.~\cite{jang2015secret} build a secure channel to authenticate the application in the Untrusted area isolated by the ARM TrustZone technology.
-Song et al.~\cite{songhdfi} extend each memory unit with an additional tag
+\citet{jang2015secret} build a secure channel to authenticate the application in the Untrusted area isolated by the ARM TrustZone technology.
+\citet{songhdfi} extend each memory unit with an additional tag
 to enforce fine-grained isolation at machine word granularity in the HDFI system.
 %While these solutions focus on protecting applications from untrusted OS, Chen et  al.~\cite{chenshreds}, protects pieces of application from the rest of it by restricting access to only parts of memory from specific segments of threads.
 
@@ -28,7 +28,7 @@ with memory encryption and integrity protection similar to SGX. XOM supports con
 XOM realizes a similar trust model as SGX, except a few details, such as lack of paging support, and allowing \syscall{fork} by sharing the encryption key across containers.
 
 Besides SGX, other hardware features have been introduced in recent years to enforce isolation for trusted execution.
-TrustZone~\cite{arm-trustzone} on ARM
+TrustZone~\cite{trustzone} on ARM
 % is introduced to the ARM processors predating the invention of SGX.
 creates an isolated environment for trusted kernel components. 
 % to evade the attacks from privileged applications and compromised kernels.
@@ -84,7 +84,7 @@ VC3~\cite{vc3} runs MapReduce jobs in SGX enclaves.
 %An essential caveat for VC3 is that these mappers and reducers must be written
 %in C or C++, breaking compatibility with the vast majority of Hadoop mappers and reducers,
 %which are written in Java and can run on \graphenesgx{}.
-Similarly, Brenner et al.~\cite{zookeeper}
+Similarly, \citet{zookeeper}
 run cluster services in ZooKeeper in an enclave, and transparently encrypt data in transit between enclaves.
 %developed a transparent encryption 
 %layer to the Apache ZooKeeper cluster,

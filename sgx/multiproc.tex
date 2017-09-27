@@ -1,5 +1,5 @@
 \subsection{Shielding multi-process applications}
-\label{sec:sgx:shield:multiproc}
+\label{sec:sgx:shield-multiproc}
 
 Many Linux applications use multi-process abstractions,
 which are implemented using copy-on-write fork and in-kernel
@@ -52,7 +52,7 @@ on the untrusted host.
 Then the two enclaves %build up the mutual trust by
 exchange an encryption key, validates the CPU-generated attestation of each other,
 and migrates the parent process snapshot.}
-\label{fig:fork}
+\label{fig:sgx:fork}
 \end{figure}
 
 \begin{comment}
@@ -67,7 +67,7 @@ is a feature robustly implemented and heavily used in \graphene{} \libos{},
 of which we simply inherit the design.
 \end{comment}
 
-Process creation in \graphenesgx{} is illustrated in Figure~\ref{fig:fork}.
+Process creation in \graphenesgx{} is illustrated in Figure~\ref{fig:sgx:fork}.
 When a process in \graphenesgx{} forks into a new enclave,
 the parent and child will be running the same manifest and binaries,
 and will have the same measurements.
