@@ -1,9 +1,17 @@
 \section{Security Models}
 \label{sec:sgx:security}
 
-This section discusses the threat model,
-how \graphenesgx{} defends against attacks from the untrusted OS,
-and how users configure policies for defenses.
+This section discusses 
+the security models regarding running an unmodified application
+inside an enclave, including the threat model,
+user configurations for enclave shielding policies,
+and an inter-enclave coordination model for the support of
+multi-process applications.
+
+
+%the threat model,
+%how \graphenesgx{} defends against attacks from the untrusted OS,
+%and how users configure policies for defenses.
 %for \sysn
 % of the \graphenesgx{} framework, including the trusted and untrusted components,
 %and the security implications of known \sgx{}-related threats to this framework.
@@ -13,32 +21,60 @@ and how users configure policies for defenses.
 \subsection{Threat model}
 \label{sec:sgx:overview:threat}
 
-\graphenesgx{} follows a typical threat model for SGX applications.
-The following components are untrusted:
+\graphenesgx{} assumes a typical threat model for SGX enclaves, different from \graphene{} on a trusted Linux kernel or other hosts.
+An application only trusts the CPUs package and any code running inside the enclave, including the library OS (\thelibos{}), a trusted PAL, \libc{}, and any supporting libraries. 
+All other components are untrusted:
 (1) hardware outside of the Intel CPU package(s),
 (2) the OS, hypervisor, and other system software,
 (3) other applications executing on the same host, including unrelated enclaves,
 and (4) user-space components that
 reside in the application process but outside the enclave.
-%Any of these untrusted components must be assumed malicious,
-%and will constantly attempt to exploit
-%any vulnerabilities on the interface of the trusted and untrusted components, to compromise the trusted components in any way possible.
-Our design only trusts the CPUs and any code running inside the enclave, including the library OS, the unmodified application, and its supporting libraries. 
+\graphenesgx{}
+assumes any of these untrusted components to be potentially malicious,
+and constantly attempting to attack
+any known or unknown vulnerabilities of the trusted components.
+%Our design only trusts the CPUs and any code running inside the enclave, including the library OS, the unmodified application, and its supporting libraries. 
 %\edit{Some code outside of the enclave is required, but not trusted.} %, and is needed for liveness but not for safety.}
-%\graphenesgx{} places supporting code outside of the enclave, that is needed
-%for liveness, but not safety.
+\graphenesgx{} places supporting code outside of the enclave, as an untrusted PAL, which is needed
+only for liveness, but not safety.
+
+
+
+
 
 %\fixmedp{pls check}
-We also trust {\tt aesmd}, an enclave provided by the Intel's SGX SDK, which verifies
-attributes in the enclave signature and approves the enclave creation.
+The trust computing base (TCB) of \graphenesgx{} also includes
+an architectural enclave,
+called \code{aesmd}, provided by Intel's SGX SDK~\cite{intel-sgx-linux-sdk}.
+\code{aesmd} is a privileged enclave
+authenticated by Intel's master signing key;
+\code{aesmd} receives attributes in the enclave signature of an application,
+and generates a token for approving enclave creation.
 %\fixmedp{please check the next sentence}
-Currently, any framework that uses SGX for remote attestation must trust {\tt aesmd}.
-\graphenesgx{} uses, but does not trust, the Intel SGX kernel driver.
+Any framework that uses SGX for remote attestation must connect to {\tt aesmd}
+to obtain a quote for proving that the enclave is running on an authentic Intel CPU, instead of a simulator. 
+\graphenesgx{} uses, but does not trust, the Intel SGX kernel driver, which mediates the creation of enclaves and swaps enclave pages.
+The current SGX hardware
+has a 128MB limitation on the total amount of physical memory shared among all concurrent enclaves on the same host,
+and the Intel SGX kernel driver swaps enclave pages to storage,
+%in an encrypted and authenticated form,
+when one of the running enclaves demands more
+physical memory.
 %\edit{Any framework that uses SGX for remote attestation must also trust {\tt aesmd} for generating a cryptographic proof of the integrity of the Intel CPU.}
-Other than {\tt aesmd} and the driver, \graphenesgx{} does not use or trust any part of the SDK.
+Other than the {\tt aesmd} enclave and the Intel SGX kernel driver, \graphenesgx{} does not use or trust any other system software.
 
 %Any application that does remote attestation, including on \graphenesgx{}, must also trust {\tt AESMD},
 %an enclave provided by Intel which implements remote attestation.
+
+
+\graphenesgx{} only handles the challenges of shielding an application through the host interface.
+Other application-specific security threats
+are still valid for applications running on \graphenesgx{}, but beyond the scope of the thesis.
+For instance, an untrusted kernel
+can interrupt the enclave execution and refuse to schedule CPU resources to enclaves,
+causing deinal-of-service (DoS) to \graphenesgx{}.
+Several work point out that
+side channels
 
 Denial of service, side channels, and controlled-channel attacks~\cite{xu15controlledchannel}
 are vulnerabilities common to all SGX frameworks, and 
