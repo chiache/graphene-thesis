@@ -67,9 +67,9 @@ Other than the {\tt aesmd} enclave and the Intel SGX kernel driver, \graphenesgx
 %an enclave provided by Intel which implements remote attestation.
 
 
-\graphenesgx{} only handles the challenges of shielding an application through the host interface.
+\graphenesgx{} only handles the challenges of shielding an application from any attacks leveraging the vulnerabilities on the host interface (i.e., Iago attacks).
 Other application-specific security threats
-for SGX applications beyond the scope of \graphenesgx{}.
+for SGX are beyond the scope of \graphenesgx{}.
 For instance, an untrusted kernel
 can interrupt the enclave execution and refuse to schedule CPU resources to enclaves,
 causing deinal-of-service (DoS) in applications.
@@ -85,28 +85,44 @@ Various cryptographic function implementations
 have been known to be vulnerable to side channel attacks~\cite{zhou2005side-channels,yarom2017cachebleed};
 developers and users should avoid using these vulnerable implementations
 in enclaves if the use is for confidentiality, not integrity.
-
+For instance, developers should avoid using table-based AES implementations,
+and switch to more secure AES implementation
+or the hardware-accelerated AES-NI~\cite{hofemeier2012aesni}.
 
 
 \subsection{User policy configuration}
 \label{sec:sgx:overview:config}
 
 
-Before an application is first executed using \graphenesgx{}, 
-the user must make certain policy decisions.  
-Our goal is to balance policy expressiveness
-with usability.
+Despite that \graphenesgx{} supports running an unmodified application on SGX,
+the user must make certain policy decisions
+regarding how \graphenesgx{} should shield the application.
+The requirement is that
+the user must configure and sign the policy on a trusted host.
+A goal of \graphenesgx{} is to balance policy expressiveness
+with usability,
+to minimize the cost of composing a policy and avoid mistakes.
+Without any user policy, \graphenesgx{} creates a closed container
+where an application
+is not allowed to access any resources
+from the untrusted host.
 
-As with Graphene and several other systems, each application requires a {\em manifest}
-to specify which resources the application is allowed to use, including
-a unioned, chroot-style view of the file system (comparable to aufs),
+
+As with \graphene{} on other hosts,
+\graphenesgx{} reuses the {\bf manifest} for user policy configuration of an application.
+In \graphene{},
+a manifest specifies which resources an application is allowed to use, including
+a unioned, chroot file system
 and a set of iptables-style network rules.
-In Graphene, a program cannot access any resources not declared in the manifest.
-The original intention of the manifest was to protect the host: a reference monitor 
+The original intention of the manifest was to protect the host:
+a reference monitor
 can easily identify the resources an application might use, and reject an application
 with a problematic manifest.
+The same intention
+applies to \graphenesgx{}, despite the significant difference of the threat models.
 
-In \graphenesgx{}, the manifest is extended to protect the application from the host file system.
+
+In \graphenesgx{}, the manifest is extended to protect an application from the untrusted host file system.
 Specifically, the manifest can specify secure hashes (using SHA-256) of trusted files (generally read-only, including dynamic libraries). As part of opening a file,
 \graphenesgx{} verifies the integrity of trusted files by checking the secure hashes.  A trusted file is only opened if the secure hash matches.
 The manifest can also specify files or directories that can be accessed 
