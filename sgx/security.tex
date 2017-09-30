@@ -69,17 +69,22 @@ Other than the {\tt aesmd} enclave and the Intel SGX kernel driver, \graphenesgx
 
 \graphenesgx{} only handles the challenges of shielding an application through the host interface.
 Other application-specific security threats
-are still valid for applications running on \graphenesgx{}, but beyond the scope of the thesis.
+for SGX applications beyond the scope of \graphenesgx{}.
 For instance, an untrusted kernel
 can interrupt the enclave execution and refuse to schedule CPU resources to enclaves,
-causing deinal-of-service (DoS) to \graphenesgx{}.
+causing deinal-of-service (DoS) in applications.
 Several work point out that
-side channels
-
-Denial of service, side channels, and controlled-channel attacks~\cite{xu15controlledchannel}
-are vulnerabilities common to all SGX frameworks, and 
-are beyond the scope of this work.
+an enclave can leak application secrets through
+side channels or controlled channels
+in cache architectures, memory access patterns, network traffics, and more.~\cite{xu15controlledchannel,atc17side-channel,chen17side-channel,gotzfried17cache-attack,moghimi17cachezoom,xiao17stacco,wang17side-channel}.
+%are vulnerabilities common to all SGX frameworks, and 
+%are beyond the scope of this work.
 %\edit{Denial-of-service attacks by blocking CPU, memory, or IO resources are also beyond our scope.}
+The techniques of thwarting or concealing side channels are application-specific and cannot be solely enforced in SGX frameworks or hardware.
+Various cryptographic function implementations
+have been known to be vulnerable to side channel attacks~\cite{zhou2005side-channels,yarom2017cachebleed};
+developers and users should avoid using these vulnerable implementations
+in enclaves if the use is for confidentiality, not integrity.
 
 
 
