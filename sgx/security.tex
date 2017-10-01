@@ -81,13 +81,13 @@ in cache architectures, memory access patterns, network traffics, and more.~\cit
 %are beyond the scope of this work.
 %\edit{Denial-of-service attacks by blocking CPU, memory, or IO resources are also beyond our scope.}
 The techniques of thwarting or concealing side channels are application-specific and cannot be solely enforced in SGX frameworks or hardware.
-Various cryptographic function implementations
+Several cryptographic function implementations
 have been known to be vulnerable to side channel attacks~\cite{zhou2005side-channels,yarom2017cachebleed};
-developers and users should avoid using these vulnerable implementations
-in enclaves if the use is for confidentiality, not integrity.
-For instance, developers should avoid using table-based AES implementations,
-and switch to more secure AES implementation
-or the hardware-accelerated AES-NI~\cite{hofemeier2012aesni}.
+%developers and users should avoid using these vulnerable implementations
+%in enclaves if the use is for confidentiality, not integrity.
+for instance, users and developers, or \graphenesgx{} itself, should avoid using one of the table-based AES libraries that are prone to memory access side channels,
+and switch to more secure,
+hardware-accelerated AES-NI~\cite{hofemeier2012aesni}.
 
 
 \subsection{User policy configuration}
@@ -119,21 +119,35 @@ a reference monitor
 can easily identify the resources an application might use, and reject an application
 with a problematic manifest.
 The same intention
-applies to \graphenesgx{}, despite the significant difference of the threat models.
+applies to \graphenesgx{}, despite the difference of threat models.
 
 
-In \graphenesgx{}, the manifest is extended to protect an application from the untrusted host file system.
-Specifically, the manifest can specify secure hashes (using SHA-256) of trusted files (generally read-only, including dynamic libraries). As part of opening a file,
-\graphenesgx{} verifies the integrity of trusted files by checking the secure hashes.  A trusted file is only opened if the secure hash matches.
-The manifest can also specify files or directories that can be accessed 
-but are not trusted, such as a write-only output file.
-\graphenesgx{} includes a signing utility that hashes all trusted files and 
-generates a signed manifest that can be used at runtime.
+In \graphenesgx{}, a manifest is extended to protect an application from the untrusted host file system.
+Specifically, a manifest can specify secure hashes of trusted files that are integrity-sensitive and generally read-only,
+such as dynamic libraries, scripts, and configuration files.
+As part of opening a protected file,
+\graphenesgx{} verifies the integrity of trusted files by checking the secure hashes.
+A trusted file is only opened if the secure hash matches.
+The default secure hash algorithm
+in \graphenesgx{} is SHA-256, mainly for the generality in software signing,
+but other secure hash or signature algorithms
+are also viable options.
+\graphenesgx{} includes a signing utility that hashes all trusted files and generates a signed manifest that can be used at run-time.
+The manifest can also specify files or directories that
+are not integrity-sensitive
+and can be accessed without being trusted.
+A manifest must explicitly specify all trusted or accessible files,
+and other unlisted files
+are considered potentially malicious.
 
-SGX requires that certain resources be specified at initialization time, including the number of threads,
-the maximum size of the enclave, and the starting virtual address of the enclave.  Thus, we also extend the manifest syntax for the 
-user to specify these options.
-Other security-sensitive manifest options inherited from \graphene{}, such as enabling debug output, are also protected as part of the signed manifest.
+
+
+The manifest also specifies certain resources be created at initialization time,
+including the number of threads,
+the maximum size of the enclave, and the starting virtual address of the enclave.
+Thus, \graphenesgx{} extend the \graphene{} manifest syntax for  specifying these options.
+Other security-sensitive options inherited from \graphene{}, such as filtering environment variables
+and enabling debug output, are also protected as part of the signed manifest.
 
 
 
@@ -236,6 +250,31 @@ The {\tt AESMD} enclave is secured by a private key owned by Intel and the corre
 \label{sec:sgx:overview:multiproc}
 
 
+
+
+%Graphene supports multi-process applications by running
+%a separate library OS instance in each process~\cite{tsai14graphene}.
+%Each library OS instance coordinates state via message passing.
+%Graphene implements Linux multi-process abstractions in the user-space, including \syscall{fork}, \syscall{execve}, signals, and System V semaphores and message queues.
+
+\graphenesgx{} extends the multi-process support of \graphene{} to enclaves by running each
+process with a \libos{} instance in an enclave.
+For instance, when an application calls \syscall{fork}, \graphenesgx{} creates a second enclave to run as a child process,
+and copies the parent enclave's contents over message passing.
+%For instance, \syscall{fork} creates a second enclave
+%and copies the parent enclave's contents over message passing.
+%except the child  library OS is adjusted with a different process ID.
+%state adjusted slightly to
+%give the child a different process ID. 
+% migrated through message passing.
+\graphenesgx{} defines
+a group of coordinating enclaves an {\bf enclave group},
+similar to a sandbox of \graphene{}.
+Figure~\ref{fig:multiproc-threats} shows an example of two mutually-untrusting enclave groups running on a host.
+\graphenesgx{} supports all the Linux multi-process abstractions that \graphene{} has implemented in the user space,
+including \syscall{fork}, \syscall{execve}, signals, namespaces, shared file descriptors, and System V semaphores and message queues.
+
+
 \begin{figure}[t!]
 \centering
 \includegraphics[width=.66\linewidth]{multiproc.pdf}
@@ -247,29 +286,22 @@ The {\tt AESMD} enclave is secured by a private key owned by Intel and the corre
 \label{fig:multiproc-threats}
 \end{figure}
 
-Graphene supports multi-process applications by running
-a separate library OS instance in each process~\cite{tsai14graphene}.
-Each library OS instance coordinates state via message passing.
-Graphene implements Linux multi-process abstractions in the user-space, including \syscall{fork}, \syscall{execve}, signals, and System V semaphores and message queues.
-
-\graphenesgx{} extends the multi-process support of Graphene to enclaves by running each
-process with a library OS instance in an enclave.
-For instance, \syscall{fork} creates a second enclave
-and copies the parent enclave's contents over message passing.
-%except the child  library OS is adjusted with a different process ID.
-%state adjusted slightly to
-%give the child a different process ID. 
-% migrated through message passing.
-We call a group of coordinating enclaves an \emph{enclave group}.
-Figure~\ref{fig:multiproc-threats} shows two mutually-untrusting enclave groups running on a host.
 
 
-Because multi-process abstractions are implemented in enclaves,
-securing these abstractions from the OS is straightforward. 
-\graphenesgx{} adds: %The primary pieces we add for multi-processing support are:
-(1) the ability for enclaves to authenticate each other via local attestation,
-and thereby establish a secure channel,
-and (2) a mechanism to securely fork into a new enclave, adding the child to the enclave group (see Section \ref{sec:sgx:shield-multiproc}).
+The implementation of multi-process abstractions in \graphene{}
+makes securing these abstractions easy in \graphenesgx{}.
+Because all multi-process abstractions are implemented in enclaves and
+do not export shared states to the host OS,
+\graphenesgx{} only has to adds two features for protecting multi-process abstractions.
+First, \graphenesgx{} adds
+the ability for enclaves to authenticate each other via local attestation,
+and thereby establish a secured RPC channel,
+with messages both encrypted and signed.
+Second, \graphenesgx{} provides
+a mechanism to securely fork into a new enclave, adding the child to the enclave group (see Section \ref{sec:sgx:shield-multiproc}).
+
+
+
 
 
 %% \graphenesgx{} spans a multi-process application across multiple enclaves.
