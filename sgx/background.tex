@@ -571,7 +571,7 @@ using an encrypted virtual disk provisioned from a remote host.
 the \thehostabi{}, to reduce the \palcallnum{} \hostapis{} to merely \enclavecallnum{} enclave calls (see Section~\ref{sec:sgx:shield-abi}).
 \graphenesgx{} defines each enclave call with clear strategies or semantics for checking the results.
 For each security-sensitive enclave call, \graphenesgx{} accepts exactly one correct result, either cryptographically signed or provable with minimum bookkeeping or emulation. 
-Among \enclavecallnum{} enclave calls defined in \graphenesgx{}, 18 calls are safe from Iago attacks; 8 calls are not security-senstive; 2 calls can be potentially blocked by the host (denial-of-the-service); and only 2 calls that are not yet shielded and left for future work.
+Among \enclavecallnum{} enclave calls defined in \graphenesgx{}, 18 calls are safe from Iago attacks; 8 calls are not security-senstive; 2 calls can be potentially blocked by the host (denial-of-the-service); only 2 calls are not yet shielded and currently left for future work .
 
 
 
@@ -580,30 +580,46 @@ Among \enclavecallnum{} enclave calls defined in \graphenesgx{}, 18 calls are sa
 
 
 \paragraph{Application code complexity.}
-Common example applications for SGX in the literature 
-amount to a simple network service running a TLS
-library in the enclave, putting minimal demands on a shim layer. 
-Even modestly complex applications, such as the R runtime and a simple
-analytics package, require dozens of system calls providing wide-ranging functionality, 
+The motivating applications for SGX
+are small cryptographic functions like an encryption engine,
+or a simple network service running in the cloud.
+These applications are relatively small
+in the enclave,
+putting minimal demands on a shim layer. 
+Even modestly complex applications, such as a R runtime and a simple analytics package, require dozens of system calls for providing wide-ranging OS functionality, 
 including \syscall{fork} and \syscall{execve}.
-For these applications, the options for the user or developer become: 
-(1) modifying the application to require less of the runtime; (2) opening and shielding more 
-interfaces to the untrusted OS; (3) pulling more functionality into a shim or a library OS.
-The goal of this paper is to provide an efficient baseline, based on (3),
-so that users can quickly run applications on SGX, and developers can 
-explore (1) or (2) at their leisure.
+For these applications, there are several development options:
+first, application developers can modify the application
+to require less functionality of the runtume;
+second, a shielding layer can open and offer defenses for 
+interfaces to the untrusted OS; finally, a \libos{} can pull more functionality into enclaves.
+This thesis argues that the best solution for ensuring an application to be secure in an enclave
+is up to the demand of the application.
+This chapter provides an efficient baseline for the approach of pulling functionality into a \libos{},
+to run a wider range of unmodified applications
+on SGX. However, developers should be free to explore the other two approaches if application modification is possible. 
 
-\paragraph{Application partitioning.} An application can have multiple
-enclaves, or put less important functionality outside of the enclave.
-For instance, a web server can keep cryptographic keys in an enclave,
-but still allow client requests to be serviced outside of the enclave.
+
+
+\paragraph{Application partitioning.} An application can have multiple enclaves, or put less important functionality outside of the enclave.
+For instance, a web server can keep cryptographic keys and a SSL library in an enclave,
+but still allow client requests services
+outside the enclave.
 Similarly, a privilege-separated or multi-principal application might create a separate enclave for
 each privilege level.
+In general, Linux applications are more likely to be partitioned
+for privilege separation,
+especially for a set-effective-UID-to-root program that is escalated to root privileges from beginning.
 
-This level of analysis is application-specific, and beyond the focus of this paper.
+
+The application partitioning techniques
+are application-specific, and often requires human intervention~\cite{glamdring}.
+This thesis focuses on running an unmodified application
+as a whole.
 %which is on running unmodified applications in enclaves.
-However, partitioning a complex application into multiple enclaves
-can be good for security. In support of this goal,
+Partitioning a complex application into multiple enclaves
+can be good for security, and should be encouraged given enough development time.
+In support of this goal,
 \graphenesgx{} can run smaller pieces of code, such as a library, in an enclave, as well as
 coordinate shared state across enclaves.
 
