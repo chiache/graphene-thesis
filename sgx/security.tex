@@ -270,7 +270,7 @@ and copies the parent enclave's contents over message passing.
 \graphenesgx{} defines
 a group of coordinating enclaves an {\bf enclave group},
 similar to a sandbox of \graphene{}.
-Figure~\ref{fig:multiproc-threats} shows an example of two mutually-untrusting enclave groups running on a host.
+Figure~\ref{fig:sgx:enclave-groups} shows an example of two mutually-untrusting enclave groups running on a host.
 \graphenesgx{} supports all the Linux multi-process abstractions that \graphene{} has implemented in the user space,
 including \syscall{fork}, \syscall{execve}, signals, namespaces, shared file descriptors, and System V semaphores and message queues.
 
@@ -283,7 +283,7 @@ including \syscall{fork}, \syscall{execve}, signals, namespaces, shared file des
 %As the child enclaves may appear the same for having the identical enclave signatures, the parent enclaves must distinguish their real children
 %and defend against the untrusted host attempting to swap, duplicate or relay the child enclaves.}}
 % The green (light) arrows represents the benign flow of inter-enclave communication, and the red (dark) arrow represent the flow that is manipulated by the untrusted host, or initiated by a malicious enclave group.}
-\label{fig:multiproc-threats}
+\label{fig:sgx:enclave-groups}
 \end{figure}
 
 
@@ -298,7 +298,7 @@ the ability for enclaves to authenticate each other via local attestation,
 and thereby establish a secured RPC channel,
 with messages both encrypted and signed.
 Second, \graphenesgx{} provides
-a mechanism to securely fork into a new enclave, adding the child to the enclave group (see Section \ref{sec:sgx:shield-multiproc}).
+a mechanism to securely fork into a new enclave, adding the child to the enclave group (see Section \ref{sec:sgx:shield:multiproc}).
 
 
 
