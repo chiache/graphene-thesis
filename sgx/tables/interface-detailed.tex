@@ -5,14 +5,14 @@
 \setlength{\tabcolsep}{0.5em}
 \begin{tabular}{|>{\raggedright\arraybackslash}p{4em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{5em}|>{\centering}p{3em}|>{\raggedright\arraybackslash}p{13em}|}
 \hline
-Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs} & Risk & Checking strategies / threats \\
+Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs} & Risks & Checking strategies / threats \\
 \hline
-\multirow{3}{4em}{Enter enclaves \& threads}
+\multirow{3}{4em}{Entering enclaves \& threads}
 & START\_ENCLAVE & & args,envp,\newline rpc\_fd & safe & Filter \code{args} \& \code{envp} based on manifest; local attestation for RPC \\
 \cline{2-6}
 & START\_THREAD  & & & safe & All thread start at clean state \\
 \hline
-\multirow{3}{4em}{Clone enclaves \& threads}
+\multirow{3}{4em}{Cloning enclaves \& threads}
 & CLONE\_ENCLAVE & exec & rpc\_fd & safe & Local attestation for child enclave measurement and RPC \\
 \cline{2-6}
 & CLONE\_THREAD  & & & safe & Thread parameters stored in enclaves; start a clean thread \\
@@ -40,17 +40,17 @@ Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs
 \cline{2-5}
 & SOCK\_RECV     & fd & data,size & safe & \\
 \cline{2-6}
-& SOCK\_SETOPT   & fd,option & & benign & As hints to the host \\
+& SOCK\_SETOPT   & fd,option & & benign & Only as hints to the host \\
 \cline{2-6}
 & SOCK\_SHUTDOWN & fd,access & & safe & Send ``close notify'' over a TLS/SSL connection \\
 \hline
 \multirow{2}{4em}{Sched\-ul\-ing}
-& YIELD          & tid & & benign & As hints to the host \\
+& YIELD          & tid & & benign & Only as hints to the host \\
 \cline{2-6}
 & FUTEX          & addr,op & & DoS & \code{addr} is outside the enclave; the host may corrupt futex value \\
 \hline
 \multirow{2}{4em}{Stream handles}
-& HANDLE\_CLOSE  & fd & & benign & As hints to the host \\
+& HANDLE\_CLOSE  & fd & & benign & Only as hints to the host \\
 \cline{2-6}
 & HANDLE\_POLL   & event\_array & polled & DoS & The host may not deliver events \\
 \cline{2-6}  
@@ -58,7 +58,7 @@ Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs
 \cline{2-5}
 & HANDLE\_RECV   & fd & recv\_fds & safe   & \\
 \cline{2-6}
-& HANDLE\_FLUSH  & fd & & benign & As hints to the host \\
+& HANDLE\_FLUSH  & fd & & benign & Only as hints to the host \\
 \hline
 \multirow{2}{4em}{Untrusted memory}
 & MAP\_UNTRUST   & fd,off,size & addr & safe   & \code{addr} is outside the enclave; memory contents verified after copying into the enclave \\

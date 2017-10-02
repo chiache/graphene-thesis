@@ -427,7 +427,7 @@ including 18 {\em safe} calls (host behavior can be checked); 6 {\em benign} cal
 
 \begin{table}
 \input{tables/interface-detailed}
-\caption{A list of \enclavecallnum{} enclave calls, outputs, inputs, risks, and strategies for checking the integrity of enclave calls.}
+\caption{Specifications of \enclavecallnum{} enclave calls, including the outputs, inputs, risks (safe, benign, DoS, or unsafe), and strategies for checking the responses from the untrusted OS.}
 %\fixme{Not sure if we should list all enclave interface in detail.}}
 %% dp: It would be nice to fully list, but I don't think we have space.
 %consisting of 17 functions to access host OS features when the \libos{} is insufficient to handle internally.
@@ -438,26 +438,50 @@ including 18 {\em safe} calls (host behavior can be checked); 6 {\em benign} cal
 
 
 
-Table~\ref{tab:sgx:enclave-abi} lists the \enclavecallnum{} enclave calls of \graphenesgx{}'s enclave ABI,
-organized by the risk.
+Table~\ref{tab:sgx:enclave-abi} lists the \enclavecallnum{} enclave calls of \graphenesgx{},
+organized by the risk,
+and Table~\ref{tab:sgx:enclave-abi-detailed} further specifies the outputs, inputs, and checking strategies of the enclave calls.
 %easily-checked semantics (safeith risk assessed by whether each of them has predictable semantic or robust defense strategy.}
 %also assesses the risk of each enclave interface,
 %based on how problematic a malicious input could be for the Library OS.
 %We evaluate the security of the enclave interface in \graphenesgx{} based on the difficulty of verifying the inputs and the worst consequence of accepting malicious inputs, as shown in 
 %More details of the security evaluation will be discussed in \S\ref{sec:eval:security}.
 %The \enclavecallnum{} entries of the \graphenesgx{} enclave interface are categorized into four groups: There are
-18 calls are {\em safe} because responses
-from the OS are easily checked in the enclave.
-An example of a safe call is \funcname{FILE\_MAP},
-which maps a file outside the enclave,
-to copy it into the enclave for system calls like \funcname{mmap} or \funcname{read}, as discussed below.
+This thesis categorizes
+18 enclave calls as {\em safe} because
+the responses from the untrusted OS are
+easily checked in the enclave.
+\graphenesgx{} checks these safe enclave calls based on three strategies.
+The first strategy is to blocking out all inputs from the untrusted OS. For instance, when the enclave creates a new thread using \funcname{CLONE\_THREAD}, a pre-allocated enclave thread is waken up and takes no input from outside of the enclave.
+The second strategy is to define the input semantics to be as predictable as possible for checking. An example of a predictable call is \funcname{MAP\_UNTRUSTED}, which simply maps a file outside the enclave.
+The third strategy is to establish cryptographic techniques
+for checking data integrity.
+For instance,
+after mapping a file with \funcname{MAP\_UNTRUSTED},
+the SGX PAL copies the file contents into the enclaves, generates a secure hash,
+and matches with the manifests.
+Using the same strategy, a TLS/SSL connection can be establish either inside the application or in the PAL,
+to secure enclave calls for accessing network and RPC streams,
+such as \funcname{SOCK\_SEND}, \funcname{SOCK\_RECV}, and \funcname{SOCK\_SHUTDOWN}.
+
+%An example of a safe call is \funcname{FILE\_MAP},
+%which maps a file outside the enclave,
+%to copy it into the enclave for system calls like \funcname{mmap} or \funcname{read}, as discussed below.
 %A pre-constructed secure hash can be mapped to the copied file to validate its integrity.
-6 calls are {\em benign}, which means, if a host violates the specification,
+
+
+
+Other 6 enclave calls are {\em benign}, which means, if a host violates the specification,
 the \libos{} can easily compensate or reject the response.
 % will compensate appropriately or reject the outcomes.
-An example of a benign interface is \funcname{STREAM\_FLUSH},
-which requests that data be sent over a network or to disk;
-cryptographic integrity checks on a file or network communication can detect when this operation is ignored by untrusted software.
+An example of a benign enclave call is \funcname{STREAM\_FLUSH},
+which requests that any data buffered inside the host OS to be flushed out to a network or a disk.
+Cryptographic integrity checks on a file or network communication can detect when this operation is ignored by untrusted software.
+Another example is \funcname{YIELD},
+an enclave call for requesting the untrusted OS to schedule CPU resources.
+\funcname{YIELD} does not affect the integrity of an application
+because it simply serves as a hint
+to the untrusted OS.
 
 
 
@@ -470,11 +494,14 @@ must handle spurious wake-ups and either attempt to wait on the futex again, or 
 %{\em DoS} calls can be considered a subset of {\em benign}.
 %Because the host OSes can anyway take away the CPU resource or block the network bandwidth to cause DoS attacks on enclaves, these two entries are not considered security threats to \graphenesgx{}. 
 
-Finally, only two interfaces, namely \funcname{FILE\_STAT} and \funcname{DIR\_READ}, are {\em unsafe}, because we do not protect
-integrity of file metadata.  We leave this issue
-%protection of file system  metadata 
-for future work, adopting one of several existing solutions~\cite{inktag}.
-%~\fixmedp{cite: integrity protected FSes, and maybe Inktag iirc?}
+Finally, only two enclave calls, namely \funcname{FILE\_STAT} and \funcname{DIR\_READ}, are {\em unsafe}, because \graphenesgx{} currently do not protect
+integrity of file metadata or directory lists.
+Checks for these two calls would require signing the file metadata or directory lists
+on a trusted host in advance.
+Other existing work like Inktag~\cite{inktag} also demonstrate the integrity checks for file metadata.
+\graphenesgx{} leaves the checks for these two enclave calls
+for future work.
+
 
 
  
@@ -676,7 +703,7 @@ is then used by
 
 
 
-We note that the untrusted OS may deliberately trigger memory faults, %in either untrusted memory or enclave memory,
+The untrusted OS may deliberately trigger memory faults, %in either untrusted memory or enclave memory,
 by modifying the page tables,
 or not deliver the exceptions (denial of service).
 %, but, for most exceptions, the application will not make progress.
@@ -688,7 +715,7 @@ as designed in Sanctum~\cite{costan2016sanctum}.
 
 
 
-By handling exceptions inside the enclave, \graphenesgx{}can emulate instructions that are not supported by SGX, including {\tt cpuid} and {\tt rdtsc}.
+By handling exceptions inside the enclave, \graphenesgx{} can emulate instructions that are not supported by SGX, including \assembly{cpuid} and \assembly{rdtsc}.
 Use of these instructions will ultimately trap to a handler inside the enclave,
 to call out to the OS for actual values, which are treated as untrusted input and are checked.
 
