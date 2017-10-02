@@ -6,7 +6,7 @@ which are implemented using copy-on-write fork and in-kernel
 IPC abstractions.
 In SGX, the host OS is untrusted, and enclaves cannot share protected memory.
 Fortunately, \graphene{} implements multi-process support
-including \syscall{fork}, \syscall{execve}, signals, and a subset of System V IPC,
+including \syscall{fork}, \syscall{execve}, signals, and a subset of IPC mechanisms,
 using message passing instead of shared memory.
 %The {\it zero-sharing} nature of \graphene{} makes it possible
 Thus, \graphenesgx{} implements multi-process abstractions in enclaves
@@ -42,7 +42,7 @@ multi-processing abstractions from an untrusted OS.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=.75\linewidth]{fork.pdf}
+\includegraphics[width=.8\linewidth]{fork.pdf}
 \caption{Process creation in \graphenesgx{}.
 Numbers show the order of operations.
 When a process forks, \graphenesgx{} creates a new, clean enclave
