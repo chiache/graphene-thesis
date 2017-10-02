@@ -1,0 +1,74 @@
+\footnotesize
+\centering
+\bgroup
+\def\arraystretch{1.2}
+\setlength{\tabcolsep}{0.5em}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{5.5em}|>{\centering}p{3em}|>{\raggedright\arraybackslash}p{10em}|}
+\hline
+Classes & \textnormal{Enclave calls} & \textnormal{Output} & \textnormal{Input} & Risk & In-enclave checks \\
+\hline
+\multirow{2}{6.5em}{Enter enclaves \& threads}
+& START\_ENCLAVE & & args,envp,\newline rpc\_fd & safe & \\
+\cline{2-6}
+& START\_THREAD  & & & safe & \\
+\hline
+\multirow{2}{6.5em}{Clone enclaves \& threads}
+& CLONE\_ENCLAVE & exec & rpc\_fd & safe & \\
+\cline{2-6}
+& CLONE\_THREAD  & & & safe & \\
+\hline
+\multirow{2}{6.5em}{File \& directory access}
+& FILE\_OPEN     & path & fd & safe & \\
+\cline{2-6}
+& FILE\_TRUNC    & fd,size & & safe & \\
+\cline{2-6}
+& FILE\_ATTR     & fd & attrs & unsafe & \\
+\cline{2-6}
+& DIR\_LIST      & fd & dir\_list & unsafe & \\
+\hline
+\multirow{1}{6.5em}{Exit enclave}
+& EXIT\_ENCLAVE  & & & safe & \\
+\hline
+\multirow{2}{6.5em}{Network \& RPC streams}
+& SOCK\_LISTEN   & addr & fd & safe & \\
+\cline{2-6}
+& SOCK\_ACCEPT   & fd & newfd & safe & \\
+\cline{2-6}
+& SOCK\_CONNECT  & addr & fd & safe & \\
+\cline{2-6}
+& SOCK\_SEND     & fd,data,size & & safe & \\
+\cline{2-6}
+& SOCK\_RECV     & fd & data,size & safe & \\
+\cline{2-6}
+& SOCK\_SETOPT   & fd,option & & benign & \\
+\cline{2-6}
+& SOCK\_SHUTDOWN & fd,access & & benign & \\
+\hline
+\multirow{1}{6.5em}{Scheduling}
+& YIELD          & tid & & benign & \\
+\cline{2-6}
+& FUTEX()        & & & DoS    & \\
+\hline
+\multirow{1}{6.5em}{Stream handles}
+& HANDLE\_CLOSE  & fd & & benign & \\
+\cline{2-6}
+& HANDLE\_POLL   & event\_array & event & DoS    & \\
+\cline{2-6}  
+& HANDLE\_SEND   & fd,send\_fds & & safe   & \\
+\cline{2-6}
+& HANDLE\_RECV   & fd & recv\_fds & safe   & \\
+\cline{2-6}
+& HANDLE\_FLUSH  & fd & & benign & \\
+\hline
+\multirow{2}{6.5em}{Untrusted memory}
+& MAP\_UNTRUST   & fd,off,size & addr & safe   & \\
+\cline{2-6}
+& FREE\_UNTRUST  & addr,size & & safe   & \\
+\hline
+\multirow{1}{6.5em}{Mis\-cel\-la\-ne\-ous}
+& SYSTIME        & & timestamp & safe   & \\
+\cline{2-6}
+& SLEEP          & microsecond & remaining & benign & \\
+\hline
+\end{tabular}
+\egroup

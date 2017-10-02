@@ -425,6 +425,20 @@ including 18 {\em safe} calls (host behavior can be checked); 6 {\em benign} cal
 \end{table}
 
 
+\begin{table}
+\input{tables/interface-detailed}
+\caption{An overview of \enclavecallnum{} enclave calls of \graphenesgx{},
+including 18 {\em safe} calls (host behavior can be checked); 6 {\em benign} calls (no harmful effects); 2 {\em DoS} calls (may cause denial-of-service); and 2 {\em unsafe} calls (potentially attacked by the host).}
+%\fixme{Not sure if we should list all enclave interface in detail.}}
+%% dp: It would be nice to fully list, but I don't think we have space.
+%consisting of 17 functions to access host OS features when the \libos{} is insufficient to handle internally.
+%\graphenesgx{} shields its enclave interface from the untrusted host OS, assuming each input value of the interface to be potentially malicious.
+%%Most of the enclave interface is inherited from the \graphene{} host ABI.}
+\label{tab:sgx:enclave-abi-detailed}
+\end{table}
+
+
+
 Table~\ref{tab:sgx:enclave-abi} lists the \enclavecallnum{} enclave calls of \graphenesgx{}'s enclave ABI,
 organized by the risk.
 %easily-checked semantics (safeith risk assessed by whether each of them has predictable semantic or robust defense strategy.}
@@ -464,13 +478,6 @@ for future work, adopting one of several existing solutions~\cite{inktag}.
 %~\fixmedp{cite: integrity protected FSes, and maybe Inktag iirc?}
 
 
-%% dp: Meh
-\begin{comment}
-\begin{edits}
-The justification of the safety of \graphenesgx{}'s enclave interface is as follows: 
-(1) our enclave interface contains only \enclavecallnum{} functions, with only the simplest semantics and minimal corner cases, so is much easier to check than a significant portion of the Linux system call table or POSIX API. (2) for majority of these \enclavecallnum{} functions, the shielding library can either predict a single value that the OS is allowed to return, or completely dismiss any return values from the OS.
-\end{edits}
-\end{comment}
  
 %Similar as \haven{} and \scone{}, 
 %\graphenesgx{} secures the OS interaction of an application against known direct attacks from the untrusted host,
