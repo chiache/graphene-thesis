@@ -487,19 +487,23 @@ to the untrusted OS scheduler.
 
 
 Like any SGX framework, \graphenesgx{} does not guarantee liveness of enclave code: the OS can refuse to schedule the enclave threads.
-Two interfaces are susceptible to liveness issues (labeled {\em DoS}): \funcname{FUTEX\_WAIT} and \funcname{STREAM\_POLL}.
-In the example of \funcname{FUTEX\_WAIT}, a blocking synchronization call may never return, violating liveness but not safety.
-A malicious OS could cause a futex wait to return prematurely; thus, 
+Two interfaces are susceptible to liveness issues (labeled {\em DoS}): \funcname{FUTEX\_WAIT} and \funcname{HANDLE\_POLL}.
+In the example of \funcname{HANDLE\_POLL}, a blocking synchronization call may never return, violating liveness but not safety.
+A malicious OS could cause a futex call to return prematurely or corrupt the futex value; thus, 
 synchronization code in the PAL
 must handle spurious wake-ups and either attempt to wait on the futex again, or spin in the enclave.
+For \funcname{HANDLE\_POLL}, the untrusted OS may never deliver any stream events into an enclave.
+Denial-of-the-service attacks on these enclave calls
+are less of a security threat
+than integrity attacks, due to the assumption that the untrusted OS controls all the hardware resources.
 %{\em DoS} calls can be considered a subset of {\em benign}.
 %Because the host OSes can anyway take away the CPU resource or block the network bandwidth to cause DoS attacks on enclaves, these two entries are not considered security threats to \graphenesgx{}. 
 
-Finally, only two enclave calls, namely \funcname{FILE\_STAT} and \funcname{DIR\_READ}, are {\em unsafe}, because \graphenesgx{} currently do not protect
-integrity of file metadata or directory lists.
-Checks for these two calls would require signing the file metadata or directory lists
-on a trusted host in advance.
-Other existing work like Inktag~\cite{inktag} also demonstrate the integrity checks for file metadata.
+Finally, only two enclave calls, namely \funcname{FILE\_ATTRS} and \funcname{DIR\_LIST}, are {\em unsafe}, because \graphenesgx{} currently do not protect
+integrity of file attributes or directory lists.
+Checks for these two calls would require signing the file attributes or directory lists
+on a trusted host.
+Other existing work like Inktag~\cite{inktag} also demonstrate the integrity checks for file attributes.
 \graphenesgx{} leaves the checks for these two enclave calls
 for future work.
 
