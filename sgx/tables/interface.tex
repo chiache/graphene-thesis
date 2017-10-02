@@ -24,29 +24,29 @@ File \& directory access        & 3    & 0      & 0   & 2     \\
 Exit enclave                    & 1    & 0      & 0   & 0     \\
 % thread_exit       (safe)
 \hline
-Network \& RPC streams          & 5    & 2      & 0   & 0     \\
+Network \& RPC streams          & 6    & 1      & 0   & 0     \\
 % sock_listen       (safe)
 % sock_accept       (safe)
 % sock_connect      (safe)
 % sock_send         (safe)
 % sock_recv         (safe)
 % sock_setopt       (benign)
-% sock_shutdown     (benign)
+% sock_shutdown     (safe)
 \hline
 Scheduling                      & 0    & 1      & 1   & 0     \\
 % yield             (benign)
-% futex             (blockable)
+% futex             (DoS)
 \hline
 Stream handles                  & 2    & 2      & 1   & 0     \\
 % handle_close      (benign)
-% handles_poll      (blockable)  
+% handles_poll      (DoS)  
 % handle_send       (safe)
 % handle_recv       (safe)
 % handle_flush      (begign)
 \hline
-Map untrusted memory            & 2    & 0      & 0   & 0     \\
+Map untrusted memory            & 1    & 1      & 0   & 0     \\
 % map_untrusted     (safe)
-% unmap_untrusted   (safe)
+% unmap_untrusted   (benign)
 \hline
 Miscellaneous                   & 1    & 1      & 0   & 0     \\
 % get_time          (safe)
