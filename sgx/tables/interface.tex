@@ -1,0 +1,59 @@
+\footnotesize
+\centering
+\bgroup
+\def\arraystretch{1.1}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{12em}|>{\centering\arraybackslash\bf}p{4em}|>{\centering\arraybackslash}p{4em}|>{\centering\arraybackslash}p{4em}|>{\centering\arraybackslash}p{4em}|}
+\hline
+Classes                         & Safe & Benign & DoS & Unsafe \\
+\hline
+\hline
+Entering enclaves \& threads    & 2    & 0      & 0   & 0     \\
+% start_enclave     (safe)
+% start_thread      (safe)
+\hline
+Cloning enclaves \& threads       & 2    & 0      & 0   & 0     \\
+% create_process    (safe)
+% create_thread     (safe)
+\hline
+File \& directory access        & 3    & 0      & 0   & 2     \\
+% file_open         (safe)
+% file_truncate     (safe)
+% file_stat         (unsafe)
+% dir_read          (unsafe)
+\hline
+Exits                           & 1    & 0      & 0   & 0     \\
+% thread_exit       (safe)
+\hline
+Network \& RPC streams          & 6    & 1      & 0   & 0     \\
+% sock_listen       (safe)
+% sock_accept       (safe)
+% sock_connect      (safe)
+% sock_send         (safe)
+% sock_recv         (safe)
+% sock_setopt       (benign)
+% sock_shutdown     (safe)
+\hline
+Scheduling                      & 0    & 1      & 1   & 0     \\
+% yield             (benign)
+% futex             (DoS)
+\hline
+Stream handles                  & 2    & 2      & 1   & 0     \\
+% handle_close      (benign)
+% handles_poll      (DoS)  
+% handle_send       (safe)
+% handle_recv       (safe)
+% handle_flush      (begign)
+\hline
+Mapping untrusted memory        & 1    & 1      & 0   & 0     \\
+% map_untrusted     (safe)
+% unmap_untrusted   (benign)
+\hline
+Miscellaneous                   & 1    & 1      & 0   & 0     \\
+% get_time          (safe)
+% sleep             (benign)
+\hline
+\hline
+{\bf Total}                     & 18   & 6      & 2   & 2     \\ 
+\hline
+\end{tabular}
+\egroup

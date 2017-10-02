@@ -1,0 +1,307 @@
+%\section{User-level {\tt fork} and other Linux library OS challenges}
+%%% \vspace{5pt}
+%%% \label{sec:fork}
+%%% \noindent {\bf Copy-On-Write Fork.~}
+%%% Creating a clean guest eases reasoning about security isolation, as all shared abstractions
+%%% must be implemented using explicit data streams  between guests.
+%%% This section describes how we implement these Unix abstractions in the guest
+%%% %achieve a sensible division of labor between guest and host, and 
+%%% without baking Unix personality into the host ABI.
+
+
+\begin{comment}
+\vspace{5pt}
+\noindent{\bf Guest self-migration.~}  One of the key features of the host ABI
+is that guest state can be programmatically read and recreated.
+As a result, guests can checkpoint, migrate, and resume themselves in a new picoprocess,
+potentially on a new host.  
+Most of the library OS and application state are checkpointed simply 
+by copying the contents of virtual memory into a file.
+Checkpointing requires manually serializing a few key data structures
+in {\tt libLinux} that are needed to resume the library OS from a checkpoint,
+% interface directly with the PAL, 
+including the thread states, handle table, and memory mappings.  
+
+Resuming from a checkpoint involves restoring these key data
+structures (handles, thread register contexts, memory mappings), and re-loading memory
+contents from the checkpoint.  Most additional data structures
+in {\tt libLinux}, and all application data structures,
+are reloaded at the virtual address as before the checkpoint and work without modification.
+\end{comment}
+
+\begin{comment}
+When a new guest begins execution, an input argument to {\tt libLinux} indicates
+whether control should be transferred to the Linux loader ({\tt ld.so}) to start a new application instance, 
+or whether a checkpoint should be loaded instead.
+\end{comment}
+%After the checkpoint is loaded, all threads resume execution on their stacks.
+
+
+\section{Multi-Process Applications} 
+
+%A characteristic of Linux application development is the opportunity of using one of 
+This section explains an efficiency implementation of the process creation mechanisms in \thelibos{},
+including \syscall{fork} and \syscall{execve}.
+%and a variety of IPC (inter-process communication) mechanisms. 
+
+
+
+
+\subsection{Forking a process}
+
+
+
+Implementing the UNIX-style, copy-on-write forking presents a particular challenge to the \graphene{} architecture.
+%when implemented using only a VM-like picoprocess abstraction.
+Using \palcall{ProcessCreate} in \thehostabi{}, each \graphene{} host
+creates a new \picoproc{} in a ``clean'' state, with an individual \thelibos{} instance maintaining the OS resources and features for an application process. % fork is implemented in the \libos{}.
+%yet applications require common Unix abstractions such as file handle inheritance and copy-on-write fork.
+Forking a process involves cloning the state of running application and migrating all the resource handles inside \thelibos{}, such as file descriptors, to the new \picoproc{}.
+\graphene{} drops the assumption that each of its hosts is capable of sharing physical pages between multiple applications or processes.
+Since \thelibos{} cannot enable copy-on-write sharing between \picoprocs{}, \thelibos{} needs an elaborate but efficient scheme for emulating the UNIX-style forking.
+
+
+\issuedone{1.3.b}{describe the work flow of forking}
+Without host support of copy-on-write sharing,
+\thelibos{} emulates \syscall{fork} by checkpointing and migrating the process states.
+When an application forks a process,
+the current \thelibos{} instance holds a list of process resources that must be cloned for the new process.
+By checkpointing the process states,
+\thelibos{} creates a snapshot of the current process,
+which is expected to the initial state
+of the new process,
+%expects to be reproduced to new process,
+except a few minor changes.
+A process snapshot includes all allocated resources, such as VMA and file handles,
+and miscellaneous process states, such as signal handlers.
+After checkpointing,
+\thelibos{} calls \palcall{ProcessCreate} to create a new \picoproc{} in the host, and then migrates the process snapshot over the process handle as a RPC stream. %so that the state of the forking process is faithfully migrated to a new \thelibos{} instance.
+
+
+To fully emulate \syscall{fork}, \thelibos{} implements
+a checkpoint and migration scheme
+for duplicating the resource handles and application states between \picoprocs{}.
+For each type of resources, \thelibos{} defines a function for decomposing a resource handle in a migratable form,
+and a function for reconstructing the resource handle inside another \picoproc{}.
+For example,
+for a VMA handle, \thelibos{} checkpoints the address, size, initial flags, and page protection,
+and only if the VMA is accessed by the application and not backed by a file,
+\thelibos{} copies the memory data into the snapshot.
+For a file or network handle,
+\thelibos{} runs a virtual file system operation,
+\funcname{vfs\_checkout},
+to externalize the related states
+inside the file system implementations,
+but skip any temporary states such as buffers and directory cache entries.
+Finally, \thelibos{} checkpoints the current thread handle, but modifies the handle snapshot with a new process ID.
+
+
+
+The checkpoint and migration scheme of \thelibos{} is comparable to
+VM migration by a hypervisor.
+When migrating a VM, a hypervisor has to copy the VM's guest physical memory to another host machine.
+A useful feature of a hypervisor is to migrate a live VM,
+and to implement the feature, the hypervisor needs hardware support for marking the dirty pages when it is copying the pages.
+\graphene{} also implements live migration of a \picoproc{} for \syscall{fork}
+because of the general expectation
+that \syscall{fork} should not halt the whole process.
+However, unlike live VM migration, \graphene{} chooses not %adopt the technique of live VM migration
+copy the whole virtual address space
+of a \picoproc{}
+%Instead, the checkpoint scheme of \thelibos{}
+%locks each handle when copying it to the heap or over a RPC stream
+%\graphene{} chooses not to copy the whole virtual address space 
+for three primary reasons.
+First, a checkpoint scheme that snapshots the whole \picoproc{}
+cannot differentiate temporary and permanent states inside a \libos{}.
+To improve I/O performance, \thelibos{} tends to reserve %a significant amount of
+virtual memory for caching and buffering, and \thelibos{} can reduce migration time by skipping temporary states such as directory cache entries and I/O buffers.
+Second, by checkpointing handles individually,
+\thelibos{} can overwrite each handle and sanitize any sensitive states before sending the snapshot out to another \picoproc{}.
+Finally, \thehostabi{} does not export any functionality for tracing
+the dirty pages during live migration,
+because the low-level hardware support needed
+is not available on a more restricted hardware like Intel SGX.
+For all the reasons above,
+\thelibos{} only selectively checkpoints \libos{} states rather than snapshotting the whole \picoproc{}.
+
+
+%new \picoproc{} cannot reuse PAL handles snapshotted from the previous \picoproc{}.
+%Therefore, after migrating the whole virtual address space,
+%either \thelibos{} has to scan its internal heap to recreate or nullify all the PAL handles, or \thehostabi{} has to detect any migrated PAL handles.
+%Moreover, to consistently snapshot a \picoproc{},
+%\thelibos{} has to stop the execution of every running threads,
+%or iteratively trace dirty pages after copying a certain amount of pages to the snapshot.
+%Either approach requires more control over host-level page management
+%in order to prevent significant interruption in the application.
+
+
+
+
+
+
+%Rather than writing the checkpoint to a file, 
+%we developed an efficient bulk IPC mechanism to 
+%permit copy-on-write sharing of memory pages among processes.
+%Bulk IPC is a performance optimization over sending each byte of the parent address
+%space over a stream, although {\tt libLinux} can also implement {\tt fork}
+%over a stream.
+%Bulk IPC adds 3 calls to the host ABI,
+%and the host reference monitor only permits bulk IPC among
+%picoprocesses within a sandbox.
+
+%% Conceptually, {\tt fork} could be implemented by checkpointing the parent,
+%% modifying the primary thread's checkpoint 
+%% so that the child returns 0 from the fork call 
+%% (indicating it is the child),
+%% and then immediately resuming the checkpoint in another picoprocess.
+
+%% In practice, we optimize {\tt fork} performance by avoiding 
+%% the use of an intermediate checkpoint file, instead transferring the checkpoint
+%% directly to the child over a host-level bulk IPC
+%%  mechanism (\S\ref{sec:linux:pal}).
+%The Graphene bulk IPC abstraction adds 3 PAL calls 
+%that allow guests to efficiently transfer large regions of memory to each other\fixmedp{after reordering, add a forward or back ref}.
+
+
+
+Migrating process states over a RPC stream adds a significant overhead to the latency of \syscall{fork} in \thelibos{}.
+To reduce the overhead, \graphene{} introduces a {\bf bulk IPC} mechanism in \thehostabi{}, to send large chunks of memory across \picoprocs{}. 
+Using the bulk IPC mechanism, 
+%Using our bulk IPC mechanism,
+the sender (i.e., the parent) can request the host kernel
+to preserve the physical pages of application memory and snapshot data,
+and the receiver (i.e., the child) can map these physical pages to its own virtual address space.
+This bulk IPC mechanism is an efficiency way of sending pages out-of-band,
+while the parent process still uses a RPC stream
+to send control messages including the parameters of bulk IPC.
+Although the implementation is up to the host kernel,
+the bulk IPC mechanism should map the same physical pages in both parent and child,
+to minimize the memory copy in the host kernel.
+The host kernel marks the physical pages copy-on-write in both \picoprocs{},
+to ensure that the child receives a snapshot of the sent pages from the parent without sharing any future changes.
+The bulk IPC mechanism is optional in \thehostabi{},
+and \thelibos{} can always fall back to sending process snapshots over RPC streams
+when the host fails to support bulk IPC.
+
+
+
+%Our IPC module is \gipclines{} lines of code (Table~\ref{tab:graphene:loc}), 
+%runs on multiple versions of Linux (2.6 and 3 series kernels), and
+%does not require
+%Linux kernel changes or recompilation.
+
+
+\begin{comment}
+A critical challenge in developing a Linux library OS was implementing 
+handle inheritance in the guest.  In some cases, 
+handles are easy to reproduce: an open file can simply be reopened in the child,
+and the cursor offset adjusted (note that file handle offsets are a library abstraction
+implemented over a memory mapped file).
+Pipes, however, are not easily recreated without host support.
+\end{comment}
+%One option was to create explicitly named host-level byte streams,
+%similar to System V or Windows named pipes.
+%This strategy is simple to add to the Drawbridge host ABI and easy to program in {\tt libLinux},
+%but complicates security isolation, as guests must be prevented from 
+%opening a host-level pipe outside of their sandbox.
+
+%A second option, which we pursue, is to only create anonymous bytes streams,
+\paragraph{Inheriting PAL handles.}
+When a file handle to the child, \thelibos{} sometimes needs to send the stored PAL handle, especially when the file handle
+represents a network socket or a deleted file.
+\thelibos{} normally nullifies the PAL handle in the snapshot of a file handle
+since the PAL handle is only valid for the local PAL.
+However, if \thelibos{} cannot recreate a PAL handle by calling \palcall{StreamOpen} in the child \picoproc{}, \thelibos{} needs host support to inherit
+the PAL handle from the parent.
+There are generally two conditions when the child process
+cannot recreate a PAL handle.
+First, a \picoproc{} cannot reopen a bounded network handle
+if another \picoproc{} still holds the local port.
+Second, the parent process may delete a file while holding a file descriptor to access the file content, generally as a way of detaching the file from the file system.
+If the file is deleted in the host file system,
+the child process cannot reopen the file
+using \palcall{StreamOpen}.
+
+
+
+\thelibos{} uses two new \hostapis{},
+\palcall{RPCSendHandle} and \palcall{RPCRecvHandle}, to send PAL handles out-of-band over a PRC stream.
+As \thelibos{} walks through a file handle list for checkpointing, it marks the PAL handles that are network sockets or deleted files.
+If the parent deletes a file after migrating the file handle but before the child recreates the PAL handle,
+the child will either fail to reopen the file
+or accidentally open another file created afterward.
+\thelibos{} can detect this corner case by coordinating the file system states
+across \picoprocs{}.
+
+
+
+% within a sandbox.  Handle passing facilitates inheritance
+%and general-purpose RPC.
+%This mechanism is similar to Unix Domain Sockets,
+%which are commonly used by sandboxing systems. % such as plash~\citep{plash}.
+%This strategy allows a guest to seamlessly and explicitly 
+%share an open handle with another guest in the same sandbox, but prevents
+%a guest from sharing a handle with a guest outside of the sandbox.
+
+\begin{comment}
+\vspace{5pt}
+\noindent{\bf Discussion.~}
+A Graphene picoprocess can copy part or all its address space into a child
+picoprocess relatively efficiently.
+Although this mechanism is less efficient than an in-kernel {\tt fork},
+we wanted to maintain the generality benefits of recent \liboses{},
+and only added the minimal building blocks to the host ABI.
+%we felt this design would bake Unix personality into the host kernel ABI,
+%and  reintroduce security problems caused by accidental inheritance~\citep{close-on-exec}.
+The transfer of data is explicit to the host, can be mediated by a reference monitor,
+the sender, or the receiver.
+For instance, recent Unix systems introduced a close-on-exec flag for file handles~\citep{close-on-exec}, 
+which prevents inheritance of handles to sensitive files.  This can be implemented
+either in a parent, by excluding the file handle from a checkpoint, 
+or in the child, by closing this handle on an {\tt exec} call.
+Our current implementation implements close-on-exec in the child for complete compatibility,
+but a more security-sensitive application could easily implement ``close-on-fork'' semantics 
+in the parent.
+This clean division of labor retains full functionality
+and facilitates extensibility.
+
+
+\end{comment}
+
+%\issue{1.3.b}{discuss alternative strategies of forking}
+
+
+\subsection{Process creation with \syscall{execve}}
+
+
+Another Linux \linuxapi{}, \syscall{execve}, creates a process with a separate executable and a clean memory state.
+The specification of \syscall{execve}
+includes detaching the calling thread from a process and moving it to a brand-new virtual address space with the specified executable.
+As a common use case, a shell program (e.g., Bash) calls \syscall{execve} after creating a thread using \syscall{vfork},
+to execute a shell command (e.g., \code{ls}) in a separate process, while the main process continues and waits for the shell command to finish.
+%When one thread in a multi-threaded process
+%calls \syscall{execve}, other running threads still run in the same context.
+%Instead, \syscall{execve} creates a process
+%with the same credentials of the calling thread, but the process runs a fresh, separate executable from the parent.
+%Calling \syscall{execve} from a multi-threaded process 
+%is especially common in a shell program (e.g., Bash).
+%A shell program often calls \syscall{execve} after \syscall{vfork} to execute a command in a new process monitored by the job controller, similar to \funcname{spawn} in the POSIX API.
+Linux uses the combination of \syscall{vfork} and \syscall{execve}
+as an equivalent of \funcname{spawn} in the POSIX API, or \funcname{CreateProcess} in the Windows API.
+
+
+\thelibos{} implements \syscall{execve} by calling \palcall{ProcessCreate} with
+the host URI of the executable,
+and selectively migrating process states to the new \picoproc{}.
+When the application calls \syscall{execve} to run an executable, \thelibos{} first has to identify the executable on the chroot file systems,
+to determine its host URI for creating a \picoproc{}.
+Although \palcall{ProcessCreate} achieves the goal of creating a clean process with the target executable,
+\syscall{execve} further specifies that the child must inherit the parent's credentials and file descriptors, except file descriptors opened with a \code{CLOEXEC} flag.
+\thelibos{} uses the same checkpoint and migration scheme in \syscall{fork} to selectively migrate handles and \libos{} states in \syscall{execve}.
+The states migrated in \syscall{execve}
+include the caller's thread handle, all the non-\code{CLOEXEC} file handles, program arguments and environment variables given by the application, and global OS states that are shared across \thelibos{} instances
+(e.g., namespace information).
+
+
+

@@ -1,0 +1,115 @@
+\makeatletter
+\newcommand*{\declarecommand}{%
+  \@star@or@long\declare@command
+}
+\newcommand*{\declare@command}[1]{%
+  \provide@command{#1}{}%
+  % \let#1\@empty % would be more efficient, but without error checking
+  \renew@command{#1}%
+}
+
+\usepackage{xstring}
+
+\declarecommand{\projname}[1]{{#1}}
+
+\declarecommand{\syscall}[1]{{\tt #1()}}
+\declarecommand{\palcall}[1]{{\tt #1()}}
+\declarecommand{\code}[1]{{\tt #1}}
+\declarecommand{\assembly}[1]{\code{\uppercase{#1}}}
+\declarecommand{\funcname}[1]{{\tt #1()}}
+
+% different kinds of seconds
+\newcommand{\asec}{S}
+\newcommand{\usec}{$\mu$S}
+\newcommand{\msec}{mS}
+\newcommand{\nsec}{nS}
+
+% tunable symbols
+\newcommand{\roughly}[1][]{$\sim$#1}
+
+\newcommand{\palign}[2][]{%
+    \IfEqCase{#2}{%
+        {l}{\def\@@align{\raggedright}}%
+        {r}{\def\@@align{\raggedleft}}%
+        {c}{\def\@@align{\centering}}%
+    }[\PackageError{palign}{Undefined option to palign: #2}{}%
+          \def\@@align{}]%
+    \@@align \arraybackslash #1%
+}
+
+
+
+% slangs
+\declarecommand{\loc}{LoC}
+\declarecommand{\us}{$\mu$S}
+\declarecommand{\x}{$\times$}
+
+
+% project names
+\declarecommand{\graphene}{\projname{Graphene}}
+\declarecommand{\graphenesgx}{\projname{Graphene-SGX}}
+\declarecommand{\graphenearch}{{x86-64}}
+\declarecommand{\civet}{\projname{Civet}}
+\declarecommand{\microkernel}{microkernel}
+\declarecommand{\haven}{\projname{Haven}}
+\declarecommand{\drawbridge}{\projname{Drawbridge}}
+\declarecommand{\scone}{\projname{SCONE}}
+\declarecommand{\panoply}{\projname{PANOPLY}}
+\declarecommand{\sgx}{{SGX}}
+\declarecommand{\docker}{{Docker}}
+
+
+% terminology
+\declarecommand{\Libos}{Library OS}
+\declarecommand{\Liboses}{Library OSes}
+\declarecommand{\libos}{library OS}
+\declarecommand{\liboses}{library OSes}
+\declarecommand{\Picoproc}{Picoprocess}
+\declarecommand{\Picoprocs}{Picoprocesses}
+\declarecommand{\picoproc}{picoprocess}
+\declarecommand{\picoprocs}{picoprocesses}
+\declarecommand{\pal}{PAL}
+\declarecommand{\posixapi}{POSIX function}
+\declarecommand{\posixapis}{POSIX functions}
+\declarecommand{\linuxapi}{system call}
+\declarecommand{\Linuxapi}{System call}
+\declarecommand{\linuxapis}{system calls}
+\declarecommand{\Linuxapis}{System calls}
+\declarecommand{\hostapi}{PAL call}
+\declarecommand{\hostapis}{PAL calls}
+\declarecommand{\thehostabi}{{the PAL ABI}}
+\declarecommand{\Thehostabi}{{The PAL ABI}}
+\declarecommand{\thelibos}{{\tt libLinux}}
+\declarecommand{\Thelibos}{{\tt libLinux}}
+\declarecommand{\Glibc}{{Glibc}}
+\declarecommand{\glibc}{{glibc}}
+\declarecommand{\libc}{{libc}}
+\declarecommand{\libpthread}{{\tt libpthread}}
+\declarecommand{\libdl}{{\tt libdl}}
+\declarecommand{\seccomp}{{seccomp}}
+
+% stats
+\declarecommand{\linuxversion}{4.9}
+\declarecommand{\graphenesyscallnum}{145}
+\declarecommand{\linuxsyscallnum}{318}
+\declarecommand{\palcallnum}{42}
+\declarecommand{\hostsyscallnum}{50}
+\declarecommand{\sgxpalcallnum}{38}
+\declarecommand{\enclavecallnum}{28}
+
+\declarecommand{\gipclines}{1,131}
+\declarecommand{\sandboxmodlines}{888}
+\declarecommand{\reflines}{3,568}
+\declarecommand{\libclines}{606}
+\declarecommand{\seccomplines}{79}
+
+
+% miscs
+\declarecommand{\sysvipc}{System V IPC}
+\declarecommand{\lighttpd}{Lighttpd}
+\declarecommand{\gcc}{GCC}
+\declarecommand{\lmbench}{LMbench}
+\declarecommand{\ab}{ApacheBench}
+\declarecommand{\busy}{Bash}
+\declarecommand{\sgxsdk}{Intel SGX SDK}
+

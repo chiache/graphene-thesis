@@ -1,0 +1,365 @@
+\documentclass[11pt]{report}
+
+
+\newcommand{\thesistitle}{A Library Operating System for Compatibility and Security Isolation}
+\newcommand{\thesisauthor}{Chia-Che Tsai}
+\newcommand{\thesisyear}{2017}
+\newcommand{\thesismonth}{August}
+
+
+% comment out the following line when submitting
+\def \debug{}
+
+
+\usepackage[numbers,sort]{natbib}
+\usepackage[margin=1.5in]{geometry}
+\usepackage{times}
+\usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{titlecaps}
+\usepackage{tocloft}
+\usepackage{setspace}
+\usepackage{paralist}
+\usepackage{rotating}
+\usepackage{listings}
+\lstset{language=C}
+\usepackage{comment}
+\usepackage{alltt}
+\usepackage{color}
+\usepackage[titletoc,title]{appendix}
+\usepackage{multirow}
+\usepackage[hyphens]{url}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{upgreek}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{fancybox}
+\usepackage{float}
+\usepackage[font={small}]{caption}
+\usepackage{booktabs}
+\usepackage[hidelinks]{hyperref}
+\usepackage{silence}
+\renewcommand*{\ttdefault}{cmtt}
+\lstset{basicstyle=\ttfamily\footnotesize}
+\pdfminorversion=7
+
+\newcommand{\thechapterorsection}{%
+  \ifnum\value{chapter}=0
+    Abstract
+  \else
+    \ifnum\value{section}=0 %
+      Chapter \thechapter
+    \else
+      \ifnum\value{subsection}=0 %
+        Section \thesection
+      \else
+        Section \thesubsection
+      \fi
+    \fi
+  \fi
+}
+
+
+\ifx \debug \undefined
+\newcommand{\placeholder}[1][]{{}}
+\newcommand{\fixme}[1]{{}}
+\newcommand{\fixmedp}[1]{{}}
+\else
+\usepackage[textsize=footnotesize,textwidth=1.3in,shadow,colorinlistoftodos]{todonotes}
+\WarningFilter{latex}{Marginpar on page}
+\newcommand{\placeholder}[1][To be written.]{%
+  \vspace*{1.0\baselineskip}%
+  \todo[caption={\thechapterorsection: #1}, inline, size=\normalsize, color=yellow!40, list]{\bf #1}%
+  \vspace*{0.5\baselineskip}%  
+}
+\newcommand{\fixme}[2][]{{\todo[#1, fancyline, nolist]{
+  \begin{spacing}{1.0}
+    \vspace*{-0.5\baselineskip}
+    \tt #2\\
+    \vspace*{-1.0\baselineskip}
+  \end{spacing}
+}}\hspace{-.25em}} 
+\newcommand{\fixmedp}[1]{\fixme[color=blue!40]{[dP]: #1}}
+\fi
+
+
+
+\ifx \debug \undefined
+\lstnewenvironment{outline}{\begin{comment}}{\end{comment}}
+\else
+\lstnewenvironment{outline}{%
+  \vspace{0.5\baselineskip}
+  \lstset{basicstyle=\fontsize{9}{12}\sffamily, columns=fullflexible, breaklines,breakindent=0pt,literate={-}{$\mbox{-}$}1 {--}{\textemdash}2,keepspaces}
+  \bf\color{blue}%
+}{
+  \vspace{0.5\baselineskip}
+}
+\fi
+
+
+\hypersetup{pageanchor=false}
+
+
+\input{writing}
+
+
+\input{macros}
+
+
+\makeatother
+
+
+\setlength{\parskip}{0.0\baselineskip plus 0.5\baselineskip}
+\setlength{\parindent}{.5in}
+
+
+
+\begin{document}
+
+\pagenumbering{gobble}
+
+
+\title{\bf{\thesistitle{}}}
+
+
+\issuepage{}
+
+
+\vspace*{6\baselineskip}
+{\centering{\bf{\thesistitle{}}}\\}
+\vspace*{3\baselineskip}
+\centerline{A Dissertation presented}
+\vspace*{1\baselineskip}
+\centerline{by} 
+\vspace*{1\baselineskip}
+\centerline{\bf{\thesisauthor{}}}
+\vspace*{1\baselineskip}
+\centerline{to} 
+\vspace*{1\baselineskip}
+\centerline{The Graduate School}
+\vspace*{1\baselineskip}
+\centerline{in Partial Fulfillment of the}
+\vspace*{1\baselineskip}
+\centerline{Requirements}
+\vspace*{1\baselineskip}
+\centerline{for the Degree of}
+\vspace*{1\baselineskip}
+\centerline{\bf{Doctor of Philosophy}}
+\vspace*{1\baselineskip}
+\centerline{in}
+\vspace*{1\baselineskip}
+\centerline{\bf{Computer Science}}
+\vspace*{1\baselineskip}
+\centerline{}
+%\centerline{\bf{(Concentration - optional)}}
+\vspace*{2\baselineskip}
+\centerline{Stony Brook University}
+\vspace*{2\baselineskip}
+\centerline{\bf{\thesismonth{} \thesisyear{}}}     
+
+
+%\newpage
+%\pagenumbering{gobble}
+
+%\vspace*{32\baselineskip}
+%\centerline{\it{(include this copyright page only if you are selecting copyright through ProQuest, which is optional)}}
+%\vspace*{1\baselineskip}
+%\centerline{Copyright by}
+%\centerline{\thesisauthor{}}
+%\centerline{\thesisyear{}}
+
+\hypersetup{pageanchor=true}
+
+\newpage
+\pagenumbering{roman}
+\setcounter{page}{2}
+
+\centerline{\bf{Stony Brook University}}
+\vspace*{1\baselineskip}
+\centerline{The Graduate School}
+\vspace*{1\baselineskip}
+\centerline{\bf{\thesisauthor{}}}
+\vspace*{1\baselineskip}
+\centerline{We, the dissertation committee for the above candidate for the}
+\vspace*{1\baselineskip}
+\centerline{Doctor of Philosophy degree, hereby recommend}
+\vspace*{1\baselineskip}
+\centerline{acceptance of this dissertation}
+\vspace*{3\baselineskip}
+\hrule
+\vspace*{.3\baselineskip}
+\centerline{\bf{R. Sekar - Chairperson of Defense}}
+\centerline{Professor, Computer Science Department}
+\vspace*{3\baselineskip}
+\hrule
+\vspace*{.3\baselineskip}
+\centerline{\bf{Donald E. Porter - Dissertation Advisor}}
+\centerline{Research Assistant Professor, Computer Science Department}
+\vspace*{3\baselineskip}
+\hrule
+\vspace*{.3\baselineskip}
+\centerline{\bf{Michael Ferdman}}
+\centerline{Assistant Professor, Computer Science Department}
+\vspace*{3\baselineskip}
+\hrule
+\vspace*{.3\baselineskip}
+\centerline{\bf{Timothy Roscoe}}
+\centerline{Professor, Computer Science, ETH Z\"{u}rich}
+\vspace*{2\baselineskip}
+\centerline{This dissertation is accepted by the Graduate School}
+\vspace*{2\baselineskip}
+\centerline{Charles Taber}
+\centerline{Dean of the Graduate School}
+
+
+\newpage{}
+\phantomsection
+\centerline{Abstract of the Dissertation}
+\vspace*{3\baselineskip}
+{\centering{\bf{\thesistitle{}}}\\}
+\vspace*{1\baselineskip}
+\centerline{by}
+\vspace*{1\baselineskip}
+\centerline{\bf{\thesisauthor{}}}
+\vspace*{2\baselineskip}
+\centerline{For the Degree of}
+\vspace*{1\baselineskip}
+\centerline{\bf{Doctor of Philosophy}}
+\vspace*{1\baselineskip}
+\centerline{in}
+\vspace*{1\baselineskip}
+\centerline{\bf{Computer Science}}
+\vspace*{1\baselineskip}
+\centerline{}
+%\centerline{\bf{(Concentration - optional)}}
+\vspace*{1\baselineskip}
+\centerline{Stony Brook University}
+\vspace*{1\baselineskip}
+\centerline{\bf{\thesisyear{}}}
+\vspace*{2\baselineskip}
+\renewcommand{\baselinestretch}{1.5}
+\selectfont
+\input{abstract}
+
+
+\newpage
+\centerline{\bf{Dedication Page}}
+\vspace*{4\baselineskip}
+This page is optional.
+
+%\newpage
+%\centerline{\bf{Frontispiece}}
+%\vspace*{4\baselineskip}
+%The frontispiece is generally an illustration, and is an optional page.
+
+\newlength{\charwidth}
+\setlength{\charwidth}{\widthof{\S}}
+
+\newpage
+%\centerline{\bf{Table of Contents}}
+\renewcommand{\contentsname}{\centerline{\Large\bf{Table of Contents}}}
+\renewcommand{\cftchapfont}{\large\bfseries\def\\{}\def\em{}}
+\renewcommand{\cftsecfont}{\normalsize\def\\{}\def\em{}}
+\renewcommand{\cftsubsecfont}{\normalsize\def\\{}\def\em{}}
+\pdfbookmark[0]{Table of Contents}{Contents}
+\tableofcontents
+
+\titlespacing*{\section}{0pt}{1.5\baselineskip plus 0.5\baselineskip}{0.5\baselineskip}
+\titlespacing*{\subsection}{0pt}{1.0\baselineskip plus 0.5\baselineskip}{0.5\baselineskip}
+\titlespacing*{\subsubsection}{0pt}{0.5\baselineskip plus 0.5\baselineskip}{0ex}
+\titlespacing*{\paragraph}{0pt}{0.5\baselineskip}{1pc}
+
+
+\setcounter{secnumdepth}{3}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{\charwidth}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{\charwidth}{}
+
+
+
+\newpage
+\addcontentsline{toc}{chapter}{List of Tables}
+\renewcommand{\listtablename}{\centerline{\Large\bf{List of Tables}}}
+{
+  \sloppy
+  \listoftables
+}
+
+
+\newpage
+\addcontentsline{toc}{chapter}{List of Figures}
+\renewcommand{\listfigurename}{\centerline{\Large\bf{List of Figures}}}
+{
+  \sloppy
+  \listoffigures
+}
+
+
+\setdefaultleftmargin{0.5in}{}{}{}{}{}
+
+
+%\newpage
+%\centerline{\bf{List of Abbreviations}}
+%\vspace*{4\baselineskip}
+%Include this list if applicable.
+
+%\newpage
+%\centerline{\bf{Preface}}
+%\vspace*{4\baselineskip}
+%This page is optional.
+
+%\newpage
+%\phantomsection
+%\addcontentsline{toc}{chapter}{Acknowledgements}
+%\centerline{\bf{Acknowledgments}}
+%\vspace*{4\baselineskip}
+%\input{acknowledge}
+
+%\newpage
+%\centerline{\bf{Vita, Publications and/or Fields of Study}}
+%\vspace*{4\baselineskip}
+%This page is optional for doctoral students only.
+
+
+\titleformat{\chapter}[display]
+{\Large\centering\bf}{\chaptertitlename{} \thechapter{}}{1pc}{\LARGE\bf}
+
+\def \longconferencenames{}
+\input{conferences}
+
+
+\newpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{intro/intro}
+\input{overview/overview}
+\input{abi/abi}
+\input{libos/libos}
+\input{linux/linux}
+\input{sgx/sgx}
+%\input{civet/civet}
+\input{eval/eval}
+\input{metric/metric}
+\input{study/study}
+%\input{future/proposal}
+%\input{future/future}
+\input{related/related}
+\input{conclusion}
+
+\newpage
+\begin{appendices}
+\input{metric/defs}
+\end{appendices}
+
+\newpage
+\phantomsection
+\addcontentsline{toc}{chapter}{References}
+\renewcommand{\bibname}{\centerline{\normalsize\bf{References}}}
+\bibliographystyle{plainnat}
+\bibliography{bibliography}
+
+
+
+\end{document}

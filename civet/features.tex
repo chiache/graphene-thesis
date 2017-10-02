@@ -1,0 +1,50 @@
+\begin{table*}[t!b!]
+\centering
+  \begin{tabular}{p{0.05in} >{\raggedright\arraybackslash}p{2.05in} >{\raggedright\arraybackslash}p{4.4in}}
+  \toprule
+  \multicolumn{2}{l}{\it Security guarantees or features} & {\it The modeling approach applied by \sysname{}} \\
+  \midrule
+  \midrule
+  \multicolumn{3}{l}{\bf Natively provided by the \sgx{} hardware (including the SDK):} \\
+  \midrule
+  & Isolating security-sensitive components &
+  Asking developers to identify multi-level sensitivity, by marking the {\em entry classes}. Complete separation between isolated and untrusted classes.
+  \\
+  \midrule
+  & Secure entry / exit of enclaves &
+  Exporting public methods of isolated classes. Arguments are type-checked.
+  \\
+  \midrule
+  & Integrity of the execution environment & 
+  Packaging all supporting classes into a signed JAR.
+  \\
+  \midrule
+  & Attestation \& secure provisioning & 
+  Providing class {\tt Enclave}, to create secure channels and exchange attestation.
+  \\
+  \midrule
+  \midrule
+  \multicolumn{3}{l}{\bf Improvement from combining of \java{} language and the \sgx{} hardware protection:} \\
+  \midrule
+  & Memory safety \& control flow integrity &
+  Naturally provided by \java{} language.
+  \\
+  \midrule
+  & Reducing the enclave TCB &
+  Automated partitioning based on class dependencies.
+  \\
+  \midrule
+  & Preventing information flow leakage &
+  Tracking information flow in trusted classes, only allow releasing the information if not tainted or declassified by developers.
+  \\
+  \midrule
+  & Code confidentiality & Dynamically loading provisioned classes.
+  \\
+  \end{tabular}
+  
+\footnotesize
+\caption{
+The approaches applied by \sysname{} to model the security guarantees and features of the \sgx{} hardware, and to enhance the security by combining language and hardware protections.
+}
+\label{tab:features}
+\end{table*}

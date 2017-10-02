@@ -1,0 +1,42 @@
+\section{Summary}
+
+
+
+The Linux PAL successfully leverages a limited subset of Linux \linuxapis{},
+to implement the whole PAL ABI for running a
+full-featured \libos{}.
+\Thehostabi{} separates the development of a host OS or hypervisor
+from the complexity of emulating a sufficiently-compatible
+Linux kernel.
+The chapter shows that most calls in \thehostabi{}
+can be directly translated to similar \linuxapis{} on a Linux host kernel.
+Only a few \hostapis{}, such as process creation and inter-thread synchronization, require additional attention for developing an efficient implementation strategy.
+
+
+
+The Linux PAL also enforces robust security isolation
+between mutually-untrusting applications,
+by placing applications in separate, VM-like sandboxes.
+The security isolation on a Linux host is based on \linuxapi{} restriction using a \seccomp{} filter, and a trusted reference monitor. % for checking resource access.
+Security isolation at the host interface
+restricts an untrusted application to explore vulnerable execution paths
+inside a Linux kernel.
+A \seccomp{} filter 
+enforce a fixed, minimal \linuxapi{} profile, regardless of bloated dependency of an application.
+The reference monitor follows
+simple, white-listed manifest rules listing 
+all the authorized files and network addresses of an application,
+using well-known semantics
+such as AppArmor~\cite{apparmor} or iptable-like firewall rules~\cite{iptablesman}.
+The reference monitor can further enforce dynamic, process-specific isolation by splitting a sandbox
+to run a child \picoproc{} under more restricted
+resource permissions.
+\graphene{} on a Linux host can serve as a sandbox framework
+with a reduced attack surface
+upon the host kernel.
+
+
+
+
+
+

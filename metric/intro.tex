@@ -1,0 +1,153 @@
+\section{Motivation}
+
+When implementing the system APIs and abstractions,
+system developers routinely make design choice based on
+what they believe to be the important and unimportant features of the system.
+%Systems engineers and researchers routinely make design choices based on 
+%what they believe to be the common and uncommon behaviors of a system.
+%For instance, one recent project optimized the {\tt stat} and {\tt open} system calls
+%at the expense of {\tt rename} and {\tt chmod}~\citep{tsai15dcache}.
+%In the case of a general-purpose OS, determining
+%exactly what the common case is can be challenging.
+However, a developer's view of what APIs are important
+may be skewed heavily towards that developer's preferred workloads.
+%the choice of what features matter skews heavily towards
+%workloads particular developers use.
+Similarly, developers struggle to evaluate the impact of a 
+change that affects backward-compatibility,
+primarily because of a lack of metrics.
+Deprecating an API is often a lengthy process, wherein
+users are repeatedly warned 
+and eventually some applications may still be broken.
+%For example, a range of security problems arise from the ill-specified behavior of the {\tt signal} system call~\citep{zalewski01signals,cert-signals}.
+%Despite 15 years of warnings to move to the more secure {\tt sigaction} call,
+%{\tt signal} has not been removed from 32-bit x86 Linux,
+%% (it was simply not added to x86\_64),
+%because many legacy applications use {\tt signal}.
+Eliminating or replacing needless, problematic APIs 
+can be good for security, efficiency, and maintainability of OSes,
+but in practice this is difficult for OS developers to do without tools to analyze API usage.
+
+Many experimental operating systems add a rough Unix or Linux compatibility 
+layer to increase the number of supported applications~\citep{zeldovich+histar, aviram10determinator, xax, appavoo2003providing}.
+Such systems generally support a fraction of Linux system calls,
+often just enough 
+to run a few target workloads.
+One metric for compatibility or completeness of a new feature
+is the count of supported system APIs~\citep{tsai14graphene, TxOS, baumann13bascule, bergan10dos}.
+%Unless all system APIs are used equally,
+System call counts do not accurately
+estimate the fraction of applications or users that could plausibly use the system.
+OS researchers would benefit from
+the ability to translate
+a set of supported system calls 
+to the fraction of applications that
+can be directly supported without recompilation.  Similarly, it is useful 
+to know which additional APIs would enable the largest range of additional applications to run on the system.
+%OS maintainers can use such a metric to focus efforts to deprecate or extend an existing API.
+%Finally, users may }
+In order to indicate general usefulness, a 
+good compatibility metric should factor in 
+the fraction of users whose choice of applications can be
+completely supported on a system.
+%A useful compatibility metric should further 
+%identify 
+%supported applications
+%into
+%\rev{rewrite}{An even more critical question is
+%whether developers can further deduce the fraction of Linux users %that could realistically
+%use the experimental system.}
+%As we show, this metric
+%can both over- and under-approximate the degree to which a prototype
+%can meet the needs of real users.
+
+%Simply counting supported system calls or APIs is a very rough number, and researchers need 
+%a better metric to evaluate the degree to which their prototype is applicable to real users.
+
+At the root of these problems is a lack of data sets and analysis of
+how system APIs are used in practice.
+System APIs are simply not equally important: 
+some APIs are used by popular libraries and, thus, by essentially every application.
+Other APIs may be used only by applications that are rarely installed.
+Evaluating compatibility is fundamentally a measurement problem.
+%System call counts do not capture this nuance.
+%supporting a system call that is commonly used in popular applications
+%is more valuable than
+%supporting one that is not used at all.
+%Users only care whether their software installations will be broken if they adopt a new system prototype.
+%System 
+%The gap between the count of system APIs
+%implemented by a prototype and the fraction of applications and users
+%that could adopt the prototype is
+%the primary reason that makes the former an unusable metric.  
+
+%This paper bridges the gap between 
+%data that is easy for system builders to measure and the 
+%metrics they need, contributing 
+%%existing metric and the one we actually need, with
+% a methodology and thorough study of API usage in \osarch{} \osdist{}.
+%Our study statically analyzes all executable and shared library binaries from all
+%\packagenum{} packages in the \osdist{} repository, in order
+%to identify the system API ``footprint'' of each binary.
+%%\rev{emphasize this}{including both executables and shared libraries}.
+%%Our analysis only requires application binaries.
+%%all the system calls each application can issue (the system call ``footprint'').
+%This paper combines the footprint data with data about how frequently 
+%each package is installed, which is measured from the Ubuntu and Debian ``popularity contest'' survey data~\citep{ubuntu-popularity, debian-popularity}.
+%By combining these data sources, the paper contributes metrics
+%which weigh the usage of each system API by estimated usage in real-world installations.
+
+
+%We will release the data set and analysis tools with this paper.
+
+
+%% dp: This is pretty repetitive with the text above.  I propose putting it lower in the interest of brevity
+%%% \begin{revs}{List who will care}
+%%% The following are some examples in which either OS developers or users will
+%%% benefit from the data sets and metrics described by this paper:
+%%% \begin{compactitem}
+%%% \item Maintainers who have to wait for a decade before confirming that an API is close to retirement.
+%%% \item Users who need to evaluate the thoroughness of system compatibility before adopting a new OS prototype.
+%%% \item Developers who have to assess the impact of an important design decision about system APIs.
+%%% \end{compactitem}
+%%% \end{revs}
+
+%This paper contributes a data set and analysis tool
+%that can answer several practical questions for systems researchers.
+%For instance: in a given prototype, which missing APIs would increase the range of supported applications?
+%Or, if a given system API is optimized, what widely-used applications
+%would likely benefit?  We expect that the ability to match evaluation workloads to modified or supported system APIs
+%will be particularly useful.  
+%Similarly, this data and toolset can help 
+%OS maintainers evaluate the impact of an API change on applications, and can help users
+%evaluate whether a prototype system is suitable for their needs.
+
+%We expect similar benefits for developers, such as automatically generating 
+%system call level sandboxes~\citep{seccomp}, finding and reaching out to developers of applications using a deprecated API,
+%and optimizing the in-memory layout of standard libraries, such as \libc{}.
+%For instance,  out of \syscallnum{} system calls on \osarch{} Linux,
+%20 system calls are used by no packages in Ubuntu,
+%and an additional 58 are used by applications installed on less than 1\% of surveyed systems.
+
+%\fixmedp{Maybe pontificate more about why compat. as a binary property isn't good enough}
+
+%The contributions of this work are as follows:
+%\begin{compactitem}
+%\item An approach to measuring platform compatibility, suitable for evaluating the relative completeness of prototype systems.
+%Rather than considering compatibility a binary property (``will something break?''),
+%%yet for prototypes, which are necessarily in-progress,
+%we use a fractional metric 
+%(``how many programs will not break?'')
+%which is better suited to measuring  the progress of 
+%a prototype.
+%\item A comprehensive data set of current API usage in \osversion{}.  
+%\item Analysis and a range of insights into current API usage patterns. For instance, we identify an efficient path to implementing
+%a new Linux compatibility layer, maximizing the additional applications per system call.  We also identify
+%that usage of many APIs is similarily distributed: some are widely used, and there is a sharp drop with a very long tail
+%of rarely or never-used APIs.  As an example, nearly 40\% of libc APIs are used by less than one percent of applications
+%on a typical installation. %\fixmedp{check this}
+%%, identifying new opportunities for system designers and important considerations for the evaluation of OS prototypes.
+%%% meh - this isn't that novel---the data is key
+%%\item An efficient static analysis framework can generates API usage profiles from binaries, with high precision and reasonable efficiency.  For instance, our system can analyze the entire Ubuntu repository on a 48-core machine in 2 days.\fixmedp{right?}
+%\end{compactitem}
+%

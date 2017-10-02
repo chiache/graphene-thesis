@@ -1,0 +1,21 @@
+Intel SGX~\cite{intelsgx} shows a compelling example that an unmodified application fails to run inside a beneficial, new host environment.
+SGX is a hardware support
+for facilitating an application to defend against untrusted OSes, hypervisors, and infrastructures.
+Although SGX presents particular challenges for running an unmodified application, such as protecting the application
+from malicious host \linuxapis{},
+the \graphene{} architecture significantly reduces the complexity
+of resolving both compatibility and security restrictions of the SGX platform.
+
+
+This chapter summarizes the development of a SGX framework using \graphene{}, for protecting unmodified Linux applications.
+This chapter starts with an overview of SGX-specific challenges
+for porting an application,
+followed by a comparison of approaches to shielding an application from an untrusted host~\cite{osdi16scone,shinde17panoply,baumann14haven}.
+This chapter then describes the design of \graphenesgx{},
+a SGX port of \graphene{},
+which fits an unmodified application into the paradigm of SGX-ready applications,
+and customizes an interface to an untrusted OS
+for simplifying the security checks against malicious host \linuxapis{}.
+This chapter shows
+that by checking a narrowed host interface,
+\graphene{} thoroughly protects the supported Linux abstractions inside a \thelibos{} instance.

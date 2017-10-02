@@ -1,0 +1,52 @@
+\chapter{The Host ABI}
+\label{chap:abi}
+
+\makeatletter
+\def\input@path{{abi/}}
+\makeatother
+\graphicspath{{abi/figures/}}
+
+\lstnewenvironment{paldef}{
+  \noindent\minipage{\linewidth}
+  \bigskip
+  \lstset{
+    frame=single, %
+    rulecolor=\color{gray!30}, %
+    backgroundcolor=\color{gray!30}, %
+    showspaces=false, %
+    showstringspaces=false, %
+    lineskip=2pt, % 
+    %aboveskip=0.50\baselineskip, %
+    %belowskip=0.75\baselineskip, %
+    framesep=5pt, %
+    framexleftmargin=5pt, %
+    framexrightmargin=5pt, %
+    xleftmargin=.5in,
+    xrightmargin=10pt,
+    breaklines, % 
+    breakatwhitespace, %
+    breakindent=0pt %
+  }
+}{ %
+  \medskip
+  \endminipage
+}
+
+\declarecommand{\palkeyword}[1]{\setlength{\fboxsep}{2pt}\colorbox{gray!30}{\lstinline[basicstyle=\ttfamily\small]{#1}}} 
+\declarecommand{\palcall}[1]{\palkeyword{#1()}} 
+
+\input{intro}
+\input{streams}
+\input{memory}
+\input{sched}
+\input{misc}
+%\input{loading}
+%\input{manifest}
+\input{summary}
+
+\declarecommand{\palcall}[1]{{\tt #1()}} 
+
+\makeatletter
+\def\input@path{{}}
+\makeatother
+\graphicspath{{}}

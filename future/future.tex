@@ -1,0 +1,748 @@
+\chapter{Future Directions}
+\label{chap:future}
+
+
+
+In our previous works, we explore several models of enabling
+whole or part of legacy applications
+in different system designs and platforms
+(i.e., \liboses{}, \sgx{} enclaves, optimized directory cache).
+%reusing or resurrecting the development efforts in legacy code
+%that occur in diverse scenarios.
+%The cases studied include
+%partitioned systems such as library OSes,
+%conventional components in legacy OSes such as file system directory cache in Linux,
+%and partitioning a legacy \java{} application for isolated execution.
+For future works and the fulfillment of the thesis,
+we will explore
+opportunities in generalizing the current works to more use cases,
+and mitigating the principal weaknesses.
+
+%improving the solutions in more generalized models,
+%and reducing the weaknesses we observe in these solutions.
+%that occur in diverse scenarios.
+%For instance, \graphene{} and \gsgx{} both utilize a highly compatible library OS,
+%but isolate applications with drastically different assumptions.
+%In addition, \gsgx{} and \civet{} relies on two distinct strategies to maximize the usability
+%--- \gsgx{} secures an application as it is, whereas \civet{} benefits from language techniques.
+%As future works, we will focus on improving \graphene{}, \graphenesgx{} and \civet{},
+%to build more generalized models, and minimize the weakness we have observed in these solutions.
+
+
+
+\section{Generalizing Platform Independence}
+\label{sec:future:independence}
+
+Existing \liboses{} support legacy applications
+by implementing the OS abstractions and personalities,
+%that the applications depend on,
+using the interfaces provided on the host platforms.
+The responsibility of \liboses{} % in the process
+is essentially translating the abstractions or APIs to the host interfaces and conventions.
+In addition,
+to provide \term{platform independence},
+\liboses{} rely on the definition of host ABI to be
+generic enough for the underlying platforms~\citep{porter11drawbridge, baumann13bascule, baumann14haven, tsai14graphene}
+--- assuming that porting the host ABI to new platforms
+will be reasonably easy.
+%the semantics and assumptions of the ABI are supposed to be
+%reasonably feasible for implementation
+%on most host platforms.
+The abstractions in the host ABI
+include the commonly shared features of most platforms,
+such as file systems, networks, memory mappings, etc,
+with the semantics defined as translatable as possible.
+%For instance, most platforms provide the abstractions and features
+%of a hierarchical file system,
+%with operations for opening,
+%accessing and querying the files,
+%using similar interfaces.
+%Whether the host ABI can be ported to most platforms
+%and provide host features for high-level APIs that the \liboses{} cannot internally implement,
+%is the key to generalizing the platform independence.
+The key to the platform independence is the portability of the host ABI,
+as well as its completeness to support \liboses{} for implementing all high-level system APIs.
+
+
+
+%Platform independence in library OSes are demonstrated by the complexity of legacy applications being supported,
+%on top of various host platforms.
+%The rationale behind the argument of such a proof-of-the-concept is that
+%a complex application will exercise a wide range of system features and conventions,
+%that mostly overlap with the common footprints of other applications.
+%For instance, Drawbridge~\cite{porter11drawbridge} is tested with
+%popular Windows applications such as Internet Explorer and Microsoft Powerpoint.
+%To demonstrate the platform independence of the host ABI,
+%\graphene{} is ported to many platform such as FreeBSD, Windows, OSX and \intel{} \sgx{} enclaves,
+%and most applications can be supported on all these platforms
+%transparently.
+
+The narrowness of host interfaces causes limitations for \liboses{} to implementing OS personalities.
+In existing \liboses{},
+the host ABI is mostly defined for supporting \liboses{} with single OS personality:
+%The primary reason is that the definition of host interfaces
+%is mostly biased by the specifications that developers choose to implement,
+%and the applications preferred for testing.
+For instance, in \drawbridge{}~\citep{porter11drawbridge}, the host ABI
+is defined to support a \libos{} with Windows personality.
+%, which is adopted by many other library OSes,
+%is defined for a library OS of Windows personality.
+In \graphene{}, we implement Linux personality over the \drawbridge{} host ABI,
+and observe a few necessary, but missing host abstractions,
+due to the difference between the platforms.
+A similar process is taken by another \libos{}, Bascule, that inherits the \drawbridge{} host ABI.
+For instance, Linux applications heavily rely on exception handling,
+but the relative host interface to set up handlers
+is missing in \drawbridge{}, and added in both Bascule and \graphene{} afterward.
+
+In this thesis we focus on implement Linux personality:
+\graphene{} supports \syscalls{} Linux system calls,
+selected by what we considered to be the most commonly used.
+However, according to our study of Linux system API usage in a large, representative application sample,
+for any Linux installations,
+there are only 0.4\% of the installed applications whose system API footprint
+are completely supported by \graphene{}.
+Moreover, the study suggests that completeness of \graphene{} can be largely boosted (from 0.4\% to 21\%)
+by adding two scheduling system calls,
+{\tt sched\_setscheduler} and {\tt sched\_setparam}.
+In future, we will guide the implementation of system APIs
+using the measurements derived from our study.
+
+
+\begin{table}[t]
+\footnotesize
+\centering
+\begin{tabular}{>{\bf}p{1.2in}>{\raggedright\arraybackslash}p{2.4in}>{\raggedright\arraybackslash}p{2.4in}}
+\toprule
+{\bf Host ABI Function} & {\bf Functions in the \libos{}} & {\bf Description} \\
+\midrule
+Scheduler policies & {\tt sched\_setscheduler}, {\tt sched\_setparam}, {\tt sched\_setaffinity} & Specifying scheduler policies such as priority level or CPU affinity in the manifests.\\
+\midrule
+Huge pages & {\tt MAP\_HUGETLB} flags for {\tt mmap} & Specifying virtual memory to be backed by huge pages. \\
+\midrule
+Memory sharing & {\tt shmget}, {\tt shmat}, {\tt shmdt} & Sharing memory using RPC. \\
+\midrule
+Raw sockets & {\tt socket} with {\tt SOCK\_RAW}  & Sending RAW packets (e.g., DHCP clients) \\
+\midrule
+NUMA & {\tt set\_mempolicy}, {\tt migrate\_page} & Accessing host NUMA features. \\
+\bottomrule
+\end{tabular}
+\caption[List of host ABI functions to be added in \graphene{} as future works]
+{List of host ABI functions that are missing in \graphene{} host ABI.
+We expect supporting these functions in the future,
+by either extending the host interfaces or configuration in manifest files.}
+\label{tab:future:abi}
+\end{table}
+
+
+The Linux system calls that are not implemented in \graphene{}
+% besides the one we anticipate to be supported in the near future,
+can be primarily categorized into two types.
+One type is the APIs
+to specify policies for scheduling host resources;
+and the other is to provide functionality of host hardware features.
+Examples for the former type are the scheduling system calls mentioned earlier.
+% such as {\tt sched\_setscheduler}.
+The latter type includes
+various {\tt ioctl} operations,
+and \term{NUMA-related APIs} like {\tt migrate\_pages}.
+These abstractions are impossible to implement in \liboses{}
+without extension to the host ABI.
+To complete these system calls,
+we will design \term{new host interface} to expose these host abstractions
+to applications,
+or rely on \term{manifest file}
+to specify the scheduling policy of hardware resource.
+%The advance the completeness of \graphene{},
+%we will design host ABI to by
+%either providing an platform-independent interface
+%for \picoprocs{},
+%or allowing users to specify the resource multiplexing policy in the manifests.
+Table~\ref{tab:future:abi} lists the first-order host abstractions
+that need be provided in the \graphene{} host ABI.
+
+
+\begin{table}[t]
+\footnotesize
+\centering
+\begin{tabular}{>{\bf}p{1.2in}>{\raggedright\arraybackslash}p{0.8in}>{\raggedright\arraybackslash}p{1.6in}>{\raggedright\arraybackslash}p{2.2in}}
+\toprule
+{\bf Feature} & {\bf Platform} & {\bf Limitations} & {\bf Proposed strategy} \\
+\midrule
+Memory mappings & Windows & No fine-grained deallocation or protection & Redesign ABI functions for platform independence \\
+\midrule
+Thread-local storage & Windows, OSX & FS or GS register is not available & Overwrite TLS allocation in libc, or binary translation \\
+\midrule
+Position-dependent binaries & Windows, \sgx{} & Memory addresses are occupied or restricted & Reserve virtual memory before \picoprocs{} start \\
+\midrule
+Special instructions & \sgx{} & {\tt CPUID} and {\tt RDTSC} are forbidden & Exception handling or binary translation \\
+\bottomrule
+\end{tabular}
+\caption[List of platform limitations affecting host ABI porting]
+{List of limitations on host features that affects porting the host ABI to the target platforms,
+and the coping strategies.}
+\label{tab:future:abi-limit}
+\end{table}
+
+%Besides the feasibility of implementing OS personalities,
+We also have to demonstrate the neutrality and portability of the host ABI,
+to justify that \graphene{} is independent to most host platforms.
+However, the assumptions made in our host ABI definitions
+can be violated on specific host platforms
+due to the platform limitations and characteristics.
+For instance, although not defined explicitly in the host ABI,
+a Linux \picoprocs{} requires the host platforms
+to reserve part of the address space (often near {\tt 0x4000000}), for loading position-dependent binaries.
+% that are not compiled as position independent.
+Such a requirement is a challenge to the platforms
+in which the virtual memory of a process is partially preoccupied by the host,
+or restricted to a specific range.
+We observe the phenomenon in two of the ported platforms:
+in Windows, user stacks and PCBs (process control blocks) can overlap with the demanded address;
+in \sgx{} enclaves, the range of mappable memory is
+restricted to a preset region.
+%processes are only allowed to access a limited range of virtual memory.
+Table~\ref{tab:future:abi-limit}
+lists the platform limitations that affects the implementation of host ABI,
+and the proposed strategies to remove the limitations.
+% for the reinforcement of platform independence.
+
+
+Essentially,
+justifying the platform independence of \graphene{} will
+require porting its host ABI to more diverse platforms,
+especially ones that do not rely on a monolithic kernel with abundant APIs.
+One opportunity is to port \graphene{} to a \term{\microkernel{}}
+(e.g., L4~\citep{l4family, klein09sel4}) or a \term{hypervisor} (e.g., Qemu, Xen).
+Instead of relying on host features (e.g., Seccomp filter)
+to restrict the attack surface of \picoprocs{},
+\graphene{} ported to a \microkernel{} or hypervisor will minimize both the attack surface and the shared TCB of the host.
+The functionality of \graphene{} on L4 will be similar as
+L4Linux~\citep{hartig97mu},
+but at a lower cost because \graphene{} does not port the whole Linux kernel to user space.
+On the other hande,
+a \microkernel{} or hypervisor
+may provide a reduced paravirtual APIs,
+without the full host abstractions required by the host ABI.
+A few host abstractions that may be missing
+are file access, network sockets and other single-process, multiplexed resources.
+Implementing the host ABI on these platforms will requires
+extension of the host paravirtual APIs, or reduction of the \graphene{} host ABI
+--- for example, running an in-process file system, or a NFS (networked file system) client in \picoprocs{}.
+
+
+
+%Porting \picoprocs{} to \microkernel{} will allow running legacy applications
+%in a host with restricted resource,
+%at a smaller cost than porting a whole kernel to user space
+
+%Another platform that is worth to port \graphene{} is 
+\term{Barrelfish}~\citep{baumann09barrelfish, zellweger14barrelfishdc} is a \microkernel{}-style
+research OS designed for multi-core, heterogeneous environment.
+Barrelfish runs applications with OS implementation tied to each heterogeneous core,
+to decouple OS coordination from
+architectural characteristics such as instruction sets, cache coherence, and memory hierarchies.
+Not unlike \graphene{} using a
+distributed, collaborative OS implementation,
+Barrelfish duplicates the OS functionality
+(``OS nodes'')
+with independent, unshared state on each core.
+Inter-core message-passing is used among OS nodes and applications
+to coordinate OS state and services.
+Porting \graphene{} to Barrelfish can enable the legacy support on the platform,
+and extend the host architectures for \graphene{}
+to include heterogeneous cores.
+The implementation of \graphene{} host ABI on Barrelfish
+can rely on its tool chain that partially supports the common POSIX APIs
+--- including simple file IO, network sockets,
+and user-space RPC.
+To allow \graphene{} to run in a environment with heterogeneous ISAs,
+\graphene{} will have to be ported to different architectures,
+such as x86 and ARM.
+
+
+We observe that many platforms provide \term{POSIX-compliant APIs},
+which is the closest to a platform-independent specification.
+Besides a few limitations on the \graphene{} host ABI,
+such as TLS support and loading position-dependent binaries (both discussed in Table~\ref{tab:future:abi-limit}),
+most of the \pal{} calls can be smoothly ported to POSIX.
+A POSIX port will allow \graphene{} to be easily migrated to any POSIX-compliant platforms,
+with little development effort to deal with
+the rest of host ABI.
+
+
+
+
+
+%and uses asynchronous message passing across heterogeneous cores pinned to applications.
+%The distributed POSIX implementation of \graphene{}
+%will be an advantage when porting it to Barrelfish.
+%%In addition, the OSX and Windows ports of \graphene{} are still in-progress.
+%Overall, when generalizing the host ABI implementation to more platforms,
+%we observe that a large portion of \graphene{} \pal{}
+%can be reused for another platform.
+%In particular, a wide range of platforms adopt the POSIX specifications.
+%By translating the \graphene{} host ABI to standard POSIX APIs,
+%the platform independence of \graphene{} can be guaranteed on
+%every POSIX-compliant hosts.
+
+
+
+\section{Partitioning Legacy Applications}
+\label{sec:future:partitioning}
+
+
+%Although \graphene{}, \gsgx{} and \civet{} can fundamentally reduce the TCB required for an application,
+%we observe missed opportunities in these solutions to further minimize the risk.
+%In \graphene{}, the \libos{} of untrused applications are evicted from the TCB,
+%but the host kernel must still be trusted. The system call restriction enforced by Seccomp filters is helpful, but it is hard to reason that the vulnerabilities are eliminated in the kernel.
+%For a system that requires stronger enforcement, the \graphene{} PAL can be ported to a bare-metal or a \microkernel{} such as L4~\citep{l4family}.
+%
+%In \gsgx{} and \civet{}, we observe more opportunities of reducing TCB with engineering efforts.
+%For instance, \gsgx{}, the size of \libos{} and supporting libraries
+%can be as large as tens to hundreds of megabytes.
+%The supporting classes partitioned by the \civet{} design-time tool
+%may contain more than thousands of \java{} classes.
+%All these code and data are not always necessary, and can be shredded more carefully or in finer granularity.
+
+
+In our ongoing work,
+we explore a system design called \term{\civet{}} to automatically partition legacy \java{} applications into \sgx{} enclaves.
+%to isolate a minimal, security-sensitive component
+%in \intel{} \sgx{} enclaves.
+%We have a prototype framework to show the proof-of-the-concept.
+As a proof-of-concept,
+we build a framework prototype that demonstrates the partitioning of
+three representative use cases described in \S\ref{sec:civet:cases}.
+For future works,
+the implementation can be extended to handle more scenarios.
+
+
+In particular, a primary challenge in \civet{} is
+to improve the effectiveness of the partitioning
+--- in other word, pursuing the minimality of the isolated, security-sensitive components.
+%Another aspect of partitioning is
+%the effort needed for the developers
+%to identify the boundary of partitioning.
+\civet{} uses a \emph{Shredder} that identifies the minimal supporting classes required
+for the isolated execution,
+to generate a clean, self-contained partitions
+with the smallest TCB, and less resource for loading and compiling classes in enclaves.
+%The fewer classes the Shredder partitions,
+%the smaller code size and TCB the created enclaves have.
+%Observing the effectiveness of the current Shredder,
+We evaluate the effectiveness of the current Shredder design:
+based on the dependency analysis from the entry classes identified by the developers,
+even for a minimal ``Hello World'' enclave,
+%after shredding the unused classes based on the dependency analysis from a few developer-identified interface classes,
+%effectively
+the Shredder generate a partition with
+xxx classes, xxx methods,
+and xxx lines of code in total \fixme{Collect the actual number}.
+%are still left in the partition,
+%even if the component to isolate
+%is simply a ``Hello World''.
+Compared with the overloaded TCB of the unstripped \java{} runtime classes
+(from {\tt rt.jar}),
+the shredded code effectively reduces xx\% of the enclave code.
+The remaining classes generated by the Shredder
+includes the dependency of OpenJDK \java{} VM and the \civet{} framework,
+as well as the super classes
+with overridden methods that are never used.
+%The resulting TCB includes
+%methods used by the 
+%\java{} VM class loader and the \civet{} framework;
+%overridden super-class methods;
+%and others that are part of a supporting classes
+%but never used.
+In future, we can further reduce the size of supporting classes,
+by partitioning 
+at the granularity of methods,
+to shred all unused code in the isolated classes.
+
+
+Another important aspect of partitioning is
+the effort for developers
+to identify the scope of partitioning,
+based on the understanding of the execution.
+\civet{} requires developers to provide two simple hints
+for guiding the partitioning:
+(1) the classes used as the enclave interfaces,
+and (2) dynamically-loaded classes.
+From the developers' perspective,
+however,
+the loaded classes are not necessarily exposed to the developers.
+Due to the encapsulation and run-time loading
+of \java{},
+the actual loaded classes during execution
+may be obfuscated to the application developers of \java{}.
+%identifying these classes are not necessarily straightforward,
+%as we found in our use cases.
+%For example, some applications do not have the obvious interfaces
+%to interact with the sensitive components,
+%or, in the worst case, are not well modularized (e.g., all methods are in one main class).
+%On the other hand,
+A common example is the loading of \java{} cryptography APIs:
+\java{} provides a generic interface
+to loads encryption or other cryptographic engines
+based on hard-coded or input strings that describe the algorithm options.
+\fixme{Describe details of this example.}
+%sometimes the \java{} VM loads classes based on some inputs from the users or developers,
+%such as loading cryptography APIs based on hard-coded or inputed strings
+%which describe the algorithms and options.
+%Even if developers who conduct the partitioning know the algorithms that will be used,
+%it is hard to identify the actual classes that will be loaded
+%unless the developers have knowledge about the internals of cryptography APIs.
+To precisely analyze the loading classes
+in a \java{} application,
+\civet{} can rely on a training phase for detecting dynamically-triggered class loading,
+or conducting sophisticated date-flow analysis
+to retrieve the class names from the source or the byte-code.
+
+
+An alternative approach for partitioning applications will be to determine the minimal partition ``bottom-up'',
+starting from the execution or data that needs to be protected.
+Instead of using a Shredder to remove unused classes,
+the partitioning can instead rely on a \term{Collector} that 
+starts with minimal isolated classes,
+and gradually includes more byte-code into the enclave.
+The Collector will
+incorporate the classes
+that access any protected methods or objects,
+until it ultimately determines a clean,
+minimal partition as self-contained and with the narrowest interface.
+
+Besides the effectiveness for partitioning applications,
+we also observe opportunities in reducing the TCB of infrastructure,
+including the OpenJDK \java{} VM and its libraries,
+JNI libraries,
+non-\java{} code of the \civet{} framework,
+and the underlying \libc{} and \graphene{} \libos{}.
+In current work, we reduce the unused code on a best-efforts basis.
+In future, we seek more
+systematic approach
+to fundamentally shrink the size of enclave code.
+
+%the \civet{} framework, the OpenJDK \java{} VM,
+%and the underlying \graphene{} \libos{},
+%to further reduce the TCB.
+%The unused library functions, \java{} VM features, JNI code, and system calls in \graphene{}
+%can all technically be removed with manageable efforts.
+
+
+\section{Emulating Legacy Security Models in Applications}
+\label{sec:future:security}
+
+%In \graphene{} or many others like VM or container-based solutions,
+%applications are protected with a trust model of all-or-nothing.
+%In other word, each process or component of an application can only be fully trusted or not trusted at all.
+%The key reason of such a restriction is that the applied isolation cannot reflect the complexity of privilege model in the application.
+%In reality, multiple principles can co-exist in an application.
+%For instance, a web server that serves requests from clients identified as different clearance
+%will need to maintain the correspondent confidentiality levels.
+%The web server may perform operations that are more sensitive (e.g., retrieve a secret key)
+%or more vulnerable (e.g., execute privilege-escalating scripts).
+%For components in the same process, we have seen examples, such as the heart-bleed bug~\citep{heartbleed} in OpenSSL, in which sensitive components are intruded by more functional components.
+
+In \liboses{}, security isolation is enforced on mutually untrusting applications,
+to disallow OS-level interaction,
+or sharing any OS and application state.
+Such a model is fail-safe, but inflexible.
+On the other hand, many legacy applications are already
+configured with security policies,
+based on existing security models adopted in commodity operating systems.
+For instance, in UNIX systems, applications or processes
+can be assigned with \term{credential IDs} or \term{POSIX capabilities},
+to specify the privilege of accessing abstractions or resources.
+In Linux, more sophisticated, fine-grained security models
+such as \term{AppArmor}~\citep{apparmor} and \term{SELinux}~\citep{selinux}
+can further specify the objects (i.e., \emph{``what can I access?''})
+and the actions (i.e., \emph{``how can I access it?''}) of access control.
+Specifically, SELinux can enforce a \term{multi-level security} model, or \term{DAC (Discretionary Access Control)},
+to control the propagation of information contamination.
+Both AppArmor and SELinux require configuration efforts,
+and generally, the developers are responsible for
+providing the profiles
+that reflect the appropriate policies.
+In addition,
+Linux supports isolation of various \term{namespaces},
+such as PID, mount points, and \sysvipc{} keys, 
+to allow applications to isolate a part of the OS views in selected processes.
+The isolation of namespaces is often used in the concept known as \term{containers}.
+Overall, the usage of these models consists in
+part of the existing development effort,
+and defines the least privileges each subject requires
+to fulfill its tasks, more or less.
+
+
+Security models can be critical for application:
+a security model can enforce policies that not only restraint unrelated applications,
+but also ensure the safe behaviors of cooperating components.
+In \liboses{}, applications need a model that,
+when a \picoproc{} creates or interacts with others,
+one can choose to put only partial trust in another.
+For instance,
+an Apache web server with privilege-escalating PHP scripts (e.g., suPHP)
+can isolate the scope of
+the script execution
+with restricted policies.
+When running in \graphene{},
+the \picoprocs{} will coordinate OS states such as process ID namespaces or signaling,
+but restrict access for specific OS abstractions. 
+
+
+%due to the much larger attack surface in the PHP engine.
+%However, A \picoproc{} that runs the web server
+%still needs to maintains minimal coordination with the \picoproc{} running the PHP engine,
+%such as connection through pipes,
+%or sharing the process ID namespace for signaling.
+
+
+At the center of these problems is the fact that existing \liboses{} including \graphene{}
+cannot reflect \term{non-binary},
+precisely-defined policies in applications.
+The design of \picoprocs{} disallows any management of credentials and access control inside \liboses{},
+because OS states and data structures are always
+vulnerable to in-process attackers. % inside the same \picoproc{}.
+In \graphene{}, every process is granted with the local \emph{root} permissions
+--- allowed to access any OS resources and abstractions
+in its sandbox.
+Alternatively, we present a new opportunity in \graphene{},
+to allow \emph{expelling} a \picoproc{} from its current sandbox (\S\ref{sec:graphene:security});
+however, once a \picoproc{} is detached from a sandbox,
+it is forbidden by the reference monitor to coordinate with other \picoprocs{}
+by all means.
+
+
+\begin{table}[t]
+\footnotesize
+\centering
+\begin{tabular}{>{\bf}p{1.2in}>{\raggedright\arraybackslash}p{2.4in}>{\raggedright\arraybackslash}p{2.4in}}
+\toprule
+{\bf Security Model} & {\bf In-application example} & {\bf Proposed strategy} \\
+\midrule
+UID-based & Process calls {\tt seteuid()} system call for escalating or dropping privilege & Mapping UIDs/GIDs to sandboxes \\
+\midrule
+Namespaces & Clone child process with isolated namespaces & Isolating RPC streams and IPC helper threads for different namespaces \\
+\midrule
+AppArmor & Specify white-list of allowed files and network address for an application & Translating AppArmor profiles to sandbox rules \\
+\midrule
+Multi-level security &  &  \\
+\bottomrule
+\end{tabular}
+\caption[List of security models to be added in \graphene{} as future works]
+{List of security models that are missing in \graphene{}.
+We expect emulating in-application policies based on different security models in the future, and propose possible strategies for emulation.
+\fixme{Propose strategy for MLS}}
+\label{tab:future:security}
+\end{table}
+
+%A partitioned system that sandboxes mutually untrusting applications
+%must restrict any interaction or coordination between the sandboxes.
+%Take \graphene{} for instance;
+%the related \picoprocs{} (created from the same application)
+%in a sandbox will trust each other
+%and be permitted to coordinate freely over the host RPC streams.
+%On the contrary, two unrelated \picoprocs{} from separate sandboxes will be completely detached,
+%with the \graphene{} reference monitor enforcing a strict,
+%all-or-nothing access control on RPC streams.
+%The rationale behind this design is to enforce simple but strong isolation from the host,
+%instead of relying on permission checks that are fragile and subtle
+%in a complex operating system.
+
+
+An alternative for \picoprocs{} to enforce non-binary security
+is to use the host interface
+for specifying capabilities and permissions,
+and rely on centralized entities---often the kernels----to mediate all 
+access control.
+The design is similar to the method adopted in the building blocks of \term{HiStar}~\citep{zeldovich+histar}.
+In HiStar, processes are assigned with labels, which will taint the components or resources that the processes ever interact with or access,
+based on the \term{information flow control} of the kernel.
+Applying this model to \graphene{} will require
+massive changes to the design;
+all multi-process abstractions coordinated over RPC will have to be mediated by the kernel, with inevitable extension to the host interface.
+Another limitation is the prerequisite of
+trusting the host kernel,
+which may be impractical on some platforms such as \sgx{} enclaves.
+
+%In general, to enforce security isolation between sandboxes,
+%\graphene{} must assume
+%unrelated applications will never share any resources or states,
+%unless completely mediated by the host.
+%In other word, if two mutually untrusting applications
+%will ever share a resource or state,
+%\graphene{} must place the \picoprocs{} of both applications in a sandbox
+%and allow any coordination among them.
+%No partial isolation can be enforced in \graphene{}.
+%The all-or-nothing security isolation will
+%cause violation to the \emph{least privilege principle}
+%if the involved parties
+%require more fine-grained access control.
+%In fact, partial isolation is required by many applications,
+%when one process untrusts another because of the security vulnerabilities,
+%still have to interact in a limited, controlled way.
+%For instance,
+%a web server (e.g.,Apache) may prefer to be completely detach from a PHP engine (e.g.,FastCGI-PHP),
+%due to the much larger attack surface in the PHP engine.
+%However, A \picoproc{} that runs the web server
+%still needs to maintains minimal coordination with the \picoproc{} running the PHP engine,
+%such as connection through pipes,
+%or sharing the process ID namespace for signaling.
+%In a sense, \graphene{} does provide dynamic sandboxing
+%for \picoprocs{} that have dropped privileges,
+%but the sandboxed \picoproc{} will be completely detached from the others,
+%and appear to them as being destroyed.
+
+The key to enforcing abstraction-specific policies in \liboses{}
+is the placement of abstraction states
+in \picoprocs{}.
+In \graphene{}, each \picoproc{} can receive a state replica
+from the owners of abstractions,
+while the security policies are completely ignored.
+However, based on the policies,
+a \picoproc{} shall be permitted or rejected for
+replicating the abstraction state according to whether the process is allowed to share the abstraction.
+If we ensure all abstraction states to be placed in the permitted \picoprocs{},
+\liboses{} can approve RPC messaging for coordination,
+by either permission checks
+or access control by the host.
+
+For instance,
+%A plausible model to allow partial security isolation among \picoprocs{}
+%is to enforce \term{namespace} access control.
+%The mechanism is similar to the namespace in UNIX system:
+when a process clones a child with namespace isolation
+(e.g., using {\tt CLONE\_NEWPID} flag),
+the \libos{} can set up iptables-like firewall rules---a host feature
+already provided by the reference monitor of \graphene{} (\S\ref{sec:graphene:security})---on the coordinating RPC streams
+to restrict the access of namespace state.
+The assignment of the rules on the host must happen
+prior to the process creation.
+%the kernel data structures related with the namespaces will be strictly separated.
+%In \graphene{}, similar policies can be enforced
+%by setting up firewall rules on the host RPC streams.
+%Assuming a \picoproc{} strictly uses different RPC streams to coordinate different namespaces or abstractions,
+%host policies can be assigned to allow another untrusted
+%\picoproc{} accessing specific RPC streams.
+The \libos{} will have to isolate the RPC streams and the responding IPC helper threads that manage separate namespaces.
+%A even more fail-safe approach will be to assign 
+%\term{BPF (Berkeley Packet Filter)} rules to filter RPC streams on the host,
+%by comparing the sources or specific fields of RPC messages.
+
+%firewall rules to filter the contents of RPC streams,
+%to prevent \picoprocs{} to make mistakes on separating RPC streams.
+%The \picoprocs{} can submit \term{BPF-style} (Berkeley Packet Filter) firewall rules to the reference monitors, to filter the fields in RPC messages.
+%Either approaches are platform-independent, and the former one requires no changes to the current host ABI.
+
+
+%Another model of non-binary security isolation
+%is to enforce \term{multi-level security} (MLS) among \picoprocs{},
+%so applications can be protected
+%with the ``no read up, no write down'' rule.
+%This model is similar to security isolation model of HiStar~\citep{zeldovich+histar}.
+%The \liboses{} will enforce DAC-type (Discretionary Access Control) policies,
+%by labeling \picoprocs{} based on the level of secrecy or integrity.
+%Among the \picoprocs{}, \term{information flow} can be implied to
+%determine whether a \picoproc{} is allowed to send or receive RPC messages
+%on the host streams connected with other \picoprocs{}.
+%The directional access control on host RPC streams is
+%a reasonable extension to the host ABI.
+
+
+
+
+We propose strategies for emulating different security models in \liboses{}  (discussed in table~\ref{tab:future:security}).
+\term{Credential IDs}, such as user IDs or group IDs,
+are commonly used to specify the owner of objects in operating systems,
+primarily for
+isolating users that share the same  host.
+In other use cases, however, credentials can matter even in a single application
+--- when a process uses system calls like {\tt seteuid()} and {\tt setegid()}
+to temporarily change its privileges for accessing resources.
+We can emulate credential IDs by mapping the credentials to host sandboxes.
+When a process changes its credential,
+the host can migrate the \picoproc{} from a sandbox to another,
+as long as the migration
+does not compromise either of them.
+Another common security model used in Linux, \term{AppArmor}, 
+allows developers to specify a profile for an application,
+to white-list
+all the files, network addresses, and other resources
+permitted in the application.
+In fact, the policies specified in AppArmor are conceptually similar
+to sandboxing in \graphene{}.
+We can simply emulate AppArmor model in \graphene{} by translating the AppArmor profiles into sandbox rules.
+\fixme{Rethink about MLS and SELinux}
+
+Speaking at the high level,
+emulating security models in a platform-independent way
+is fundamentally a research problem. 
+From the perspective of developers and users,
+they choose security models---among the available options of their preferred systems---based on what they see suitable for
+the applications.
+The secure platforms (e.g., \liboses{}, \microkernel{}, \sgx{} enclaves), on the other hand,
+determine the architectures and mechanisms for
+enforcing certain security principles.
+As a future direction,
+decoupling security models (\emph{``what to secure?''}) and secure platforms (\emph{``how to secure?''})
+will provide more options
+for developers and users to define their desired policies.
+
+
+
+
+%\section{Seamless Transition of Partitioned Systems}
+
+
+
+
+%\section{Future Directions}
+
+%
+%\paragraph{Security Isolation for Multi-Principle Applications.}
+
+%
+%\paragraph{Seamless Transition of Security Isolation.}
+%Each existing solution of security isolation can protect applications
+%under specific security principles and assumptions.
+%For instance, \graphene{} or other \picoproc{}-based solutions isolate mutually untrusting applications on a trusted host,
+%whereas enclaves protect more sensitive applications on an untrusted host.
+%No existing solutions can support all security principles and assumptions.
+%Moreover, many solutions provide a container-like environment in which the operating system views are completely isolated.
+%These limitations cause different solutions to be mutually exclusive,
+%and users are held responsible for making the decisions of choosing the solution
+%--- simply put, to explicitly run {\tt pal} or {\tt pal-sgx} to load applications in \graphene{} or \gsgx{}. 
+%The penalties of the security solution such as performance overhead or incompatibility
+%will make users to be reluctant
+%to choose one solution to run all related applications,
+%if given the choice.
+%
+%%Security isolation for applications mostly requires users to run applications in a container-like environment, consciously and explicitly.
+%%Simply put, a user must always launch an application in \graphene{} or \gsgx{} by executing their loaders, {\tt pal} or {\tt pal-sgx}.
+%%In practice, however, users often have insufficient knowledge of the requirement of applications
+%%to decide whether to enforce stronger security isolation.
+%%The common result of the problem is that isolation solutions becomes mutually exclusive for an operating system to choose.
+%
+%While operating systems have sufficient information to determine the security principles of an application,
+%the existing solutions of security isolation
+%are not designed to seamlessly transit into one another.
+%We can use \graphene{}, \gsgx{} and Linux as an example of transition between solutions.
+%%We observe that \graphene{} and \gsgx{} provide compatible Linux personality,
+%%so that applications can run seamlessly in these environments.
+%The Linux personality of \graphene{} and \gsgx{}
+%make it feasible to dynamically migrate applications from Linux to a \picoproc{}
+%%For instance, operating systems can determine how to isolate an application based on its origin
+%that is signed by the developers to always run in an enclave,
+%can demand a regular process to be migrated into another enclave
+%if the the process is requesting any interaction
+%--- a requirement that can be verified by the enclave, without trusting the Linux host.
+%%while a suspicious, downloaded application will run in a \picoproc{}.
+%%If a regular application interacts with the sensitive one, the latter's \libos{} can demand the former to be migrated into an enclave.
+%%In contrast, if a application becomes tainted by a suspicious application,
+%%operating system can migrate the application to a \picoproc{}.
+%Similar technique can be applied to drop the privilege of a regular application to a \picoproc{}
+%if tainted by a low-security applications already isolated in another \picoproc{}.
+%
+%
+%\paragraph{Minimizing TCB.}

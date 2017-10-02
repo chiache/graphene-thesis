@@ -1,0 +1,29 @@
+\begin{table}[t!b!]
+\centering
+\small
+\begin{tabular}{>{\palign[\footnotesize]{l}}p{.5\textwidth} >{\palign{l}}p{.45\textwidth}}
+\toprule
+\textbf{Unused System Calls} & \textbf{Reason for Disuse}\\
+\midrule
+{\footnotesize
+{\tt set\_thread\_area}, {\tt tuxcall}, {\tt create\_module}, and 7 more. } & Officially retired.\\
+\hline
+{\tt sysfs} & replaced by {\tt /proc/filesystems}.\\
+\hline
+{\tt rt\_tgsigqueueinfo}, {\tt get\_robust\_list} & Unused by applications.\\
+\hline
+{\tt remap\_file\_pages} & No non-sequential ordered mapping; repeated calls to mmap preferred.\\
+\hline
+{\tt mq\_notify} & Unused: Asynchronous message delivery.\\
+\hline
+{\tt lookup\_dcookie} & Unused: for profiling.\\
+\hline
+{\tt restart\_syscall} & Transparent to applications.\\
+\hline
+{\tt move\_pages} & Unused: for NUMA usage. \\
+\hline
+\end{tabular}%
+\caption{Unused system calls and explanation for disuse.}
+\label{tab:syspop:unused}%
+\end{table}%
+

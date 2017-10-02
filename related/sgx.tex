@@ -1,0 +1,306 @@
+\section{SGX and Isolated Execution}
+\label{sec:related:sgx}
+
+%\subsection{SGX shielding systems for legacy applications}
+%
+%
+%
+
+
+\paragraph{Protection against untrusted OSes.}
+\issue{1.2.c}{add discussion of Haven, SCONE, Panoply}
+Protecting applications from untrusted OSes predates hardware support. 
+%has been attempted for years by software approaches on commodity hardware.
+Virtual Ghost~\cite{criswell2014virtualghost} uses both compile-time and run-time monitoring to protect an application
+from a potentially-compromised OS, but requires recompilation of the guest OS and application.
+Flicker~\cite{flicker}, MUSHI~\cite{zhang2012mushi}, SeCage~\cite{liu15secage}, InkTag~\cite{inktag}, and Sego~\cite{kwon16sego-sigops} protect applications from untrusted OS using SMM mode or virtualization
+to enforce memory isolation between the OS and a trusted application.
+\citet{koeberl2014trustlite}, isolate software on low-cost embedded devices using a Memory Protection Unit.
+Li et al.~\cite{li2014minibox} built a 2-way sandbox for x86 by separating the Native Client (NaCl)~\cite{yee2009native} sandbox into modules for sandboxing and service runtime to support application execution and use Trustvisor~\cite{trustvisor} to protect the piece of application logic from the untrusted OS.
+\citet{jang2015secret} build a secure channel to authenticate the application in the Untrusted area isolated by the ARM TrustZone technology.
+\citet{songhdfi} extend each memory unit with an additional tag
+to enforce fine-grained isolation at machine word granularity in the HDFI system.
+%While these solutions focus on protecting applications from untrusted OS, Chen et  al.~\cite{chenshreds}, protects pieces of application from the rest of it by restricting access to only parts of memory from specific segments of threads.
+
+\paragraph{Trusted execution hardware.}
+XOM~\cite{lie2003implementing} is the first hardware design for trusted execution on an untrusted OS,
+with memory encryption and integrity protection similar to SGX. XOM supports containers of an application to be encrypted with a developer-chosen key. This encryption key is encrypted at design-time using a CPU-specific public key, and also used to tag cache lines that the containers are allowed to access.
+XOM realizes a similar trust model as SGX, except a few details, such as lack of paging support, and allowing \syscall{fork} by sharing the encryption key across containers.
+
+Besides SGX, other hardware features have been introduced in recent years to enforce isolation for trusted execution.
+TrustZone~\cite{trustzone} on ARM
+% is introduced to the ARM processors predating the invention of SGX.
+creates an isolated environment for trusted kernel components. 
+% to evade the attacks from privileged applications and compromised kernels.
+Different from SGX, TrustZone separates the hardware between the trusted and untrusted worlds,
+and builds a trusted path from the trusted kernel to other on-chip peripherals.
+IBM SecureBlue++~\cite{secureblue++} also isolates applications by encrypting the memory inside the CPU; SecureBlue++ is capable of nesting isolated environments, to isolate applications, guest OSes, hypervisors from each other.
+
+
+
+AMD is introducing a feature in future chips called SEV (Secure Encrypted Virtualization)~\cite{amd-sme},
+which extends nested paging with encryption.
+SEV is designed to run the whole virtual machines, whereas SGX is designed for 
+a piece of application code.
+%\fixme{added Mona's suggestion}
+SEV does not provide comparable integrity protection or the protection against replay attacks on SGX.
+%SEV integrity protection is not comparable to SGX, as SEV does not protect register state or
+%physical address mappings.
+\graphenesgx{} provides the best of both worlds: unmodified applications with confidentiality and integrity protections in hardware.
+%The TrustZone design is borrowed by AMD as Platform Security Processor (PSP) in the next-generation AMD CPUs~\cite{amd-psp}.
+%PSP can encrypt individual pages as the data leaves the CPU (i.e., Secure Memory Encryption)~\cite{amd-sme}, similar to the feature of Intel SGX, \fixme{check this with Mona} but unlike SGX does not provide attestation of integrity.
+%\fixme{Mona suggests dropping this}AMD PSP also support running the whole virtual machine inside the isolated environment (i.e., Secure Encrypted Virtualization).
+
+
+
+
+Sanctum~\cite{costan2016sanctum} is a RISC-V processor prototype 
+that features a 
+%that targets a 
+minimal and open design for enclaves.
+Sanctum also defends against some side channels, such as page fault address and cache timing, by virtualizing the page table and page fault handler inside each enclave.
+%\fixmedp{Check my edits}
+
+
+\paragraph{SGX frameworks and applications.}
+Besides shielding systems~\cite{baumann14haven,osdi16scone,shinde17panoply},
+%(discussed in \S\ref{sec:background:shielding-systems}),
+%many works leverage SGX
+SGX has been used in specific applications or to address other security issues.
+%to build either frameworks to isolate general-purpose applications,
+%or applications that deal with specific security problems.
+%place a whole application in an enclave,
+%and provide system APIs that the systems explicitly shield from malicious input resources.
+%Haven~\cite{baumann14haven} uses a library OS (Drawbridge~\cite{porter11drawbridge}) in an enclave, to provide the system features required by the applications,
+%but retains a narrow interface to interact with the untrusted host.
+%SCONE~\cite{osdi16scone} reduces the TCB of its shielding system,
+%by directly building file-system and network shielding layers on top a SGX-aware library C.
+%Panoply~\cite{shinde17panoply} provides a rich of Linux system features inside an enclave for commodity applications,
+%and secures inter-enclave interaction with strong integrity and confidentiality properties.
+%These SGX shielding systems offer a easy way of porting commodity applications to SGX, without requiring the developers to exercise the partitioning.
+%Many other works target on securing a small piece of application code in enclaves,
+%instead of shielding the whole applications.
+VC3~\cite{vc3} runs MapReduce jobs in SGX enclaves.
+%An essential caveat for VC3 is that these mappers and reducers must be written
+%in C or C++, breaking compatibility with the vast majority of Hadoop mappers and reducers,
+%which are written in Java and can run on \graphenesgx{}.
+Similarly, \citet{zookeeper}
+run cluster services in ZooKeeper in an enclave, and transparently encrypt data in transit between enclaves.
+%developed a transparent encryption 
+%layer to the Apache ZooKeeper cluster,
+%running cluster services in an enclave and transparently encrypting data in transit between enclaves.
+Ryoan~\cite{hunt16ryoan} sandboxes a piece of untrusted code in the enclave
+to process secret data while preventing the loaded code from leaking secret data.
+%Ryoan confines the execution of a potentially malicious module, with Google Native Client (NaCl)~\cite{yee2009native}, a framework to provide language-level isolation of a piece of untrusted code. 
+%\fixme{add more sgx works if we have time.}
+Opaque~\cite{zheng2017opaque} uses an SGX-protected layer on the Spark framework to generate oblivious relational operators that hide the access patterns of distributed queries.
+SGX has also been applied to securing network functionality~\cite{shih2016s},
+as well as inter-domain routing in Tor~\cite{kim2015first}.
+%and JavaScript execution in browsers~\cite{goltzsche17trustjs}.
+
+%\fixme{add more SGX works}
+%\fixmedp{Definitely worth trying to add all of the recent explosion of SGX stuff--especially stuff that uses Graphene!}
+
+
+Several improvements to SGX frameworks have been recently developed, 
+%which are complementary to \graphenesgx{}'s contributions, and could 
+which can
+be integrated with applications on \graphenesgx{}.
+Eleos~\cite{orenbach17eleos} reduces the number of enclave exits
+by asynchronously servicing system calls outside of the enclaves, and enabling user-space memory paging.
+SGXBOUND~\cite{kuvaiskii17sgxbound} is a software technique for bounds-checking with low memory overheads,
+to fit within limited EPC size.
+T-SGX~\cite{shih2017t-sgx} combines SGX with Transactional Synchronization Extensions, to invoke a user-space handler for memory transactions aborted by page fault, to mitigate controlled-channel attacks.
+SGX-Shield~\cite{seo2017sgx-shield} enables Address Space Layout Randomization (ASLR) in enclaves, with a scheme to maximize the entropy, and the ability to hide and enforce ASLR decisions.
+Glamdring~\cite{glamdring} uses data-flow analysis at compile-time, to automatically determine the partition boundary in an application.
+%We believe these improvements are complementary to the design of \graphenesgx{}.
+
+
+%\paragraph{Code partitioning.}
+%A number of projects have developed tools for partitioning applications, both with SGX enclaves in mind, and more generally.
+%Atamli et al.~\cite{atamli2015securing} explore different schemes for partitioning applications,
+%and identify different trade-offs in performance and security with different strategies.\fixmedp{This is a little cursory; can you say anything more crisp about an insight contributed here?}\fixmebj{That paper is from Springer and it needs me to pay \$30 to read it. Not available even through stonybrook proxy.}
+%Moat~\cite{moat} uses formal verification to determine whether an enclave
+%image maintains confidentiality of sensitive data,
+%and identifies potential information leaks.  \graphenesgx{}, on the other hand, applies
+%a combination of static and dynamic analysis for information flow tracking of the dynamically-loaded Java code in enclaves, and prevent leakage of confidential information at the enclave boundary .%\fixmedp{right?}
+%
+%Orthogonal to SGX, a number of systems are developed to 
+%partition Java applications into pieces that run in multiple \jvm{}s.
+%%Extensive research has already been done to automate 
+%%partitioning of JAVA applications.
+%%A Bytecode Translator for Distributed 
+%%Execution of “Legacy” Java Software
+%Addistant~\cite{addistant} and J-Orchestra~\cite{jorchestra}
+%automatically divide Java applications to run across multiple hosts or \jvm{}s.
+%Zdancewic et al.~\cite{jif-split} use programmer annotations
+%to partition a code to statically check and dynamically enforce 
+%%\fixmedp{eliminate?  please check}
+%information flow policies.
+%Swift~\cite{swift} partitions web applications such that
+%security-critical data remains on the trusted server,
+%and, secondarily, to minimize client-server communication.
+%Finally, a number of tools automatically injects remote method invocations (RMI)
+%for distributed Java execution~\cite{philippsen1997javaparty, czajkowski2002code, spiegel1999pangaea, tilevich2008nrmi, aridor1999cjvm, diaconescu2005compiler}.
+%\graphenesgx{} extends the techniques appropriate
+%for partitioning code into SGX enclaves.
+
+%% partitions legacy JAVA applications into parts which 
+%% can run on separate hosts and \jvm{}s. They rewrite the 
+%% bytecode of a JAVA application to either rename the 
+%% references of remote object to a proxy or replace the 
+%% remote object by a proxy.
+%% %J-Orchestra: Automatic Java Application Partitioning
+%% Tilevich et al improved this technique in 
+%% J-Orchestra~ to handle native code 
+%% by placing the native code together with the code 
+%% referring it. \graphenesgx{} uses same techniques as 
+%% Addistant and J-Orchestra to partition the code into 
+%% separate parts.
+%% %Secure Program Partitioning
+%% Similarly, Zdancewic et al. ~\cite{jif-split}, allows 
+%% developer to annotate the code with principal and 
+%% policy definitions as per the JFlow~\cite{myers1999jflow} 
+%% format, and partitions the code based on those 
+%% annotations for each principal and the list of hosts 
+%% that each principal trusts. \graphenesgx{} on the 
+%% other hand, partitions code based on whether the 
+%% class is a secure class or a dependency of a secure 
+%% class. 
+%% %Secure Web Applications via Automatic Partitioning
+%% Similar partitioning policy is adopted by 
+%% Chong et al. in Swift~\cite{swift} to place security 
+%% critical data and code of web applications on the 
+%% server, and to minimize the client-server 
+%% communication. While Swift performs fine-grained 
+%% partitioning to run different statements in the same 
+%% method separately on client and server, \graphenesgx{} 
+%% places whole methods of secure classes in the enclave.
+
+%A number of projects use annotations or run-time tools
+%to implement privilege separation~\cite{brumley2004privtrans} or to enforce least privilege~\cite{bittau2008wedge}
+%on memory objects.
+%Several systems also separate programs into trusted and untrusted components, and used different OS instances
+%for servicing each piece of the application~\cite{singaravelu2006reducing, ta2006splitting, khatiwala2006data}.
+%\graphenesgx{} adopts a similar approach, using developer input to identify classes containing sensitive data
+%to drive the partitioning effort, and contributes a synthesis with hardware-level protections against an untrusted system stack.
+
+% an partitioned applications to implement privilege 
+
+%Historically, applications have been partitioned to reduce the TCB.
+%% Brumley et al., allow developers to use annotations to automatically partition the program based on privilege separation.
+%% Bittau et al., provide developers with runtime tools to determine which code needs which privileges for which memory objects to help partition the application using the principle of least privilege.
+%% Singaravelu et al.~\cite{singaravelu2006reducing}, reduce the TCB of security sensitive programs by partitioning into trusted and untrusted parts, and run the trusted parts of the application on the CPU core and the untrusted parts of the application on a virtualized untrusted legacy OS.
+%% Ta-Min et al.~\cite{ta2006splitting}, partition applications based on interfaces to redirect calls from trusted part of the application to a private trusted OS and untrusted calls to an untrusted legacy OS. However, \graphenesgx{} partitions applications at the higher bytecode level and do not rely on a trusted OS.
+%% %Data Sandboxing - partition + information flow 
+%% Khatiwala et  al.~\cite{khatiwala2006data}, partition applications based on their security sensitiveness, and intercept the system calls made by the two parts of applications to enforce information flow policies to sandbox the secret data. 
+
+%% An Application written in \java{} can be deployed on distributed servers by partitioning the applications into separate parts and replacing the missing parts by Remote Method Invocation(RMI).
+%% Philippsen et al. ~\cite{philippsen1997javaparty} transparently convert multi-threaded \java{} applications into distributed applications by adding remote objects by declaration, and use techniques such as shared memory to optimize performance.
+%% Czajkowski et  al.~\cite{czajkowski2002code} compare four different techniques for code sharing across \java{} virtual machines based on performance considerations, dynamic class loading, and dependencies between shared code.
+%% Spiegel ~\cite{spiegel1999pangaea} use static analysis to optimize distribution policies for running distributed programs across loosely coupled machines.
+%% Tilevich et al.~\cite{tilevich2008nrmi}, implement an equivalent of call-by-reference in \java{} as call-by-copy-restore to provide a natural distributed programming environment compared to Remote Method Invocation.
+%% Aridor et al.~\cite{aridor1999cjvm}, virtualize a cluster to provide a single system image of the \jvm{} without any code modifications to the application.
+%% Diaconescu et al.~\cite{diaconescu2005compiler}, use dependence
+%% analysis, weighted graph partitioning, code and communication generation, and profiling
+%% to build a compiler and runtime infrastructure
+%% that enables experimentation with various program partitioning
+%% and mapping strategies.
+
+
+
+%study the effect of different schemes for partitioning applications on performance and security benefits.
+
+%OpenSGX~\cite{jain2016opensgx} is an SGX simulator, which has ben
+
+%built an OpenSGX simulator platform along with the necessary user library and program loader tools similar to ~\graphenesgx{}.
+%This OpenSGX platform has been used to secure Network Function Virtualization states~\cite{shih2016s} as well as inter-domain routing and Tor directory
+
+
+
+%VC3: Trustworthy Data Analytics in the Cloud using SGX
+%% Schuster et al., built an infrastructure named 
+%% VC3~\cite{vc3} using the Intel SDK to run secure 
+%% trusted C/C++ MapReduce jobs on HDInsight, a Windows 
+%% hadoop distribution. However, as many MapReduce jobs 
+%% are written in Java, these jobs will need to be 
+%% re-written in C/C++ to use VC3. \graphenesgx{} 
+%% supports running confidential JAVA MapReduce jobs on 
+%% Hadoop without rewriting the applications.
+%% %Running ZooKeeper Coordination Services in Untrusted Clouds
+%% Brenner et al.~\cite{zookeeper}, developed a transparent encryption 
+%% layer to the Apache ZooKeeper cluster,
+%% that encrypts all sensitive data inside ZooKeeper 
+%% on-the-fly, and executes in an enclave. Similarly, 
+%% \graphenesgx{} encrypts all secret data before it 
+%% leaves the enclave.
+
+
+
+%Moat: Verifying Confidentiality of Enclave Programs
+%% Sinha et al., developed a static verifier named 
+%% Moat~\cite{moat} that statically analyzes the 
+%% behavior of enclave binary at the instruction level 
+%% to verify whether the enclave program 
+%% maintains confidentiality of data, else shows an 
+%% exploit to demonstrate information leak to untrusted 
+%% code. If the enclave binary doesn't pass the 
+%% verification, the developer has to fix the 
+%% information leak to be able to pass through Moat 
+%% verifier. \graphenesgx{} however dynamically enforces 
+%% that there is no information leakage. Thus, even if 
+%% some enclave binary doesnt pass through Moat 
+%% verifier, the developer need not worry about fixing 
+%% the information leak; \graphenesgx{} will 
+%% automatically prevent the information leak.
+%% One of the assumptions of Moat is that the enclave 
+%% binary is statically linked. However, \graphenesgx{} 
+%% can support dynamic loading as information flow 
+%% control is enforced at runtime.
+%% %They do not include the compiler in their TCB as they analyze the behavior of enclave binary at the instruction level. 
+%% %However, \graphenesgx{} includes \jvm{} and enclave image utility in TCB as it not only prevents information 
+%% %In addition to preventing information leaks, 
+%% Moreover, \graphenesgx{} also automatically partitions 
+%% a JAVA application, and provides the interface for 
+%% the trusted and untrusted parts to communicate with 
+%% each other.
+
+
+%supports secure application with services like isolated memory, encryption and key management by instrumenting the kernel to use a hardware abstraction layer in a system called Virtual Ghost.
+
+
+
+\begin{comment}
+%JFlow: Practical Mostly-Static Information Flow Control
+Andrew Myers ~\cite{myers1999jflow} extend the \java{} language with annotations that are statically checked, and adds a new primitive type {\em label} which can be dynamically checked for cases when the label-type cannot be inferred statically.
+%Secure Information Flow and Pointer Confinement in a Java-like Language 
+Banerjee et  al.~\cite{banerjee2002secure}, enforce non-interference policy for a \java{} like language by confining pointers to a high security region.
+%Information Flow Control for Java Based on Path Conditions in Dependence Graphs
+Hammer et al., ~\cite{hammer2006information} detect information leakage in \java{} using dependence graphs and constraint solving on the path conditions instead of type-based enforcement.
+%Dynamic taint propagation for Java 
+Haldar et  al., ~\cite{haldar2005dynamic} enforce source to sink dynamic taint tracking from untrusted inputs to sensitive methods that should not use tainted data.
+%A Virtual Machine Based Information Flow Control System for Policy Enforcement 
+Niar et al.~\cite{nair2008virtual}, extend the information flow tracking to implicit flows by tracking the control flow taint dynamically at runtime. 
+%Eliminating Trust From Application Programs By Way Of Software Architecture
+Franz et al.~\cite{franz2008eliminating}, too prevent implicit information flow by tracking the program counter to build a multi-level security aware \jvm{} by adding a security label to every data item and preventing assignments that would leak secrets.
+%Fine-grained information flow analysis and enforcement in a java virtual machine 
+Chandra et al.,~\cite{chandra2007fine} decouple the information flow policy specification and enforcement by statically annotating the \java{} class files with labels, and then tracking the labels to enforce the specified policy at runtime.
+%Improving Usability of Information Flow Security in Java
+Smith et al., ~\cite{smith2007improving} posit that statically checking only a small subset of the core JAVA classes is necessary to enforce information flow control across the I/O boundary without the need to track every data structure. 
+%Improving application security with data flow assertions 
+Yip et  al.~\cite{yip2009improving}, extend the concepts of information flow to PHP to check information flow assertions before writing data to a file or network.
+
+
+%Language-based information-flow security 
+Sabelfeld et al.~\cite{sabelfeld2003language}, survey the language-based information flow security solutions and discuss challenges to support system-wide end-to-end information flow security.
+%Labels and event processes in the Asbestos operating system 
+Vandebogart et al.~\cite{vandebogart+asbestos}, enforce
+application-defined security policies from the context of the OS to provide a combination of discretionary as well as mandatory access control.
+%Information flow control for standard OS abstractions 
+Krohn et  al.~\cite{krohn+flume}, enforce system-wide decentralized information flow control by interposing a reference monitor to track information flow across OS abstractions such as pipes and file descriptors.
+%Making information flow explicit in HiStar 
+Zeldovich et al.~\cite{zeldovich+histar}, move the information flow of OS abstractions into a user-level SGX to remove the legacy OS from the TCB.
+%Laminar: Practical Fine-Grained Decentralized Information Flow Control
+Roy et al., ~\cite{roy2009laminar} combine OS and PL techniques to enforce information flow control at the data structure granularity via \jvm{} and a reference monitor enforces the same 
+information flow policy on OS resources such as files and sockets.
+\end{comment}
