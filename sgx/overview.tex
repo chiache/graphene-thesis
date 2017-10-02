@@ -399,7 +399,7 @@ and checks against the manifest.
 %which is a buffer outside the enclave storing part of the file.
 %Since Iago attacks can happen randomly and are often unpredictable, \graphenesgx{} must assume all inputs to each entry to be potentially malicious, and only accept the inputs as predicted. when reading the file content at an absolute offset, it is easy to match the input with the checksums generated from chuncks %of the files.
 %On the contrary, if the interface to shield is the Linux system call table or POSIX API, API variants like \funcname{read}, \funcname{readv}, and \funcname{aio\_read} will be more complex and unpredictable due to exporting OS states like file offsets to the untrusted OSes.
-The enclave ABI limits the possible return values to one predictable answer, and thus reduces the space that the OS can explore to find attack vectors to the enclave.
+The enclave ABI limits the possible return values of each enclave call to one predictable answer, and thus reduces the space that the untrusted OS can explore to find attack vectors to the enclave.
 %\fixmedp{This example is ok, but a little weak; have one that is more prone to iago?}
 Many system calls are partially (e.g., \syscall{brk}) or wholly (e.g., \syscall{fcntl}) absorbed into \thelibos{}, and do not need shielding from the untrusted OS.
 %\fixmedp{getpid is also a little underwhelming, anything more sophisticated that is fully in the libos?}
@@ -460,9 +460,10 @@ For instance,
 after mapping a file with \funcname{MAP\_UNTRUSTED},
 the SGX PAL copies the file contents into the enclaves, generates a secure hash,
 and matches with the manifests.
-Using the same strategy, a TLS/SSL connection can be establish either inside the application or in the PAL,
-to secure enclave calls for accessing network and RPC streams,
-such as \funcname{SOCK\_SEND}, \funcname{SOCK\_RECV}, and \funcname{SOCK\_SHUTDOWN}.
+Using the same strategy, a TLS/SSL connection can be establish either inside the application or PAL,
+to check the results of accessing network and RPC streams,
+with enclave calls like
+\funcname{SOCK\_SEND}, \funcname{SOCK\_RECV}, and \funcname{SOCK\_SHUTDOWN}.
 
 %An example of a safe call is \funcname{FILE\_MAP},
 %which maps a file outside the enclave,
@@ -479,26 +480,30 @@ which requests that any data buffered inside the host OS to be flushed out to a 
 Cryptographic integrity checks on a file or network communication can detect when this operation is ignored by untrusted software.
 Another example is \funcname{YIELD},
 an enclave call for requesting the untrusted OS to schedule CPU resources.
-\funcname{YIELD} does not affect the integrity of an application
+The result of \funcname{YIELD} does not affect the integrity of an application
 because it simply serves as a hint
-to the untrusted OS.
+to the untrusted OS scheduler.
 
 
 
 Like any SGX framework, \graphenesgx{} does not guarantee liveness of enclave code: the OS can refuse to schedule the enclave threads.
-Two interfaces are susceptible to liveness issues (labeled {\em DoS}): \funcname{FUTEX\_WAIT} and \funcname{STREAM\_POLL}.
-In the example of \funcname{FUTEX\_WAIT}, a blocking synchronization call may never return, violating liveness but not safety.
-A malicious OS could cause a futex wait to return prematurely; thus, 
+Two interfaces are susceptible to liveness issues (labeled {\em DoS}): \funcname{FUTEX\_WAIT} and \funcname{HANDLE\_POLL}.
+In the example of \funcname{HANDLE\_POLL}, a blocking synchronization call may never return, violating liveness but not safety.
+A malicious OS could cause a futex call to return prematurely or corrupt the futex value; thus, 
 synchronization code in the PAL
 must handle spurious wake-ups and either attempt to wait on the futex again, or spin in the enclave.
+For \funcname{HANDLE\_POLL}, the untrusted OS may never deliver any stream events into an enclave.
+Denial-of-the-service attacks on these enclave calls
+are less of a security threat
+than integrity attacks, due to the assumption that the untrusted OS controls all the hardware resources.
 %{\em DoS} calls can be considered a subset of {\em benign}.
 %Because the host OSes can anyway take away the CPU resource or block the network bandwidth to cause DoS attacks on enclaves, these two entries are not considered security threats to \graphenesgx{}. 
 
-Finally, only two enclave calls, namely \funcname{FILE\_STAT} and \funcname{DIR\_READ}, are {\em unsafe}, because \graphenesgx{} currently do not protect
-integrity of file metadata or directory lists.
-Checks for these two calls would require signing the file metadata or directory lists
-on a trusted host in advance.
-Other existing work like Inktag~\cite{inktag} also demonstrate the integrity checks for file metadata.
+Finally, only two enclave calls, namely \funcname{FILE\_ATTRS} and \funcname{DIR\_LIST}, are {\em unsafe}, because \graphenesgx{} currently do not protect
+integrity of file attributes or directory lists.
+Checks for these two calls would require signing the file attributes or directory lists
+on a trusted host.
+Other existing work like Inktag~\cite{inktag} also demonstrate the integrity checks for file attributes.
 \graphenesgx{} leaves the checks for these two enclave calls
 for future work.
 
@@ -632,19 +637,24 @@ Thus,
 a \graphenesgx{} manifest can specify how much heap space to reserve for the application,
 so that the enclave is sufficiently large.
 %reserves an enclave heap for each application.
-This heap space is also used to cache file contents.
-%\graphenesgx{} uses an internal memory manager to repurpose the enclave heap for either file mappings or enonymous mappings.
-%The memory-based Iago attacks by returning an enclave address to the enclave interface
-%are prevents because \graphenesgx{} will never accept any returned addresses that point to enclave memory.
-
+This heap space is also used to cache the Merkle trees of file contents.
+The SGX PAL contains a page allocator
+for servicing \palcall{VirtMemAlloc} calls inside the enclave.
+Once the SGX PAL has exhausted the reserved heap,
+no more pages can be assigned to the \libos{} or the application.
+The restriction of enclave memory
+is temporary, since SGX version 2 will add instructions for adding empty pages to enclaves in run time.
 
 \paragraph{Threading.}
 \graphenesgx{} currently uses a 1:1 threading model,
 whereas \scone{} and \panoply{} support an m:n threading model.
 The issue is that \sgx{} version 1 requires the maximum number of threads in the enclave
 to be specified at initialization time.
-We see this as a short-term problem, as SGX version 2 will support dynamic thread creation.
-We currently have users specify how many threads the application needs in the manifest.
+Since the number of threads in an enclave is restricted
+by the space allocated for thread control sections (TCSs),
+SGX version 2 will support dynamic thread creation
+alone with dynamic paging.
+The current version of \graphenesgx{} requires users to specify how the maximum amount of threads the application needs inside the manifest.
 
 This choice affect performance, as one may be able to use m:n threading and asynchronous calls at the enclave boundary
 to reduce the number of exits.
@@ -673,7 +683,11 @@ optimization will probably be most clear in I/O-bound network services that rece
 %% \fixme{SGX2 can support dynamic thread creation?}
 
 
-
+SGX virtualizes the FS and GS registers,
+which allows \graphenesgx{} to assign the in-enclave address of thread-local storage.
+\graphenesgx{} sets the values of FS and GS registers
+using the \assembly{WRFSGSBASE} instruction,
+and requires no extra enclave call to the untrusted OS.
 
 
 \paragraph{Exception handling.}
@@ -704,20 +718,30 @@ is then used by
 
 
 The untrusted OS may deliberately trigger memory faults, %in either untrusted memory or enclave memory,
-by modifying the page tables,
-or not deliver the exceptions (denial of service).
+by modifying the page tables.
+%or not deliver the exceptions (denial of service).
 %, but, for most exceptions, the application will not make progress.
-%This may be a problem for an application that uses 
-%exception behavior for correctness, such as deliberately page faulting on an address as a synchronization mechanism.
+For instance, controlled channel attacks~\cite{xu15controlledchannel}
+manipulate the page tables to trigger page faults on every branching points in an SGX application
+and observe the control flow.
+The overhead for delivering memory faults
+may also be a problem
+for an application that uses exception behavior for correctness, such as deliberately causing page faults on an address as a synchronization mechanism.
 Direct exception delivery within an enclave %, perhaps exiting only a ``double fault'' or on selected exceptions,
 is an opportunity to improve performance and security in future generations of SGX,
 as designed in Sanctum~\cite{costan2016sanctum}.
+T-SGX~\cite{shih2017t-sgx}
+also shows an example of delivering a page fault back to the enclave, if the page fault
+is triggered within a transaction created by Intel's Transaction Synchronization Extensions (TSX).
 
 
 
 By handling exceptions inside the enclave, \graphenesgx{} can emulate instructions that are not supported by SGX, including \assembly{cpuid} and \assembly{rdtsc}.
 Use of these instructions will ultimately trap to a handler inside the enclave,
 to call out to the OS for actual values, which are treated as untrusted input and are checked.
+SGX also traps any \assembly{syscall} or \assembly{int \$80} instructions inside the enclave,
+so \graphenesgx{} can restrict the \linuxapis{} in a static binary
+and redirect to \thelibos{} as an exception.
 
 
 %The extra memory faults will be passed to the user-specified exception handlers,
