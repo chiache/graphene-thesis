@@ -632,19 +632,24 @@ Thus,
 a \graphenesgx{} manifest can specify how much heap space to reserve for the application,
 so that the enclave is sufficiently large.
 %reserves an enclave heap for each application.
-This heap space is also used to cache file contents.
-%\graphenesgx{} uses an internal memory manager to repurpose the enclave heap for either file mappings or enonymous mappings.
-%The memory-based Iago attacks by returning an enclave address to the enclave interface
-%are prevents because \graphenesgx{} will never accept any returned addresses that point to enclave memory.
-
+This heap space is also used to cache the Merkle trees of file contents.
+The SGX PAL contains a page allocator
+for servicing \palcall{VirtMemAlloc} calls inside the enclave.
+Once the SGX PAL has exhausted the reserved heap,
+no more pages can be assigned to the \libos{} or the application.
+The restriction of enclave memory
+is temporary, since SGX version 2 will add instructions for adding empty pages to enclaves in run time.
 
 \paragraph{Threading.}
 \graphenesgx{} currently uses a 1:1 threading model,
 whereas \scone{} and \panoply{} support an m:n threading model.
 The issue is that \sgx{} version 1 requires the maximum number of threads in the enclave
 to be specified at initialization time.
-We see this as a short-term problem, as SGX version 2 will support dynamic thread creation.
-We currently have users specify how many threads the application needs in the manifest.
+Since the number of threads in an enclave is restricted
+by the space allocated for thread control sections (TCSs),
+SGX version 2 will support dynamic thread creation
+alone with dynamic paging.
+The current version of \graphenesgx{} requires users to specify how the maximum amount of threads the application needs inside the manifest.
 
 This choice affect performance, as one may be able to use m:n threading and asynchronous calls at the enclave boundary
 to reduce the number of exits.
