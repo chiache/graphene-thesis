@@ -47,7 +47,9 @@ Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs
 \multirow{2}{4em}{Sched\-ul\-ing}
 & YIELD          & tid & & benign & Only as hints to the host \\
 \cline{2-6}
-& FUTEX          & addr,op & & DoS & \code{addr} is outside the enclave; the host may corrupt futex value \\
+& FUTEX          & addr,op & & DoS & Calls may prematurely return
+or never return;
+the host may corrupt futex values (\code{addr} is outside the enclave) \\
 \hline
 \multirow{2}{4em}{Stream handles}
 & HANDLE\_CLOSE  & fd & & benign & Only as hints to the host \\
@@ -61,7 +63,7 @@ Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs
 & HANDLE\_FLUSH  & fd & & benign & Only as hints to the host \\
 \hline
 \multirow{2}{4em}{Untrusted memory}
-& MAP\_UNTRUST   & fd,off,size & addr & safe   & \code{addr} is outside the enclave; memory contents verified after copying into the enclave \\
+& MAP\_UNTRUST   & fd,off,size & addr & safe   & \code{addr} must be outside the enclave; memory contents verified after copying into the enclave \\
 \cline{2-6}
 & FREE\_UNTRUST  & addr,size & & safe & Freeing untrusted memory cannot corrupt the enclave \\
 \hline
