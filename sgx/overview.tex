@@ -303,21 +303,20 @@ Within the \palcallnum{} \hostapis{}
 defined in \thehostabi{},
 the SGX PAL focuses on exporting \sgxpalcallnum{} calls
 that are required by \thelibos{}.
-Other \hostapis{}
-either are optional as pure optimizations (e.g., bulk IPC),
-or do not match with the threat model of \graphenesgx{} (e.g., sandbox creation).
+The remaining \hostapis{} are
+either pure optimizations (e.g., bulk IPC), or APIs for a different threat model (e.g., sandbox creation).
 
 
 
 
 
 
-which implements \palcallnum{} functions of the host ABI that the library OS is programmed against.
-This PAL funnels to a slightly smaller set of
-%Between the enclave and untrusted code is a even simpler interface, that contains 
-\enclavecallnum{} interfaces which the enclave calls out to the untrusted OS (Table~\ref{tab:sgx:enclave-abi}).
-%, summarized in Table~\ref{tab:interface}.
-%Table~\ref{tab:interface} lists the \enclavecallnum{} entries of the enclave interface defined in \graphenesgx{}.
+%which implements \palcallnum{} functions of the host ABI that the library OS is programmed against.
+%This PAL funnels to a slightly smaller set of
+%%Between the enclave and untrusted code is a even simpler interface, that contains 
+%\enclavecallnum{} interfaces which the enclave calls out to the untrusted OS (Table~\ref{tab:sgx:enclave-abi}).
+%%, summarized in Table~\ref{tab:interface}.
+%%Table~\ref{tab:interface} lists the \enclavecallnum{} entries of the enclave interface defined in \graphenesgx{}.
 
 %% \graphenesgx{} can isolate the Linux system calls used by the application, encapsulated by the \libos{} accompaning the application in the enclave.
 %% Using a \libos{} retains most of the OS states and activities inside the enclaves, keeping the interaction with the untrusted host OSes to the minimum---only when requesting an abstraction managed by the host OSes or sharable among applications. When interacting with the host OSes, \graphenesgx{} uses an enclave interface derived from the narrowed host ABI inherited from the \graphene{} \libos{}~\cite{tsai14graphene}, which contains \palcallnum{} host functions.
@@ -363,8 +362,8 @@ The evolution of the POSIX API and Linux system call table
 were not driven by a model of mutual distrust, and retrofitting
 protection onto this interface is challenging.
 Checkoway and Shachman~\cite{checkoway13iago} demonstrate 
-the subtlety of detecting semantic attacks via the POSIX interface.
-%called Iago attacks.
+the subtlety of detecting semantic attacks via the Linux system calls,
+called Iago attacks.
 Projects such as Sego~\cite{kwon2016sego} go to significant lengths, including
 modifying the untrusted OS, to validate OS behavior on subtle and idiosyncratic
 system calls, such as \syscall{mmap} or \syscall{getpid}.
@@ -372,6 +371,10 @@ system calls, such as \syscall{mmap} or \syscall{getpid}.
 %Both SCONE~\cite{osdi16scone} and Panoply~\cite{shinde17panoply} defends applications from memory-based Iago attacks, by checking pointers returned by a Linux system call or a POSIX function to be outside the enclave.
 %However, to defend more subtle semantics, such as the stateful {\tt read()}, both shim layers have to pull more state into the enclave and simulate the behaviors of a trusted OS. To check {\tt read()}, one has to maintain a pointer to the current offset of the file descriptor, which has to be incremented at every {\tt read()} and its variants (e.g., {\tt readv()}), and affected by the arbitrary-length data that an OS can lawfully return.
 
+
+To reduce shielding complexity,
+\graphenesgx{} further defines an enclave ABI which has simpler semantics than \thehostabi{}
+and contains only \enclavecallnum{} enclave calls to reach out to the untrusted OS.
 %{\bf What is an enclave interface amenable for shielding applications?}
 %\graphenesgx{} shields each of these 28 interfaces at the enclave boundary
 %to detect malicious inputs from the host OS, i.e., Iago attacks~\cite{checkoway13iago}).
@@ -379,22 +382,26 @@ The challenge in shielding an enclave interface is carefully
 defining the expected behavior of the untrusted system,
 and either validating the responses, or reasoning that any response 
 cannot harm the application.
-By adding a layer of indirection under the library OS, we can define
+By adding a layer of indirection under the \libos{}, \graphenesgx{} can define
 an enclave ABI that has
 %One advantage of using a library OS is that one can define an enclave ABI that has
-more predictable semantics, which is, in turn, more easily checked at run-time.
+more predictable semantics, which is, in turn, more easily checked at run time.
 %In general, it is difficult to completely defend against Iago attacks on the existing system APIs
 %due to the complexity.
 %However, with a \libos{} to translate the system APIs for applications, we can redefine the enclave interface to make the inputs much more predictable and thus easier to velidate.
-For instance, to read a file, \graphenesgx{} requests that untrusted OS to map the file at an address outside the enclave, starting at an absolute offset in the file, with the exact size that the library OS needs for checking.
-After copying chunks of the file into the enclave, but before use, the contents can be hashed and checked against the manifest.
+For instance, to read a file, the enclave ABI requests that untrusted OS to map the file at an address
+outside the enclave,
+starting at an absolute offset in the file, with the exact size needed for verification.
+After copying chunks of the file into the enclave, but before use, 
+the SGX PAL hashes the contents
+and checks against the manifest.
 %To prevent Iago attacks, \graphenesgx{} can predict the input returned by this specific request,
 %which is a buffer outside the enclave storing part of the file.
 %Since Iago attacks can happen randomly and are often unpredictable, \graphenesgx{} must assume all inputs to each entry to be potentially malicious, and only accept the inputs as predicted. when reading the file content at an absolute offset, it is easy to match the input with the checksums generated from chuncks %of the files.
 %On the contrary, if the interface to shield is the Linux system call table or POSIX API, API variants like \funcname{read}, \funcname{readv}, and \funcname{aio\_read} will be more complex and unpredictable due to exporting OS states like file offsets to the untrusted OSes.
-This enclave interface limits the possible return values to one predictable answer, and thus reduces the space that the OS can explore to find attack vectors to the enclave.
+The enclave ABI limits the possible return values to one predictable answer, and thus reduces the space that the OS can explore to find attack vectors to the enclave.
 %\fixmedp{This example is ok, but a little weak; have one that is more prone to iago?}
-Many system calls are partially (e.g., {\tt brk}) or wholly (e.g., \syscall{fcntl}), absorbed into the library OS, and do not need shielding from the untrusted OS.
+Many system calls are partially (e.g., \syscall{brk}) or wholly (e.g., \syscall{fcntl}) absorbed into \thelibos{}, and do not need shielding from the untrusted OS.
 %\fixmedp{getpid is also a little underwhelming, anything more sophisticated that is fully in the libos?}
 
 %% dp: I think this is too down in the weeds, given our space constraints
@@ -408,7 +415,7 @@ so that the safety of our enclave interface does not have to rely on the correct
 \begin{table}
 \input{tables/interface}
 \caption{An overview of \enclavecallnum{} enclave calls of \graphenesgx{},
-including 18 {\em safe} calls (host behavior can be checked); 6 {\em benign} calls (no harmful effects); 2 {\em blockable} calls (may cause denial-of-service); and 2 {\em unsafe} calls (potentially attacked by the host).}
+including 18 {\em safe} calls (host behavior can be checked); 6 {\em benign} calls (no harmful effects); 2 {\em DoS} calls (may cause denial-of-service); and 2 {\em unsafe} calls (potentially attacked by the host).}
 %\fixme{Not sure if we should list all enclave interface in detail.}}
 %% dp: It would be nice to fully list, but I don't think we have space.
 %consisting of 17 functions to access host OS features when the \libos{} is insufficient to handle internally.
@@ -418,33 +425,31 @@ including 18 {\em safe} calls (host behavior can be checked); 6 {\em benign} cal
 \end{table}
 
 
-Table~\ref{tab:sgx:enclave-abi} lists our \enclavecallnum{} enclave interfaces,
-organized by risk.
+Table~\ref{tab:sgx:enclave-abi} lists the \enclavecallnum{} enclave calls of \graphenesgx{}'s enclave ABI,
+organized by the risk.
 %easily-checked semantics (safeith risk assessed by whether each of them has predictable semantic or robust defense strategy.}
 %also assesses the risk of each enclave interface,
 %based on how problematic a malicious input could be for the Library OS.
 %We evaluate the security of the enclave interface in \graphenesgx{} based on the difficulty of verifying the inputs and the worst consequence of accepting malicious inputs, as shown in 
 %More details of the security evaluation will be discussed in \S\ref{sec:eval:security}.
 %The \enclavecallnum{} entries of the \graphenesgx{} enclave interface are categorized into four groups: There are
-18 interfaces are {\em safe} because responses
+18 calls are {\em safe} because responses
 from the OS are easily checked in the enclave.
-An example of a safe interface is \funcname{FILE\_MAP},
+An example of a safe call is \funcname{FILE\_MAP},
 which maps a file outside the enclave,
 to copy it into the enclave for system calls like \funcname{mmap} or \funcname{read}, as discussed below.
 %A pre-constructed secure hash can be mapped to the copied file to validate its integrity.
-6 interfaces are {\em benign}, which means, if a host violates the specification,
-the library OS can easily compensate or reject the response.
+6 calls are {\em benign}, which means, if a host violates the specification,
+the \libos{} can easily compensate or reject the response.
 % will compensate appropriately or reject the outcomes.
 An example of a benign interface is \funcname{STREAM\_FLUSH},
 which requests that data be sent over a network or to disk;
-cryptographic integrity checks on a file or network communication can 
-detect
-when this operation is ignored by untrusted software.
+cryptographic integrity checks on a file or network communication can detect when this operation is ignored by untrusted software.
 
 
 
 Like any SGX framework, \graphenesgx{} does not guarantee liveness of enclave code: the OS can refuse to schedule the enclave threads.
-Two interfaces are susceptible to liveness issues (labeled {\em Blockable}): \funcname{FUTEX\_WAIT} and \funcname{STREAM\_POLL}.
+Two interfaces are susceptible to liveness issues (labeled {\em DoS}): \funcname{FUTEX\_WAIT} and \funcname{STREAM\_POLL}.
 In the example of \funcname{FUTEX\_WAIT}, a blocking synchronization call may never return, violating liveness but not safety.
 A malicious OS could cause a futex wait to return prematurely; thus, 
 synchronization code in the PAL
