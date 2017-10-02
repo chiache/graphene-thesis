@@ -3,33 +3,33 @@
 \bgroup
 \def\arraystretch{1.2}
 \setlength{\tabcolsep}{0.5em}
-\begin{tabular}{|>{\raggedright\arraybackslash}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{5.5em}|>{\centering}p{3em}|>{\raggedright\arraybackslash}p{10em}|}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{4em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{5em}|>{\centering}p{3em}|>{\raggedright\arraybackslash}p{13em}|}
 \hline
-Classes & \textnormal{Enclave calls} & \textnormal{Output} & \textnormal{Input} & Risk & In-enclave checks \\
+Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs} & Risk & Checks for inputs \\
 \hline
-\multirow{2}{6.5em}{Enter enclaves \& threads}
-& START\_ENCLAVE & & args,envp,\newline rpc\_fd & safe & \\
+\multirow{2}{4.5em}{Enter enclaves \& threads}
+& START\_ENCLAVE & & args,envp,\newline rpc\_fd & safe & Filtering \code{args} \& \code{envp} based on manifest; local attestation for RPC \\
 \cline{2-6}
-& START\_THREAD  & & & safe & \\
+& START\_THREAD  & & & safe & No input; all new thread start at a fixed address \\
 \hline
-\multirow{2}{6.5em}{Clone enclaves \& threads}
-& CLONE\_ENCLAVE & exec & rpc\_fd & safe & \\
+\multirow{2}{4.5em}{Clone enclaves \& threads}
+& CLONE\_ENCLAVE & exec & rpc\_fd & safe & Local attestation for RPC \\
 \cline{2-6}
-& CLONE\_THREAD  & & & safe & \\
+& CLONE\_THREAD  & & & safe & No output/input; starts a clean thread \\
 \hline
-\multirow{2}{6.5em}{File \& directory access}
-& FILE\_OPEN     & path & fd & safe & \\
+\multirow{3}{4.5em}{File \& directory access}
+& FILE\_OPEN     & path & fd & safe & file contents verified at reading \\
 \cline{2-6}
-& FILE\_TRUNC    & fd,size & & safe & \\
+& FILE\_TRUNC    & fd,size & & safe & update secure hash \\
 \cline{2-6}
 & FILE\_ATTR     & fd & attrs & unsafe & \\
 \cline{2-6}
 & DIR\_LIST      & fd & dir\_list & unsafe & \\
 \hline
-\multirow{1}{6.5em}{Exit enclave}
+\multirow{1}{4.5em}{Exits}
 & EXIT\_ENCLAVE  & & & safe & \\
 \hline
-\multirow{2}{6.5em}{Network \& RPC streams}
+\multirow{3}{4.5em}{Network \& RPC streams}
 & SOCK\_LISTEN   & addr & fd & safe & \\
 \cline{2-6}
 & SOCK\_ACCEPT   & fd & newfd & safe & \\
@@ -44,12 +44,12 @@ Classes & \textnormal{Enclave calls} & \textnormal{Output} & \textnormal{Input} 
 \cline{2-6}
 & SOCK\_SHUTDOWN & fd,access & & benign & \\
 \hline
-\multirow{1}{6.5em}{Scheduling}
+\multirow{1}{4.5em}{Scheduling}
 & YIELD          & tid & & benign & \\
 \cline{2-6}
-& FUTEX()        & & & DoS    & \\
+& FUTEX          & addr,op & & DoS    & \\
 \hline
-\multirow{1}{6.5em}{Stream handles}
+\multirow{1}{4.5em}{Stream handles}
 & HANDLE\_CLOSE  & fd & & benign & \\
 \cline{2-6}
 & HANDLE\_POLL   & event\_array & event & DoS    & \\
@@ -60,13 +60,13 @@ Classes & \textnormal{Enclave calls} & \textnormal{Output} & \textnormal{Input} 
 \cline{2-6}
 & HANDLE\_FLUSH  & fd & & benign & \\
 \hline
-\multirow{2}{6.5em}{Untrusted memory}
+\multirow{2}{4.5em}{Untrusted memory}
 & MAP\_UNTRUST   & fd,off,size & addr & safe   & \\
 \cline{2-6}
-& FREE\_UNTRUST  & addr,size & & safe   & \\
+& FREE\_UNTRUST  & addr,size & & benign   & \\
 \hline
-\multirow{1}{6.5em}{Mis\-cel\-la\-ne\-ous}
-& SYSTIME        & & timestamp & safe   & \\
+\multirow{1}{4.5em}{Mis\-cel\-la\-ne\-ous}
+& SYSTIME        & & timestamp & safe   & Ensure monotonic increase \\
 \cline{2-6}
 & SLEEP          & microsecond & remaining & benign & \\
 \hline
