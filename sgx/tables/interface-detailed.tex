@@ -1,0 +1,74 @@
+\footnotesize
+\centering
+\bgroup
+\def\arraystretch{1.2}
+\setlength{\tabcolsep}{0.5em}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{4em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{5em}|>{\centering}p{3em}|>{\raggedright\arraybackslash}p{13em}|}
+\hline
+Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs} & Risks & Checking strategies / threats \\
+\hline
+\multirow{3}{4em}{Entering enclaves \& threads}
+& START\_ENCLAVE & & args,envp,\newline rpc\_fd & safe & Filter \code{args} \& \code{envp} based on manifest; local attestation for RPC \\
+\cline{2-6}
+& START\_THREAD  & & & safe & All thread start at clean state \\
+\hline
+\multirow{3}{4em}{Cloning enclaves \& threads}
+& CLONE\_ENCLAVE & exec & rpc\_fd & safe & Local attestation for child enclave measurement and RPC \\
+\cline{2-6}
+& CLONE\_THREAD  & & & safe & Thread parameters stored in enclaves; start a clean thread \\
+\hline
+\multirow{3}{4em}{File \& directory access}
+& FILE\_OPEN     & path & fd & safe & Check if listed in the manifest \\
+\cline{2-6}
+& FILE\_TRUNC    & fd,size & & safe & Update the secure hash \\
+\cline{2-6}
+& FILE\_ATTR     & fd & attrs & unsafe & File attributes need to be signed in advance (future work)\\
+\cline{2-6}
+& DIR\_LIST      & fd & dir\_list & unsafe & Directory contents need to be signed in advance (future work) \\
+\hline
+\multirow{1}{4em}{Exits}
+& EXIT\_THREAD  & & & safe & Clean up thread state before exit \\
+\hline
+\multirow{3}{4em}{Network \& RPC streams}
+& SOCK\_LISTEN   & addr & fd & safe & \multirow{2}{13em}{Establish a TLS/SSL connection in application level or PAL} \\
+\cline{2-5}
+& SOCK\_ACCEPT   & fd & newfd & safe & \\
+\cline{2-5}
+& SOCK\_CONNECT  & addr & fd & safe & \\
+\cline{2-6}
+& SOCK\_SEND     & fd,data,size & & safe & \multirow{2}{13em}{Contents secured by TLS/SSL in application level or PAL} \\
+\cline{2-5}
+& SOCK\_RECV     & fd & data,size & safe & \\
+\cline{2-6}
+& SOCK\_SETOPT   & fd,option & & benign & Only as hints to the host \\
+\cline{2-6}
+& SOCK\_SHUTDOWN & fd,access & & safe & Send ``close notify'' over a TLS/SSL connection \\
+\hline
+\multirow{2}{4em}{Sched\-ul\-ing}
+& YIELD          & tid & & benign & Only as hints to the host \\
+\cline{2-6}
+& FUTEX          & addr,op & & DoS & \code{addr} is outside the enclave; the host may corrupt futex value \\
+\hline
+\multirow{2}{4em}{Stream handles}
+& HANDLE\_CLOSE  & fd & & benign & Only as hints to the host \\
+\cline{2-6}
+& HANDLE\_POLL   & event\_array & polled & DoS & The host may not deliver events \\
+\cline{2-6}  
+& HANDLE\_SEND   & fd,send\_fds & & safe   & \multirow{2}{13em}{Handle contents and session keys sent over secured RPC} \\
+\cline{2-5}
+& HANDLE\_RECV   & fd & recv\_fds & safe   & \\
+\cline{2-6}
+& HANDLE\_FLUSH  & fd & & benign & Only as hints to the host \\
+\hline
+\multirow{2}{4em}{Untrusted memory}
+& MAP\_UNTRUST   & fd,off,size & addr & safe   & \code{addr} is outside the enclave; memory contents verified after copying into the enclave \\
+\cline{2-6}
+& FREE\_UNTRUST  & addr,size & & safe & Freeing untrusted memory cannot corrupt the enclave \\
+\hline
+\multirow{2}{4em}{Mis\-cel\-la\-ne\-ous}
+& SYSTIME        & & timestamp & safe   & Ensure monotonic increase \\
+\cline{2-6}
+& SLEEP          & sleep\_msec & remaining & benign & remaining time $\le$ sleep time \\
+\hline
+\end{tabular}
+\egroup
