@@ -5,7 +5,7 @@
 \setlength{\tabcolsep}{0.5em}
 \begin{tabular}{|>{\raggedright\arraybackslash}p{4em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{5em}|>{\centering}p{3em}|>{\raggedright\arraybackslash}p{13em}|}
 \hline
-Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs} & Risk & Check strategies / threats \\
+Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs} & Risk & Checking strategies / threats \\
 \hline
 \multirow{3}{4em}{Enter enclaves \& threads}
 & START\_ENCLAVE & & args,envp,\newline rpc\_fd & safe & Filter \code{args} \& \code{envp} based on manifest; local attestation for RPC \\
@@ -30,19 +30,19 @@ Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs
 & EXIT\_THREAD  & & & safe & Clean up thread state before exit \\
 \hline
 \multirow{3}{4em}{Network \& RPC streams}
-& SOCK\_LISTEN   & addr & fd & safe & \multirow{2}{13em}{Establish SSL/TLS connection in application level or PAL} \\
+& SOCK\_LISTEN   & addr & fd & safe & \multirow{2}{13em}{Establish a TLS/SSL connection in application level or PAL} \\
 \cline{2-5}
 & SOCK\_ACCEPT   & fd & newfd & safe & \\
 \cline{2-5}
 & SOCK\_CONNECT  & addr & fd & safe & \\
 \cline{2-6}
-& SOCK\_SEND     & fd,data,size & & safe & \multirow{2}{13em}{Payloads secured by SSL/TLS in application level or PAL} \\
+& SOCK\_SEND     & fd,data,size & & safe & \multirow{2}{13em}{Contents secured by TLS/SSL in application level or PAL} \\
 \cline{2-5}
 & SOCK\_RECV     & fd & data,size & safe & \\
 \cline{2-6}
 & SOCK\_SETOPT   & fd,option & & benign & As hints to the host \\
 \cline{2-6}
-& SOCK\_SHUTDOWN & fd,access & & benign & May cause lingering connections on remote hosts \\
+& SOCK\_SHUTDOWN & fd,access & & benign & Send ``close notify'' over a TLS/SSL connection \\
 \hline
 \multirow{2}{4em}{Sched\-ul\-ing}
 & YIELD          & tid & & benign & As hints to the host \\
