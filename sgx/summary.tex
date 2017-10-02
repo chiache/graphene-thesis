@@ -8,11 +8,29 @@ but imposes several restrictions to running unmodified applications.
 \graphenesgx{} removes the restrictions
 by servicing Linux \linuxapis{} inside an in-enclave \libos{} instance and defining an enclave interface with explicit checks for responses from the untrusted OS.
 Compared with other thin, shielding layers~\cite{osdi16scone,shinde17panoply}, \graphenesgx{} shields a large range of Linux \linuxapis{},
-for the typical applications targeted by the cloud,
+%for the typical applications targeted by the cloud,
 without extending the host ABI that an enclave needs to check.
 
 
 
-\graphenesgx{} shows the possibility
-of protecting an unmodified application and \libos{} using three shielding approaches.
-First, 
+\graphenesgx{} shows the feasibility
+of protecting an unmodified application and \libos{} on an untrusted OS, using three shielding techniques.
+First, \graphenesgx{}
+shields the dynamic loading process
+by generating a unique cryptographic measurement that verifies all the binaries of one application.
+Second, \graphenesgx{} further defines a simple
+enclave interface
+below \thehostabi{} to shield an enclave from a series of subtle semantic attacks
+launched by the untrusted OS, known as Iago attacks~\cite{checkoway13iago}.
+For most of the enclave calls that reach out to the untrusted OS,
+\graphenesgx{} either restricts the possible responses
+from the OS to one predictable answer,
+or ensures that deliberate failures of the OS are benign to the application.
+Finally, \graphenesgx{} spans an multi-process application
+into multiple mutually-trusting, cooperative enclaves.
+To shield the inter-enclave collaboration from the untrusted OS,
+\graphenesgx{} establishes mutual trust between enclaves
+using local attestation of Intel CPUs,
+and negotiates TLS-secured RPC streams across enclaves.
+
+
