@@ -3,7 +3,7 @@
 \bgroup
 \def\arraystretch{1.2}
 \setlength{\tabcolsep}{0.5em}
-\begin{tabular}{|>{\raggedright\arraybackslash}p{4em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{5em}|>{\centering}p{3em}|>{\raggedright\arraybackslash}p{13em}|}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.8em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{6.5em}|>{\raggedright\arraybackslash\ttfamily}p{4.5em}|>{\centering}p{3em}|>{\raggedright\arraybackslash}p{14em}|}
 \hline
 Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs} & Risks & Checking strategies / threats \\
 \hline
@@ -15,9 +15,9 @@ Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs
 \multirow{3}{4em}{Cloning enclaves \& threads}
 & CLONE\_ENCLAVE & exec,manifest & rpc\_fd & safe & Local attestation for child enclave measurement and RPC \\
 \cline{2-6}
-& CLONE\_THREAD  & & & safe & Thread parameters stored in enclaves; start a clean thread \\
+& CLONE\_THREAD  & & & safe & Thread parameters stored in enclave; start a clean thread \\
 \hline
-\multirow{3}{4em}{File \& directory access}
+\multirow{3}{3.8em}{File \& directory access}
 & FILE\_OPEN     & path & fd & safe & Check if listed in the manifest \\
 \cline{2-6}
 & FILE\_TRUNC    & fd,size & & safe & Update the secure hash \\
@@ -26,17 +26,17 @@ Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs
 \cline{2-6}
 & DIR\_LIST      & fd & dir\_list & unsafe & Directory contents need to be signed in advance (future work) \\
 \hline
-\multirow{2}{4em}{Thread exits}
+\multirow{2}{3.8em}{Thread exits}
 & EXIT\_THREAD  & & & safe & Clean up state before exit; the thread can be reused, but will never return to the former state. \\
 \hline
-\multirow{3}{4em}{Network \& RPC streams}
+\multirow{3}{3.8em}{Network \& RPC streams}
 & SOCK\_LISTEN   & addr & fd & safe & \multirow{2}{13em}{Establish a TLS/SSL connection in application level or PAL} \\
 \cline{2-5}
 & SOCK\_ACCEPT   & fd & newfd & safe & \\
 \cline{2-5}
 & SOCK\_CONNECT  & addr & fd & safe & \\
 \cline{2-6}
-& SOCK\_SEND     & fd,data,size & & safe & \multirow{2}{13em}{Contents secured by TLS/SSL in application level or PAL} \\
+& SOCK\_SEND     & fd,data,size & & safe & \multirow{2}{14em}{Contents secured by TLS/SSL in application level or PAL} \\
 \cline{2-5}
 & SOCK\_RECV     & fd & data,size & safe & \\
 \cline{2-6}
@@ -44,30 +44,30 @@ Classes & \textnormal{Enclave calls} & \textnormal{Outputs} & \textnormal{Inputs
 \cline{2-6}
 & SOCK\_SHUTDOWN & fd,access & & safe & Send ``close notify'' over a TLS/SSL connection \\
 \hline
-\multirow{2}{4em}{Sched\-ul\-ing}
+\multirow{2}{3.8em}{Sched\-ul\-ing}
 & YIELD          & tid & & benign & Only as hints to the host \\
 \cline{2-6}
 & FUTEX          & addr,op & & DoS & Calls may prematurely return
 or never return;
 the host may corrupt futex values (\code{addr} is outside the enclave) \\
 \hline
-\multirow{2}{4em}{Stream handles}
+\multirow{2}{3.8em}{Stream handles}
 & HANDLE\_CLOSE  & fd & & benign & Only as hints to the host \\
 \cline{2-6}
 & HANDLE\_POLL   & event\_array & polled & DoS & The host may not deliver events \\
 \cline{2-6}  
-& HANDLE\_SEND   & fd,send\_fds & & safe   & \multirow{2}{13em}{Handle contents and session keys sent over secured RPC} \\
+& HANDLE\_SEND   & fd,send\_fds & & safe   & \multirow{2}{14em}{Handle contents and session keys sent over secured RPC} \\
 \cline{2-5}
 & HANDLE\_RECV   & fd & recv\_fds & safe   & \\
 \cline{2-6}
 & HANDLE\_FLUSH  & fd & & benign & Only as hints to the host \\
 \hline
 \multirow{2}{4em}{Untrusted memory}
-& MAP\_UNTRUST   & fd,off,size & addr & safe   & \code{addr} must be outside the enclave; memory contents verified after copying into the enclave \\
+& MAP\_UNTRUST   & fd,off,size & addr & safe   & \code{addr} must be outside the enclave; secure hashes verified before use \\
 \cline{2-6}
 & FREE\_UNTRUST  & addr,size & & safe & Freeing untrusted memory cannot corrupt the enclave \\
 \hline
-\multirow{2}{4em}{Mis\-cel\-la\-ne\-ous}
+\multirow{2}{3.8em}{Mis\-cel\-la\-ne\-ous}
 & SYSTIME        & & timestamp & safe   & Ensure monotonic increase; retrieve timestamps from remote servers if accuracy is necessary  \\
 \cline{2-6}
 & SLEEP          & sleep\_msec & remaining & benign & remaining time $\le$ sleep time \\
