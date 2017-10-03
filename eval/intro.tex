@@ -5,16 +5,19 @@ The evaluation on the Linux host also includes a study of Linux kernel vulnerabi
 The evaluation on the SGX host includes a summary of trusted computing base (TCB) that \graphenesgx{} adds to an enclave, in lines of code (LoC).
 
 All experiment results are collected on a Dell Optiplex 790 Small-Form Desktop,
-with a 4-core 3.20 GHz Intel Core i5-6500 CPU (no hyper-threading, with 6MB cache),
-8 GB RAM, and a 512GB, 7200 RPM SATA disk.
+with a 4-core 3.2GHz Intel Core i5-6500 CPU (no hyper-threading, with 256KB I-Cache/D-Cache, 1MB L2 Cache, 6MB L3 Cache),
+two 4GB DIMM DDR3 1600MHz RAMs (8GB in total), and a Seagate 512GB, 7200 RPM SATA disk formatted as EXT4.
+The Intel CPU is configured with Intel SGX and EPT (Extended Page table) enabled, and 128MB enclave page cache (EPC) size.
+To prevent fluctuated benchmarking results,
+Turbo Boost, SpeedStep, and CPU idle states are disabled for
+all experiments.
 %We disable SpeedStep and TurboBoost to prevent interference.
+All networked servers are evaluated through Intel I219-V 1Gbps Ethernet cards connected to a dedicated local network.
+
+
+
+
 The host OS is Ubuntu 16.04.4 LTS, with Linux kernel 4.10.0.
-Each machine uses a 1 Gbps Ethernet card connected to a dedicated local network.
-
-
-
-
-
 We use version 1.9 of 
 the Intel \sgx{} Linux SDK~\cite{intel-sgx-linux-sdk} and driver~\cite{intel-sgx-linux-driver}.
 
