@@ -1,0 +1,62 @@
+%\fixmedp{Error bars on mem usage graphs missing}
+
+\subsection{Memory footprint}
+\label{sec:eval:perf:memory}
+
+We begin by measuring the minimal memory footprint of a simple ``hello world'' program 
+on Linux (352 KB) and \graphene{} (1.4 MB).
+Thus, one would expect roughly 1 MB of extra memory usage for any single-\picoproc{} application.
+Because of copy-on-write sharing, however, the incremental cost of adding additional ``hello world'' children
+is only about 790 KB per process.
+%, although this will vary based on usage.
+
+%Figure~\ref{fig:graphene:memusage} lists memory overheads of 
+%a diverse set of {\em unmodified}
+%applications, including 
+%a {\tt make -j 4} of Gra\-phene's {\tt libLinux}
+%using the {\tt \gcc{}} compiler (v4.4.5), 
+%%\busy, a software which combines tiny versions of most common UNIX utilities into a single
+%%small executable;
+%the \light{} web server (v1.4.30) with 4 threads,
+%the Apache web server (v2.4.3) with 4 processes,
+%and the \busy{} shell (v4.1) executing the shell script test ({\tt multi.sh}) from the Unixbench suite (v5.1.3)~\cite{unixbench}.
+%We measure memory utilization based on the maximum kernel-reported resident set size
+%of each process or VM. For most applications, memory usage was fairly constant across inputs,
+%so we only display representative examples.
+%
+%\begin{figure}[t!]
+%\centering
+%\includeplot[0.5]{apps-memusage}
+%\centerline{\includegraphics[width=\linewidth]{figures/memusage.pdf}}
+%\caption{Memory usage of applications on Linux, \graphene{}, and KVM, in MB.  Lower s better.
+%\label{fig:graphene:memusage}}
+%\end{figure}
+
+
+We found that the memory footprints of compilation were a function of the 
+size of the source base, even on Linux; we select compile of {\tt libLinux} as a representative example.
+\graphene{} adds less than 15\% overhead in all cases.
+%every compilation we measured on \graphene{} had less than 10\% memory overhead.
+
+Unixbench on \graphene{} uses substantially more memory at a given time than native Linux---more than double.
+In these samples, however, \graphene{} also had 3--4\x{} as many processes
+running; this is because Unixbench simply spawns all of the tasks in the background, rather than
+executing them sequentially.   Because \graphene{} processes execute more slowly (attributable to a slower {\tt fork}---\S\ref{sec:eval:graphene}),
+a given sample will include more \picoprocs{}, pushing total memory usage higher.
+Thus, we expect that further tuning {\tt fork} performance will lower sampled memory usage.
+
+
+Across all workloads, \graphene{}'s memory footprint is 3--20\x{}  
+smaller than KVM.  
+For all tests, we used a minimal KVM disk image, 
+%formatted as a 30GB\fixmewkj{this can be changed to be smaller, but I don't know if disk size would impact memory} raw disk image with ext4. The root image was 
+generated using debootstrap 1.0.39ubuntu0.3 and supplemented only by packages required to obtain, compile, and run the experiments.
+In order to make memory footprint measurements as fair as possible to KVM, 
+we used both the virtio balloon driver and kernel same page merging (KSM)~\cite{ksm}.
+We also reduced the RAM allocated to the VM to the smallest size without harming performance---128MB.  We note that memory measured includes memory used by QEMU for VM device emulation, 
+adding a few dozen MB.
+%hence the total is 
+%a few dozen MB higher than the RAM allocated to the VM.
+
+If the smallest usable Linux VM consumes about 150 MB of RAM, our measurements indicate that 
+one could run anywhere from 12--188 libOSes within the same footprint.

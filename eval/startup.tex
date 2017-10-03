@@ -1,0 +1,19 @@
+\subsection{Start-up and migration time}
+\label{sec:eval:startup}
+
+%A key feature of VMs is the ability to move a running application to a new system.
+\graphene{} supports migration of an application from a \picoproc{} on one machine
+to a \picoproc{} on another machine by checkpointing the application,
+copying the checkpoint over the network, and then resuming the checkpoint.
+%We note that resuming a checkpoint executes entirely in userspace.
+Table~\ref{tab:graphene:startup} shows the time to start
+up a process, VM, or \picoproc{}; as well as the checkpoint and resume time for KVM and \graphene{}.
+Migration across machines is a function of network bandwidth,
+%% and checkpoint size, 
+so we report checkpoint size instead. % of migration time.
+%Only KVM and \graphene{} have the ability to checkpoint and resume, and are the only data points listed.
+
+
+\graphene{} shows dramatically faster initialization times than a VM. This is not surprising,
+since \graphene{} is substantially smaller than an OS kernel. 
+Similarly, checkpointing and restoring a 4 MB application on \graphene{} is 1--4 times faster than checkpointing or restoring a KVM guest.
