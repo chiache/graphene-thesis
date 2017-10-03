@@ -58,13 +58,6 @@ sigsegv        &  0.263 & .000 &  1.467 & .000 & 457.8 &    1.681 & .000 & 539.2
 TCP            &  8.354 & .001 &  9.121 & .002 &   1.8 &    9.699 & .002 &  16.1   \\\hline
 UDP            &  7.222 & .002 &  9.450 & .002 &  30.8 &    9.995 & .001 &  38.4   \\\hline
 AF\_UNIX       &  4.937 & .011 &  5.024 & .001 &   1.8 &    6.155 & .010 &  24.7   \\\hline
-\hline
-fork+exit      &  66.86 & 0.09 &   380.47 & 3.55 & 469 &   442.83 & 1.39 &   562   \\\hline
-fork+fork+exit & 148.32 & 0.55 &   778.00 & 6.87 & 424 &   915.67 & 3.35 &   517   \\\hline
-vfork+exec     & 141.53 & 0.18 &   487.67 & 5.05 & 245 &   547.30 & 5.22 &   286   \\\hline
-fork+exec      & 194.93 & 0.20 &   810.00 & 3.27 & 315 &   878.50 & 1.89 &   350   \\\hline
-fork+fork+exec & 266.89 & 0.36 & 1,200.60 & 5.20 & 349 & 1,387.75 & 6.21 &   420   \\\hline
-fork+sh        & 499.64 & 0.67 & 1,726.75 & 6.14 & 245 & 1,912.00 & 3.83 &   283   \\\hline
 %\hline
 %UDP lat.&7.26&0.0&10.35&0.1&43&11.63&0.1&60 \\\hline
 %TCP lat.&8.70&0.0&9.84&0.1&13&11.48&0.1&32 \\\hline
@@ -134,6 +127,30 @@ Cryptographic techniques are used to: (1) validate the file against the secure h
 The remaining overheads contribute to exiting the enclave for host system calls, and bringing memory into the EPC (enclave page cache) or decrypting 
 memory on a last-level cache miss. %and later the cache where the memory is decrypted by the CPU.
 
+\begin{figure*}[t!]
+\centering
+\begin{minipage}{.49\textwidth}
+\centering
+\footnotesize
+\vspace{6pt}
+\includegraphics[width=\linewidth]{sgx/open-latency}\\
+\vspace{3pt}
+{\bf (a) Opening a file}
+\vspace{6pt}
+\end{minipage}
+\begin{minipage}{.49\textwidth}
+\centering
+\footnotesize
+\vspace{6pt}
+\includegraphics[width=\linewidth]{sgx/read-latency}\\
+\vspace{3pt}
+{\bf (b) Reading a file}
+\vspace{6pt}
+\end{minipage}
+\caption{Latency of some expensive system calls in \graphenesgx{}, including opening and reading a secured (authenticated) file, and forking a new process. The results are compared with native Linux and \graphene{}.}
+\label{fig:eval:sgx-shield-syscall}
+\end{figure*}
+
 
 Figure~\ref{fig:syscall}(a)
 shows the overhead for authenticating files in \syscall{open}.
@@ -172,6 +189,51 @@ If the file is not authenticated,
 %\fixmedp{In the legend for 7b, unsecure should be insecure}
 
 
+\subsubsection{\syscall{fork} and \syscall{execve}}
+
+
+\begin{table}[t!b!]
+\footnotesize
+\centering
+\begin{tabular}{|l|rr|rrr|rrr|}
+\hline
+{\bf Test } & \multicolumn{2}{c|}{{\bf Linux}} & \multicolumn{3}{c|}{{\bf \graphene{}
+}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} \\
+&
+\usec{} & +/- & 
+\usec{} & +/- & \%O &
+\usec{} & +/- & \%O \\
+
+\hline
+fork+exit      &  66.86 & 0.09 &   380.47 & 3.55 & 469 &   442.83 & 1.39 &   562   \\\hline
+fork+fork+exit & 148.32 & 0.55 &   778.00 & 6.87 & 424 &   915.67 & 3.35 &   517   \\\hline
+vfork+exec     & 141.53 & 0.18 &   487.67 & 5.05 & 245 &   547.30 & 5.22 &   286   \\\hline
+fork+exec      & 194.93 & 0.20 &   810.00 & 3.27 & 315 &   878.50 & 1.89 &   350   \\\hline
+fork+fork+exec & 266.89 & 0.36 & 1,200.60 & 5.20 & 349 & 1,387.75 & 6.21 &   420   \\\hline
+fork+sh        & 499.64 & 0.67 & 1,726.75 & 6.14 & 245 & 1,912.00 & 3.83 &   283   \\\hline
+%\hline
+%UDP lat.&7.26&0.0&10.35&0.1&43&11.63&0.1&60 \\\hline
+%TCP lat.&8.70&0.0&9.84&0.1&13&11.48&0.1&32 \\\hline
+%\hline
+%%%  \bf{Test} & K/s & +/- & K/s & +/- & \%O & K/s & +/- & \%O \\\hline
+%%% %% \bf{Test} & \bf{K/s} & \bf{+/-} & \bf{K/s} & \bf{+/-} & \bf{\%O} & \bf{K/s} & \bf{+/-} & \bf{\%O} \\\hline
+%%% 0K creat & 174 & 0.9 & 72 & 0.1 & 143 & 77 & 0.2 & 125 \\\hline
+%%% 0K del & 232 & 1.2 & 130 & 0.5 & 79 & 117 & 0.2 & 98 \\\hline
+%%% 4K creat & 120 & 0.1  & 33 & 0.0 & 265 & 31 & 0.0 & 284 \\\hline
+%%% 4K del & 184 & 1.3  & 112 & 0.1 & 64 & 104 & 0.2 & 78 \\\hline
+%%% 10K creat & 83 & 0.1  & 28 & 0.0 & 195 & 27 & 0.0 & 204 \\\hline
+%%% 10K del & 149 & 0.3  & 94 & 0.1 & 58 & 88 & 0.2 & 69 \\\hline
+\end{tabular}
+\caption[\lmbench{} benchmarking results in Linux, KVM and \graphene{}]
+{\lmbench{} comparison among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in SGX enclaves.
+Execution time is in microseconds, and lower is better. 
+%The file system is measured in thousands operations per second, and higher is better.
+Overheads are relative to Linux; negative overheads indicate improved performance.} 
+\label{tab:graphene:lmbench}
+\end{table}
+
+
+
 Figure~\ref{fig:syscall}(c) shows the overhead of forking a process.
 As described in \ref{sec:sgx:shield-multiproc}, the latency of \syscall{fork} in \graphenesgx{} is affected by three factors:
 creation of a new enclave, local attestation of the integrity, and duplicating the process state over an encrypted RPC stream.
@@ -204,25 +266,6 @@ if copy-on-write sharing of enclave pages can be supported in future generations
 
 \begin{figure*}[t!]
 \centering
-
-\begin{minipage}{.45\textwidth}
-\centering
-\footnotesize
-\vspace{6pt}
-\includegraphics[width=\linewidth]{sgx/open-latency}\\
-\vspace{3pt}
-{\bf (a) Open a file}
-\vspace{6pt}
-\end{minipage}
-\begin{minipage}{.45\textwidth}
-\centering
-\footnotesize
-\vspace{6pt}
-\includegraphics[width=\linewidth]{sgx/read-latency}\\
-\vspace{3pt}
-{\bf (b) Read a file}
-\vspace{6pt}
-\end{minipage}
 \begin{minipage}{.45\textwidth}
 \centering
 \footnotesize
@@ -232,8 +275,7 @@ if copy-on-write sharing of enclave pages can be supported in future generations
 {\bf (c) Fork a process}
 \vspace{6pt}
 \end{minipage}
-
 \caption{Latency of some expensive system calls in \graphenesgx{}, including opening and reading a secured (authenticated) file, and forking a new process. The results are compared with native Linux and \graphene{}.}
-\label{fig:syscall}
+\label{fig:sgx-shield-fork}
 \end{figure*}
 
