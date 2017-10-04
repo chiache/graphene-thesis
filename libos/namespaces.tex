@@ -64,8 +64,7 @@ File System &
 \raggedright
 File truncate sizes \newline
 Deleted files \newline
-FIFO \& domain sockets \newline
-Symbolic links
+FIFO \& domain sockets
 & No coordination; completely relying on \thehostabi{}; creating special files in the host to represent symbolic links. \\
 \hline
 \raggedright
@@ -197,9 +196,8 @@ and determining the callback function for processing the message.
 GNU Hurd~\cite{hurd} has a similar helper thread to implement signaling among a process's parent and
 immediate children;
 \graphene{} generalizes this design to share a broader range of multi-process abstractions among any \picoprocs{}.
-IPC helpers in necessary 
-in \thelibos{} to serve remote messages and receive responses atomically,
-so one IPC helpers must be created in each \picoproc{}
+An IPC helper serves remote messages and receive responses atomically,
+and is created in each \picoproc{}
 after the application spawned its first child process.
 To avoid deadlock among application threads and the IPC helper thread, 
 an application thread may not both hold locks required by the helper thread to service an RPC request
@@ -234,11 +232,11 @@ new sandbox.
 Because message exchange over the broadcast stream does not scale well,
 we reduce the use of the broadcast stream to the minimum.
 One occasion of using the broadcast stream is
-{\bf \picoproc{} identifier allocation}.
-Because each \picoproc{} needs an unique identifier to be recognized as a source or a destination of RPC messages, \thelibos{} generates a random number as the identifier of each \picoproc{} and confirms the uniqueness of the identifier over the broadcast stream.
+{\bf \picoproc{} ID allocation}.
+Because each \picoproc{} needs an unique ID to be recognized as a source or a destination of RPC messages, \thelibos{} generates a random number as the ID of each \picoproc{} and confirms use the broadcast stream to confirm uniqueness.
 Another occasion of using the broadcast stream
 is {\bf leader recovery}, which happens when a namespace leader unexpectedly crashes
-during coordination. The implementation of leader recovery will be discussed in Section~\ref{sec:libos:namespaces:details}.
+during coordination. For the implementation of leader recovery, see Section~\ref{sec:libos:namespaces:details}.
 
 
 For each namespace (e.g., process IDs, System V IPC resource keys), \thelibos{} elects one of the \picoprocs{} in a sandbox to serves as the {\bf leader}.
@@ -285,7 +283,7 @@ If a signal is sent from one of the processes for IPC purposes (e.g., \code{SIGU
 %to track signal masks and pending signals;
 %\pal{}-provided hardware exception upcalls (e.g., for {\tt SIGSEGV});
 %and  RPCs for cross-\picoproc{} signals (e.g., for  {\tt SIGUSR1}).
-If a process simply signals itself, {\tt libLinux} interrupts the targeted threads inside the process
+If a process signals itself, {\tt libLinux} interrupts the targeted threads inside the process
 and uses internal data structures
 to call the appropriate user signal handler.
 %this section describes how this local model is extended with RPCs for remote PIDs.
@@ -377,7 +375,7 @@ reentrant behavior.
 %Signals from other processes, such as {\tt SIGUSR1}, are generally delivered upon 
 %return from a call into {\tt libLinux}; 
 If an application has a signal pending for too long,
-e.g., the application is in a CPU-intensive loop, {\tt libLinux} can use \palcall{ThreadInterrupt} in \thehostabi{} to interrupt the running thread. 
+e.g., the application is in a CPU-intensive loop, {\tt libLinux} can use \palcall{ThreadInterrupt} to interrupt the thread. 
 
 
 % Daniela Oliveira commented. old caption for coordination
@@ -474,7 +472,7 @@ to the \picoproc{} that most frequently acquires the semaphore.
 Another optimization of message queues, by making the updates asynchronous,
 does not apply to semaphores,
 because a participating \picoproc{} cannot proceed before successfully acquiring the semaphore. 
-Most of the overhead in the Apache benchmark (see Section~\ref{sec:eval:graphene}) is attributable to semaphore overheads.
+Most of the overhead in the Apache benchmark (see Section~\ref{sec:eval:perf:apps}) is attributable to semaphore overheads.
 %and, in ongoing work, we will likely optimize this by 
 %either expanding the host ABI to share synchronization primitives within a sandbox,
 %using shared memory to reduce semaphore latency.
@@ -511,7 +509,7 @@ For example, a POSIX file system can contain special files such as a FIFO (first
 a symbolic link; or a file system lock.
 Implementation of these special files cannot
 completely depend on \thehostabi{},
-since the abstractions of \thehostabi{} contains only regular files and directories.
+since \thehostabi{} only supports regular files and directories.
 
 %Coordinating these states can be cause significant slowdown on regular file system operations, so we simply export the state in regular files on the host,
 % and atomically update them by renaming.
@@ -533,8 +531,7 @@ with the caveat that the host must be able to handle sandbox disconnection grace
 Thus far \graphene{} have avoided the use of shared memory in \thelibos{},
 both to maximize flexibility in placement of \picoprocs{}, potentially on an unconventional host (e.g., Intel SGX) or different physical machines.
 and to keep all coordination requests explicit.
-Shared memory may also be useful to reduce latency for RPC messaging among \picoprocs{} when 
-all \picoprocs{} are on the same host.
+Shared memory may be useful to reduce latency for RPC messaging across \picoprocs{} on the same host.
 
 
 %in \graphene{} are implemented by a simple producer-consumer model.

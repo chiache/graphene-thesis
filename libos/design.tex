@@ -234,12 +234,12 @@ if an application finds them sufficient.
 
 
 \graphene{} modifies only \gipclines{} lines of the \glibc{} code.
-The C source code in \glibc{} uses a platform-independent macro,
+\glibc{} uses a platform-independent macro,
 %referenced a single macro called
 \funcname{INLINE\_SYSCALL},
-to invoke \linuxapis{} to the kernel.
+to invoke \linuxapis{}.
 %when it needs to invoke a \linuxapi{}.
-\funcname{INLINE\_SYSCALL} contains a piece of assembly code
+The macro \funcname{INLINE\_SYSCALL} contains assembly code
 that copies \linuxapi{} number and arguments to registers,
 and then uses \assembly{syscall} to enter a Linux kernel.
 \graphene{} modifies \funcname{INLINE\_SYSCALL}
