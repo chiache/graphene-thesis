@@ -42,7 +42,7 @@ multi-processing abstractions from an untrusted OS.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=.85\linewidth]{fork.pdf}
+\includegraphics[width=30em]{fork.pdf}
 \caption{Process creation in \graphenesgx{}.
 Numbers show the order of operations.
 When a process forks, \graphenesgx{} creates a new, clean enclave
@@ -103,7 +103,7 @@ use of Intel's authentication service (IAS).
 Once the parent and child have authenticated each other, the parent establishes a TLS connection over the RPC stream using the session key.
 The parent can then send a snapshot of itself over
 the TLS-secured RPC stream, and the snapshot is resumed in the child process, making it a clone of its parent.
-This mutual attestation and encryption strategy
+This strategy
 % between the parent and child
 prevents a man-in-the-middle attack between the parent and child.
 %To build up the trust, the two processes will open an encrypted channel
@@ -168,14 +168,14 @@ similar in spirit to the close-on-exec flag for file handles.
 %Unless the binary run in the parent enclave ensures
 %that no secrets is stored in the enclave memory at the time of snapshotting,
 %the parent enclave cannot simply drop the trust against the child.
-For example, a pre-forked Apache web server may want to keep worker
+For example, a pre-forked Apache server may keep worker
 processes isolated from the master %\fixmedp{Right nomenclature}, %that responds to HTTP requests isolated,
 to limit a potential compromise of a worker process. %avoid being compromised by one attacked worker.
 \graphenesgx{} inherits a limited API from \graphene{}, 
 for applications to 
 isolate themselves from untrusted child processes,
 %\graphenesgx{} inherits this dynamic process isolation feature.
-but developers are responsible for purging confidential information
+but applications are responsible for purging confidential information
 before isolation.
 
 \paragraph{Supporting \syscall{execve}.}

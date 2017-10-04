@@ -292,10 +292,10 @@ whitelisting the URIs that are permitted for an application.
 
 
 \begin{paldef}
-u64 StreamRead  (HANDLE stream_handle, u64 offset,
-                 u64 size, void *buffer);
-u64 StreamWrite (HANDLE stream_handle, u64 offset,
-                 u64 size, const void *buffer);
+u64 StreamRead  (HANDLE stream_handle, u64 offset, u64 size,
+                 void *buffer);
+u64 StreamWrite (HANDLE stream_handle, u64 offset, u64 size,
+                 const void *buffer);
 \end{paldef}                   
               
 \palcall{StreamRead} and \palcall{StreamWrite} synchronously
@@ -541,8 +541,7 @@ the host can optionally buffer the connection in a limited backlog; the maximal 
 \begin{paldef}
 bool StreamAttrQuerybyHandle (HANDLE stream_handle,
                               STREAM_ATTRS *attrs);
-bool StreamAttrQuery (const char *stream_uri,
-                      STREAM_ATTRS *attrs);
+bool StreamAttrQuery (const char *stream_uri, STREAM_ATTRS *attrs);
 
 \end{paldef}
 

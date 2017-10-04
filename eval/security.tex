@@ -1,0 +1,287 @@
+\section{Security study}
+
+
+
+\subsection{Trusted computing base}
+\label{sec:eval:security:tcb}
+
+
+In this section we measure the increase in TCB size of \graphenesgx{},
+%in lines of code, 
+as well as 
+%compare the TCB size increased by \graphenesgx{} to an unmodified application, in lines of code, and 
+the OS functionality shielded by the framework.
+We compare to \scone{} and \panoply{}, using
+%For SCONE and Panoply, we use 
+numbers reported in their papers. 
+%The conventional One generally assumes 
+A smaller TCB is generally easier to review or possibly verify,
+and is assumed to have fewer vulnerabilities.
+%more implies lower burden for code review or formal verification, and less risk of writing exploitable code.
+%For instance, Panoply argues that, because its use cases are typically smaller than 20kLoC, including both the application logic and Panoply itself, it is within the realm of future, automated verification~\cite{shinde17panoply}.
+
+\fixmedp{Reviewer B asks for memory footprint, which isn't a bad idea}
+
+\begin{table}
+	\footnotesize
+	\centering
+	\bgroup
+	\def\arraystretch{1.2}
+	\setlength{\tabcolsep}{0.5em}
+	\begin{tabular}{>{\raggedright\arraybackslash}p{9em}>{\raggedleft\arraybackslash\bf}p{7em}>{\raggedleft\arraybackslash}p{4.25em}>{\raggedleft\arraybackslash}p{4.25em}}
+		Components                    & \graphenesgx{}  & \scone{}     & \panoply{}  \\
+		\hline
+		libc (ld, libm, pthread)      &  1,292 &   88 & --      \\
+		& (glibc-2.19) & (musl)   &          \\
+		Library OS                    &     34 &  --      & --     \\
+		PAL / OS Shield               &     22 &   99 & 10  \\
+		\hline
+		Total                         &  1,348 &  187 & 10  \\
+		\hline
+	\end{tabular}
+	\egroup
+	\caption{TCB size (in thousands of lines of code) of \graphenesgx{}, \scone{}, and \panoply{}.}
+	\label{tab:tcb-size}
+\end{table}
+
+Table~\ref{tab:tcb-size} lists the lines of code in each components within the TCB of \graphenesgx{}, \scone{}, and \panoply{}.
+By comparing the total TCB size, \graphenesgx{} is 9$\times{}$ larger than \scone{}, and 134$\times{}$ larger than \panoply{}.
+However, the primary difference is the selection of libc: 
+for maximum compatibility, \graphene{} uses glibc.
+\scone{} uses the smaller musl libc, which lacks some features of glibc.
+%it would be easy to use the smaller, and incomplete, musl libc.
+%SCONE uses 
+% Linux applications, \graphenesgx{} chooses to use a minimally-modified glibc, whereas SCONE uses the much more lightweight musl and 
+\panoply{} excludes libc from its TCB,
+% \fixmedp{what is their rationale, again? Check this}
+to fit into the range of automated formal verification,
+as they shield at the libc interface.
+In principle, \graphene{} could easily support musl as well as glibc for applications
+that do not need the additional features of glibc.
+We also see the benefit of removing unused code from 
+libraries, especially in an unsafe language,
+similar to the approach taken in unikernels~\cite{unikernels}.
+On balance, 
+this choice of libc implementation is largely orthogonal to the issue
+of how general-purpose the shields are.
+
+%We argue that the choice of libc is orthogonal to the design of \graphenesgx{}; one can statically compile the applications against musl or glibc if TCB size is a concern, or given plenty of time, trim the libc functionality to bare minimum. 
+
+If we focus on the TCB size of the library OS and the shields, 
+\graphenesgx{} is 
+%library OS and PAL in \graphenesgx{}, with the shielding layer of SCONE, we are 
+44\% smaller than \scone{}. 
+We cannot analyze the size of \scone{} because it is closed source.
+%, although
+%we suspect
+%Although it is unclear what is in the implementation of SCONE, because it is not yet open-sourced, we believe the largest portion of their TCB contributes to the cryptography library.
+\panoply{} has a smaller TCB in its shield, but within the same order of magnitude.
+Panoply only shields 91 out of 256 supported POSIX functions; for context, POSIX 1003.1 defines 1,191 APIs~\cite{ieee-posix}.
+%out of 256 currently supported by \panoply{} \fixmedp{The better number is how many total functions in POSIX}.
+
+All three of these compatibility layers or shields are within the same
+order of magnitude in code size, and the differences are likely 
+correlated with different ranges of supported functionality.
+A recent study indicates that only order-of-magnitude differences in code
+size correlate with reported CVE vulnerabilities; within the same order-of-magnitude,
+the data is inconclusive that there is a meaningful difference in risk~\cite{security-metric}.
+Thus, increased generality does not necessarily come with 
+increased risk. % is not a clear relationship between risk 
+
+% data only correlates
+%with differences in code size when 
+
+%Besides the choice of libc, we argue that the TCB size of a library OS or a shim shielding layer is actually correlated with the functionality that it supports or shields. Because none of the three frameworks have completely shielded the whole Linux system call table or POSIX, it is unclear how much code has to be added in the future. \graphenesgx{} also shows that one can always engineer a library OS with a small TCB, if most code is not reused from a monolithic OS kernel like Windows or Linux.
+%A recent study of the CVE database also points out that having a larger TCB does not necessarily indicate more vulnerabilities, even when the difference is more than two order-of-magnitude. 
+
+
+
+\issue{1.1.d}{Add a kernel coverage study}
+Demonstrating security is always challenging, as it requires exploring all possible attacks.
+We instead offer statistics that indicate an overall reduction in attack surface,
+and qualitative validation where appropriate.
+\graphene{} runs substantial Linux applications using less than 15\% of the
+Linux system call table
+--- reducing this attack surface.
+We wrote several tests that attempt to issue illegal system calls with inline assembly;
+we validate that all system calls are redirected to {\tt libLinux},
+and that signals and other IPC cannot cross sandbox boundaries.
+%This protection adds only \~{}2,500 lines of code to the trusted computing base
+%of the system.  
+%Admittedly, Linux itself adds millions of lines to the TCB,
+%but independent results indicate the \graphene{} ABI
+%could be implemented on a substantially smaller kernel~\cite{porter11drawbridge, baumann13bascule}.
+
+
+
+
+%\graphene{}’s goal is to provide a lightweight alternative to isolate applications. Instead of leveraging a heavy-weighed VM to isolate an application or a set of collaborating processes, one can leverage \graphene{} to achieve isolation with much less memory overhead. Application isolation has many advantages from a security viewpoint: any vulnerability, malicious computations and bugs are isolated in the application sandbox. It is very hard for a malicious application to affect another, for example, obtaining/leaking sensitive information,  crashing or affecting performance. 
+
+\begin{comment}
+In our design, only trusted applications such as system utilities can run as a non-\graphene{} \picoproc{}, as they need many more functionality that the \graphene{} Linux ABI support. From a security standpoint, nothing prevents a \graphene{} \picoprocs{} from acting maliciously, as application code runs unmodified in \graphene{}.  However, it is important to note that \graphene{}’s goal is not to secure a system but to isolate applications in a competitive level compared to the VM alternative. 
+\end{comment}
+
+%Thus, the security issues discussed in this section are related to \emph{isolation}, especially in comparison to the VM environment. In fact, VM environment can suffer from malicious processes in the same guest. 
+
+%For example, a malicious process in a VM could hog system resources on purpose (e.g, continuously computing the factorial of a number to waste CPU cycles) to affect performance/availability of another VM system. 
+
+
+\subsection{Attack surfaces}
+
+
+
+This subsection tests whether \graphene{} meets its goal of providing equivalent isolation
+to a VM.
+We conducted an evaluation of the security of the isolation mechanisms in \graphene{} and analyzed whether a malicious \graphene{} \picoproc{} could 
+(i) fork a non-\graphene{} process, 
+(ii)  kill processes from another sandbox or a non \graphene{} process, 
+(iii) access files not prescribed in its Manifest, and 
+(iv) discover secrets from \picoprocs{} in other sandboxes or from non-\graphene{} process through side-channels via the {\tt /proc} file system. 
+The first three attacks use inline assembly to directly issue a system call, and are blocked by the reference monitor; the fourth creates
+an attack similar to Memento~\cite{memento} and is frustrated by the fact that {\tt /proc} is implemented within {\tt libLinux} and
+the system {\tt /proc} is inaccessible from \graphene{}.
+
+\begin{comment}
+Consider the configuration illustrated in Figure \ref{fig:coordination} and assume that \picoproc{} 1 is malicious . In our first experiment, \picoproc{} 1 unsuccessfully attempts to fork a non-\graphene{} process by invoking the {\tt fork()} function and also invoking the {\tt fork} system call directly. Since \graphene{} hooks system calls at the kernel level, it does not matter how the fork occurs since the kernel checks whether it is a \graphene{} \picoproc{} that is calling {\tt fork} and creates a new \graphene{} process if it is. 
+
+In our second experiment \picoproc{} 1 attempts to kill \picoproc{} 3 in a separate sandbox. Picoprocess 1 is blocked from calling the kill command on any process that is not explicitly contained in its sandbox since the PID is checked against the sandbox's PID list. 
+
+%Each \graphene{} application includes a manifest, which specifies restrictions, including such as network firewall rules and subsets of the file system it is allowed to access. 
+
+In a third experiment \picoproc{} 1 tries to access files that do not belong in its Manifest. Picoprocess 1 attempts to circumvent the Manifest rules through the function {\tt open}, {\tt fopen}, and also by calling the open system call directly. When the open system call is called, it’s filename parameter is checked against a list of acceptable directories and rejected if it does not match anything in this list. This blocks the \picoproc{} 1 from accessing illegal files.
+
+In our last experiment, \picoproc{} 1 attempts to obtain secrets from \picoproc{} 3, in an attack similar to Memento \cite{memento}. \graphene{} processes are restricted from using the proc file system in order gain information about system processes.  In our experiment, \picoproc{} 1's manifest file was setup to deny access to this directory and, as a result, it was unable access system or other processes' information outside its sandbox.
+\end{comment}
+
+%This attack involves correlating a web browser’s data resident size (inspected via the {\tt proc} file system) to the web sites visited by a user. 
+%Since the proc file system is accessed as though it was part of the normal file system, any access to it has to go through the system  open command.
+\paragraph{Analysis of Linux vulnerabilities.}
+\graphene{} restricts \picoprocs{} to 15\% of the system call table.
+To evaluate the impact on system security,
+we \emph{manually} analyzed
+all reported Linux vulnerabilities from 2011--2013 (a total
+of 291 vulnerabilities)~\cite{linuxvuln}.
+We categorized these exploits by kernel component, listed in Table~\ref{table:vulnerabilities}.
+Roughly half of these vulnerabilities required a system
+call  which \graphene{} blocks in order to exploit the system.
+\graphene{} would only allow 5 of the relevant vulnerabilities
+through its system call filtering and reference monitor.
+The remaining half of the vulnerabilities were entirely within the kernel or modules,
+    such as bugs in the virtual memory subsystem.
+
+\begin{table}[t!b!]
+\footnotesize
+\centering
+\begin{tabular}{|l|r|rr|}
+\hline
+{\bf Category } & {\bf Total} & \multicolumn{2}{|c|}{{\bf Prevented by \graphene{}}}\\
+
+%&& \multicolumn{2}{|c|}{{\bf by \graphene{}}}\\
+\hline
+System call      & 118        &   \hspace{0.2in} 113 &96\% \\\hline 
+Network          & 73         &   \hspace{0.2in}30 & 41\% \\\hline 
+File system      & 33         &  \hspace{0.2in} 2  & 6\% \\\hline 
+Drivers          & 37         &   \hspace{0.2in} 0 &\\\hline 
+VM subsystem     & 15         &   \hspace{0.2in} 0 &\\\hline 
+Application vulnerabilities & 2   & \hspace{0.2in} 2 & 100\% \\\hline 
+Kernel other     & 13      & \hspace{0.2in} 0 &\\\hline 
+Total            & 291     & \hspace{0.2in} 147 & 51\% \\\hline 
+%\hline
+\end{tabular}
+\caption[Analysis of Linux vulnerabilities prevented by \graphene{}]
+{Manual analysis of Linux vulnerabilities from 2011-2013 and \graphene{}'s prevention.}
+\label{table:vulnerabilities}
+\end{table}
+
+
+%One particularly interesting observation was that nearly 10\% of vulnerabilities
+%were in uncommonly-used network protocols, and 
+
+%%% For each
+%%% vulnerability we analyzed whether or not \graphene{} restrictions,
+%%% especially related to system calls, would have prevented the
+%%% vulnerability. Table \ref{table:vulnerabilities} shows the results of
+%%% our analysis.
+
+%System
+%call interface, Network subsystem , File System, Drivers, VM support
+%subsystem, vulnerable applications and general kernel issues.
+%%% Even though \graphene{}'s main goal is to provide a light-weight
+%%% alternative for isolating a process or a group of cooperating
+%%% processes, we wanted to discover how this paradigm affect the overall
+%%% security of a system. To accomplish that we 
+
+
+ 
+\begin{comment}
+As Table \ref{table:vulnerabilities} illustrates almost all Linux
+system call-related vulnerabilities are prevented through the \graphene{}
+paradigm. These vulnerabilities are related to system calls or flags
+that are blocked or restricted in \graphene{}, such as I/O control, event
+polling and notification, huge pages, socket options, task stats,
+\emph{etc.}  \graphene{} also restricts rarely used network protocols
+such as VSOCK, TIPC and ROSE, and this prevents 41\% of network
+vulnerabilities in \graphene{} systems. The Manifest file used to
+restrict portions of the file system also prevented 2 FS-related
+vulnerabilities. We also considered vulnerabilities in Linux
+applications as preventable by \graphene{}, as all the effects are
+confined in the correspondent \picoproc{} or sandbox. 
+\end{comment}
+
+
+
+Despite the fact that our primary security goal is isolation, 
+these results indicate that moving the system call table into 
+the application has the potential to substantially reduce exploitable 
+system vulnerabilities.
+
+\paragraph{New opportunities.}
+To explore new use cases of the \graphene{} sandboxing model, we modified the 
+Apache {\tt mod\_\-auth\_\-basic.so} module to call the new library OS function
+{\tt sandbox\_create} after user authentication.
+The work\-er process that services the user request executes in a separate sandbox 
+with file system access restricted to only data required for that user.
+Similarly, this worker's libosannot coordinate shared OS abstractions with other worker processes,
+limiting the risk to other users if this process is exploited.
+We see interesting opportunities to expand this model in future work.
+\fixme{Describe in details.}
+
+%The module detaches a child process that serves the request, put it in a more
+%restrictive sandbox with limited access to the filesystem, without downgrading functionality.
+%Although a sandboxed
+%process cannot be reused for further requests, it quarantines the authenticated
+%website users in a jail. The quarantined users are still abled to download the contents which they are allowed to.
+
+
+%%% Our results show
+%%% that \graphene{} paradigm prevents 50\% of all Linux security
+%%% vulnerabilities reported for the last 3 years, even though the
+%%% immediate goal of the paradigm is isolation.
+
+
+
+%As an example of our analysis process, consider the description of Linux vulnerability with CVE-2013-1828: \emph{The {\tt sctp\_getsockopt\_assoc\_stats} function in net/sctp/socket.c in the Linux kernel before 3.8.4 does not validate a size value before proceeding to a {\tt copy\_from\_user} operation, which allows local users to gain privileges via a crafted application that contains an SCTP\_GET\_ASSOC\_STATS {\tt getsockopt} system call}. As the {\tt getsockopt} system call is not provided in the PAL and gets blocked even if the application invoked it directly through inline assembly, this vulnerability will not occur in \graphene{} applications.
+
+%processes sharing I/O context, perf events, key control and related functions, ptrace, capabilities, module loading/unloading, tun tap, partitions, TPM encruption, sigqueueand and Hyper V.
+%, NFC, NETROM, LLC, L2TP, IUCV, IRDA, CAIF, BLUETOOTH
+
+
+%\fixmedp{Please list the version of each, and write a sentence for each one
+%describing how it was .}
+% released under GPL.
+
+%% don issues:
+%% Why fork+sh fast in graphene?
+%% Why stat slow in graphene
+%% why unix sockets fast in kvm
+%% why file system so fast?
+
+
+
+
+
+%% This experiment show how \graphene{} isolate child processes by
+%% shutdown namespace coordination channel. We enforce an easy
+%% isolation rule (defined by manifest) that isolate process
+%% after their parent explicitly exits. The child process loses the view
+%% of namespace of its parent, and  becomes a namespace master.

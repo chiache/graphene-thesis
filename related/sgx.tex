@@ -1,4 +1,4 @@
-\section{SGX and Isolated Execution}
+\section{SGX and trusted execution}
 \label{sec:related:sgx}
 
 %\subsection{SGX shielding systems for legacy applications}
@@ -8,7 +8,7 @@
 
 
 \paragraph{Protection against untrusted OSes.}
-\issue{1.2.c}{add discussion of Haven, SCONE, Panoply}
+
 Protecting applications from untrusted OSes predates hardware support. 
 %has been attempted for years by software approaches on commodity hardware.
 Virtual Ghost~\cite{criswell2014virtualghost} uses both compile-time and run-time monitoring to protect an application
@@ -63,8 +63,65 @@ Sanctum also defends against some side channels, such as page fault address and 
 
 
 \paragraph{SGX frameworks and applications.}
-Besides shielding systems~\cite{baumann14haven,osdi16scone,shinde17panoply},
-%(discussed in \S\ref{sec:background:shielding-systems}),
+\issuedone{1.2.c}{add discussion of Haven, SCONE, Panoply}
+SGX shielding systems, including \haven{}~\cite{baumann14haven}, \scone{}~\cite{osdi16scone}, \panoply{}~\cite{shinde17panoply}, and \graphenesgx{}, enforce end-to-end isolation to
+legacy applications without partitioning.
+A SGX shielding system preserves the trusted computing base (TCB)
+of an application, and further increases it with a shielding layer to defend against the untrusted OSes.
+By avoiding application partitioning,
+%model of quarantining an unmodified, COTS application in an \sgx{} enclave.
+a shielding system minimizes the effort of reprogramming the applications for enclave execution, often with recompilation or packaging the binaries in an encrypted enclave.
+%to merely recompiling or packaging the application code before signing it off for enclave execution.
+%These \libos{}es internalize OS features into the enclave, to maintain a fixed-size,
+%narrow interface to the untrusted host OSes.
+%Porting applications using a \sgx{} \libos{} is vastly different from the programming model of \sdk{}---no programming effort is needed when porting with a \sgx{} \libos{}, and applications are isolated without partitioning.
+In the following paragraphs, we compare the current shielding systems with the \graphenesgx{} approach.
+
+\haven{}~\cite{baumann14haven} uses a \libos{} called \drawbridge{} in each enclave
+to shield a single-process \emph{Windows} application from the untrusted host OS.
+\haven{} absorbs the implementation of system APIs (i.e., Win32 APIs) from the host OS,
+%\haven{} uses \drawbridge{}~\cite{porter11drawbridge} as the backbone of its enclave infrastructure, 
+and exports a narrow enclave interface on which untrusted inputs are carefully filtered to defend against the Iago-type attacks.
+Adding a \libos{} to each enclave causes a bloat of TCB---for \haven{}, the size of a \libos{} binary and shielding layer is \roughly{}200MB.
+\haven{} has to establish the trust and integrity in all these binaries loaded into an enclave. Except that the shielding layer is a part of the enclave since its creation, \haven{} enforces the integrity of both the \libos{} and the isolated application,
+by storing all binaries on an encrypted virtual disk and relying a remote, trusted server to provision the key for decryption.
+\haven{} builds a trusted path from a remote server to local cloud machines,
+to securely bootstrap application execution inside the enclaves.
+%Other minor comparison between \haven{} and this work: the development and evaluation of \haven{}, at publication, is based on a simulated architecture.
+%On the contrast, \graphenesgx{} is a released open-source platform, tested by many developers from institutes and corporations. \fixme{maybe bring up TCB?}
+
+
+
+\scone{}~\cite{osdi16scone} isolates Linux micro-services in enclaves as a container-like environment.
+After a brief attempt of building a \libos{} like \haven{},
+\scone{} chooses a different approach of shielding the system API usage in applications, by designing shielding strategies based on each API.
+\scone{} stacks the application on top of file-system and network shielding libraries, and extends a standard library C (musl~\cite{musl}) to securely exit the enclave for system calls.
+Within the \sgx{}-aware \libc{}, \scone{} carefully filters the inputs from the host system calls, as the defend against known Iago attacks.
+For instance, \scone{} ensures that pointers given to and returned by a host system call will point to addresses outside the enclave,
+to prevent the host OS to manipulate pointers and cause memory corruption in the enclave.
+\scone{} also authenticates or encrypts file or network streams
+based on configurations given by the developers.
+
+
+%The \libos{} implementation in \scone{} is based on musl~\cite{musl} and LKL (Linux kernel library)~\cite{lkl}.
+%The design of a SCONE enclave (or Secure Container) has similarity
+%with a basic block of \graphenesgx{}:
+%they both validate input files based on cryptographic methods, and are fully configurable at a per-file basis.
+%However, \graphenesgx{} supports a more complete set of Linux system APIs.
+%The APIs that \graphenesgx{} especially contributes over \scone{} are the Linux multi-process APIs, including copy-on-write {\tt fork()}, {\tt exec()}, signals, and system V IPC (message queues and semaphores).
+
+\panoply{}~\cite{shinde17panoply} further reduces the TCB of a shielding system over the SCONE approach, by excluding both a \libos{} and \libc{} from enclaves.
+Instead, \panoply{} uses a shim layer shielding a portion of the POSIX API. The shim layer yields about 20 KLoC as its TCB (trusted computing base), which is much smaller than libc and/or a library OS.
+% in other shielding systems.
+As \panoply{} delegates the libc functions outside the enclave, its shim library defends the supported POSIX API,
+including 91 {\em safe} functions and 163 {\em wild (unsafe)} functions.
+\panoply{} also supports multi-process API including \syscall{fork}, \syscall{exec}, signaling, and sharing untrusted memory with inline encryption.
+Compared to \graphenesgx{}, \panoply{} has made some different design decisions in supporting multi-process API,
+including supporting fork by copying memory on-demand with statically determining memory access,
+and using secured messaging for inter-process negotiating instead of coordinating over an encrypted RPC stream.
+
+
+Besides shielding systems,
 %many works leverage SGX
 SGX has been used in specific applications or to address other security issues.
 %to build either frameworks to isolate general-purpose applications,
