@@ -304,8 +304,8 @@ The statelessness of the host ABI guarantees any states in the hosts are tempora
 
 
 
-\subsection{Host ABI functions}
-\label{sec:overview:host:functions}
+\subsection{\hostapis{}}
+\label{sec:overview:host:abi}
 
 
 %\fixmedp{the beginning doesn't capture the whole paragraph.}
@@ -325,10 +325,10 @@ The statelessness of the host ABI guarantees any states in the hosts are tempora
 
 
 %fixmedp{give more of the background}
-Table~\ref{tab:overview:abi} lists \palcallnum{} functions defined in the host ABI of \graphene{}.
-Among these functions, 
+Table~\ref{tab:overview:abi} lists \palcallnum{} \hostapis{} defined in the host ABI of \graphene{}.
+%Among these \hostapis{}, 
 27 are inherited from the \drawbridge{} host ABI,
-including functions to managing I/O (e.g., \syscall{StreamOpen}), memory allocation (e.g., \syscall{VirtMemAlloc}), scheduling processes and threads (e.g., \syscall{ThreadCreate}), and several miscellaneous functions (e.g., \syscall{ThreadCreate}).
+including functions to managing I/O (e.g., \palcall{StreamOpen}), memory allocation (e.g., \palcall{VirtMemAlloc}), scheduling (e.g., \palcall{ThreadCreate}), and several miscellaneous functions (e.g., \palcall{SystemTimeQuery}).
 %Most of the host functions only affect the OS or hardware states
 %related to the process itself.
 %For example, \syscall{VirtMemAlloc} can only allocate memory in the calling process,
@@ -359,7 +359,7 @@ However, in Windows or OSX, the x86-specific segment registers are mostly ignore
 \begin{table}[htp!]
 \centering
 \input{abi-table}
-\caption{An overview of the \palcallnum{} functions in the host ABI of \graphene{}. The ones marked with the symbol $\dagger$ are introduced in the initial publication of \graphene{}~\cite{tsai14graphene} or later extended for this thesis. The rest are inherited from \drawbridge{}~\cite{porter11drawbridge}.}
+\caption{An overview of the host ABI of \graphene{}. The ones marked with the symbol $\dagger$ are introduced in the initial publication of \graphene{}~\cite{tsai14graphene} or later extended for this thesis. The rest are inherited from \drawbridge{}~\cite{porter11drawbridge}.}
 \label{tab:overview:abi}
 \end{table}
 
