@@ -739,9 +739,9 @@ is triggered within a transaction created by Intel's Transaction Synchronization
 By handling exceptions inside the enclave, \graphenesgx{} can emulate instructions that are not supported by SGX, including \assembly{cpuid} and \assembly{rdtsc}.
 Use of these instructions will ultimately trap to a handler inside the enclave,
 to call out to the OS for actual values, which are treated as untrusted input and are checked.
-SGX also traps any \assembly{syscall} or \assembly{int \$80} instructions inside the enclave,
-so \graphenesgx{} can restrict the \linuxapis{} in a static binary
-and redirect to \thelibos{} as an exception.
+SGX also traps \assembly{syscall} or \assembly{int \$80} inside an enclave;
+thus, \graphenesgx{} redirects the \linuxapis{} inside a static binary
+to \thelibos{}.
 
 
 %The extra memory faults will be passed to the user-specified exception handlers,
