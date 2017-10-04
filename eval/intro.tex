@@ -11,21 +11,7 @@ The evaluation on the SGX host includes a summary of trusted computing base (TCB
 
 
 
-%Except for scalability measurements, 
-%all measurements were collected on a 
-%Dell Optiplex 790 with 
-%a 4-core 3.40 GHz Intel Core i7 CPU,
-%4 GB RAM, and a 250GB, 7200 RPM ATA disk.
-%Our host system runs Ubuntu 12.04 server with host Linux kernel version 3.5, 
-%which includes KVM on 
-%QEMU version 1.0.
-%%Adding more detail of KVM environment
-%Each KVM Guest is deployed with 4 virtual CPU with EPT, 2GB RAM, a 30GB virtual disk image, Virtio enabled for network and disk, bridged connection with TAP, and runs the same Ubuntu and Linux kernel image.
-%We note that recent library OSes are either not openly available
-%or cannot execute unmodified Linux binaries.
-%Unless otherwise noted, \graphene{} measurements include the reference monitor.
-%%In order to assess the relative overhead of the monitor (\S\ref{sec:eval:micro}), 
-%%we include some microbenchmark measurements with and without the monitor.
+
 
 
 
@@ -130,3 +116,7 @@ All test programs and applications are dynamically linked
 with a modified \glibc{} \glibcversion{}.
 The experiments for \graphenesgx{}
 use the Intel \sgx{} Linux SDK~\cite{intel-sgx-linux-sdk} and driver~\cite{intel-sgx-linux-driver} \sgxdriverversion{}.
+The host OS also
+includes KVM on QEMU version 2.5  and Xen 4.6.5 for comparison.
+%%Adding more detail of KVM environment
+Each KVM or Xen Guest is deployed with 4 virtual CPU with VT and EPT (Extended Page Table), 8GB RAM, a 30GB virtual disk image, VirtIO enabled for network and disk, bridged connection with TAP, and runs the same Ubuntu and Linux kernel image as the host OS.
