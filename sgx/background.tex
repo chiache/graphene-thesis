@@ -331,7 +331,7 @@ The missing APIs encapsulates system calls, which can expose the enclave to some
 %framework for running applications on SGX.  We explain the decisions in
 %recent systems for SGX applications, and the trade-offs in this space.
 
-\issuedone{1.2.c}{compare library OS approach with shim layers}
+\issuedone{1.2.c}{Compare library OS approach with shim layers}
 Despite the security benefits,
 %Unfortunately, applications do not ``just work'' on SGX.
 SGX imposes a number of restrictions on enclave code 
@@ -445,11 +445,11 @@ A number of SGX frameworks and security enhancements~\cite{orenbach17eleos,kuvai
 \label{sec:sgx:background:shielding}
 
 
-A key question for developing a SGX framework is regarding how much OS functionality to pull into the enclave.
+A key question for developing a SGX framework is how much OS functionality should be pull into an enclave.
 A \libos{} and a thin shielding layer essentially make opposite decisions
 in protecting OS functionality on untrusted hosts.
 At one extreme, a \libos{} like \graphenesgx{} and \haven{} pulls most
-of the application-supporting code of an OS into an enclave.
+application-supporting code of an OS into an enclave.
 On the other extreme, thin shielding layers, such as \scone{} and \panoply{}, redirect
 an API layer (e.g., POSIX) or the system call table
 outside of an enclave and shield the application from malicious API or system call results.
@@ -487,8 +487,8 @@ Examples of Iago attacks include
 corrupting a protected stack by returning an address on stack to \syscall{mmap};
 forcing a replay attack on SSL (Secure Sockets Layers) protocol
 seeded by the returned values of \syscall{getpid} and \syscall{time}.
-As applications often abuse system APIs for implementing internal functionality,
-an untrusted OS gains huge advantage to explore vulnerabilities inside of either applications or a shielding system.
+Applications often abuse system APIs for internal implementation,
+so an OS can explore vulnerabilities inside of either applications or a shielding system.
 
 
 
@@ -496,7 +496,7 @@ An important lesson learned from Iago attacks
 is that 
 an existing API layer like POSIX or system call table is not suitable for the context of untrusting an operating system.
 The definition of POSIX API or Linux system calls assumes an untrusted client
-and has specified explicit semantics for checking against malicious inputs.
+and has explicit semantics for checking against malicious inputs.
 On the other hand,
 these existing APIs do not specify
 how the clients should defend against an untrusted OS,
@@ -508,11 +508,11 @@ to endow sensitive states
 to the operating system, making the API results more difficult to verify. For example,
 a Linux kernel associates a file descriptor
 with the current offset for accessing the file contents, whereas the application
-only specifies the file descriptor and a user buffer to a \syscall{read} or \syscall{write} call.
+only specifies the file descriptor and a user buffer for \syscall{read} or \syscall{write}.
 While an OS can simply refuse to trust the inputs from an application,
 the same cannot be said for an self-protecting application or a shielding system
 without fully anticipating
-the attacks from an untrusted OS.
+attacks from an OS.
 
 
 
@@ -560,7 +560,7 @@ leaving a narrowed host interface
 which is much easier to defend than a bloated API layer.
 Both Haven and \graphenesgx{} customize
 a host ABI for enclaves, or an {\bf enclave ABI}, and treat the host OS as completely untrusted.
-Haven contains a proxy layer to redirect trustworthy OS services---besides the services already implemented inside the enclave---from a remote, trusted host.
+Haven contains a proxy layer to redirect trustworthy OS services---besides services implemented inside the enclave---from a remote, trusted host.
 For example, Haven does not trust the host file system,
 and instead, loads a guest-level file system
 using an encrypted virtual disk provisioned from a remote host.

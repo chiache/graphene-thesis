@@ -11,7 +11,7 @@
 
 \else
 
-\newcommand{\issue}[3][red!40]{{\todo[caption=\parbox{9em}{Issue #2}\parbox{7.5em}{\thechapterorsection:}\parbox{30em}{#3}, fancyline, color=#1, list]{
+\newcommand{\issue}[3][red!40]{{\todo[caption=\parbox{8em}{Issue #2}\parbox{6.5em}{\thechapterorsection:} {#3}, fancyline, color=#1, list]{
   \begin{spacing}{1.0}
     \lsstyle
     \tt Issue #2:\\ #3\\
@@ -22,6 +22,9 @@
 \newcommand{\issuedone}[2]{\issue[green!40]{#1 (done)}{#2}}
 
 \newcommand{\issuepage}{%
+    \cleardoublepage\phantomsection
+    \addcontentsline{toc}{chapter}{Writing Plan}
+
     \noindent
     {\Huge\bf Writing Plan}
     \vspace*{2\baselineskip}
@@ -33,9 +36,10 @@
     \vspace*{-4\baselineskip}
     
     \begingroup
-    \footnotesize
+    \small
     \let\cleardoublepage\relax
     \let\clearpage\relax
+    \setstretch{1.2}
     \listoftodos[]
     \endgroup
     

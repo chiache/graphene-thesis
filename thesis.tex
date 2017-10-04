@@ -40,9 +40,16 @@
 \usepackage{booktabs}
 \usepackage[hidelinks]{hyperref}
 \usepackage{silence}
+\usepackage[bottom]{footmisc}
 \renewcommand*{\ttdefault}{cmtt}
 \lstset{basicstyle=\ttfamily\footnotesize}
 \pdfminorversion=7
+
+\renewcommand\footnoterule{
+  \kern -3pt
+  \hrule width \textwidth height 1pt
+  \kern 2pt
+}
 
 \newcommand{\thechapterorsection}{%
   \ifnum\value{chapter}=0
@@ -119,6 +126,7 @@
 
 
 \begin{document}
+
 
 \pagenumbering{gobble}
 
@@ -287,8 +295,11 @@ This page is optional.
 
 \renewcommand{\listtablename}{\centerline{\Large\bf{List of Tables}}}
 {
+  \bgroup
+  \renewcommand{\bfseries}{\relax}
   \sloppy
   \listoftables
+  \egroup
 }
 
 
@@ -296,8 +307,11 @@ This page is optional.
 %\addcontentsline{toc}{chapter}{List of Figures}
 \renewcommand{\listfigurename}{\centerline{\Large\bf{List of Figures}}}
 {
+  \bgroup
+  \renewcommand{\bfseries}{\relax}
   \sloppy
   \listoffigures
+  \egroup
 }
 
 

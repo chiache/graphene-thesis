@@ -2,7 +2,7 @@
 \label{sec:sgx:shield}
 
 
-\issuedone{1.1.d}{describe the security isolation story for SGX}
+\issuedone{1.1.d}{Describe the security isolation story for SGX}
 This section discusses
 the shielding of a \libos{} in one or multiple enclaves,
 based on
@@ -100,7 +100,7 @@ If the secure hash does not match the manifest, the shield will refuse to load t
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=26em]{architecture.pdf}
+\includegraphics[width=32em]{architecture.pdf}
 \caption{The \graphenesgx{} architecture. The executable is position-dependent.
 %The enclave size is 16MB. % (highest at 0x10000000).
 The enclave includes an OS shield, a library OS, libc, and other user binaries.
@@ -656,7 +656,7 @@ SGX version 2 will support dynamic thread creation
 alone with dynamic paging.
 The current version of \graphenesgx{} requires users to specify how the maximum amount of threads the application needs inside the manifest.
 
-This choice affect performance, as one may be able to use m:n threading and asynchronous calls at the enclave boundary
+This choice impacts performance, as one may be able to use m:n threading and asynchronous calls at the enclave boundary
 to reduce the number of exits.
 This is a good idea we will probably implement in the future.
 %\fixmedp{check this sentence}
@@ -739,9 +739,9 @@ is triggered within a transaction created by Intel's Transaction Synchronization
 By handling exceptions inside the enclave, \graphenesgx{} can emulate instructions that are not supported by SGX, including \assembly{cpuid} and \assembly{rdtsc}.
 Use of these instructions will ultimately trap to a handler inside the enclave,
 to call out to the OS for actual values, which are treated as untrusted input and are checked.
-SGX also traps any \assembly{syscall} or \assembly{int \$80} instructions inside the enclave,
-so \graphenesgx{} can restrict the \linuxapis{} in a static binary
-and redirect to \thelibos{} as an exception.
+SGX also traps \assembly{syscall} or \assembly{int \$80} inside an enclave;
+thus, \graphenesgx{} redirects the \linuxapis{} inside a static binary
+to \thelibos{}.
 
 
 %The extra memory faults will be passed to the user-specified exception handlers,
