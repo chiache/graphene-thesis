@@ -31,7 +31,7 @@ as the Linux kernel implementation.
 
 \begin{table}[htp!]
 \input{tables/lmbench-syscalls}
-\caption{System call benchmark results based on \lmbench{} 2.5. comparison among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with JIT-optimized SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in SGX enclaves.
+\caption{System call benchmark results based on \lmbench{} 2.5. Comparison is among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with JIT-optimized SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in SGX enclaves.
 System call latency is in microseconds, and lower is better.
 System call bandwidth and throughput are in megabytes per second and operations per second, respectively, and higher is better. 
 %The file system is measured in thousands operations per second, and higher is better.
@@ -155,11 +155,10 @@ If the file is not authenticated,
 
 \begin{table}[t!b!]
 \input{tables/lmbench-fork}
-\caption{\lmbench{} comparison among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in SGX enclaves.
-Execution time is in microseconds, and lower is better. 
-The file system is measured in thousands operations per second, and higher is better.
-Overheads are relative to Linux; negative overheads indicate improved performance.} 
-\label{tab:graphene:lmbench}
+\caption{Benchmark results of various combinations of \syscall{fork}, \syscall{vfork}, \syscall{execve}, based on \lmbench{} 2.5. Comparison is among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with JIT-optimized SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in SGX enclaves.
+Latency is in microseconds, except for \graphenesgx{}, which is orders-of-magnitude slower. Lower latency is better.
+Overheads are relative to Linux \linuxversion{}; negative overheads indicate improved performance.} 
+\label{tab:eval:lmbench-fork}
 \end{table}
 
 
