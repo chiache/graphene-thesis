@@ -11,7 +11,7 @@
 \hline
 &\multicolumn{8}{c|}{Execution time (s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf \gcc/make} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}}  \\
+{\bf \gcc/make} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}}  \\
 \hline
 % gcc
 %\multicolumn{2}{|l|}{helloworld} & .02 & .02 & 0 \% & .03 & 100 \% \\ 
@@ -29,13 +29,13 @@ make -j4 libLinux & 1.361 & .000 &  1.413 & .000 & 4 \% &  1.459 & .000 &   7 \%
 \hline\hline
 Ap. Bnch     & \multicolumn{8}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf Apache} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}}  \\
+{\bf Apache} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}}  \\
 \hline
 25 conc     & 6.282 & .005 & 5.327 & .031 & 18 \% & 4.586 & .002 & 36 \%  \\\hline
 50 conc     & 6.305 & .002 & 5.420 & .060 & 16 \% & 4.555 & .012 & 38 \%  \\\hline
 100 conc    & 6.347 & .010 & 5.152 & .036 & 22 \% & 4.572 & .009 & 39 \%  \\\hline
 
-{\bf \lighttpd{}} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} \\
+{\bf \lighttpd{}} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} \\
 \hline
 
 25 conc    & 6.66 &.01 &6.46 &.03 &3 \% &5.65 &.00 &18 \%  \\\hline
@@ -47,7 +47,7 @@ Ap. Bnch     & \multicolumn{8}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \%
 
 & \multicolumn{8}{c|}{Execution Time (s), +/- Conf. Interval, \% Overhead} \\
 \hline
-{\bf bash } & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + RM}} \\
+{\bf bash } & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} \\
 \hline
 %2.1 s linux
 %graphene 10.06s
@@ -236,40 +236,34 @@ asynchronous I/O in \graphenesgx{}.
 %The reason of the slowdown is that the host interface of \graphene{} and \graphenesgx{} only supports synchronous IO, so implementing asynchronous IO will be less efficient. This limitation is a trade-off to the portability of \graphene{}.
 %\fixmedp{Didn't get the portability point; please spell out what you meant, if important}
 
-\begin{figure*}[t!]
-\centering
 
-\begin{minipage}{.65\textwidth}
+\begin{figure}[t!]
 \centering
 \footnotesize
-\vspace{6pt}
-\includegraphics[width=\linewidth]{sgx/r-overhead}\\
-\vspace{3pt}
-{\bf (a) R}
-\vspace{6pt}
-\end{minipage}
-\begin{minipage}{.42\textwidth}
+\includegraphics[width=38em]{r-overhead}\\
+\caption{Performance overhead on desktop applications, including latency of R, execution time of GCC compilation, download time with CURL. The evaluation compares native Linux, \graphene{}, and \graphenesgx{}.} %{\bf Enclave creation time is deducted from the GCC execution time.}}
+\label{fig:eval:r-overheads}
+\end{figure}
+
+
+\begin{figure}[t!]
 \centering
 \footnotesize
-\vspace{6pt}
-\includegraphics[width=\linewidth]{sgx/gcc-overhead}\\
+\begin{minipage}{.49\textwidth}
+\centering
+\includegraphics[width=20em]{sgx/gcc-overhead}\\
 \vspace{3pt}
 {\bf (b) GCC}
-\vspace{6pt}
 \end{minipage}
-\begin{minipage}{.38\textwidth}
+\begin{minipage}{.49\textwidth}
 \centering
-\footnotesize
-\vspace{6pt}
-\includegraphics[width=\linewidth]{sgx/curl-overhead}\\
+\includegraphics[width=20em]{sgx/curl-overhead}\\
 \vspace{3pt}
 {\bf (c) CURL}
-\vspace{6pt}
 \end{minipage}
-
 \caption{Performance overhead on desktop applications, including latency of R, execution time of GCC compilation, download time with CURL. The evaluation compares native Linux, \graphene{}, and \graphenesgx{}.} %{\bf Enclave creation time is deducted from the GCC execution time.}}
 \label{fig:desktop-overhead}
-\end{figure*}
+\end{figure}
 
 
 
