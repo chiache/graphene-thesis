@@ -1,6 +1,8 @@
 \subsection{Multi-process coordination costs}
 \label{eval:perf:multi-proc}
 
+\subsubsection{\syscall{fork} and \syscall{execve} latency}
+
 The most expensive system calls occur when {\tt libLinux} inadvertently duplicates work
 with the host kernel.  
 For instance, many of the file path and handle management calls duplicate some of the effort of the host file system,
@@ -11,7 +13,7 @@ Profiling indicates that about one sixth of this overhead is in process creation
 takes additional work to create a clean \picoproc{} on Linux; we expect this overhead could be reduced
 with a kernel-level implementation of the process creation ABI, rather than emulating this behavior on {\tt clone}.
 Another half of the overhead comes from the
-{\tt libLinux} checkpointing code (commensurate with the data in Table~\ref{tab:graphene:lmbench}), which 
+{\tt libLinux} checkpointing code (commensurate with the data in Table~\ref{tab:eval:lmbench-fork}), which 
 includes a substantial amount of serialization effort which might be reduced by checkpointing the data structures in place.
 A more competitive {\tt fork} will require host support and additional {\tt libLinux} tuning.
 %Thus, we think a competitive {\tt fork} implementation will require both a more suitable host kernel
@@ -66,12 +68,7 @@ The trend matches the performance of \graphene{} without the bulk IPC optimizati
 \begin{minipage}{.45\textwidth}
 \centering
 \footnotesize
-\vspace{6pt}
-\includegraphics[width=\linewidth]{sgx/fork-latency}\\
-\vspace{3pt}
-{\bf (c) Fork a process}
-\vspace{6pt}
-\end{minipage}
+\includegraphics[width=36em]{fork-latency}
 \caption{Latency of some expensive system calls in \graphenesgx{}, including opening and reading a secured (authenticated) file, and forking a new process. The results are compared with native Linux and \graphene{}.}
 \label{fig:eval:sgx-fork}
 \end{figure*}
@@ -97,50 +94,27 @@ involve path traversals, such as {\tt open} and {\tt exec}, result in substantia
 An efficient implementation of an environment similar to FreeBSD  jails~\cite{jails}
 would make all reference monitoring overheads negligible.
 
-\begin{table}[t!b!]
-\footnotesize
-\centering
-\begin{tabular}{|ll|rr|rrr|}
-\hline
-\multicolumn{2}{|c|}{{\bf Test}} &
-\multicolumn{2}{c|}{{\bf Linux}} &
-\multicolumn{3}{c|}{{\bf \graphene{}}} \\
-& & \us{} & +/- & \us{} & +/- & \\
-\hline
-msgget   & in-process    & 3320	& 0.7 &  2823 & 0.3 &	-15	\%		\\
-(create) & inter-process & 3336	& 0.5 &  2879 & 3.6 &	-14	\%		\\
-& persistent    &  N/A	&     & 10015 & 0.7 &	202	\%      \\
-\hline								
-msgget   & in-process    & 3245	& 0.5 &   137 & 0.0 &	-96	\%		\\
-& inter-process & 3272	& 3.4 &  8362 & 2.4 &	156	\%		\\
-& persistent    &  N/A	&     &  9386 & 0.4 &	189	\%      \\
-\hline								
-msgsnd   & in-process    &  149	& 0.2 &   443 & 0.2 &	191	\%		\\
-& inter-process &  153	& 0.3 &   761 & 1.1 &	397	\%		\\
-& persistent    &  N/A	&     &   471 & 0.8 &	216	\%	    \\
-\hline								
-msgrcv   & in-process    &  149	& 0.1 &   237 & 0.2 &	60	\%		\\
-& inter-process &  153	& 0.1 &   779 & 2.2 &	409	\%  	\\
-& persistent    &  N/A	&     &   979 & 0.6 &	561	\%	    \\
-\hline
-\end{tabular}
-\caption[The micro-benchmark results for System V message queues in Linux, KVM, and \graphene{}]
-{Micro-benchmark comparison for System V message queues
-between a native Linux process and \graphene{} \picoprocs{}.
-Execution time is in microseconds, and lower is better.
-overheads are relative to Linux, and negative overheads indicate improved performance.}
-%We measure the cost of sending and receiving from the same process (in process),
-%across two processes (inter process), and non-concurrently (persistent).
-\label{tab:graphene:msgq}
-\end{table}
 
-\paragraph{System V IPC.}
-Table~\ref{tab:graphene:msgq} lists the micro-benchmarks
+
+\subsubsection{Inter-process communication latency}
+
+
+Table~\ref{tab:eval:sysvipc} lists the micro-benchmarks
 which exercise each System V message queue function,
 within one \picoproc{} (in process), across two concurrent \picoprocs{} (inter process),
 and across two non-concurrent \picoprocs{} (persistent).
 Linux comparisons for persistent are missing, since message queues 
 survive processes in kernel memory.
+
+
+\begin{table}[t!b!]
+\input{tables/sysvipc}
+\caption{Micro-benchmark comparison for System V message queues
+between a native Linux process and \graphene{} \picoprocs{}.
+Execution time is in microseconds, and lower is better.
+overheads are relative to Linux, and negative overheads indicate improved performance.}
+\label{tab:eval:sysvipc}
+\end{table}
 
 In-process queue creation and lookup are faster than Linux.
 In-process send and receive overheads are higher
