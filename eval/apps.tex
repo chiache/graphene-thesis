@@ -3,59 +3,7 @@
 
 
 \begin{table}[t!b!]
-\footnotesize
-%\tiny
-\centering
-
-\begin{tabular}{|l|rr|rrr|rrr|}
-\hline
-&\multicolumn{8}{c|}{Execution time (s), +/- Conf. Interval, \% Overhead} \\
-\hline
-{\bf \gcc/make} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}}  \\
-\hline
-% gcc
-%\multicolumn{2}{|l|}{helloworld} & .02 & .02 & 0 \% & .03 & 100 \% \\ 
-%\hline
-%oggenc & 1.42 & .01 & 1.51 & .00 & 6 \% & 1.43 & .00 & 1 \% \\\hline
-gcc (helloworld)  & 0.020 & .000 &  0.022 & .000 & 7 \% &  0.023 & .000 &  12 \%  \\\hline
-gcc (.7M\loc{})   & 21.64 &  .00 &  23.37 &  .02 & 8 \% &  21.88 &  .00 &   1 \%  \\\hline
-make bzip2        & 2.332 & .000 &  2.448 & .000 & 5 \% &  2.407 & .000 &   3 \%  \\\hline
-make -j4 bzip2    & 0.888 & .000 &  0.967 & .000 & 9 \% &  0.923 & .004 &   4 \%  \\\hline
-make libLinux     & 4.832 & .000 &  5.037 & .000 & 4 \% &  5.112 & .001 &   6 \%  \\\hline
-make -j4 libLinux & 1.361 & .000 &  1.413 & .000 & 4 \% &  1.459 & .000 &   7 \%  \\\hline
-
-
-
-\hline\hline
-Ap. Bnch     & \multicolumn{8}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% Overhead} \\
-\hline
-{\bf Apache} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}}  \\
-\hline
-25 conc     & 6.282 & .005 & 5.327 & .031 & 18 \% & 4.586 & .002 & 36 \%  \\\hline
-50 conc     & 6.305 & .002 & 5.420 & .060 & 16 \% & 4.555 & .012 & 38 \%  \\\hline
-100 conc    & 6.347 & .010 & 5.152 & .036 & 22 \% & 4.572 & .009 & 39 \%  \\\hline
-
-{\bf \lighttpd{}} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} \\
-\hline
-
-25 conc    & 6.66 &.01 &6.46 &.03 &3 \% &5.65 &.00 &18 \%  \\\hline
-50 conc    & 6.65 &.13 &6.41 &.02 &4 \% &4.79 &.00 &39 \%  \\\hline
-100 conc   & 6.69 &.01 &6.39 &.03 &5 \% &4.56 &.01 &47 \%  \\\hline
-
-\hline\hline
-%%%%% UnixBench
-
-& \multicolumn{8}{c|}{Execution Time (s), +/- Conf. Interval, \% Overhead} \\
-\hline
-{\bf bash } & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} \\
-\hline
-%2.1 s linux
-%graphene 10.06s
-
-%bash
-Unix utils & 0.87 & .00 & 1.10 & .01 & 26 \% & 2.01 & .00 & 134 \%  \\\hline
-Unixbench  & 0.55 & .00 & 0.55 & .00 &  0 \% & 1.49 & .00 & 192 \%  \\\hline
-\end{tabular}
+\input{tables/apps}
 \caption{Application benchmark execution times in a (1) native Linux process, (2) a process inside a KVM virtual machine, (3) a \graphene{} \picoproc{} with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}). }
 \label{tab:graphene:apps}
 \end{table}
