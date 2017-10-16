@@ -1,0 +1,19 @@
+\section{PAL ABI latency}
+
+The section evaluates the latency of each \hostapi{}, including
+the overheads of translating, isolating, and shielding each \hostapi{} from host \linuxapis{}.
+
+
+
+The evaluation demonstrates several factors that impact the latency of \hostapis{}.
+On a Linux host, most of \thehostabi{} can be directly translated to similar \linuxapis{}. For instance, the semantics of \palcall{StreamRead} exactly match with \syscall{pread}.
+Without further security checks,
+The latency of each \hostapi{} is comparable with the matched \linuxapi{},
+except for minor overheads such as scanning file paths and translating network addresses from URIs.
+For \graphene{}, the latency of each \hostapi{} includes
+a small cost of context switch into the host kernel for \linuxapis{}.
+For \graphenesgx{}, the SGX hardware imposes a fixed cost on each enclave call
+for exiting and entering the enclave to use the host \linuxapis{},
+which is order-of-magnitude slower than a \linuxapi{},
+and a dynamic cost of copying data outside and inside of the enclave. 
+
