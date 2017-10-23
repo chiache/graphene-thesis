@@ -1,4 +1,4 @@
-\section{\Libos{} emulation overheads}
+\section{\Libos{} overheads}
 
 
 \subsection{Single-process system call overheads}
@@ -47,33 +47,7 @@ Overheads are relative to Linux \linuxversion{}; negative overheads indicate imp
 
 
 
-In this section we evaluate a few system operations that are heavily impacted by the \graphenesgx{} design.
-%To shield dynamic loading and process creation,
-%\graphenesgx{} uses computationally-expensive cryptographic techniques \fixmedp{more specific?} to verify enclave inputs.
-% under the circumstance that the host OS cannot be trusted.
-%As a trade-off to the security, the performance will be affected
-%by additional cryptographic computation.
-We measure the \syscall{open}, \syscall{read}, and \syscall{fork} system calls
-using LMbench 2.5~\cite{McVoy:lmbench}.
-A primary source of the overheads on these system calls is the cost of shielding applications, with run-time checks on the inputs.
-Cryptographic techniques are used to: (1) validate the file against the secure hash, at \syscall{open}, (2) check the file chunks against the Merkle tree, at \syscall{read}, and (3) establish a TLS connection over inter-enclave RPC, at \syscall{fork}.
-%opening a integrity-sensitive file for the first time, 
-% or using cryptographic techniques, such as secure hashing, to verify the inputs.
-% microbenchmarking specific system calls: 
-% system calls,
-%with different application settings.
-%The microbenchmark is part of the LMBench 2.5 test suite
-%\fixmedp{maybe merge this in the above paragraph, which feels a little coy}
-%For instance, in order to shield dynamic loading, \graphenesgx{} checks each binary file against the secure hashes in the manifest,
-%when the file is opened for the first time---after the whole file is copied into the enclave.
-%\fixmedp{This happens after they are copied into enclave, memory right?}
-%The verification happens when opening the file for the first time (often by the 
-%After \graphenesgx{} validates the file, we generate a series of hashes of the file in chunks, as a merkle tree.
-%to prevent verifying the whole file again when later randomly reading a part of the file.
-%\fixmedp{So is this for the case when a file is swapped out?  I'm confused here - some details are missing}
-%The latency of opening and reading an authenticated file in \graphenesgx{} is dominated by SHA256 and SHA512 calculation.
-The remaining overheads contribute to exiting the enclave for host system calls, and bringing memory into the EPC (enclave page cache) or decrypting 
-memory on a last-level cache miss. %and later the cache where the memory is decrypted by the CPU.
+
 
 \begin{figure*}[t!]
 \centering

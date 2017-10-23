@@ -1,5 +1,5 @@
 This chapter evaluates the performance overheads of \graphene{}
-on a Linux kernel and inside of a SGX enclave.
+on a Linux kernel and inside of an SGX enclave.
 The evaluation
 targets the following four aspects:
 (1) translation, isolation, and shielding costs of the host ABI and startup time;
@@ -116,9 +116,8 @@ All test programs and applications are dynamically linked
 with a modified \glibc{} \glibcversion{}.
 The experiments for \graphenesgx{}
 use the Intel \sgx{} Linux SDK~\cite{intel-sgx-linux-sdk} and driver~\cite{intel-sgx-linux-driver} \sgxdriverversion{}.
-As two other baselines for comparing the application performance and resource usage,
 The host OS also
-includes KVM on QEMU version 2.5, and Xen 4.6.5.
+includes KVM on QEMU version 2.5 and Xen 4.6.5 for comparison.
 %%Adding more detail of KVM environment
 Each KVM or Xen Guest is deployed with 4 virtual CPU with VT and EPT (Extended Page Table), 1GB RAM, a 30GB virtual disk image, VirtIO enabled for network and disk, bridged connection with TAP, and runs the same Ubuntu base system and Linux kernel as the host OS.
 
