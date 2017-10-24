@@ -49,35 +49,35 @@ Overheads are relative to Linux \linuxversion{}; negative overheads indicate imp
 
 
 
-\begin{figure*}[t!]
-\centering
-\footnotesize
-\begin{minipage}{.49\linewidth}
-\centering
-\includegraphics[width=24em]{open-latency}\\
-{\bf (a) Opening a file}
-\vspace{6pt}
-\end{minipage}
-\begin{minipage}{.49\linewidth}
-\centering
-\includegraphics[width=24em]{read-latency}\\
-{\bf (b) Reading a file}
-\vspace{6pt}
-\end{minipage}
-\caption{Latency of some expensive system calls in \graphenesgx{}, including opening and reading a secured (authenticated) file, and forking a new process. The results are compared with native Linux and \graphene{}.}
-\label{fig:eval:sgx-open-read}
-\end{figure*}
+%\begin{figure*}[t!]
+%\centering
+%\footnotesize
+%\begin{minipage}{.49\linewidth}
+%\centering
+%\includegraphics[width=24em]{open-latency}\\
+%{\bf (a) Opening a file}
+%\vspace{6pt}
+%\end{minipage}
+%\begin{minipage}{.49\linewidth}
+%\centering
+%\includegraphics[width=24em]{read-latency}\\
+%{\bf (b) Reading a file}
+%\vspace{6pt}
+%\end{minipage}
+%\caption{Latency of some expensive system calls in \graphenesgx{}, including opening and reading a secured (authenticated) file, and forking a new process. The results are compared with native Linux and \graphene{}.}
+%\label{fig:eval:sgx-open-read}
+%\end{figure*}
 
 
-Figure~\ref{fig:eval:sgx-open-read}(a)
-shows the overhead for authenticating files in \syscall{open}.
-\fixme{change overhead to latency}
-Depending on the file size, the latency of \syscall{open} on \graphenesgx{} is 383$\mu$s (64KB file) to 21ms (4MB file), whereas on Linux, the latency is constant at 0.85$\mu$s.
-We note that this is where enclaves are at a disadvantage, as \syscall{open} 
-normally does not need to read file content; whereas here \graphenesgx{} uses \syscall{open}
-as a point at which to validate file content.
-For a subsequent \syscall{open}, when the Merkle tree is already generated, the overhead of simply exiting enclave for \syscall{open}, and searching the file list in the manifest, is about 9$\times$.
-%\fixmedp{why?}
+%Figure~\ref{fig:eval:sgx-open-read}(a)
+%shows the overhead for authenticating files in \syscall{open}.
+%\fixme{change overhead to latency}
+%Depending on the file size, the latency of \syscall{open} on \graphenesgx{} is 383$\mu$s (64KB file) to 21ms (4MB file), whereas on Linux, the latency is constant at 0.85$\mu$s.
+%We note that this is where enclaves are at a disadvantage, as \syscall{open} 
+%normally does not need to read file content; whereas here \graphenesgx{} uses \syscall{open}
+%as a point at which to validate file content.
+%For a subsequent \syscall{open}, when the Merkle tree is already generated, the overhead of simply exiting enclave for \syscall{open}, and searching the file list in the manifest, is about 9$\times$.
+%%\fixmedp{why?}
 
 
 One might be able to optimize further for cases where only part of a file is accessed

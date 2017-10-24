@@ -290,7 +290,9 @@ The AES-GCM algorithm in \graphenesgx{} is accelerated by the Intel AES-NI instr
 With the hardware-accelerated AES-GCM,
 the overhead on the RPC latency is still up to \roughly{}335\% compared to the UNIX domain socket;
 furthermore, the overhead on the RPC bandwidth
-is up to \roughly{}70$\times$.
+is up to \roughly{}70$\times$ (\roughly{} 176 MB/s).
+Potentially switching to a more efficient cryptographic algorithm or library may improve the overheads on RPC streams,
+and the experiment is left for future work.
 
 
 
@@ -316,6 +318,47 @@ The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hosta
 
 
 \paragraph{Summary.}
+The efficiency of \hostapis{} for accessing files or I/O streams
+inevitably suffers some overheads,
+due to the nature of these abstractions to be sharable
+among applications.
+Each of these \hostapis{} externalizes certain guest OS states
+%such as buffered file contents or network payloads,
+to the host OS,
+using the existing host system interfaces.
+Most of the experiment results
+show that the translation cost between the \hostapis{} and the host system interfaces can be reduced
+by mitigating the needs of reconstructing the \hostapi{} arguments
+and copying stream buffers.
+Only a few exceptions, such as the translation of URIs to network addresses,
+or copying the arguments or buffers in or out of an enclave,
+cause more significant overheads to the overhead of these \linuxapis{}.
+
+
+
+
+Security checks, either in the host kernel or inside an enclave,
+often contribute to
+non-trivial overheads on the \hostapis{} for accessing I/O streams.
+The cost of security checks
+varies between different threat models.
+For the Linux PAL, the cost includes the overhead of enabling a SECCOMP filter, and the cost of checking file paths and network addresses
+inside of an reference monitor.
+With the JIT (Just-in-time) optimization,
+the overheads of SECCOMP filter is generally less than 10\%.
+The overheads of security monitors can range from 0--21\%, but only impact \hostapis{} which accept an URI as argument (e.g., \palcall{StreamOpen} and \palcall{StreamAttrQuery}).
+
+ 
+The SGX PAL further adopts several cryptographic techniques
+for protecting the confidentiality and integrity of I/O streams, which impose significant overheads.
+Verifying the file contents, either at first open of the file or consequential file reads,
+causes 500--24,000$\times$ overheads on \palcall{StreamOpen}
+or 25--150$\times$ overheads on \palcall{StreamRead}.
+Authenticating and encrypting a RPC stream, using a TLS connection with hardware-accelerated AES-GCM algorithm,
+causes \roughly{}335\% overhead beyond the latency of underlying UNIX domain sockets,
+or \roughly{}70 $\times$ overhead on bandwidth when sending large messages.
+
+
 
 
 
@@ -323,24 +366,62 @@ The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hosta
 \subsection{Page management}
 
 
+Figure~\ref{fig:eval:pal:mmap-latency} (a)
+shows the combined latency of \palcall{VirtMemAlloc} and  \palcall{VirtMemFree}, on both Linux and SGX PALs,
+and the latency of \syscall{mmap} and \syscall{munmap} in a native Linux process.
+The latency of both \syscall{mmap}+\syscall{munmap} and \syscall{VirtMemAlloc}+\syscall{VirtMemFree} on Linux is partially correlated with the size of memory mapped inside a process or \picoproc{}.
+Due to the similarity between the \hostapis{} and the \linuxapis{},
+the translation cost is almost marginal
+to the latency of allocating and deallocating the memory mappings.
+Enabling the SECCOMP filter adds an additional
+15--25\% overhead to the latency of \syscall{VirtMemAlloc}+\syscall{VirtMemFree}, which is common for all \linuxapis{} used by the Linux PAL.
+However, if the latency includes zeroing the allocated memory mappings,
+which triggers the population of physical pages
+inside the host kernel,
+the overhead is much more significant and proportional to the mapping size.
+As a result, allocating, accessing, and deallocating a 64MB memory mapping will take up to \roughly{}3.5\msec{}.
 
 
+For the SGX PAL, the latency of allocating and deallocating memory mapping
+is much lower then the Linux PAL, because the SGX PAL does not dynamically allocate the enclave memory region.
+Due the limitation of current SGX hardware,
+the SGX PAL must implement memory mappings internally,
+with all the enclave page populated and signed by the CPU before the enclave starts execution.
+Based on this design, the latency of \syscall{VirtMemAlloc}+\syscall{VirtMemFree} on the SGX PAL
+is 8--11\% of the latency on the Linux PAL,
+since these two \hostapis{} only update the memory mapping records inside the enclave.
+However, if the enclave memory is accessed immediately after allocation, as shown in Figure~\ref{fig:eval:pal:mmap-latency} (b),
+the overhead can be up to 3--9.5$\times$, and is proportional to the size of memory mappings.
 
+\begin{figure*}[t!]
+\centering
+\footnotesize
+\begin{minipage}{.49\linewidth}
+\centering
+\includegraphics[width=24em]{mmap-latency}\\
+{\bf (a) \palcall{VirtMemAlloc} + \palcall{VirtMemFree}}
+\vspace{6pt}
+\end{minipage}
+\begin{minipage}{.49\linewidth}
+\centering
+\includegraphics[width=24em]{mmap-access-latency}\\
+{\bf (b) \palcall{VirtMemAlloc} + zeroing + \palcall{VirtMemFree}}
+\vspace{6pt}
+\end{minipage}
+\caption{Latency of allocating and deallocating memory mappings, using either \syscall{mmap} and \syscall{munmap} on Linux, or \palcall{VirtMemAlloc} and \palcall{VritMemFree} on the Linux and SGX PALs.
+(a) shows the combined latency of allocation and deallocation, whereas (b) includes the latency of zeroing memory pages.
+%which triggers the host kernel to populate the physical pages. 
+The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hostapis{} on a Linux PAL, with the options of enabling the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \hostapis{} in an enclave. No shielding mechanism is needed.}
+\label{fig:eval:pal:mmap-latency}
+\end{figure*}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+The evaluation results on \syscall{VirtMemAlloc} and \syscall{VirtMemFree}
+show that the Linux PAL share the same latency
+with a native Linux process
+for creating virtual memory mappings, paging and memory access.
+On the other hand, despite that the SGX PAL manages all the enclave pages
+inside the enclave,
+the SGX PAL suffers a larger overhead for paging and accessing memory that is not in the last-level cache.
 
 
 
