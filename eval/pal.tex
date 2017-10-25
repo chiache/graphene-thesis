@@ -103,13 +103,13 @@ is caused by redirecting \syscall{open} \linuxapis{} through \syscall{ioctl}, an
 \footnotesize
 \begin{minipage}{.49\linewidth}
 \centering
-\includegraphics[width=24em]{pal-open-latency}\\
+\includegraphics[width=24em]{pal/open-latency}\\
 {\bf (a) Linux vs. Linux PAL}
 \vspace{6pt}
 \end{minipage}
 \begin{minipage}{.49\linewidth}
 \centering
-\includegraphics[width=24em]{sgx-open-latency}\\
+\includegraphics[width=24em]{pal/sgx-open-latency}\\
 {\bf (b) Linux vs. Linux PAL vs. SGX PAL}
 \vspace{6pt}
 \end{minipage}
@@ -145,13 +145,13 @@ For a 4MB file, the latency of \palcall{StreamOpen} can be up to \roughly{}30 \m
 \footnotesize
 \begin{minipage}{.49\linewidth}
 \centering
-\includegraphics[width=24em]{pal-read-latency}\\
+\includegraphics[width=24em]{pal/read-latency}\\
 {\bf (a) Sequential read}
 \vspace{6pt}
 \end{minipage}
 \begin{minipage}{.49\linewidth}
 \centering
-\includegraphics[width=24em]{pal-write-latency}\\
+\includegraphics[width=24em]{pal/write-latency}\\
 {\bf (b) Sequential write}
 \vspace{6pt}
 \end{minipage}
@@ -166,13 +166,13 @@ and reference monitor ({\bf +RM}).}
 \footnotesize
 \begin{minipage}{.49\linewidth}
 \centering
-\includegraphics[width=24em]{sgx-read-latency}\\
+\includegraphics[width=24em]{pal/sgx-read-latency}\\
 {\bf (a) Sequential read}
 \vspace{6pt}
 \end{minipage}
 \begin{minipage}{.49\linewidth}
 \centering
-\includegraphics[width=24em]{sgx-write-latency}\\
+\includegraphics[width=24em]{pal/sgx-write-latency}\\
 {\bf (b) Sequential write}
 \vspace{6pt}
 \end{minipage}
@@ -247,13 +247,13 @@ Without using cryptographic techniques to protect the contents of network stream
 \footnotesize
 \begin{minipage}{.56\linewidth}
 \centering
-\includegraphics[width=27.2em]{tcp-udp-latency}\\
+\includegraphics[width=27.2em]{pal/tcp-udp-latency}\\
 {\bf (a) Latency (\usec{})}
 \vspace{6pt}
 \end{minipage}
 \begin{minipage}{.42\linewidth}
 \centering
-\includegraphics[width=20.4em]{tcp-bandwidth}\\
+\includegraphics[width=20.4em]{pal/tcp-bandwidth}\\
 {\bf (b) Bandwidth (MB/s)}
 \vspace{6pt}
 \end{minipage}
@@ -301,13 +301,13 @@ and the experiment is left for future work.
 \footnotesize
 \begin{minipage}{.49\linewidth}
 \centering
-\includegraphics[width=24em]{pipe-latency}\\
+\includegraphics[width=24em]{pal/pipe-latency}\\
 {\bf (a) Latency (\usec{})}
 \vspace{6pt}
 \end{minipage}
 \begin{minipage}{.49\linewidth}
 \centering
-\includegraphics[width=24em]{pipe-bandwidth}\\
+\includegraphics[width=24em]{pal/pipe-bandwidth}\\
 {\bf (b) Bandwidth (MB/s)}
 \vspace{6pt}
 \end{minipage}
@@ -398,13 +398,13 @@ the overhead can be up to 3--9.5$\times$, and is proportional to the size of mem
 \footnotesize
 \begin{minipage}{.49\linewidth}
 \centering
-\includegraphics[width=24em]{mmap-latency}\\
+\includegraphics[width=24em]{pal/mmap-latency}\\
 {\bf (a) allocation + deallocation}
 \vspace{6pt}
 \end{minipage}
 \begin{minipage}{.49\linewidth}
 \centering
-\includegraphics[width=24em]{mmap-access-latency}\\
+\includegraphics[width=24em]{pal/mmap-access-latency}\\
 {\bf (b) allocation + memory access + deallocation}
 \vspace{6pt}
 \end{minipage}
@@ -421,7 +421,7 @@ with a native Linux process
 for creating virtual memory mappings, paging and memory access.
 On the other hand, despite that the SGX PAL manages all the enclave pages
 inside the enclave,
-the SGX PAL suffers a larger overhead for paging and accessing memory that is not in the last-level cache.
+the SGX PAL suffers a larger overhead for paging and bringing memory into the last-level cache.
 
 
 
@@ -430,14 +430,54 @@ the SGX PAL suffers a larger overhead for paging and accessing memory that is no
 
 
 
+\begin{figure*}[t!]
+\centering
+\footnotesize
+\begin{minipage}{.44\linewidth}
+\centering
+\includegraphics[width=24em]{pal/thread-latency}\\
+{\bf (a) thread creation}
+\vspace{6pt}
+\end{minipage}
+\begin{minipage}{.54\linewidth}
+\centering
+\includegraphics[width=25em]{pal/tcp-select-latency}\\
+{\bf (b) polling TCP sockets}
+\vspace{6pt}
+\end{minipage}
+\caption{Latency of allocating and deallocating memory mappings, using either \syscall{mmap} and \syscall{munmap} on Linux, or \palcall{VirtMemAlloc} and \palcall{VritMemFree} on the Linux and SGX PALs.
+(a) shows the combined latency of allocation and deallocation, whereas (b) includes the latency of zeroing memory pages.
+%which triggers the host kernel to populate the physical pages. 
+The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hostapis{} on a Linux PAL, with the options of enabling the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \hostapis{} in an enclave. No shielding mechanism is needed.}
+\label{fig:eval:pal:thread-select-latency}
+\end{figure*}
 
 
 
 
 
 
-
-
+\begin{figure*}[t!]
+\centering
+\footnotesize
+\begin{minipage}{.49\linewidth}
+\centering
+\includegraphics[width=24em]{pal/event-latency}\\
+{\bf (a) allocation + deallocation}
+\vspace{6pt}
+\end{minipage}
+\begin{minipage}{.49\linewidth}
+\centering
+\includegraphics[width=24em]{pal/mutex-latency}\\
+{\bf (b) allocation + memory access + deallocation}
+\vspace{6pt}
+\end{minipage}
+\caption{Latency of allocating and deallocating memory mappings, using either \syscall{mmap} and \syscall{munmap} on Linux, or \palcall{VirtMemAlloc} and \palcall{VritMemFree} on the Linux and SGX PALs.
+(a) shows the combined latency of allocation and deallocation, whereas (b) includes the latency of zeroing memory pages.
+%which triggers the host kernel to populate the physical pages. 
+The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hostapis{} on a Linux PAL, with the options of enabling the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \hostapis{} in an enclave. No shielding mechanism is needed.}
+\label{fig:eval:pal:mmap-latency}
+\end{figure*}
 
 
 
