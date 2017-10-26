@@ -113,6 +113,7 @@ The evaluation focuses on \hostapis{} that are especially sensitive for the perf
 
 
 \subsection{Stream I/O}
+\label{sec:eval:pal:stream}
 
 This section separate the evaluation of stream I/O in \thehostabi{} into 
 %The \hostapis{} for stream I/O can be separated into 
@@ -384,8 +385,8 @@ for comparison.
 For the Linux PAL, the latency and bandwidth of a RPC stream is
 close to a UNIX domain socket, due to the choice of underlying implementation.
 Note that the evaluation results are specific to latest Linux kernels, especially kernels after 4.2,
-which introduce a zero-copy UNIX network socket design. 
-Both the \seccomp{} filter and reference monitor have marginal overhead on latency and bandwidth.
+which introduce a zero-copy UNIX network socket design (see Section~\ref{sec:eval:pal:multi-proc}). 
+Both the \seccomp{} filter and reference monitor introduce marginal overheads (less than 5\%) to RPC latency and bandwidth.
 
 
 For the SGX PAL,
@@ -472,6 +473,7 @@ or \roughly{}20 $\times$ overhead on bandwidth when sending large messages.
 
 
 \subsection{Page management}
+\label{sec:eval:pal:memory}
 
 
 Figure~\ref{fig:eval:pal:mmap-latency} (a)
@@ -527,6 +529,7 @@ the SGX PAL suffers a larger overhead for paging and bringing memory into the la
 
 
 \subsection{Scheduling}
+\label{sec:eval:pal:sched}
 
 
 
@@ -577,7 +580,7 @@ The comparison is between (1) pthread condition variables and mutexes on Linux; 
 
 
 \subsection{Multi-process abstractions}
-
+\label{sec:eval:pal:multi-proc}
 
 \begin{figure*}[t!]
 \centering
