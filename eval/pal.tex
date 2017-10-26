@@ -1,45 +1,84 @@
-\section{\hostapi{} efficiency}
+\section{\Thehostabi{} efficiency}
 
 
-The efficiency of \hostapis{} directly impacts the performance of \graphene{} on each host.
-A large portion of \linuxapis{} inside \thelibos{} require resources or abstractions from the host OS.
-Since \thehostabi{} is the only interface for requesting host OS features,
-the definition of \thehostabi{}
-restricts the options for a \picoproc{} to optimize its own performance, according to the application's performance patterns.
-Although each PAL may optimize individual \hostapi{} for general circumstances,
-all applications must share the same PAL ABI and thus tolerate the same overheads of exporting these \hostapis{} on each host.
+%The efficiency of \hostapis{} directly impacts the performance of \graphene{} on each host.
+%A large portion of \linuxapis{} inside \thelibos{} require resources or abstractions from the host OS.
+%Since \thehostabi{} is the only interface for requesting host OS features,
+%the definition of \thehostabi{}
+%restricts the options for a \picoproc{} to optimize its own performance, according to the application's performance patterns.
+%Although each PAL may optimize individual \hostapi{} for general circumstances,
+%all applications must share the same PAL ABI and thus tolerate the same overheads of exporting these \hostapis{} on each host.
 
 
 
+The section evaluates the efficiency of \thehostabi{} in comparison with
+the underlying host system interfaces.
+The implementation of \thehostabi{} is independent
+for each host where \graphene{} is ported,
+and therefore shows different
+performance patterns on each PAL.
+Upon a certain host, the base latency of a \hostapi{} is mostly determined by the host \linuxapis{} or abstractions
+chosen to implement such \hostapi{}.
+%Three primary factors determine the efficiency of \hostapis{}.
+%First, especially on Linux or other monolithic OS,
+%most of \thehostabi{} are directly translated to similar \linuxapis{}.
+%The efficiency of these \hostapis{}
+%are dominated by the basic cost of the host system interface,
+%and the performance of corresponding \linuxapis{}.
+For instance, on a Linux host, the latency of \palcall{StreamRead} is comparable to the latency of \syscall{read},
+since the former is essentially
+a wrapper of the latter.
+If a \picoproc{} runs inside an SGX enclave,
+the latency of \palcall{StreamRead} is approximately the same as the turnaround time of exiting the enclave,
+invoking a \syscall{read} \linuxapi{}, and returning the contents back to the enclave.
+The latency on the SGX PAL is then mostly dominated by the overheads
+of switching the context between the enclave
+and the untrusted, external PAL using SGX instructions,
+and bringing memory into the EPC (enclave page cache).
+% or decrypting memory on a last-level cache miss.
 
-Three primary factors determine the efficiency of \hostapis{}.
-First, especially on Linux or other monolithic OS,
-most of \thehostabi{} are directly translated to similar \linuxapis{}.
-The efficiency of these \hostapis{}
-are dominated by the basic cost of the host system interface,
-and the performance of corresponding \linuxapis{}.
-For instance, on a Linux host, \palcall{StreamRead} is directly translated to \syscall{pread}, and thus might show similar latency as the \linuxapi{} without further security checks. 
-If \graphene{} runs inside an SGX enclave,
-the \hostapis{} is further panelized with additional overheads that contribute to exiting the enclave for host system calls, and bringing memory into the EPC (enclave page cache) or decrypting 
-memory on a last-level cache miss.
+
+In theory, the design of \thehostabi{}
+is meant to minimizing the overheads of translation to most host system interfaces.
+Since most \hostapis{} are just wrappers
+of the underlying \linuxapis{},
+the translation cost is mostly reduced to simply replacing the generic identifiers and control flags
+to the semantics that are recognized by the host OS.
+A common operation
+for the translation is to scan a URI (unified resource identifier), such as file or network URI,
+and compose a equivalent file system path or network address
+for the host OS.
+%The second factor is the translation cost
+%of the \hostapis{}.
+%For portability, \thehostabi{} is defined with generic semantics, without host-specific notions
+%such as process identifiers, file descriptors,
+%file system paths,
+%and \linuxapi{} flags.
+%The PAL must translate the arguments of \hostapis{}, including PAL handles, URIs (Uniform Resource Identifiers), and generic flags,
+%to the arguments interpretable by the host kernel.
+These translation costs
+are relatively marginal and deterministic, compared to the overall latency of a \hostapi{},
+because the translation is mostly straightforward,
+and only requires simply logics
+and little memory copy.
+Without extra security checks,
+a \hostapi{} is more likely to suffer high overheads if the implementation
+requires additional \linuxapis{} for complementary operations
+to the base abstraction,
+or constantly retrying a \linuxapis{} at failures.
 
 
-The second factor is the translation cost
-of the \hostapis{}.
-For portability, \thehostabi{} is defined with generic semantics, without host-specific notions
-such as process identifiers, file descriptors,
-file system paths,
-and \linuxapi{} flags.
-The PAL must translate the arguments of \hostapis{}, including PAL handles, URIs (Uniform Resource Identifiers), and generic flags,
-to the arguments interpretable by the host kernel.
- 
 
-
-Finally, the third factor that impacts the PAL call efficiency
-is the cost of security checks,
-either inside the host kernel or the guest.
-The cost of security checks varies between hosts, and is correlated with the presumed security models.
-On a regular Linux host, the security model
+More significant overheads
+on a number of \hostapis{} contribute to security checks or enforcements,
+for ensuring the safety of running an application
+within the threat model
+of a host.
+%Finally, the third factor that impacts the PAL call efficiency
+%is the cost of security checks,
+%either inside the host kernel or the guest.
+%The cost of security checks varies between hosts, and is correlated with the presumed security models.
+On a Linux host, the security model
 focuses on isolating mutually-untrusting applications,
 therefore requires checking
 the \hostapis{} in the Linux kernel,
@@ -51,52 +90,79 @@ protects the application and \libos{} from an untrusted OS,
 and thus focus on validating the results of \linuxapis{},
 using either cryptographic techniques or semantic checks.
 Cryptographic techniques are used to: (1) validate the file against the secure hash, at \palcall{StreamOpen}, (2) check the file chunks against a Merkle tree of hash values, at \palcall{StreamRead}, and (3) establish a TLS connection over inter-enclave RPC, at \palcall{ProcessCreate}.
-The evaluation shows
-that the cost of security checks
-may dominate the latency of \hostapis{} on a host like SGX. 
+For the SGX PAL,
+the latency of a \hostapi{} can be dominated
+by the cost of cryptographic operations,
+on large chunks of data exported to the untrusted OS.
 
 
-This section evaluates the efficiency of \hostapis{} on both Linux and SGX hosts, and shows the impact of each performance factor.
-The evaluation is based on micro-benchmark programs similar to \lmbench{} 2.5~\cite{McVoy:lmbench},
-and is compared against
-similar \linuxapis{} on Linux.
+The evaluation in this section is based on running micro-benchmark programs, similar to \lmbench{} 2.5~\cite{McVoy:lmbench}, on both the Linux and SGX PAL,
+and running an extended version of \lmbench{}
+on the Linux kernel.
+The Linux kernel version is \linuxversion{} unless emphasized otherwise.
+For each \hostapis{}, the evaluation also shows the breakdowns
+of its latency or throughput,
+by benchmarking the PALs both with and without the security mechanisms, such as the \seccomp{} filter and reference monitor on the Linux PAL,
+as well as testing under different
+implementation strategies.
+The evaluation focuses on \hostapis{} that are especially sensitive for the performance of the \graphene{} \libos{}.
+
+
+% the efficiency of \hostapis{} on both Linux and SGX hosts, and shows the impact of each performance factor.
+%The evaluation is based on micro-benchmark programs similar to \lmbench{} 2.5~\cite{McVoy:lmbench},
+%and is compared against
+%similar \linuxapis{} on Linux.
 
 
 
 \subsection{Stream I/O}
 
+This section separate the evaluation of stream I/O in \thehostabi{} into 
+%The \hostapis{} for stream I/O can be separated into 
+two categories:
+(1) file system operations and (2) I/O operations on a network socket or a RPC stream.
+The evaluation for file system operations
+primarily measures
+the latency of retrieving file metadata from the storage or a host kernel file system directory cache,
+as well as the latency of sequential reads or writes
+inside a regular file.
+%access a UNIX-style, hierarchical, host file system,
+%with either random access to file contents,
+%or access to file attributes (metadata).
+The evaluation for other I/O streams, such as a network socket or a RPC stream,
+then focuses on measuring the latency or bandwidth
+of sending and receiving messages 
+across \picoprocs{} or applications.
 
-The \hostapis{} for stream I/O can be separated into two types of operations:
-file system operations and I/O operations on a network socket or a RPC stream.
-The file system operations
-access a UNIX-style, hierarchical, host file system,
-with either random access to file contents,
-or access to file attributes (metadata).
-The I/O operations on a network socket or a RPC stream
-allow sending and receiving sequential messages over a network address or a local, in-kernel queue.
-Due to the difference in the nature of these operations,
-the evaluation separates
-file access from network or RPC workloads.
+%over a network address or a local, in-kernel queue.
+%Due to the difference in the nature of these operations,
+%the evaluation separates
+%file access from network or RPC workloads.
+
+
 
 
 
 
 \paragraph{Opening a file.}
-Figure~\ref{fig:eval:pal:open-latency} (a) shows the latency of \palcall{StreamOpen} on a Linux PAL, versus the latency of \syscall{open} \linuxapis{} in a native Linux process.
-The latency of \syscall{open} \linuxapis{} on Linux is correlated with
-the lengths and depths of opened file paths,
-due to the design of file system directory cache
-in the Linux kernel~\cite{tsai15dcache}.
-The Linux kernel searches the metadata of a file path queried by \syscall{open} or \syscall{stat}, by looking up the path components (i.e., directory names separated by the common slash character)
-inside the file system directory cache.
-Because the Linux PAL only implements \palcall{StreamOpen} using \syscall{open}, the latency of \palcall{StreamOpen} is similar to \syscall{open} with a small overhead around 6--10\% for
-scanning the file URI and translating other \linuxapi{} arguments.
-The SECCOMP filter adds an extra 7-10\% overheads to the latency of \palcall{StreamOpen}. Finally, if the reference monitor is enabled, the reference monitor adds an extra 14-21\% overheads, roughly correlated with the length of opened path.
-The overhead of the reference monitor
-is caused by redirecting \syscall{open} \linuxapis{} through \syscall{ioctl}, and comparing the path with file access rules specified in the manifest.  
-
-
-
+The evaluation shows the latency of identifying a file inside the storage and attaching the file resources to the running application. 
+Figure~\ref{fig:eval:pal:open-latency} (a) and (b) shows the latency of \palcall{StreamOpen} on the Linux and SGX PALs,
+in comparison with \syscall{open} in a native Linux process.
+Because the micro-benchmark
+(based on \lmbench{})
+primarily measures the latency of repeatedly opening the same file, the results are subject to the cost of
+the file system directory cache inside the host kernel,
+without almost no cache misses.
+\citeauthor{tsai15dcache}~\cite{tsai15dcache}
+shows that, with a warm cache,
+the latency of a file-searching \linuxapi{} on Linux,
+such \syscall{open} or \syscall{stat}. 
+is correlated with
+lengths and depths of the requested paths,
+because the lookup functions of the current file system directory cache design
+are based on searching each path components
+(i.e., directory names separated by the common slash character)
+inside a hash table.
 
 \begin{figure*}[t!]
 \centering
@@ -118,12 +184,33 @@ against the Linux PAL and \syscall{open} on Linux.}
 \label{fig:eval:pal:open-latency}
 \end{figure*}
 
+Figure~\ref{fig:eval:pal:open-latency} (a)
+shows a similar pattern for \palcall{StreamOpen}
+on the Linux PAL,
+because \syscall{open} is used as the underlying host \linuxapi{}. %of \palcall{StreamOpen}.
+The translation cost between \palcall{StreamOpen} and \syscall{open} is merely 6--10\%,
+primary caused by scanning the file URIs and translating
+the control flags of \palcall{StreamOpen}
+to Linux \linuxapi{} flags.
+The \seccomp{} filter adds 7-10\% overheads, or \roughly{}0.9 \usec{}, to the latency of \palcall{StreamOpen}. Finally, if the reference monitor is enabled, the reference monitor adds an extra 14-21\% overheads, and the overheads are roughly correlated with the length of requested paths.
+The overhead of the reference monitor
+is caused by redirecting \syscall{open} \linuxapis{} through \syscall{ioctl}, and checking the paths against the file access rules written inside the manifest of the running application.  
+
+
+
+
+
+
+
+
+
+
+
 
 Figure~\ref{fig:eval:pal:open-latency} (b) shows the latency of \palcall{StreamOpen} inside of an SGX enclave, versus the latency of 
 \palcall{StreamOpen} and \syscall{open} on Linux.
 Without security checks to shield an enclave from the OS,
-the latency of \palcall{StreamOpen} is dominated by the overhead of exiting the enclave and copying the argument out of the enclave,
-for accessing the host \linuxapis{}.
+the latency of \palcall{StreamOpen} is dominated by the overhead of exiting the enclave and copying the argument, such as the file paths, out of the enclave.
 The overheads of unshielded \palcall{StreamOpen} is 4.7--5.5$\times$, or \roughly{}5 \usec{}.
 If a file is shielded with integrity protection,
 \palcall{StreamOpen} will verify the checksum of the whole file against the manifest, and generate a Merkel Tree of file chunk hashes
@@ -135,6 +222,26 @@ For a 4MB file, the latency of \palcall{StreamOpen} can be up to \roughly{}30 \m
 
 
 
+
+
+
+
+
+\paragraph{File reads and writes.}
+Figure~\ref{fig:eval:pal:read-write-latency} (a) and (b) show the latency of sequential reads and writes within a 4MB file, using either Linux \linuxapis{} (\syscall{read} and \syscall{write})
+or \hostapis{} (\palcall{StreamRead} and \palcall{StreamWrite}).
+In general, the latency of sequential \syscall{read} and \syscall{write}
+\linuxapis{} on Linux
+is roughly proportional to the read and write size on the file,
+especially for sizes larger than 4KB, and the latency of sequential writes can be up to twice of the latency of sequential reads by the same size. 
+The Linux PAL exports \palcall{StreamRead} and \palcall{StreamWrite}
+without significant overheads
+for the translation to \syscall{read} or \syscall{write} \linuxapis{}.
+The SECCOMP filter adds a fixed overhead around 0.06--0.09 \msec{} to the latency of \palcall{StreamRead} and \palcall{StreamWrite}.
+Enabling the reference monitor has nearly no impact to the sequential read and write latency,
+since the reference monitor only checks against the file access rules
+when opening the file.
+ 
 
 
 \begin{figure*}[t!]
@@ -156,41 +263,9 @@ and reference monitor ({\bf +RM}), against \syscall{read} and \syscall{write} on
 \label{fig:eval:pal:read-write-latency}
 \end{figure*}
 
-\begin{figure*}[t!]
-\centering
-\footnotesize
-\resizebox{\textwidth}{!}{%
-\includegraphics[height=10em]{pal/sgx-read-latency}
-\quad
-\includegraphics[height=10em]{pal/sgx-write-latency}
-}
-\parbox{0.49\textwidth}{\centering\bf (a) Sequential read}
-\parbox{0.49\textwidth}{\centering\bf (b) Sequential write}
-\caption{Latency of sequential \palcall{StreamRead} and \palcall{StreamWrite} on the SGX PAL,
-versus the Linux PAL and Linux.
-Lower is better.
-Figure (a) and (b) respectively compares \palcall{StreamRead} and \palcall{StreamWrite} on the SGX PAL,
-with and without integrity checks ({\bf +CHK})
-and reference monitor ({\bf +RM}), against the Linux PAL and \syscall{read} and \syscall{write} on Linux. The current design does not support integrity checks for \palcall{StreamWrite}.}
-\label{fig:eval:pal:sgx-read-write-latency}
-\end{figure*}
 
 
-\paragraph{File reads and writes.}
-Figure~\ref{fig:eval:pal:read-write-latency} (a) and (b) show the latency of sequential reads and writes within a 4MB file, using either Linux \linuxapis{} (\syscall{read} and \syscall{write})
-or \hostapis{} (\palcall{StreamRead} and \palcall{StreamWrite}).
-In general, the latency of sequential \syscall{read} and \syscall{write}
-\linuxapis{} on Linux
-is roughly proportional to the read and write size on the file,
-especially for sizes larger than 4KB, and the latency of sequential writes can be up to twice of the latency of sequential reads by the same size. 
-The Linux PAL exports \palcall{StreamRead} and \palcall{StreamWrite}
-without significant overheads
-for the translation to \syscall{read} or \syscall{write} \linuxapis{}.
-The SECCOMP filter adds a fixed overhead around 0.06--0.09 \msec{} to the latency of \palcall{StreamRead} and \palcall{StreamWrite}.
-Enabling the reference monitor has nearly no impact to the sequential read and write latency,
-since the reference monitor only checks against the file access rules
-when opening the file.
- 
+
 
 On the SGX PAL, the cryptographic operations for verifying the inputs from the untrusted OS contribute
 to a major portion of the latency of \palcall{StreamRead}, similar to  \palcall{StreamOpen}. 
@@ -210,6 +285,26 @@ by hashing each 16KB block.
 As a result, the latency of \palcall{StreamRead} with integrity checks is constant when the read size is smaller than 16KB, and is proportional to the number of 16KB chunks required at \palcall{StreamRead}.
 The integrity protection for contents written to a host file is not yet implemented in \graphenesgx{}.
 
+
+
+\begin{figure*}[t!]
+\centering
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\includegraphics[height=10em]{pal/sgx-read-latency}
+\quad
+\includegraphics[height=10em]{pal/sgx-write-latency}
+}
+\parbox{0.49\textwidth}{\centering\bf (a) Sequential read}
+\parbox{0.49\textwidth}{\centering\bf (b) Sequential write}
+\caption{Latency of sequential \palcall{StreamRead} and \palcall{StreamWrite} on the SGX PAL,
+versus the Linux PAL and Linux.
+Lower is better.
+Figure (a) and (b) respectively compares \palcall{StreamRead} and \palcall{StreamWrite} on the SGX PAL,
+with and without integrity checks ({\bf +CHK})
+and reference monitor ({\bf +RM}), against the Linux PAL and \syscall{read} and \syscall{write} on Linux. The current design does not support integrity checks for \palcall{StreamWrite}.}
+\label{fig:eval:pal:sgx-read-write-latency}
+\end{figure*}
 
 
 
@@ -247,7 +342,7 @@ Without using cryptographic techniques to protect the contents of network stream
 \parbox{0.49\textwidth}{\centering\bf (a) Latency ({\usec})}
 \parbox{0.24\textwidth}{\centering\bf (b) Bandwidth (MB/\asec{})}
 \caption{(a) Latency of sending a short message over TCP and UDP sockets (lower is better), and (b) bandwidth of sending large data over TCP (higher is better).
-The comparison is between (1) \syscall{recv} and \syscall{send} on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on a Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \palcall{StreamRead} and \palcall{StreamWrite} on SGX PAL, without protection.}
+The comparison is between (1) \syscall{recv} and \syscall{send} on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on a Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, without data protection.}
 \label{fig:eval:pal:network-latency-bandwidth}
 \end{figure*}
 
@@ -296,7 +391,7 @@ and the experiment is left for future work.
 \parbox{0.34\textwidth}{\centering\bf (a) Latency ({\usec})}
 \parbox{0.34\textwidth}{\centering\bf (b) Bandwidth (MB/\asec{})}
 \caption{(a) Latency of sending a short message over RPC (lower is better), and (b) bandwidth of sending large data (higher is better).
-The comparison is between (1) \syscall{read} and \syscall{write} over a pipe or an AF\_UNIX socket on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the SGX PAL, with and without data protection ({\bf +CHK}).}
+The comparison is between (1) \syscall{read} and \syscall{write} over a pipe or an AF\_UNIX socket on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, with and without data protection ({\bf +CHK}).}
 \label{fig:eval:pal:pipe-latency-bandwidth}
 \end{figure*}
 
@@ -386,10 +481,8 @@ the overhead can be up to 3--9.5$\times$, and is proportional to the size of mem
 }
 \parbox{0.49\textwidth}{\centering\bf (a) allocation + deallocation}
 \parbox{0.49\textwidth}{\centering\bf (b) allocation + memory access + deallocation}
-\caption{Latency of allocating and deallocating memory mappings, using either \syscall{mmap} and \syscall{munmap} on Linux, or \palcall{VirtMemAlloc} and \palcall{VritMemFree} on the Linux and SGX PALs.
-(a) shows the combined latency of allocation and deallocation, whereas (b) includes the latency of zeroing memory pages.
-%which triggers the host kernel to populate the physical pages. 
-The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hostapis{} on a Linux PAL, with the options of enabling the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \hostapis{} in an enclave. No shielding mechanism is needed.}
+\caption{Latency of (a) allocating and deallocating a range of virtual pages, and (b) the same operations with writing to each page after allocation. Lower is better.
+The comparison is between (1) \syscall{mmap} and \syscall{munmap} on Linux; (2) \palcall{VirtMemAlloc} and \palcall{VirtMemFree} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, with and without zeroing the pages before use ({\bf +Zero}).}
 \label{fig:eval:pal:mmap-latency}
 \end{figure*}
 
@@ -420,7 +513,7 @@ the SGX PAL suffers a larger overhead for paging and bringing memory into the la
 \parbox{0.49\textwidth}{\centering\bf (b) polling N TCP sockets}
 \caption{(a) Thread creation latency and (b) latency of polling a number of TCP sockets.
 Lower is better.
-The comparison is between (1) \syscall{clone} and \syscall{select} on Linux; (2) \palcall{ThreadCreate} and \palcall{ObjectsWaitAny} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the SGX PAL.}
+The comparison is between (1) \syscall{clone} and \syscall{select} on Linux; (2) \palcall{ThreadCreate} and \palcall{ObjectsWaitAny} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL.}
 \label{fig:eval:pal:thread-select-latency}
 \end{figure*}
 
@@ -443,9 +536,9 @@ The comparison is between (1) \syscall{clone} and \syscall{select} on Linux; (2)
 }
 \parbox{0.49\textwidth}{\centering\bf (a) signal an event}
 \parbox{0.49\textwidth}{\centering\bf (b) competing a mutex among N threads}
-\caption{The latency of (a) signal an event and (b) competing a mutex among N threads (N is 1 to 8).
+\caption{Latency of (a) signaling an event and (b) competing a mutex among N threads (N: 1 to 8).
 Lower is better.
-The comparison is between (1) pthread condition variables and mutexes on Linux; (2) Notification events and mutexes on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the SGX PAL.}
+The comparison is between (1) pthread condition variables and mutexes on Linux; (2) Notification events and mutexes on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same abstractions on the SGX PAL.}
 \label{fig:eval:pal:sched-latency}
 \end{figure*}
 
@@ -464,13 +557,11 @@ The comparison is between (1) pthread condition variables and mutexes on Linux; 
 \includegraphics[height=10em]{pal/proc-latency}
 \includegraphics[height=10em]{pal/sgx-proc-latency}
 }
-\parbox{0.59\textwidth}{\centering\bf (a) process creation}
-\parbox{0.39\textwidth}{\centering\bf (b) SGX enclave creation}
-\caption{Latency of allocating and deallocating memory mappings, using either \syscall{mmap} and \syscall{munmap} on Linux, or \palcall{VirtMemAlloc} and \palcall{VritMemFree} on the Linux and SGX PALs.
-(a) shows the combined latency of allocation and deallocation, whereas (b) includes the latency of zeroing memory pages.
-%which triggers the host kernel to populate the physical pages. 
-The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hostapis{} on a Linux PAL, with the options of enabling the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \hostapis{} in an enclave. No shielding mechanism is needed.}
-\label{fig:eval:pal:sched-latency}
+\parbox{0.59\textwidth}{\centering\bf (a) process creation+exit}
+\parbox{0.39\textwidth}{\centering\bf (b) SGX enclave creation+termination}
+\caption{Latency of creating (a) a clean process on the Linux PAL, and (b) an enclave on the SGX PAL, in respect of different enclave sizes.
+The comparison is between (1) a combination of \syscall{vfork} and \syscall{exec}'ing a minimal static program on Linux; (2) \palcall{ProcessCreate} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapi{} on the SGX PAL.}
+\label{fig:eval:pal:proc-latency}
 \end{figure*}
 
 \paragraph{Process creation.}
@@ -482,11 +573,9 @@ The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hosta
 \centering
 \footnotesize
 \includegraphics[width=.85\textwidth]{pal/gipc-bandwidth}
-\caption{Latency of allocating and deallocating memory mappings, using either \syscall{mmap} and \syscall{munmap} on Linux, or \palcall{VirtMemAlloc} and \palcall{VritMemFree} on the Linux and SGX PALs.
-(a) shows the combined latency of allocation and deallocation, whereas (b) includes the latency of zeroing memory pages.
-%which triggers the host kernel to populate the physical pages. 
-The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hostapis{} on a Linux PAL, with the options of enabling the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \hostapis{} in an enclave. No shielding mechanism is needed.}
-\label{fig:eval:pal:sched-latency}
+\caption{Bandwidth of sending large messages over (a) RPC streams and (b) Bulk IPC channels. The messages are sent in different sizes (1MB to 256MB), and either aligned or unaligned with the page boundary.
+Higher is better. Both abstractions are benchmarked on Linux kernel 3.19 and 4.10 as the hosts. The impact of the SECCOMP filter or reference monitor is marginal (less than 1\%).}
+\label{fig:eval:pal:gipc-bandwidth}
 \end{figure*}
 
 
@@ -505,9 +594,7 @@ The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hosta
 \includegraphics[height=10em]{pal/sig-install-latency}
 \includegraphics[height=10em]{pal/sig-catch-latency}
 }
-\caption{Latency of allocating and deallocating memory mappings, using either \syscall{mmap} and \syscall{munmap} on Linux, or \palcall{VirtMemAlloc} and \palcall{VritMemFree} on the Linux and SGX PALs.
-(a) shows the combined latency of allocation and deallocation, whereas (b) includes the latency of zeroing memory pages.
-%which triggers the host kernel to populate the physical pages. 
-The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hostapis{} on a Linux PAL, with the options of enabling the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \hostapis{} in an enclave. No shielding mechanism is needed.}
-\label{fig:eval:pal:sched-latency}
+\caption{Latency of (a) installing an exception handler; (b)
+interrupting a running thread with signals (on Linux) or \palcall{ThreadInterrupt} on the PALs; (c) catching a memory protection fault. Lower is better. The comparison is between (1) signals on Linux; (2) the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the SGX PAL.}
+\label{fig:eval:pal:sig-latency}
 \end{figure*}
