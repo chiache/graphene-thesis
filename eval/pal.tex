@@ -418,10 +418,9 @@ the SGX PAL suffers a larger overhead for paging and bringing memory into the la
 }
 \parbox{0.49\textwidth}{\centering\bf (a) thread creation}
 \parbox{0.49\textwidth}{\centering\bf (b) polling N TCP sockets}
-\caption{Latency of allocating and deallocating memory mappings, using either \syscall{mmap} and \syscall{munmap} on Linux, or \palcall{VirtMemAlloc} and \palcall{VritMemFree} on the Linux and SGX PALs.
-(a) shows the combined latency of allocation and deallocation, whereas (b) includes the latency of zeroing memory pages.
-%which triggers the host kernel to populate the physical pages. 
-The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hostapis{} on a Linux PAL, with the options of enabling the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \hostapis{} in an enclave. No shielding mechanism is needed.}
+\caption{(a) Thread creation latency and (b) latency of polling a number of TCP sockets.
+Lower is better.
+The comparison is between (1) \syscall{clone} and \syscall{select} on Linux; (2) \palcall{ThreadCreate} and \palcall{ObjectsWaitAny} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the SGX PAL.}
 \label{fig:eval:pal:thread-select-latency}
 \end{figure*}
 
@@ -442,11 +441,11 @@ The comparison is between (1) \linuxapis{} in a native Linux process; (2) \hosta
 \includegraphics[height=10em]{pal/event-latency}
 \includegraphics[height=10em]{pal/mutex-latency}
 }
-\parbox{0.49\textwidth}{\centering\bf (a) event wait+signal}
+\parbox{0.49\textwidth}{\centering\bf (a) signal an event}
 \parbox{0.49\textwidth}{\centering\bf (b) competing a mutex among N threads}
-\caption{(a) Thread creation latency and (b) latency of polling a number of TCP sockets.
+\caption{The latency of (a) signal an event and (b) competing a mutex among N threads (N is 1 to 8).
 Lower is better.
-The comparison is between (1) \syscall{clone} and \syscall{select} on Linux; (2) \palcall{ThreadCreate} and \palcall{ObjectsWaitAny} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the SGX PAL.}
+The comparison is between (1) pthread condition variables and mutexes on Linux; (2) Notification events and mutexes on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the SGX PAL.}
 \label{fig:eval:pal:sched-latency}
 \end{figure*}
 
