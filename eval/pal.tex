@@ -83,7 +83,7 @@ focuses on isolating mutually-untrusting applications,
 therefore requires checking
 the \hostapis{} in the Linux kernel,
 to restrict the sharing of host resources and unpermitted system interfaces,
-using both the reference monitor and SECCOMP filter.
+using both the reference monitor and \seccomp{} filter.
 Inside an SGX enclave, the security checks
 for the \hostapis{}
 protects the application and \libos{} from an untrusted OS,
@@ -96,10 +96,7 @@ by the cost of cryptographic operations,
 on large chunks of data exported to the untrusted OS.
 
 
-The evaluation in this section is based on running micro-benchmark programs, similar to \lmbench{} 2.5~\cite{McVoy:lmbench}, on both the Linux and SGX PAL,
-and running an extended version of \lmbench{}
-on the Linux kernel.
-The Linux kernel version is \linuxversion{} unless emphasized otherwise.
+The evaluation in this section is based on micro-benchmark programs similar to \lmbench{} 2.5~\cite{McVoy:lmbench}.
 For each \hostapis{}, the evaluation also shows the breakdowns
 of its latency or throughput,
 by benchmarking the PALs both with and without the security mechanisms, such as the \seccomp{} filter and reference monitor on the Linux PAL,
@@ -145,7 +142,7 @@ across \picoprocs{} or applications.
 
 
 \paragraph{Opening a file.}
-The evaluation shows the latency of identifying a file inside the storage and attaching the file resources to the running application. 
+The evaluation shows the latency of identifying a file inside the host storage and attaching the file resources to the running application. 
 Figure~\ref{fig:eval:pal:open-latency} (a) and (b) shows the latency of \palcall{StreamOpen} on the Linux and SGX PALs,
 in comparison with \syscall{open} in a native Linux process.
 Because the micro-benchmark
@@ -156,8 +153,8 @@ without almost no cache misses.
 \citeauthor{tsai15dcache}~\cite{tsai15dcache}
 shows that, with a warm cache,
 the latency of a file-searching \linuxapi{} on Linux,
-such \syscall{open} or \syscall{stat}. 
-is correlated with
+such \syscall{open} or \syscall{stat}, 
+is strictly correlated with
 lengths and depths of the requested paths,
 because the lookup functions of the current file system directory cache design
 are based on searching each path components
@@ -177,7 +174,7 @@ inside a hash table.
 \caption{Latency of \palcall{StreamOpen} on the Linux PAL  and SGX PAL, versus \syscall{open} on Linux.
 Lower is better.
 Figure (a) compares \palcall{StreamOpen} on the Linux PAL,
-with and without a SECCOMP filter ({\bf +SC})
+with and without a \seccomp{} filter ({\bf +SC})
 and reference monitor ({\bf +RM}), against \syscall{open} on Linux. Figure (b) compares \palcall{StreamOpen} on a SGX PAL,
 with and without integrity checks ({\bf +CHK}),
 against the Linux PAL and \syscall{open} on Linux.}
@@ -192,7 +189,7 @@ The translation cost between \palcall{StreamOpen} and \syscall{open} is merely 6
 primary caused by scanning the file URIs and translating
 the control flags of \palcall{StreamOpen}
 to Linux \linuxapi{} flags.
-The \seccomp{} filter adds 7-10\% overheads, or \roughly{}0.9 \usec{}, to the latency of \palcall{StreamOpen}. Finally, if the reference monitor is enabled, the reference monitor adds an extra 14-21\% overheads, and the overheads are roughly correlated with the length of requested paths.
+The \seccomp{} filter adds 7-10\% overheads, or \roughly{}0.9 \usec{}, to the latency of \palcall{StreamOpen}, with JIT (Just-in-time) optimization. Finally, if the reference monitor is enabled, the reference monitor adds an extra 14-21\% overheads, and the overheads are roughly correlated with the length of requested paths.
 The overhead of the reference monitor
 is caused by redirecting \syscall{open} \linuxapis{} through \syscall{ioctl}, and checking the paths against the file access rules written inside the manifest of the running application.  
 
@@ -207,9 +204,9 @@ is caused by redirecting \syscall{open} \linuxapis{} through \syscall{ioctl}, an
 
 
 
-Figure~\ref{fig:eval:pal:open-latency} (b) shows the latency of \palcall{StreamOpen} inside of an SGX enclave, versus the latency of 
-\palcall{StreamOpen} and \syscall{open} on Linux.
-Without security checks to shield an enclave from the OS,
+Figure~\ref{fig:eval:pal:open-latency} (b) shows the latency of \palcall{StreamOpen} inside of an SGX enclave, versus the latency on the Linux PAL
+and in a native Linux process.
+Without any security checks to shield the guest from the untrusted OS,
 the latency of \palcall{StreamOpen} is dominated by the overhead of exiting the enclave and copying the argument, such as the file paths, out of the enclave.
 The overheads of unshielded \palcall{StreamOpen} is 4.7--5.5$\times$, or \roughly{}5 \usec{}.
 If a file is shielded with integrity protection,
@@ -228,19 +225,30 @@ For a 4MB file, the latency of \palcall{StreamOpen} can be up to \roughly{}30 \m
 
 
 \paragraph{File reads and writes.}
-Figure~\ref{fig:eval:pal:read-write-latency} (a) and (b) show the latency of sequential reads and writes within a 4MB file, using either Linux \linuxapis{} (\syscall{read} and \syscall{write})
-or \hostapis{} (\palcall{StreamRead} and \palcall{StreamWrite}).
-In general, the latency of sequential \syscall{read} and \syscall{write}
-\linuxapis{} on Linux
-is roughly proportional to the read and write size on the file,
-especially for sizes larger than 4KB, and the latency of sequential writes can be up to twice of the latency of sequential reads by the same size. 
-The Linux PAL exports \palcall{StreamRead} and \palcall{StreamWrite}
-without significant overheads
-for the translation to \syscall{read} or \syscall{write} \linuxapis{}.
-The SECCOMP filter adds a fixed overhead around 0.06--0.09 \msec{} to the latency of \palcall{StreamRead} and \palcall{StreamWrite}.
-Enabling the reference monitor has nearly no impact to the sequential read and write latency,
-since the reference monitor only checks against the file access rules
-when opening the file.
+The evaluation shows the efficiency of reading and writing a file to the host storage.
+Figure~\ref{fig:eval:pal:read-write-latency} (a) and (b) compare the latency of sequential reads and writes 
+using \palcall{StreamRead} and \palcall{StreamWrite}, 
+against
+\syscall{read} and \syscall{write}
+in a native Linux process.
+On the Linux PAL,
+the latency of sequential reads and writes
+is correlated
+with the size of file access,
+when the size is larger than the 4KB page size.
+Besides, the latency of sequential writes is up to twice of the latency of sequential reads,
+due to the reading and writing speeds
+of the host storage.
+The latency of 
+\palcall{StreamRead} and \palcall{StreamWrite}
+on the Linux PAL
+shows a similar patterns:
+the latency is close to \syscall{read} or \syscall{write} with the size,
+with marginal overheads especially when
+the size is larger than 4KB.
+The \seccomp{} filter adds a fixed overhead around 0.06--0.09 \msec{} to the latency of \palcall{StreamRead} and \palcall{StreamWrite}.
+Enabling the reference monitor has nearly no impact to the read and write latency,
+since the reference monitor only checks file paths at open.
  
 
 
@@ -258,7 +266,7 @@ when opening the file.
 versus \syscall{read} and \syscall{write} on Linux.
 Lower is better.
 Figure (a) and (b) respectively compares \palcall{StreamRead} and \palcall{StreamWrite} on the Linux PAL,
-with and without a SECCOMP filter ({\bf +SC})
+with and without a \seccomp{} filter ({\bf +SC})
 and reference monitor ({\bf +RM}), against \syscall{read} and \syscall{write} on Linux.}
 \label{fig:eval:pal:read-write-latency}
 \end{figure*}
@@ -267,23 +275,29 @@ and reference monitor ({\bf +RM}), against \syscall{read} and \syscall{write} on
 
 
 
-On the SGX PAL, the cryptographic operations for verifying the inputs from the untrusted OS contribute
-to a major portion of the latency of \palcall{StreamRead}, similar to  \palcall{StreamOpen}. 
-Figure~\ref{fig:eval:pal:sgx-read-write-latency} (a) and (b) show the latency of sequential reads and writes
-inside an SGX enclave and a native Linux process,
-using either \hostapis{} or \linuxapis{}.
-Without integrity protection,
-\palcall{StreamRead} and \palcall{StreamWrite} simply exit the enclave
-to read or write the contents of a file,
-and copy the contents across the enclave boundary.
-The overall overhead is 8--12 \usec{} for reads and 8--50 \usec{} for writes.
-The integrity protection
-for \palcall{StreamRead} is based on
-checking the secure hash of the file contents read from the untrusted OS,
-against a Merkle tree constructed at \palcall{StreamOpen}
-by hashing each 16KB block.
-As a result, the latency of \palcall{StreamRead} with integrity checks is constant when the read size is smaller than 16KB, and is proportional to the number of 16KB chunks required at \palcall{StreamRead}.
-The integrity protection for contents written to a host file is not yet implemented in \graphenesgx{}.
+On the SGX PAL, as shown in
+Figure~\ref{fig:eval:pal:sgx-read-write-latency} (a) and (b), the latency of sequential reads and writes
+is dominated by the following overheads:
+(1) copying the contents between the enclave and the untrusted PAL; (2) cryptographic operations for 
+integrity checks. Without integrity checks,
+the cost of exiting the enclave
+and copying the contents across the enclave boundary is
+8--12 \usec{} for reads and 8--50 \usec{} for writes.
+For \palcall{StreamRead},
+the SGX PAL checks the integrity of file contents
+by comparing the secure hashes of 16KB blocks
+against a Merkle tree constructed at \palcall{StreamOpen}.
+\palcall{StreamRead}
+always maps the file contents outside the enclave
+in the multiple of 16KB,
+and hashes the file contents after copy.
+As a result, when the read size is smaller than 16KB,
+the latency of \palcall{StreamRead} is constant.
+Otherwise,
+the latency of \palcall{StreamRead}
+is proportional to the number of 16KB blocks read and checked by the SGX PAL.
+\palcall{StreamWrite} is currently not protected by integrity checks on the SGX PAL.
+%The integrity protection for contents written to a host file is not yet implemented in \graphenesgx{}.
 
 
 
@@ -315,20 +329,31 @@ and reference monitor ({\bf +RM}), against the Linux PAL and \syscall{read} and 
 
 
 
-\paragraph{Network latency and bandwidth.}
-Figure~\ref{fig:eval:pal:network-latency-bandwidth} (a) and (b) show the turnaround latency of sending single-byte messages back and forth over local TCP and UDP streams, and the bandwidth of continuously sending 64KB messages over the same TCP stream.
-For the Linux PAL,
-the overheads of ping-ponging over either a TCP or UDP stream primarily contribute to the translation from \hostapis{} to Linux \linuxapis{}, including \syscall{sendmsg} and \syscall{recvmsg}.
-The translation costs for a TCP stream and a UDP stream inside the Linux PAL are \roughly{}18\% and \roughly{}30\%.
-The overhead on the TCP bandwidth test is much lower,
-at \roughly{}4\%, because the translation cost is relatively insignificant when sending larger messages. 
-Besides the translation costs, the overheads of enabling the SECCOMP filter and reference monitor are both lower than 1\%, for either TCP or UDP streams.
+\paragraph{TCP and UDP sockets.}
+The evaluation shows both the latency and bandwidth of sending and receiving messages over a TCP or UDP sockets.
+Figure~\ref{fig:eval:pal:network-latency-bandwidth} (a) shows the turnaround time of sending single-byte messages back and forth over a TCP or UDP stream (connected through the local loopback device), and
+Figure~\ref{fig:eval:pal:network-latency-bandwidth} (b)
+shows the bandwidth of a TCP or UDP stream
+to transfer
+64KB messages between \picoprocs{}.
+On the Linux PAL,
+the overheads of ping-ponging over TCP or UDP primarily contribute to the translation cost between
+the \hostapis{} to Linux \linuxapis{} (specifically, \syscall{sendmsg} and \syscall{recvmsg}),
+since the the \hostapis{} use strings as the network URIs and the Linux \linuxapis{} take a network address structure (\code{struct sockaddr}) that contains numeric representations in integers.
+The translation costs for a TCP stream and a UDP stream are \roughly{}18\% and \roughly{}30\%, respectively.
+The overhead is relatively marginal in the TCP bandwidth test,
+at \roughly{}4\%.
+Both the \seccomp{} filter and reference monitor adds
+a marginal, less than 1\% overhead
+to either the latency or bandwidth of TCP or UDP sockets.
 
 
-For the SGX PAL, both the latency and bandwidth of a network stream suffer significant overheads, mostly due to enclave exits and copying network payloads inside or outside of the enclave. Note that \graphenesgx{} assumes most applications are easily configured with TLS/SSL to protect the confidentiality and integrity of network payloads; therefore, the SGX PAL currently does not implement integrated protection for network streams. The SGX PAL only checks the range of buffers
+On the SGX PAL, as shown in
+Figure~\ref{fig:eval:pal:network-latency-bandwidth} (a) and (b),
+both the latency and bandwidth of a network stream suffer significant overheads, mostly due to enclave exits and copying network payloads inside or outside of the enclave. Note that \graphenesgx{} assumes most applications are easily configured with TLS/SSL to protect the confidentiality and integrity of network payloads; therefore, the SGX PAL currently does not implement data protection for network sockets. The SGX PAL only checks the range of buffers
 returned from the untrusted OS
 to defend against pointer-based Iago attacks.
-Without using cryptographic techniques to protect the contents of network streams, the overheads on the latency of ping-ponging over a TCP stream and a UDP stream are \roughly{}167\% and \roughly{}131\%, respectively, and the overhead on the TCP bandwidth test is \roughly{}79\%. 
+Without cryptographically protecting the messages, the overheads on TCP and UDP latency are \roughly{}167\% and \roughly{}131\%, respectively, and the overhead on TCP bandwidth is \roughly{}79\%. 
 
 \begin{figure*}[t!]
 \centering
@@ -342,7 +367,7 @@ Without using cryptographic techniques to protect the contents of network stream
 \parbox{0.49\textwidth}{\centering\bf (a) Latency ({\usec})}
 \parbox{0.24\textwidth}{\centering\bf (b) Bandwidth (MB/\asec{})}
 \caption{(a) Latency of sending a short message over TCP and UDP sockets (lower is better), and (b) bandwidth of sending large data over TCP (higher is better).
-The comparison is between (1) \syscall{recv} and \syscall{send} on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on a Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, without data protection.}
+The comparison is between (1) \syscall{recv} and \syscall{send} on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on a Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, without data protection.}
 \label{fig:eval:pal:network-latency-bandwidth}
 \end{figure*}
 
@@ -350,13 +375,17 @@ The comparison is between (1) \syscall{recv} and \syscall{send} on Linux; (2) \p
 
 
 \paragraph{RPC latency and bandwidth.}
-Figure~\ref{fig:eval:pal:pipe-latency-bandwidth} (a) and (b) show
-the turnaround latency of sending single-byte messages back and forth over a local RPC stream, and the bandwidth of continuously sending 64KB messages over the same RPC stream.
-For comparison, Figure~\ref{fig:eval:pal:pipe-latency-bandwidth} includes the latency and bandwidth of both normal unnamed pipes and named UNIX domain sockets.
-Since the underlying implementation of RPC streams in the Linux PAL
-uses UNIX domain sockets,
-both the latency and bandwidth of a PRC streams
-is close to a UNIX domain socket, with no significant translation cost or overheads of SECCOMP filter and reference monitor.
+The evaluation shows the latency and bandwidth of using a RPC stream to send messages across \picoprocs{}.
+Figure~\ref{fig:eval:pal:pipe-latency-bandwidth} (a) shows
+the turnaround time of sending single-byte messages over a local RPC stream, and Figure~\ref{fig:eval:pal:pipe-latency-bandwidth} (a) shows the bandwidth of the RPC stream to send
+64KB messages.
+The evaluation also includes the latency and bandwidth of an unnamed pipe and a named UNIX domain socket
+for comparison.
+For the Linux PAL, the latency and bandwidth of a RPC stream is
+close to a UNIX domain socket, due to the choice of underlying implementation.
+Note that the evaluation results are specific to latest Linux kernels, especially kernels after 4.2,
+which introduce a zero-copy UNIX network socket design. 
+Both the \seccomp{} filter and reference monitor have marginal overhead on latency and bandwidth.
 
 
 For the SGX PAL,
@@ -373,8 +402,8 @@ For each RPC streams, the SGX PAL establishes a TLS connection using a AES-GCM a
 The AES-GCM algorithm in \graphenesgx{} is accelerated by the Intel AES-NI instructions, which are guaranteed to exist on a SGX-enabled CPU.
 With the hardware-accelerated AES-GCM,
 the overhead on the RPC latency is still up to \roughly{}335\% compared to the UNIX domain socket;
-furthermore, the overhead on the RPC bandwidth
-is up to \roughly{}70$\times$ (\roughly{} 176 MB/s).
+furthermore, RPC bandwidth
+is reduced by \roughly{}20$\times$, at \roughly{}0.3 GB/s.
 Potentially switching to a more efficient cryptographic algorithm or library may improve the overheads on RPC streams,
 and the experiment is left for future work.
 
@@ -391,7 +420,7 @@ and the experiment is left for future work.
 \parbox{0.34\textwidth}{\centering\bf (a) Latency ({\usec})}
 \parbox{0.34\textwidth}{\centering\bf (b) Bandwidth (MB/\asec{})}
 \caption{(a) Latency of sending a short message over RPC (lower is better), and (b) bandwidth of sending large data (higher is better).
-The comparison is between (1) \syscall{read} and \syscall{write} over a pipe or an AF\_UNIX socket on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, with and without data protection ({\bf +CHK}).}
+The comparison is between (1) \syscall{read} and \syscall{write} over a pipe or an AF\_UNIX socket on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, with and without data protection ({\bf +CHK}).}
 \label{fig:eval:pal:pipe-latency-bandwidth}
 \end{figure*}
 
@@ -421,10 +450,10 @@ often contribute to
 non-trivial overheads on the \hostapis{} for accessing I/O streams.
 The cost of security checks
 varies between different threat models.
-For the Linux PAL, the cost includes the overhead of enabling a SECCOMP filter, and the cost of checking file paths and network addresses
+For the Linux PAL, the cost includes the overhead of enabling a \seccomp{} filter, and the cost of checking file paths and network addresses
 inside of an reference monitor.
 With the JIT (Just-in-time) optimization,
-the overheads of SECCOMP filter is generally less than 10\%.
+the overheads of \seccomp{} filter is generally less than 10\%.
 The overheads of security monitors can range from 0--21\%, but only impact \hostapis{} which accept an URI as argument (e.g., \palcall{StreamOpen} and \palcall{StreamAttrQuery}).
 
  
@@ -435,7 +464,7 @@ causes 500--24,000$\times$ overheads on \palcall{StreamOpen}
 or 25--150$\times$ overheads on \palcall{StreamRead}.
 Authenticating and encrypting a RPC stream, using a TLS connection with hardware-accelerated AES-GCM algorithm,
 causes \roughly{}335\% overhead beyond the latency of underlying UNIX domain sockets,
-or \roughly{}70 $\times$ overhead on bandwidth when sending large messages.
+or \roughly{}20 $\times$ overhead on bandwidth when sending large messages.
 
 
 
@@ -452,7 +481,7 @@ The latency of both \syscall{mmap}+\syscall{munmap} and \syscall{VirtMemAlloc}+\
 Due to the similarity between the \hostapis{} and the \linuxapis{},
 the translation cost is almost marginal
 to the latency of allocating and deallocating the memory mappings.
-Enabling the SECCOMP filter adds an additional
+Enabling the \seccomp{} filter adds an additional
 15--25\% overhead to the latency of \syscall{VirtMemAlloc}+\syscall{VirtMemFree}, which is common for all \linuxapis{} used by the Linux PAL.
 However, if the latency includes zeroing the allocated memory mappings,
 which triggers the population of physical pages
@@ -482,7 +511,7 @@ the overhead can be up to 3--9.5$\times$, and is proportional to the size of mem
 \parbox{0.49\textwidth}{\centering\bf (a) allocation + deallocation}
 \parbox{0.49\textwidth}{\centering\bf (b) allocation + memory access + deallocation}
 \caption{Latency of (a) allocating and deallocating a range of virtual pages, and (b) the same operations with writing to each page after allocation. Lower is better.
-The comparison is between (1) \syscall{mmap} and \syscall{munmap} on Linux; (2) \palcall{VirtMemAlloc} and \palcall{VirtMemFree} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, with and without zeroing the pages before use ({\bf +Zero}).}
+The comparison is between (1) \syscall{mmap} and \syscall{munmap} on Linux; (2) \palcall{VirtMemAlloc} and \palcall{VirtMemFree} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, with and without zeroing the pages before use ({\bf +Zero}).}
 \label{fig:eval:pal:mmap-latency}
 \end{figure*}
 
@@ -513,7 +542,7 @@ the SGX PAL suffers a larger overhead for paging and bringing memory into the la
 \parbox{0.49\textwidth}{\centering\bf (b) polling N TCP sockets}
 \caption{(a) Thread creation latency and (b) latency of polling a number of TCP sockets.
 Lower is better.
-The comparison is between (1) \syscall{clone} and \syscall{select} on Linux; (2) \palcall{ThreadCreate} and \palcall{ObjectsWaitAny} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL.}
+The comparison is between (1) \syscall{clone} and \syscall{select} on Linux; (2) \palcall{ThreadCreate} and \palcall{ObjectsWaitAny} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL.}
 \label{fig:eval:pal:thread-select-latency}
 \end{figure*}
 
@@ -538,7 +567,7 @@ The comparison is between (1) \syscall{clone} and \syscall{select} on Linux; (2)
 \parbox{0.49\textwidth}{\centering\bf (b) competing a mutex among N threads}
 \caption{Latency of (a) signaling an event and (b) competing a mutex among N threads (N: 1 to 8).
 Lower is better.
-The comparison is between (1) pthread condition variables and mutexes on Linux; (2) Notification events and mutexes on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same abstractions on the SGX PAL.}
+The comparison is between (1) pthread condition variables and mutexes on Linux; (2) Notification events and mutexes on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same abstractions on the SGX PAL.}
 \label{fig:eval:pal:sched-latency}
 \end{figure*}
 
@@ -560,7 +589,7 @@ The comparison is between (1) pthread condition variables and mutexes on Linux; 
 \parbox{0.59\textwidth}{\centering\bf (a) process creation+exit}
 \parbox{0.39\textwidth}{\centering\bf (b) SGX enclave creation+termination}
 \caption{Latency of creating (a) a clean process on the Linux PAL, and (b) an enclave on the SGX PAL, in respect of different enclave sizes.
-The comparison is between (1) a combination of \syscall{vfork} and \syscall{exec}'ing a minimal static program on Linux; (2) \palcall{ProcessCreate} on the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapi{} on the SGX PAL.}
+The comparison is between (1) a combination of \syscall{vfork} and \syscall{exec}'ing a minimal static program on Linux; (2) \palcall{ProcessCreate} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapi{} on the SGX PAL.}
 \label{fig:eval:pal:proc-latency}
 \end{figure*}
 
@@ -574,7 +603,7 @@ The comparison is between (1) a combination of \syscall{vfork} and \syscall{exec
 \footnotesize
 \includegraphics[width=.85\textwidth]{pal/gipc-bandwidth}
 \caption{Bandwidth of sending large messages over (a) RPC streams and (b) Bulk IPC channels. The messages are sent in different sizes (1MB to 256MB), and either aligned or unaligned with the page boundary.
-Higher is better. Both abstractions are benchmarked on Linux kernel 3.19 and 4.10 as the hosts. The impact of the SECCOMP filter or reference monitor is marginal (less than 1\%).}
+Higher is better. Both abstractions are benchmarked on Linux kernel 3.19 and 4.10 as the hosts. The impact of the \seccomp{} filter or reference monitor is marginal (less than 1\%).}
 \label{fig:eval:pal:gipc-bandwidth}
 \end{figure*}
 
@@ -595,6 +624,6 @@ Higher is better. Both abstractions are benchmarked on Linux kernel 3.19 and 4.1
 \includegraphics[height=10em]{pal/sig-catch-latency}
 }
 \caption{Latency of (a) installing an exception handler; (b)
-interrupting a running thread with signals (on Linux) or \palcall{ThreadInterrupt} on the PALs; (c) catching a memory protection fault. Lower is better. The comparison is between (1) signals on Linux; (2) the Linux PAL, with and without a SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the SGX PAL.}
+interrupting a running thread with signals (on Linux) or \palcall{ThreadInterrupt} on the PALs; (c) catching a memory protection fault. Lower is better. The comparison is between (1) signals on Linux; (2) the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the SGX PAL.}
 \label{fig:eval:pal:sig-latency}
 \end{figure*}
