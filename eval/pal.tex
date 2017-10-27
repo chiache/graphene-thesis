@@ -380,7 +380,7 @@ The evaluation shows the latency and bandwidth of using a RPC stream to send mes
 Figure~\ref{fig:eval:pal:pipe-latency-bandwidth} (a) shows
 the turnaround time of sending single-byte messages over a local RPC stream, and Figure~\ref{fig:eval:pal:pipe-latency-bandwidth} (a) shows the bandwidth of the RPC stream to send
 64KB messages.
-The evaluation also includes the latency and bandwidth of an unnamed pipe and a named UNIX domain socket
+The evaluation also includes the latency and bandwidth of an unnamed pipe and a named AF\_UNIX domain socket
 for comparison.
 For the Linux PAL, the latency and bandwidth of a RPC stream is
 close to a UNIX domain socket, due to the choice of underlying implementation.
@@ -394,19 +394,20 @@ the fundamental cost of enclave exits and copying message contents,
 without protecting the message contents,
 is \roughly{}154\% to the latency,
 or \roughly{}127\% to the bandwidth.
-However, unlike network streams, \graphenesgx{} cannot assume RPC streams to be protected by inlined SSL/TLS connections
-inside applications.
-Since it is likely that an application may send sensitive information
-over a pipe or a UNIX socket,
-the underlying RPC streams must always be protected by the SGX PAL.
-For each RPC streams, the SGX PAL establishes a TLS connection using a AES-GCM algorithm, which both authenticates and encrypts the message contents.
+Unlike network sockets, 
+applications generally assume transferring data over a local pipe or FIFO to be secure on a trusted host, and do not enforce protection like SSL/TLS.
+%\graphenesgx{} cannot assume RPC streams to be protected by SSL/TLS in applications.
+%Since it is likely that an application may send sensitive information
+%over a pipe or a UNIX socket,
+%the underlying RPC streams must always be protected by the SGX PAL.
+For each RPC stream, the SGX PAL establishes a TLS connection using a 256-bits AES-GCM algorithm, which both authenticates and encrypts the message contents.
 The AES-GCM algorithm in \graphenesgx{} is accelerated by the Intel AES-NI instructions, which are guaranteed to exist on a SGX-enabled CPU.
 With the hardware-accelerated AES-GCM,
 the overhead on the RPC latency is still up to \roughly{}335\% compared to the UNIX domain socket;
 furthermore, RPC bandwidth
 is reduced by \roughly{}20$\times$, at \roughly{}0.3 GB/s.
-Potentially switching to a more efficient cryptographic algorithm or library may improve the overheads on RPC streams,
-and the experiment is left for future work.
+Switching to a more efficient cryptographic algorithm or library may improve the efficiency of RPC streams,
+and such experiments are left for future work.
 
 
 
@@ -463,9 +464,9 @@ for protecting the confidentiality and integrity of I/O streams, which impose si
 Verifying the file contents, either at first open of the file or consequential file reads,
 causes 500--24,000$\times$ overheads on \palcall{StreamOpen}
 or 25--150$\times$ overheads on \palcall{StreamRead}.
-Authenticating and encrypting a RPC stream, using a TLS connection with hardware-accelerated AES-GCM algorithm,
+Authenticating and encrypting a RPC stream with hardware-accelerated AES-GCM,
 causes \roughly{}335\% overhead beyond the latency of underlying UNIX domain sockets,
-or \roughly{}20 $\times$ overhead on bandwidth when sending large messages.
+or \roughly{}20 $\times$ overhead on bandwidth.
 
 
 
@@ -476,32 +477,13 @@ or \roughly{}20 $\times$ overhead on bandwidth when sending large messages.
 \label{sec:eval:pal:memory}
 
 
+This section evaluates the latency of allocating and deallocating virtual memory pages.
 Figure~\ref{fig:eval:pal:mmap-latency} (a)
-shows the combined latency of \palcall{VirtMemAlloc} and  \palcall{VirtMemFree}, on both Linux and SGX PALs,
-and the latency of \syscall{mmap} and \syscall{munmap} in a native Linux process.
-The latency of both \syscall{mmap}+\syscall{munmap} and \syscall{VirtMemAlloc}+\syscall{VirtMemFree} on Linux is partially correlated with the size of memory mapped inside a process or \picoproc{}.
-Due to the similarity between the \hostapis{} and the \linuxapis{},
-the translation cost is almost marginal
-to the latency of allocating and deallocating the memory mappings.
-Enabling the \seccomp{} filter adds an additional
-15--25\% overhead to the latency of \syscall{VirtMemAlloc}+\syscall{VirtMemFree}, which is common for all \linuxapis{} used by the Linux PAL.
-However, if the latency includes zeroing the allocated memory mappings,
-which triggers the population of physical pages
-inside the host kernel,
-the overhead is much more significant and proportional to the mapping size.
-As a result, allocating, accessing, and deallocating a 64MB memory mapping will take up to \roughly{}3.5\msec{}.
-
-
-For the SGX PAL, the latency of allocating and deallocating memory mapping
-is much lower then the Linux PAL, because the SGX PAL does not dynamically allocate the enclave memory region.
-Due the limitation of current SGX hardware,
-the SGX PAL must implement memory mappings internally,
-with all the enclave page populated and signed by the CPU before the enclave starts execution.
-Based on this design, the latency of \syscall{VirtMemAlloc}+\syscall{VirtMemFree} on the SGX PAL
-is 8--11\% of the latency on the Linux PAL,
-since these two \hostapis{} only update the memory mapping records inside the enclave.
-However, if the enclave memory is accessed immediately after allocation, as shown in Figure~\ref{fig:eval:pal:mmap-latency} (b),
-the overhead can be up to 3--9.5$\times$, and is proportional to the size of memory mappings.
+shows the latency of \palcall{VirtMemAlloc} and  \palcall{VirtMemFree} on the Linux and SGX PALs,
+in comparison with \syscall{mmap} and \syscall{munmap} in a native Linux process.
+Figure~\ref{fig:eval:pal:mmap-latency} (b)
+benchmarks the same workload, but includes the time of writing to each page after allocation,
+to evaluate the impact of demand paging.
 
 \begin{figure*}[t!]
 \centering
@@ -518,20 +500,56 @@ The comparison is between (1) \syscall{mmap} and \syscall{munmap} on Linux; (2) 
 \end{figure*}
 
 
-The evaluation results on \syscall{VirtMemAlloc} and \syscall{VirtMemFree}
-show that the Linux PAL share the same latency
-with a native Linux process
-for creating virtual memory mappings, paging and memory access.
-On the other hand, despite that the SGX PAL manages all the enclave pages
-inside the enclave,
-the SGX PAL suffers a larger overhead for paging and bringing memory into the last-level cache.
+Figure~\ref{fig:eval:pal:mmap-latency} (a)
+shows that, if a \picoproc{} or a process simply allocate a range of virtual pages,
+the latency is mostly constant,
+except the minor cost of updating the page table
+inside the host kernel.
+On the Linux PAL, the overhead of translating \palcall{VirtMemAlloc} and  \palcall{VirtMemFree}
+to \syscall{mmap} and \syscall{munmap}
+is 50--80\%,
+which mostly contributes to the checks for valid address mapping ranges, so that the guest cannot overwrite the memory used by the Linux PAL itself.
+On the SGX PAL, the fundamental latency of allocating and deallocating virtual pages is extremely low,
+because an enclave must preallocate the pages before initialization to maintain a static enclave signature.
+The overhead of the \seccomp{} filter and reference monitor is marginal; especially since a \picoproc{} can only map pages internally, the reference monitor does not have to check any calls of \syscall{mmap} and \syscall{munmap}.
+Theoretically, page allocation and deallocation
+inside of an enclave should only involve updating
+the records within the enclave memory.
+However,
+since SGX doesn't guarantee the initial state of the heap space inside an enclave,
+the current design must zero the pages
+after the allocation.
+The latency of zeroing the pages can be several order-of-the-magnitude more expensive than
+simply updating the page table,
+and is proportional to the allocation size.
+
+
+
+Figure~\ref{fig:eval:pal:mmap-latency} (b)
+shows the latency of allocating and deallocating virtual pages
+and writing to the beginning of each page in between allocation and deallocation.
+In this experiment, the latency on the Linux PAL and the latency in a native Linux process
+are both proportional to the allocation size,
+ranging from 7\usec{} to 27\usec{} for allocating 1MB to 64MB memory.
+Without zeroing the pages after the allocation,
+the latency on the SGX PAL is still much lower than the Linux PAL and Linux, but becomes proportional
+to the allocation size as well.
+With page zeroing, the latency is close to the allocation and deallocation latency on the SGX PAL,
+as shown in Figure~\ref{fig:eval:pal:mmap-latency} (a).
+
+
+
+
 
 
 
 \subsection{Scheduling}
 \label{sec:eval:pal:sched}
 
-
+This section evaluates several \hostapis{} for scheduling several threads or processes
+on a multi-core system,
+including thread creation, polling I/O streams (TCP sockets for instance), and using several synchronization primitives,
+such as notification events and mutexes. 
 
 
 \begin{figure*}[t!]
@@ -551,10 +569,35 @@ The comparison is between (1) \syscall{clone} and \syscall{select} on Linux; (2)
 
 
 \paragraph{Thread creation.}
+The evaluation shows the latency of creating a new thread within the current process or \picoproc{}.
+Figure~\ref{fig:eval:pal:thread-select-latency} (a)
+evaluates the latency of creating a thread using \palcall{ThreadCreate} and waiting for the new thread to terminate immediately using \palcall{ThreadExit}.
+The comparison is with the latency of \syscall{clone}
+and \syscall{exit} in a native Linux process.
+For the Linux PAL,
+the latency of \palcall{ThreadCreate} and \palcall{ThreadExit} is \roughly{}46\% higher
+than thread creation and exit on Linux,
+and the overhead contributes
+to allocating an initial stack for the new thread (\palcall{ThreadCreate} does not take an extra argument for specifying the stack address).
+The evaluation also shows that the impact of the seccomp{} filter and reference monitor on the latency of thread creation is marginal (less than 5\%).
+
+
+For the SGX PAL, the cost of thread creation is much higher.
+Creating an enclave thread on the SGX PAL takes three primary steps: (1) creating an untrusted host thread (a pthread, specifically); (2) attaching the host thread to an unused TCS (thread control section); (3) entering the enclave and initialize its state.
+As a result, thread creation on the SGX PAL is \roughly{}131\% slower than \syscall{clone} on Linux.
+
 
 
 
 \paragraph{Polling stream handles.}
+The evaluation shows the latency of polling among a number of TCP sockets for incoming messages.
+Figure~\ref{fig:eval:pal:thread-select-latency} (b)
+compares the latency of
+\palcall{ObjectsWaitAny} for polling the status
+of 64--512 TCP sockets,
+in comparison with the latency of \syscall{select} on Linux.
+
+
 
 
 
