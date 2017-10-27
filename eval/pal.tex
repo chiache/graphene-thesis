@@ -581,7 +581,6 @@ and the overhead contributes
 to allocating an initial stack for the new thread (\palcall{ThreadCreate} does not take an extra argument for specifying the stack address).
 The evaluation also shows that the impact of the seccomp{} filter and reference monitor on the latency of thread creation is marginal (less than 5\%).
 
-
 For the SGX PAL, the cost of thread creation is much higher.
 Creating an enclave thread on the SGX PAL takes three primary steps: (1) creating an untrusted host thread (a pthread, specifically); (2) attaching the host thread to an unused TCS (thread control section); (3) entering the enclave and initialize its state.
 As a result, thread creation on the SGX PAL is \roughly{}131\% slower than \syscall{clone} on Linux.
@@ -595,8 +594,13 @@ Figure~\ref{fig:eval:pal:thread-select-latency} (b)
 compares the latency of
 \palcall{ObjectsWaitAny} for polling the status
 of 64--512 TCP sockets,
-in comparison with the latency of \syscall{select} on Linux.
-
+with \syscall{select} on Linux.
+The result shows that both the Linux and SGX PALs impose significant overheads on the latency of polling the TCP sockets,
+for scanning an array of PAL handles and retrieving the associated file descriptors.
+Whereas the latency of \syscall{select} on Linux is constant at \roughly{}0.3\usec{}, the latency of \syscall{ObjectsWaitAny} on the Linux PAL is proportional to the number of sockets being polled,
+ranging from 3.2--29.1\usec{} for 64--512 sockets.
+The latency on the SGX PAL is close to this result,
+with a fixed cost at \roughly 2.7\usec{} for exiting the enclave.
 
 
 
@@ -620,6 +624,29 @@ The comparison is between (1) pthread condition variables and mutexes on Linux; 
 
 
 \paragraph{Events and mutexes.}
+Figure~\ref{fig:eval:pal:sched-latency} (a) shows the latency of using notification events in the Linux or SGX PAL
+for synchronization among threads,
+in comparison of similar pthread primitives running on Linux.
+In general,
+a POSIX multi-threaded program
+uses a conditional variable and a mutex, both supported by the pthread library, for achieving the same semantics as a notification event.
+When comparing with these pthread primitives,
+the time difference between one thread signaling a notification event and another thread being waken up,
+on the Linux PAL, is slightly cheaper, due to skipping the additional bookkeeping of the pthread library.
+The cost of enabling the \seccomp{} filter and reference monitor is \roughly{}10\%.
+For the SGX PAL, signaling a notification event is much slower.
+The overhead on the SGX PAL
+is \roughly{}130\% to the latency
+on the Linux PAL,
+and mostly contributes to the cost of exiting the enclave to call \syscall{futex}.
+
+
+Figure~\ref{fig:eval:pal:sched-latency} (a) shows the latency of acquiring and releasing a mutex,
+with different thread concurrency.
+All results show that, either on Linux, the Linux PAL or the SGX PAL, the latency of acquiring and releasing a mutex
+is loosely proportional to the number of threads competing on the mutex.
+
+
 
 
 \subsection{Multi-process abstractions}
