@@ -1,65 +1,65 @@
-This chapter evaluates the performance and security of  \graphene{} on Linux and SGX hosts.
-The performance evaluation includes
+This chapter evaluates the performance overheads of \graphene{}
+on a Linux kernel and inside of an SGX enclave.
+The evaluation
+targets the following four aspects:
+(1) translation, isolation, and shielding costs of the host ABI and startup time;
+(2) emulation overheads of the \libos{} on \linuxapis{} latency and throughput;
+(3) end-to-end performance of sample applications;
+(4) resource costs, including both memory footprint and CPU occupancy.
+The evaluation compares experiment results
+%(either execution time, processing bandwidth, or resource usage)
+%of benchmarks and applications,
+between \graphene{}, \graphenesgx{}, and native processes running on an unmodified, generic Linux kernel,
+to show the cost of leveraging a \libos{} for compatibility and security isolation.
+%of a micro-benchmark or sample application on \graphene{} or \graphenesgx{}, with the results collected on a native Linux kernel.
 
 
- the overhead on start-up times, memory footprints, server throughputs and command-line program latencies, and micro-benchmark results regarding \linuxapi{} overheads.
-The evaluation on the Linux host also includes a study of Linux kernel vulnerabilities contained by \graphene{}.
-The evaluation on the SGX host includes a summary of trusted computing base (TCB) that \graphenesgx{} adds to an enclave, in lines of code (LoC), and attack surfaces.
 
 
 
-
-
-
-
-
-
-
-
-
-\section{Performance evaluation}
-\label{sec:eval:perf}
-
+% the overhead on start-up times, memory footprints, server throughputs and command-line program latencies, and micro-benchmark results regarding \linuxapi{} overheads.
+%The evaluation on the Linux host also includes a study of Linux kernel vulnerabilities contained by \graphene{}.
+%The evaluation on the SGX host includes a summary of trusted computing base (TCB) that \graphenesgx{} adds to an enclave, in lines of code (LoC), and attack surfaces.
 
 
 %\fixmedp{Missing back-of-the envelope for fork overheads, fraction of system calls using ipc}
 
 
-This section evaluates \graphene{}'s multi-process coordination, security, cross-host migration, memory footprint, and performance.
-We drive this evaluation with a selection of real-world applications that leverage multiple processes in \graphene{},
-as well as with microbenchmarks and stress tests.
-We organize the evaluation around the following questions:
-\begin{compactenum}
-	\item How do \graphene{}'s startup and migration costs compare to running an application in a dedicated VM?
-	\item Given that RAM is often the limiting factor in VMs per system, how does \graphene{}'s memory footprint compare to other virtualization techniques?
-	\item What are the performance overheads of \graphene{} relative to a native Linux process or VM?
-	\item What additional overheads are added by the reference monitor?
-	\item How do \graphene{}'s overheads scale with the number of processes in a sandbox?
-	\item Does the \graphene{} reference monitor enforce security isolation comparable to running the application in a VM?  
-	\item What fraction of recent Linux vulnerabilities would \graphene{} prevent?
-\end{compactenum}
+%This section evaluates \graphene{}'s multi-process coordination, security, cross-host migration, memory footprint, and performance.
+%We drive this evaluation with a selection of real-world applications that leverage multiple processes in \graphene{},
+%as well as with microbenchmarks and stress tests.
+%We organize the evaluation around the following questions:
+%\begin{compactenum}
+%\item How do \graphene{}'s startup and migration costs compare to running an application in a dedicated VM?
+%\item Given that RAM is often the limiting factor in VMs per system, how does \graphene{}'s memory footprint compare to other virtualization techniques?
+%\item What are the performance overheads of \graphene{} relative to a native Linux process or VM?
+%\item What additional overheads are added by the reference monitor?
+%\item How do \graphene{}'s overheads scale with the number of processes in a sandbox?
+%\item Does the \graphene{} reference monitor enforce security isolation comparable to running the application in a VM?  
+%\item What fraction of recent Linux vulnerabilities would \graphene{} prevent?
+%\end{compactenum}
 
 %We note that no recent single-process library OSes are both publicly available
 %and able to execute unmodified Linux binaries.
 
 
 
-%We evaluate the performance overheads on running unmodified Linux applications
-%on SGX.
-%Unlike the existing \sgx{} shielding systems which focuses on cloud-based systems or microservices,
-\graphenesgx{} is designed to be general-purpose, supporting a broad range of
-server and command-line applications. 
-%, including both server and desktop workloads.
-%\fixmedp{I wouldn't really call gcc or R ``desktop''}
-\fixme{get rid of the part that we need to compile source code}
-We thus evaluate performance overheads of unmodified Linux applications, using binaries 
-from an Ubuntu installation.
-%, or,
-%in the case of Apache, Lighttpd, and NGINX,
-%compiled from original source code using the default configurations.}
-%(Apache, Lighttpd, and NGINX are compiled from source).} %\fixmedp{which apps are compiled?}
-Depending on the workload, we measure application throughput or latency.
-%According to the types of workloads, we design experiments to evaluate whether \graphenesgx{} can support applications with acceptable throughput or latency.
+%%We evaluate the performance overheads on running unmodified Linux applications
+%%on SGX.
+%%Unlike the existing \sgx{} shielding systems which focuses on cloud-based systems or microservices,
+%\graphenesgx{} is designed to be general-purpose, supporting a broad range of
+%server and command-line applications. 
+%%, including both server and desktop workloads.
+%%\fixmedp{I wouldn't really call gcc or R ``desktop''}
+%\fixme{get rid of the part that we need to compile source code}
+%We thus evaluate performance overheads of unmodified Linux applications, using binaries 
+%from an Ubuntu installation.
+%%, or,
+%%in the case of Apache, Lighttpd, and NGINX,
+%%compiled from original source code using the default configurations.}
+%%(Apache, Lighttpd, and NGINX are compiled from source).} %\fixmedp{which apps are compiled?}
+%Depending on the workload, we measure application throughput or latency.
+%%According to the types of workloads, we design experiments to evaluate whether \graphenesgx{} can support applications with acceptable throughput or latency.
 
 %All applications in our experiments are real, unmodified Linux applications,
 %either directly taken from a disk with Ubuntu installation,
@@ -72,28 +72,28 @@ Depending on the workload, we measure application throughput or latency.
 %Our evaluation simulates the realistic results of running unmodified Linux applications in \graphenesgx{}.
 %running Linux COTS applications on commodity hardware.
 
-In order to differentiate SGX-specific overheads 
-from Graphene overheads,
-%, which also
-%runs on a Linux host without SGX, 
-we use both
-Linux processes and \graphene{} on a Linux host without SGX as baselines
-for comparison.
-%Since a large portion of the \libos{} design is inherited from the \graphene{} \libos{},
-%the performance impact of adopting \graphenesgx{} is largely affected by the design choices made in \graphene{}.
-%In order to show the performance impact of \graphenesgx{} over \graphene{}, we use both native Linux and \graphene{} on a Linux host as the baselines for comparison.
-Note that \graphene{} includes two optional kernel extensions:
-one that creates a reference monitor to protect the host kernel from 
-the library OS, and one that optimizes fork by 
-with copy-on-write for large (page-sized) RPC messages.
-%implementing a multi-page RPC
-%abstraction.
-Neither of these extensions are currently supported in \graphenesgx{}.
-%so we measure baseline Graphene with these disabled.
-% can be optionally run with a reference monitor for security isolation, and a bulk IPC abstraction for fork optimization.
-%Since neither of the features is ported in \graphenesgx{},
-%we mostly compare \graphenesgx{} to \graphene{} with these two features disabled,
-%to show a more meaningful comparison.
+%In order to differentiate SGX-specific overheads 
+%from Graphene overheads,
+%%, which also
+%%runs on a Linux host without SGX, 
+%we use both
+%Linux processes and \graphene{} on a Linux host without SGX as baselines
+%for comparison.
+%%Since a large portion of the \libos{} design is inherited from the \graphene{} \libos{},
+%%the performance impact of adopting \graphenesgx{} is largely affected by the design choices made in \graphene{}.
+%%In order to show the performance impact of \graphenesgx{} over \graphene{}, we use both native Linux and \graphene{} on a Linux host as the baselines for comparison.
+%Note that \graphene{} includes two optional kernel extensions:
+%one that creates a reference monitor to protect the host kernel from 
+%the library OS, and one that optimizes fork by 
+%with copy-on-write for large (page-sized) RPC messages.
+%%implementing a multi-page RPC
+%%abstraction.
+%Neither of these extensions are currently supported in \graphenesgx{}.
+%%so we measure baseline Graphene with these disabled.
+%% can be optionally run with a reference monitor for security isolation, and a bulk IPC abstraction for fork optimization.
+%%Since neither of the features is ported in \graphenesgx{},
+%%we mostly compare \graphenesgx{} to \graphene{} with these two features disabled,
+%%to show a more meaningful comparison.
 
 
 
@@ -117,6 +117,16 @@ with a modified \glibc{} \glibcversion{}.
 The experiments for \graphenesgx{}
 use the Intel \sgx{} Linux SDK~\cite{intel-sgx-linux-sdk} and driver~\cite{intel-sgx-linux-driver} \sgxdriverversion{}.
 The host OS also
-includes KVM on QEMU version 2.5  and Xen 4.6.5 for comparison.
+includes KVM on QEMU version 2.5 and Xen 4.6.5 for comparison.
 %%Adding more detail of KVM environment
-Each KVM or Xen Guest is deployed with 4 virtual CPU with VT and EPT (Extended Page Table), 8GB RAM, a 30GB virtual disk image, VirtIO enabled for network and disk, bridged connection with TAP, and runs the same Ubuntu and Linux kernel image as the host OS.
+Each KVM or Xen Guest is deployed with 4 virtual CPU with VT and EPT (Extended Page Table), 1GB RAM, a 30GB virtual disk image, VirtIO enabled for network and disk, bridged connection with TAP, and runs the same Ubuntu base system and Linux kernel as the host OS.
+
+
+
+
+
+
+
+
+
+
