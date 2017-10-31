@@ -1,0 +1,131 @@
+
+%The efficiency of \hostapis{} directly impacts the performance of \graphene{} on each host.
+%A large portion of \linuxapis{} inside \thelibos{} require resources or abstractions from the host OS.
+%Since \thehostabi{} is the only interface for requesting host OS features,
+%the definition of \thehostabi{}
+%restricts the options for a \picoproc{} to optimize its own performance, according to the application's performance patterns.
+%Although each PAL may optimize individual \hostapi{} for general circumstances,
+%all applications must share the same PAL ABI and thus tolerate the same overheads of exporting these \hostapis{} on each host.
+
+
+
+The section evaluates the performance of \thehostabi{}.
+The PAL ABI implementation depends on the existing system interfaces,
+which partially determines the latency of each \hostapi{} 
+%Upon a certain host, the base latency of a \hostapi{} is mostly determined by the host \linuxapis{} or abstractions
+%chosen to implement such \hostapi{}.
+%Three primary factors determine the efficiency of \hostapis{}.
+%First, especially on Linux or other monolithic OS,
+%most of \thehostabi{} are directly translated to similar \linuxapis{}.
+%The efficiency of these \hostapis{}
+%are dominated by the basic cost of the host system interface,
+%and the performance of corresponding \linuxapis{}.
+For instance, on the Linux PAL, the latency of \palcall{StreamRead} is comparable to the latency of \syscall{read},
+since the former is mostly just
+a wrapper of the latter.
+If a \picoproc{} runs inside an SGX enclave,
+the cost of enclave exits will increase
+the latency of \hostapis{},
+including the cost of copying data between enclave and untrusted memory.
+%invoking a \syscall{read} \linuxapi{}, and returning the contents back to the enclave.
+%The latency on the SGX PAL is then mostly dominated by the overheads
+%of switching the context between the enclave
+%and the untrusted, external PAL using SGX instructions,
+%and bringing memory into the EPC (enclave page cache).
+% or decrypting memory on a last-level cache miss.
+
+
+In theory, the definition of \thehostabi{}
+is meant to minimize the translation cost to most host system interfaces,
+by adopting similar, UNIX-like semantics.
+%Since most \hostapis{} are just wrappers
+%of the underlying \linuxapis{},
+%the translation cost is mostly reduced to simply replacing the generic identifiers and control flags
+%to the semantics that are recognized by the host OS.
+A major cost
+in translation is to parse a URI (unified resource identifier)
+for determining the file path or network address
+%and compose a equivalent file system path or network address
+to request host OS services.
+%The second factor is the translation cost
+%of the \hostapis{}.
+%For portability, \thehostabi{} is defined with generic semantics, without host-specific notions
+%such as process identifiers, file descriptors,
+%file system paths,
+%and \linuxapi{} flags.
+%The PAL must translate the arguments of \hostapis{}, including PAL handles, URIs (Uniform Resource Identifiers), and generic flags,
+%to the arguments interpretable by the host kernel.
+Other translation costs,
+such as converting optional flags,
+are relatively marginal, compared with the overall latency of a \hostapi{}.
+%because the translation is mostly straightforward,
+%and only requires simply logics
+%and little memory copy.
+%Without extra security checks,
+%a \hostapi{} is more likely to suffer high overheads if the implementation
+%requires additional \linuxapis{} for complementary operations
+%to the base abstraction,
+%or constantly retrying a \linuxapis{} at failures.
+
+
+
+More significant overheads
+on a few \hostapis{} contribute to security checks or enforcements,
+to protect applications
+inside host-specific threat models.
+%for ensuring the safety of running an application
+%within the threat model
+%of a host.
+%Finally, the third factor that impacts the PAL call efficiency
+%is the cost of security checks,
+%either inside the host kernel or the guest.
+%The cost of security checks varies between hosts, and is correlated with the presumed security models.
+For example, the threat model on a Linux host
+focuses on the attacks between mutually-untrusting applications via system interfaces;
+therefore,
+the security checks on the Linux PAL
+restrict the sharing of host resources and block \linuxapis{} that are not required by the Linux PAL.
+%using both the reference monitor and \seccomp{} filter.
+In another threat model, with the SGX enclave, 
+security checks for each \hostapi{}
+protects the application and \libos{} against malicious inputs from an untrusted OS,
+%and thus focus on validating the results of \linuxapis{},
+using either cryptographic techniques or semantic checks.
+%Cryptographic techniques are used to: (1) validate the file against the secure hash, at \palcall{StreamOpen}, (2) check the file chunks against a Merkle tree of hash values, at \palcall{StreamRead}, and (3) establish a TLS connection over inter-enclave RPC, at \palcall{ProcessCreate}.
+On the SGX PAL, the latency of a \hostapi{} may be dominated
+by security checks,
+especially the ones based on cryptographic operations.
+%on large chunks of data exported to the untrusted OS.
+
+
+The evaluation in this section is based on micro-benchmark programs similar to \lmbench{} 2.5~\cite{McVoy:lmbench}.
+For each \hostapis{}, the evaluation also shows the breakdowns
+of its latency or throughput,
+by benchmarking the PALs both with and without the security mechanisms, such as the \seccomp{} filter and reference monitor on the Linux PAL,
+as well as testing under different
+implementation strategies.
+The evaluation focuses on \hostapis{} that are especially sensitive for the performance of the \graphene{} \libos{}.
+
+
+% the efficiency of \hostapis{} on both Linux and SGX hosts, and shows the impact of each performance factor.
+%The evaluation is based on micro-benchmark programs similar to \lmbench{} 2.5~\cite{McVoy:lmbench},
+%and is compared against
+%similar \linuxapis{} on Linux.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
