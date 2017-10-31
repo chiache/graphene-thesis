@@ -448,8 +448,7 @@ The comparison is between (1) \syscall{read} and \syscall{write} over a pipe or 
 
 \paragraph{RPC latency and bandwidth.}
 %The evaluation shows the latency and bandwidth of using a RPC stream to send messages across \picoprocs{}.
-Due to the implementation
-of the Linux PAL,
+Due to the choice of underlying abstraction,
 both the latency and bandwidth
 of a RPC stream on the Linux PAL is close to a UNIX domain socket
 on native Linux kernel.
@@ -493,8 +492,8 @@ applications generally assume transferring data over a local pipe or FIFO to be 
 %over a pipe or a UNIX socket,
 %the underlying RPC streams must always be protected by the SGX PAL.
 For each RPC stream, the SGX PAL establishes a TLS connection using a 256-bits AES-GCM algorithm, which both authenticates and encrypts the message contents.
-The AES-GCM algorithm in \graphenesgx{} is accelerated by the Intel AES-NI instructions, which are guaranteed to exist on a SGX-enabled CPU.
-With the hardware-accelerated AES-GCM,
+The AES-GCM algorithm is accelerated by the Intel AES-NI instructions, which exist on all SGX-enabled CPUs.
+With the hardware acceleration,
 the overhead on the RPC latency is still up to \roughly{}335\% compared to the UNIX domain socket;
 furthermore, RPC bandwidth
 is reduced by \roughly{}20$\times$, at \roughly{}0.3 GB/s.
@@ -546,13 +545,14 @@ The overheads of security monitors can range from 0--21\%, but only impact \host
 
  
 The SGX PAL further adopts several cryptographic techniques
-for protecting the confidentiality and integrity of I/O streams, which impose significant overheads.
+for protecting the confidentiality and integrity of I/O streams, and cryptographic operations tend to cause significant overheads.
 Verifying the file contents, either at first open of the file or consequential file reads,
 causes 500--24,000$\times$ overheads on \palcall{StreamOpen}
 or 25--150$\times$ overheads on \palcall{StreamRead}.
-Authenticating and encrypting a RPC stream with hardware-accelerated AES-GCM,
-causes \roughly{}335\% overhead beyond the latency of underlying UNIX domain sockets,
-or \roughly{}20 $\times$ overhead on bandwidth.
+Authenticating and encrypting a RPC stream with a hardware-accelerated AES-GCM algorithm
+causes up to 335\% overheads on latency in comparison with
+the underlying UNIX domain sockets,
+or up uo \roughly{}20 $\times$ overhead on bandwidth.
 
 
 
@@ -565,13 +565,35 @@ or \roughly{}20 $\times$ overhead on bandwidth.
 
 This section evaluates the performance of virtual page allocation and deallocation
 using \thehostabi{}.
+The latency of creating or destroying a virtual memory area
+may differ among PAL implementations
+due to different memory management models.
+The Linux PAL, for instance, has a memory management model
+similar to Linux,
+backed by demand paging.
+The SGX PAL, on the other hand, has to preallocate all pages at loading time.
+Although the SGX driver still swaps enclave pages,
+the latency of page-in and page-out can be up to 40,000 cycles~\cite{orenbach17eleos},
+%than normal page-in and page-out latency,
+and the current SGX hardware does not allow dynamically adding pages
+to an enclave.
+As a result, the SGX PAL includes an in-enclave memory allocator
+which manages unused enclave pages
+and assigns the pages to memory allocation requests.
+To evaluate
+the differences of memory management models,
+the experiments
+include two scenarios:
+(1) simply allocating and deallocating virtual pages;
+(2) allocating virtual pages,
+accessing the beginning of every pages,
+and then deallocating the pages.
+For each scenario,
+the benchmark tests with different memory mapping sizes.
 
-Figure~\ref{fig:eval:pal:mmap-latency} (a)
-shows the latency of \palcall{VirtMemAlloc} and  \palcall{VirtMemFree} on the Linux and SGX PALs,
-in comparison with \syscall{mmap} and \syscall{munmap} in a native Linux process.
-Figure~\ref{fig:eval:pal:mmap-latency} (b)
-benchmarks the same workload, but includes the time of writing to each page after allocation,
-to evaluate the impact of demand paging.
+
+
+
 
 \begin{figure*}[t!]
 \centering
@@ -589,41 +611,54 @@ The comparison is between (1) \syscall{mmap} and \syscall{munmap} on Linux; (2) 
 
 
 Figure~\ref{fig:eval:pal:mmap-latency} (a)
-shows that, if a \picoproc{} or a process simply allocate a range of virtual pages,
-the latency is mostly constant,
-except the minor cost of updating the page table
-inside the host kernel.
-On the Linux PAL, the overhead of translating \palcall{VirtMemAlloc} and  \palcall{VirtMemFree}
-to \syscall{mmap} and \syscall{munmap}
-is 50--80\%,
-which mostly contributes to the checks for valid address mapping ranges, so that the guest cannot overwrite the memory used by the Linux PAL itself.
-On the SGX PAL, the fundamental latency of allocating and deallocating virtual pages is extremely low,
-because an enclave must preallocate the pages before initialization to maintain a static enclave signature.
-The overhead of the \seccomp{} filter and reference monitor is marginal; especially since a \picoproc{} can only map pages internally, the reference monitor does not have to check any calls of \syscall{mmap} and \syscall{munmap}.
-Theoretically, page allocation and deallocation
-inside of an enclave should only involve updating
-the records within the enclave memory.
+shows the latency of
+simple allocation and deallocation.
+Linux and the Linux PAL
+show similar latency for allocating and deallocating any numbers
+of virtual pages,
+as the cost of updating the page table
+in the host kernel.
+For the Linux PAL, the latency
+of \palcall{VirtMemAlloc} and  \palcall{VirtMemFree} is 50--80\% higher
+than \syscall{mmap} and \syscall{munmap} on Linux
+(the overheads of \seccomp{} filter and reference monitor is negligible).
+For the SGX PAL,
+the latency of allocation and deallocation
+is much lower,
+at \roughly{}10\% of the latency of \syscall{mmap} and \syscall{munmap}.
+%since the enclave simply
+%updates the bookkeeping inside the page allocator
+%and never exits the enclave.
 However,
-since SGX doesn't guarantee the initial state of the heap space inside an enclave,
-the current design must zero the pages
-after the allocation.
-The latency of zeroing the pages can be several order-of-the-magnitude more expensive than
-simply updating the page table,
-and is proportional to the allocation size.
+since SGX doesn't guarantee the initial state of unmeasured enclave pages,
+the SGX PAL needs to zero all pages
+before passing to the guest.
+Accessing the pages after allocation
+may cause cache misses and enclave page swapping,
+when the allocation size
+is larger than the size of last-level cache.
+The result shows that,
+if the SGX PAL zeros pages after allocation,
+the latency of allocation and deallocation can increase by up to several orders of magnitude.
+%be order-of-magnitude higher than \syscall{mmap} and \syscall{munmap}.
 
 
 
-Figure~\ref{fig:eval:pal:mmap-latency} (b)
-shows the latency of allocating and deallocating virtual pages
-and writing to the beginning of each page in between allocation and deallocation.
-In this experiment, the latency on the Linux PAL and the latency in a native Linux process
-are both proportional to the allocation size,
-ranging from 7\usec{} to 27\usec{} for allocating 1MB to 64MB memory.
-Without zeroing the pages after the allocation,
-the latency on the SGX PAL is still much lower than the Linux PAL and Linux, but becomes proportional
-to the allocation size as well.
-With page zeroing, the latency is close to the allocation and deallocation latency on the SGX PAL,
-as shown in Figure~\ref{fig:eval:pal:mmap-latency} (a).
+If the latency includes accessing every pages in between allocation and deallocation,
+as shown in Figure~\ref{fig:eval:pal:mmap-latency} (b),
+the overall latency (including allocating, access, and deallocating pages) would
+naturally be proportional to the allocation size.
+The benchmark results show almost no difference
+between the latency on the Linux PAL and in a native Linux process.
+Because the benchmark only access the first words
+of every pages,
+the latency on the SGX PAL without page zeroing
+is still lower than the Linux PAL.
+If the SGX PAL zeros the pages after allocation,
+accessing the first words
+of every pages causes no additional overheads
+on the overall latency.
+
 
 
 
