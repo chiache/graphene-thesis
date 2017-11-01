@@ -285,7 +285,7 @@ majority of code does not have to be rewritten when porting to a new host interf
 
 Building such a compatibility layer
 can benefit from virtualizing 
-a part of an OS, or more specifically, the API components (e.g., system call table), to user space.
+a part of an OS, or more specifically, API components (e.g., system call table), to user space.
 \issuedone{1.2.c}{Discuss library OS vs VM}
 Virtualization can preserve these OS components,
 using an intermediate interface
@@ -337,44 +337,61 @@ a compatibility layer.
 This thesis presents
 {\bf \graphene{}},
 a library OS for running unmodified applications upon innovative hardware and alternative system interfaces.
-\graphene{} chooses the rich-feature Linux system interface (i.e., \linuxapis{})
-as the target for reproducing.
-\polish{The goal of \graphene{}
-is to build a compatibility layer for reusing a wide range of Linux commercial applications,
-to benefit the highly-customizable server and cloud environments.}
-The \graphene{} library OS
-is developed upon a narrowed host interface, defined as a host ABI (application binary interface),
-to be easily ported to various host options.
-The host ABI isolates the implementation of Linux features and API, from addressing the low-level restriction and idiosyncrasy.
-The strength of \graphene{} is to fine-tune the host ABI,
-to simplify the host development and drop the assumptions on host OSes and hardware.
-So far \graphene{}
-has been targeting several host options,
-including innovative CPU platforms (e.g., SGX), alternative kernels (e.g., Windows, OSX, and FreeBSD), and research-type OSes (e.g., L4 microkernels~\cite{l4family}, Barrelfish~\cite{baumann09barrelfish}).
+\graphene{} reproduce the rich Linux system calls,
+for reusing a wide range of commercial software
+to benefit highly-customizable server and cloud environments.
+A host ABI (application binary interface)
+facilitates the
+host abstractions for the \libos{},
+and is easily ported to different host system interfaces
+and hardware platforms. 
+This thesis demonstrates the simplicity
+by porting the host ABI
+to two representative host examples, a Linux kernel and an isolated environment with SGX.
+%The \graphene{} library OS
+%is developed upon a narrowed host interface, defined as a host ABI (application binary interface),
+%to be easily ported to various host options.
+%The host ABI isolates the implementation of Linux features and API, from addressing the low-level restriction and idiosyncrasy.
+%The strength of \graphene{} is to fine-tune the host ABI,
+%to simplify the host development and drop the assumptions on host OSes and hardware.
+%So far \graphene{}
+%has been targeting several host options,
+Other ongoing ports
+include alternative kernels, such as Windows, OSX, and FreeBSD, and research-type OSes, such as L4 microkernels~\cite{l4family}, and Barrelfish~\cite{baumann09barrelfish}.
 
 
 
 \issuedone{1.2.d}{Specify target applications of Graphene libOS}
-This thesis tries to strike a better balance % the trade-offs
-between simplicity of the host interface
-and sufficiency of the library OS functionality. % to be compatible against applications.
-According to
-a study of Linux system API~\cite{tsai16apistudy},
-\linuxapis{} are not equally important in term of the impact on application compatibility.
+The \libos{} approach strikes a better balance % the trade-offs
+between simplicity of porting
+and sufficiency of compatible OS functionality. % to be compatible against applications.
+A study of Linux system interface~\cite{tsai16apistudy}
+show that system calls
+are not equally important to applications.
 %upon different host OSes and hardware.
-Also, not every applications are demanded to be reused upon different host OSes and hardware~\cite{ubuntu-popularity}.
-The study shows that
-a portion of Linux \linuxapis{} are defined for administrative purposes,
-such as configuring ethernet cards and rebooting.
-These \linuxapis{} are exclusively used by
-system software,
-such as \code{ifconfig} and \code{reboot}.
+Applications also
+subject to different popularity among users, as shown in
+installation statistics~\cite{ubuntu-popularity}.
+A portion of Linux system calls are strictly for administrative purposes,
+such as configuring Ethernet cards and rebooting the machines,
+and are 
+exclusively used by
+system software such as \code{ifconfig} and \code{reboot}.
 %while each host OS is likely to have its own version of system software.
 %and each host OS is likely to contain similar tools.
-\graphene{} is primarily targeting three types of applications:
-server and cloud applications (e.g., Apache, Memcached), command-line programs (e.g., Bash, GCC), and language runtimes (e.g., Python, OpenJDK).
-The \graphene{} library OS is sufficient for running these applications,
-by implementing a portion of the Linux \linuxapis{} (\graphenesyscallnum{} out of \linuxsyscallnum{}),
+As a result, a \libos{} can selectively implement
+system calls
+based on importance for applications
+with porting value.
+
+
+
+\graphene{} primarily targets three types of applications:
+(1) server and cloud applications, such as Apache and Lighttpd;
+(2) command-line programs, such as Bash and GCC;
+(3) language runtimes, such as R, Python, and OpenJDK.
+\graphene{}
+implements sufficient system calls (\graphenesyscallnum{} out of \linuxsyscallnum{} Linux system calls),
 upon a narrowed host ABI containing \palcallnum{} functions.
 
 
@@ -394,28 +411,45 @@ upon a narrowed host ABI containing \palcallnum{} functions.
 %The  library OS can run a wide range of unmodified Linux applications,
 %including server-type applications, command-line programs, and language runtimes, on a set of host OSes and hardware platforms.
 \graphene{} inherits 
-a foundation of the host ABI from \drawbridge{}~\cite{porter11drawbridge},
+a part of the host ABI from \drawbridge{}~\cite{porter11drawbridge},
 a previous library OS developed for reusing 
 %which has demonstrated compatibility benefit over
 Windows applications.
-\polish{The purpose of \drawbridge{} is to use the \libos{} as a lightweight VM,
-to run applications in a guest environment.}
-Because the library OS is built by partitioning OS components,
-it requires far less memory resource than running a VM with a full, unmodified OS kernel.
-The \drawbridge{} design is later adopted by Bascule~\cite{baumann13bascule}
-to show the feasibility of implementing single-process, Linux functionality, and inserting host-level extension layers.
-Haven~\cite{baumann14haven} later ports \drawbridge{} to SGX,
-to shield Windows application against malicious inputs from the host OS.
-\polish{Established upon the previous work,
+\drawbridge{} uses the \libos{} as a lightweight VM
+to run Windows desktop applications such as in a guest environment.
+Running a \libos{} as a partitioned OS component also requires
+less memory resource than a full VM,
+and thus improve the density of packing guests in a physical machine.
+Bascule~\cite{baumann13bascule} later adopts the design
+to implement single-process, Linux system calls.
+%, and inserting host-level extension layers.
+Finally, Haven~\cite{baumann14haven} ports \drawbridge{} to SGX, to shield Windows application from untrusted host OSes.
 \graphene{} %extends the concept of previous work
-presents an overall solution for running unmodified applications upon a variety of host OSes and hardware,
-and defines a host interface that is simple to port and sufficient to support a full-feature \libos{}.}
+presents solution for running unmodified applications
+upon a variety of host OSes and hardware,
+and defines a host interface to be both easy to port and sufficient
+for developing a rich-feature \libos{}.
 
 
 
 %\issue{1.3.a}{Compare Graphene vs Docker}
 %Established upon the previous work, 
-\rewrite{This thesis has several contributions over previous work.}
+This thesis has several contributions over previous work.
+First, this thesis
+defines a host ABI which is easy to port
+on new host platform,
+by enumerating the porting effort, including translating host system interfaces and enforcing security checks.
+Second,
+this thesis demonstrates the development
+of a \libos{}
+using the host ABI,
+and presents emulation strategies
+for complex Linux features such as multi-process abstractions,
+with reasonable overheads and memory footprints.
+Third,
+this thesis presents a quantitative method of evaluating compatibility
+to prioritize system interface emulation
+in a \libos{} or a research prototype.
  
 
 %\begin{compactenum}
