@@ -2,13 +2,20 @@
 \label{eval:perf:syscalls}
 
 
-In order to understand the overheads of individual system calls,
+%In order to understand the overheads of individual system calls,
 Table~\ref{tab:eval:lmbench-syscalls} lists 
 a representative sample of 
-tests from the
-\lmbench{} suite, version 2.5~\cite{McVoy:lmbench}.
-Each row reports a mean and 95\% confidence interval;
-we use the default number of iterations for each test case.
+tests from \lmbench{} 2.5 benchmark suite~\cite{McVoy:lmbench}
+(extended with additional experiments).
+Each row reports a mean and 95\% confidence interval,
+assuming the benchmark results are normally distributed;
+to improve the precision,
+the number of iterations in each test is increased to at least a thousand times, which effectively lower the variance
+in most tests.
+Although assuming a normal distribution may not be realistic for most benchmark results,
+the error is likely to be marginal with the very low variance
+observed in the tests.
+%we use the default number of iterations for each test case.
 %We have added code to \lmbench{} to also calculate 95\% confidence intervals 
 %within a run~\footnote{The lmbench authors deliberately exclude variation statistics
 %because most methods assume a known distribution, generally a normal distribution---an 
@@ -16,12 +23,21 @@ we use the default number of iterations for each test case.
 %Though confidence intervals should be taken with a grain of salt, 
 %we include them because they clearly indicate that these experiments have very low variance. In 
 %a few cases of minor performance improvement, one can assess the impact of noise.}.
-To measure the marginal cost of the reference monitor, we report numbers with and without 
-the reference monitor.
+Besides, to measure the marginal cost of the \seccomp{} filter and reference monitor on a Linux host,
+the experiments include the cases both with
+and without the \seccomp{} filter and reference monitor.
 
-%The performance of \graphene{} relative to Linux varies
-%based on the system call.  
-In general, calls that can be serviced inside the library are faster than native,
+
+In general, based on the performance patterns,
+the \linuxapis{} emulated in \thelibos{} can be categorized into three types.
+First, \linuxapis{} that are completely serviced inside \thelibos{} are faster than native.
+For instance,
+a null \linuxapi{} (i.e., \syscall{getppid})
+or installing a signal handler with \syscall{sigaction}
+are up to three time as fast as
+the native performance.
+
+
 whereas calls that require translation to a native call incur overheads typically under 100\%.
 For instance, 
 the self-signaling test (sig overhead)

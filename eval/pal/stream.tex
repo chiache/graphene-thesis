@@ -375,9 +375,10 @@ applications generally assume transferring data over a local pipe or FIFO to be 
 For each RPC stream, the SGX PAL establishes a TLS connection using a 256-bits AES-GCM algorithm, which both authenticates and encrypts the message contents.
 The AES-GCM algorithm is accelerated by the Intel AES-NI instructions, which exist on all SGX-enabled CPUs.
 With the hardware acceleration,
-the overhead on the RPC latency is still up to \roughly{}335\% compared to the UNIX domain socket;
-furthermore, RPC bandwidth
-is reduced by \roughly{}20$\times$, at \roughly{}0.3 GB/s.
+when sending one-byte messages,
+the overhead on RPC latency is \roughly{}10\% compared to the UNIX domain socket;
+furthermore, RPC bandwidth of sending large messages
+is reduced by \roughly{}31$\times$, at \roughly{}0.176 GB/s.
 Switching to a more efficient cryptographic algorithm or library may improve the efficiency of RPC streams,
 and such experiments are left for future work.
 

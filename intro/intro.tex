@@ -1,20 +1,20 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-\keepthis{Operating systems simplify the programming of an application, to utilize a wide range of hardware.}
-\keepthis{A UNIX-style OS~\cite{ritchie74unix}
-encapsulates hardware resources and abstractions, using a system interface.}
+Operating systems simplify programming an application utilizing different hardware.
+A UNIX-style OS~\cite{ritchie74unix}
+encapsulates hardware resources using a system interface such as a system call able.
 Without a system interface,
-an application will have to be programmed against
-hardware interfaces defined by manufacturers.
-The problem of programming against bare hardware
-is that the execution of applications is bound to specific hardware options.
-\keepthis{Operating systems allow application developers to program against
-a consistent, hardware-independent
-system interface, %given a consistent view of the system features.
+developers will have to program against hardware interfaces defined by manufacturers.
+Programming against bare hardware
+creates applications that are restricted to 
+specific hardware.
+Operating systems allow application developers to program against a consistent, hardware-independent
+system interface, %with a consistent view of system features,
 %A system interface must be independent from the idiosyncrasy of hardware,
-so that application developers can avoid making assumption
-or restricting users to run an application on specific hardware.}
+so that the applications can be portable
+across hardware configurations.
+
 
 
 
@@ -59,72 +59,51 @@ or restricting users to run an application on specific hardware.}
 
 
 
-\keepthis{An application developed in an OS is dependent on the system interface
-to remain compatible with previous OS generations.}
-\keepthis{This thesis defines {\bf compatibility} as
-the ability of reproducing a system interface that satisfies the hard-coded requirement of applications.}
+An application developed upon a system interface subjects to a different property as compatibility.
+%for a specific OS depends on a system interface
+%to remain compatible.
+{\bf Compatibility} of an OS can be
+defined as 
+the ability to reproduce a system interface which satisfies the hard-coded requirements of an application.
 %Application programming models are often influenced by the definition of system interface.
 %A system interface contains
 %a set of OS functions that applications
 %call to describe the order and condition of requesting OS services.
-The development of a fully-compiled application (not as a script or intermediate code)
-includes hard-coding the usage of a system interface
-in the binaries.
-\polish{Application developers make the decisions of embedding the requests and parameters of interacting with a system interface inside of an application.}
+Since a majority of applications are compiled into native code,
+usage of system interfaces
+is scattered around application binaries
+and does not easily change unless modifying source code.
+%The development of a fully-compiled application (not as a script or intermediate code)
+%includes hard-coding the usage of a system interface
+%in the binaries.
+%\polish{Application developers make the decisions of embedding the requests and parameters of interacting with a system interface inside of an application.}
 %A fully-compiled application is mostly hard-coded with the usage of a system interface
 %The programming of a system interface requires
 %hard-coding the intention and condition of requesting OS services
 %in the application code.
-If a milestone of OS development involves modifying a part of the system interface,
-an application becomes obsolete
-if it contains outdated system interface specifications.
+To accommodate application binaries,
+OS developers maintain a common goal as keeping system interfaces
+compatible across OS versions.
+%If a milestone of OS development involves modifying a part of the system interface,
+%an application becomes obsolete
+%if it contains outdated system interface specifications.
 %due to mismatching with the latest definition.
-Although compilers and libraries can reconstruct or recast some OS functions,
-a principle-level or assumption-level change in the system interface
-would still be difficult to recover.
+Compatibility is also a goal for less widely-used OSes; for instance, FreeBSD emulates Linux system calls to
+reuse the more well-adopted Linux applications.
+%Although compilers and libraries can reconstruct or recast some OS functions,
+%a principle-level or assumption-level change in the system interface
+%would still be difficult to recover.
 %by translating either at compile time or through a thin library.
-The common practice in OS development is to preserve
-the whole system interface,
-as application developers previously observe when building an application.
+%The common practice in OS development is to preserve
+%the whole system interface,
+%as application developers previously observe when building an application.
+For generality, OS developers tends to preserve every old system interfaces
+to maintain compatibility for exiting application binaries.
 
 %is generally known as compatibility.
 
 
 
-\keepthis{OS developers often struggle to maintain compatibility while improving
-the relationship between the OS and applications.}
-An system interface may contain outdated specifications of OS features and application programming interfaces (APIs);
-~\polish{however, OS developers generally avoid modifying the system interface,
-despite of missed opportunities to
-improving both OS and application sides.}
-For example, Linux and similar OSes
-introduce \linuxapis{} such as \syscall{openat} as an unracy version
-of \syscall{open}.
-%to prevent TOCTOU (time-to-check-to-time-to-use) attacks.
-Unfortunately, complete deprecation of the unsafe \syscall{open} system call
-would be a painful and lengthy process,
-wherein every applications have to be reprogrammed accordingly.
-%until the process finally expires.
-%Imaginably, a more large-scale modification of the system interface
-%may be catastrophic.
-Moreover, if a system interface is changed on a large scale,
-the result may be catastrophic:
-a well-known example is the cancellation of an early version of Windows Vista, 
-codenamed ``Longhorn'',
-which introduced a brand-new user interface API
-and a database-like file system, but sacrificed compatibility~\cite{spolsky04microsoft-api-war}.
-%Maintaining system interface compatibility is generally a responsibility of OS developers;
-%while extending an OS for expanding the portability of applications
-%on new hardware.
-%Despite the OS extensions for future hardware,
-%the system interface has to stay compatible with existing applications.
-%Especially, OS developers may face compatibility issues
-%when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
-%Many examples show that
-%These are examples that compatibility restrictions
-%hinder OS development.
-\keepthis{In general, OS developers treat compatibility as an important factor to the usability of a system,
-but also an unwelcome distraction in the early stage of innovation.}
 
 
 
@@ -142,28 +121,37 @@ but also an unwelcome distraction in the early stage of innovation.}
 
 
 
-
-\keepthis{Sometimes, the adoption of an innovative hardware
-poses unexpected challenges to maintaining compatibility in OS development.}
+However, the trend of hardware development
+challenges the goal of maintaining OS compatibility.
 %An OS needs to be be continuously extended to utilize new hardware.
-\polish{A new hardware that follows a similar design as its predecessors
-can be adopted by the OS using a standardized driver.
-However, a cutting-edge or research hardware may not fall into
+The majority of new hardware follow semantics of predecessors
+and requires no changes to existing system interfaces.
+However, more cutting-edge hardware tend to leak out of
 the typical abstractions
-encapsulated by the driver interfaces,
-and thus demands extra attention for adoption.}
-The challenges emerge as more ground-breaking hardware technologies
-have been released in the industry.
+encapsulated by OSes;
+%and thus demands extra attention for adoption.}
+%The challenges emerge as more ground-breaking hardware technologies
+%have been released in the industry.
 \issuedone{1.2.b}{Specify SGX as a motivating example}
-For example, CPU technologies like Intel SGX (software guard extensions)~\cite{intelsgx}
-change the relationship between the OS and applications.
-SGX supports developing
-an application with self-protection against malicious OSes, hypervisors, and administrators;
-however, SGX also raises several compatibility issues, including reverting the trusted nature of OS services.
+one example is SGX (software guard extensions)~\cite{intelsgx}
+on recent Intel CPUs.
+SGX protects an application
+with integrity and confidentiality, without trusting other system components 
+such as OSes, hypervisors, and system software.
+Although an SGX application
+may still utilize system interfaces for OS functionality
+such as file systems and networking, the application does not assume
+the OS to be reliable.
+Therefore, SGX raises several compatibility issues to
+existing system interfaces,
+including the challenges of checking system interface results
+on an untrusted OS.
+%however, SGX also raises several compatibility issues, including reverting the trusted nature of OS services.
 %and restricting the sharing of isolated application memory~\cite{shinde17panoply}.
 Other examples can be found among research-type architectures,
 such as an asymmetric multi-processing architectures
-without inter-connected memory~\cite{gschwind2007,cascaval2002evaluation}.
+without inter-connected memory~\cite{gschwind2007,cascaval2002evaluation},
+which challenges inter-process coordination.
 %which complicates the implementation of state-sharing, multi-process abstractions. 
 %Despite the benefits of SGX on application protection,
 %SGX requires changing the applications to defend against malicious OS services,
@@ -175,50 +163,100 @@ without inter-connected memory~\cite{gschwind2007,cascaval2002evaluation}.
 %uses SGX as a strong motivating example (see Section~\ref{sec:intro:sgx}),
 %because SGX fundamentally reverses a critical OS assumption, and causes a combination of compatibility and security problems.
 %SGX shows that compatibility issues can be distraction to innovations.
-\polish{In the long term, OS developers should consider
-gradually promoting a new system interface that can encauplate the latest hardware, but existing applications still need a timely solution to resolve the urgent compatibility issues.}
+As more disruptive hardware
+may emerge in the future, OS developers should
+gradually promote new system interfaces which encapsulate latest hardware semantics; simultaneously, existing applications require timely solutions to resolve urgent compatibility issues on specific hardware.
 
 
+Empirically, compatibility has caused struggles in OS development,
+especially when API changes are demanded.
+%An system interface may contain outdated specifications of OS features and application programming interfaces (APIs);
+%~\polish{however, OS developers generally avoid modifying the system interface,
+%despite of missed opportunities to
+%improving both OS and application sides.}
+For instance, Linux and similar OSes
+introduce system calls such as \syscall{openat} as a version of \syscall{open}
+without TOCTOU (time-to-check-to-time-to-use)
+vulnerabilities.
+Unfortunately,
+to full replace the original \syscall{open}, developers needs to modify every applications, otherwise Linux can never deprecate
+the unsafe version.
+%would be a painful and lengthy process,
+%wherein every applications have to be reprogrammed accordingly.
+%until the process finally expires.
+%Imaginably, a more large-scale modification of the system interface
+%may be catastrophic.
+At a larger scale, an early version of Windows Vista introduces
+%Moreover, if a system interface is changed on a large scale,
+%the result may be catastrophic:
+%a well-known example is an early version of Windows Vista,
+%codenamed ``Longhorn'',
+a brand-new user interface API
+and file system,
+but ends up losing popularity due to compatibility-related complaints~\cite{spolsky04microsoft-api-war}.
+Because users prefer to use an application or a system
+that hasn't broke,
+earlier versions of OSes, such as Windows XP, remain popular even after end-of-service.
+%Maintaining system interface compatibility is generally a responsibility of OS developers;
+%while extending an OS for expanding the portability of applications
+%on new hardware.
+%Despite the OS extensions for future hardware,
+%the system interface has to stay compatible with existing applications.
+%Especially, OS developers may face compatibility issues
+%when the adopted hardware leaks out of the abstractions encapsulated by the current system interface.
+%Many examples show that
+%These are examples that compatibility restrictions
+%hinder OS development.
+%\keepthis{In general, OS developers treat compatibility as an important factor to the usability of a system,
+%but also an unwelcome distraction in the early stage of innovation.}
 
 
-\polish{A practical reason for maintaining compatibility
-is the fact that
-application developers may be unwilling to modify an application,
-at the stage of either source code or compiled binaries.}
+There are practical reasons
+for an OS to maintain compatibility for unmodified applications.
 The development of a commercial application
-requires a thorough process of testing and code inspection to ensure the correctness and safety of execution.
-Application developers may consider modifying or recompiling an application %for a new hardware or system interface to be 
-a risk to application stability.
-Even if users are willing to modify applications on their own,
-application developers may be reluctant to release the proprietary source code.
+requires a thorough process of testing and code inspection to ensure correctness and robustness.
+Modifying an application for new system interfaces can be a risk to stability.
+Moreover, third parties cannot port a proprietary software to new system interfaces even if they are motivated to do so.
 These dilemmas call for a solution
-to translate an alternative system interface for unmodified applications.
+to mitigate 
+the compatibility issues for 
+unmodified applications.
 
 
 
 
 
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
-To formalize the problem,
-OS developers can't or shouldn't avoid modifying a system interface,
-yet existing application tend to rely on former system interface definitions to remain functional.
-A reasonable approach is to insert a compatibility layer
-between the application and the OS,
-to bridge the gap of system interface definitions, including both the APIs and the nature of OS features.
-Take SGX for example:
-\polish{a compatibility layer for supporting unmodified applications on SGX
-must redirect the requests for system API to the host OS,
-as well as validate the results of OS services in case the host OS is malicious.}
-Another goal is to reduce the effort of developing such a compatibility layer,
-so that maintaining compatibility would not become a burden in OS development and innovation.
-OS developers should not have
-to reimplement every features of a system interface in a compatibility layer;
-A modern OS such as Linux
-can contain up to hundreds or thousands of functions,
-with lots of options and corner cases to implement~\cite{linux-man-syscall}.
-\polish{Ultimately, this thesis is presenting a solution
-for building a compatibility layer that reproduces a rich-feature system interface,
-with less development effort.}
+This thesis proposes building a compatibility layer
+which translates
+a legacy system interface to other alternative host interfaces, as a promising solution for supporting unmodified applications.
+OS developers are free to redesign
+system interfaces
+for adopting new hardware or addressing system challenges.
+%can't or shouldn't avoid modifying a system interface,
+%yet existing application tend to rely on former system interface definitions to remain functional.
+A compatibility layer between the application and the OS
+can bridge the gap between interfaces.
+%system interface definitions, including both the APIs and the nature of OS features.
+Take SGX for example;
+the compatibility challenges on SGX include
+secure dynamic loading,
+redirecting system calls to host OSes, and inject security checks against untrusted system call results.
+The goal is to reduce the effort of porting a compatibility layer
+to any host platforms.
+A Linux compatibility layer
+potentially contains
+hundreds to thousands of system calls, with plenty of control options and corner cases~\cite{linux-man-syscall}.
+%developing such a compatibility layer,
+%so that maintaining compatibility would not become a burden in OS development and innovation.
+%OS developers should not have
+%to reimplement every features of a system interface in a compatibility layer;
+%A modern OS such as Linux
+%can contain up to 
+This thesis presents a solution
+to building a rich-feature compatibility layer, in which
+majority of code does not have to be rewritten when porting to a new host interface.
+
 
 
 
@@ -245,55 +283,55 @@ with less development effort.}
 
 
 
-The development of a compatibility layer
-can benefit from virtualizing the upper layers of an OS, or the whole OS.
-An OS contains
-several components that are independent from
-encapsulating hardware or upholding OS assumptions (e.g., multiprocessing).
-For example, a major task of the API components
-(e.g., system call table)
-is to interpret the user inputs,
-as well as to update or retrieve the related OS states.
+Building such a compatibility layer
+can benefit from virtualizing 
+a part of an OS, or more specifically, the API components (e.g., system call table), to user space.
+\issuedone{1.2.c}{Discuss library OS vs VM}
 Virtualization can preserve these OS components,
 using an intermediate interface
 exported by the host OS.
-\issuedone{1.2.c}{Discuss library OS vs VM}
-Virtualization allows a VM (virtual machine) to carry an unmodified OS kernel,
-as a full-stack compatibility layer
-for applications.
-A VM relies on a virtual hardware interface as the intermediate
-to the host;
+For instance, a VM (virtual machine) carries an unmodified OS kernel
+as a full-stack compatibility layer.
+The intermediate interface for a VM
+is a virtual hardware interface,
 %A virtual machine conveniently reuses existing OS implementation
 %for reproducing the system interface,
-the virtual hardware interface requires a CPU architecture with virtualization support~\cite{popek74virtual}
+facilitated by hardware virtualization~\cite{popek74virtual}
 such as Intel VT (virtualization technology)~\cite{VT}.
-Virtualization can provide full compatibility
-by reusing an OS implementation,
-as long as the architecture is virtualizable.
+%Virtualization
+A VM can provide full compatibility
+by reusing an existing OS implementation.
+%as long as the architecture is virtualizable.
 
 
-
-
-
-\polish{As an alternative to a VM, OS developers can partition an OS, to virtualize only necessary components into a thin compatibility layer}---a {\bf \libos{}}~\cite{porter11drawbridge,engler95exokernel,libra,unikernels}
-loaded inside of an application.
+An alternative to a VM is
+%an alternative to a VM, OS developers can partition an OS, to virtualize only necessary components into a thin compatibility layer}---
+a {\bf \libos{}}
+~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
+a user-space OS library loaded
+inside an application's address space.
 %when adopting an innovative hardware or alternative system interface.}
 %implementation of compatibility in an OS, in case the OS developers intend to extend the OS for new hardware.
 %reducing the difficulty of retaining compatibility
 %is to reduce the complexity of system interface which has to be reproduced, to achieve compatibility against existing applications.
 %when extending the OS implementation.
 The purpose of a \libos{} is to
-reproduce the features and API of a system interface,
-inside a user-space, reusable {\em library} that executes upon a virtualized host interface.
-Unlike the virtual hardware interface,
-a virtualized host interface to the library OS is redefined for the simplicity
-of OS development upon each host OS and hardware.
-\polish{The host interface is
-derived from a ``pinch point'' found inside an OS,
-to partition the high-level, hardware-independent OS components,
-into a \libos{}.}
-A library OS can be reused to build a compatibility layer for unmodified applications upon any host,
-as long as the host interface is implemented.
+reproduce the features and API of a system interface on top of a library,
+upon a generic host interface.
+%inside a user-space, reusable {\em library} that executes upon a virtualized host interface.
+%Unlike the virtual hardware interface,
+Defining a host interface is for the simplicity of porting.
+%of OS development upon each host OS and hardware.
+The definition process
+is equivalent to
+finding a ``pinch point'' inside an OS,
+to partition out the high-level, host-independent OS components.
+%A library OS can be reused to build a compatibility layer for unmodified applications upon any host,
+%as long as the host interface is implemented.
+A host interface must be relatively easy to develop,
+so that porting the \libos{}
+requires less effort than redeveloping
+a compatibility layer.
 
 
 This thesis presents
