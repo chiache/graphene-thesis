@@ -475,26 +475,41 @@ in a \libos{} or a research prototype.
 This section shows two examples in which developing a compatible OS for existing applications can be challenging, to motivate the library OS design.
 
 
-\subsection{Unmodified applications on SGX}
+\subsection{Running unmodified applications on SGX}
 \label{sec:intro:sgx}
 
 
 %One of the motivating examples, for using \libos{} to improve application compatibility,
 %is the support of unmodified Linux application
 %on the platform of Intel (SGX)~\cite{intelsgx}.
-SGX~\cite{intelsgx} are new extensions to the six-generation Intel CPUs,
+SGX~\cite{intelsgx}, or Software Guard Extensions, are a set of new instructions on Intel CPUs.
 %provide the hardware support for trustworthy, isolated execution, as part of the sixth-generation Intel CPU extensions.
 %Using SGX, application developers 
-which can
-protect signed application code from attacks in compromised OSes, hypervisors, and other system software.
-In the isolated environment of SGX, or {\bf enclaves}, applications can securely utilize the
-resources of an untrusted host,
-such as a public cloud machine for rent, or a client machine,
-with both confidentiality and integrity.
+The purpose of SGX
+is to protect application code from compromised OSes, hypervisors, and system software,
+with both integrity and confidentiality protection.
+The abstraction of SGX is 
+an {\bf enclaves}, 
+an isolation environment where an application can securely
+utilize the CPU and memory
+of an untrusted host.
+%such as a public cloud machine for rent, or a client machine,
+%with both confidentiality and integrity.
+%without leaking CPU and memory states.
+Application code and data inside an enclave are both signed and encrypted
+inside the DRAM,
+and will be authenticated and decrypted
+when bringing into the last-level cache at cache miss.
 %By running the application code on SGX, the code has 
 %emory state inside of the protected code
 %to be signed and encrypted, when the code and data leave the CPU package and are stored in the DRAM or swap device.
-SGX also offers attestation for the integrity of remote enclaves, as well as proving the integrity of the Intel CPUs.
+SGX also offers remote attestation of the integrity of an enclave
+and the CPU.
+SGX provides opportunities of delegating security-sensitive operations
+to untrusted hosts such as a public cloud
+or a client machine,
+without compromising on security.
+
 
 
 %A Linux application running on Intel SGX can receive end-to-end protection from the untrusted OSes, but also no longer have a trustworthy OS to faithfully return correct, benign OS features, such as reading a file or creating a thread.
@@ -505,27 +520,42 @@ SGX also offers attestation for the integrity of remote enclaves, as well as pro
 %building an ad hoc compatibility layer to implement and defend OS features for general Linux applications in Intel SGX
 %not only is cumbersome but also cannot be properly checked for security.
 
-To utilize SGX, common expectation is that developers have to partition a piece of the application code to run inside an enclave.
+
+Despite the benefits,
+the common expectation for utilizing SGX is
+that developers partition a piece of application code to run inside an enclave.
 The restriction is for both security and simplicity reasons.
-The enclave code is mostly statically compiled, for making code verification straightforward.
+The initial code in an enclave must be
+statically compiled,
+with a security measurement to verify inside the CPU.
 %and thus is easier to sign and verify.
-Development of enclave code also involves removing OS function calls and instructions which are not supported in an enclave.
+Developers must also removing system calls and
+certain instructions such as \code{cpuid} and \code{rdtsc} from an application.
 %If users intend to run an unmodified application, SGX imposes several restrictions on running unmodified applications inside an enclave.
 %The restrictions are either imposed by the SGX hardware in the run time, or statically by the official Intel SGX SDK (software development kit).
-The restriction on the instructions is also for the clarity of application protection.
-For example,
-%including \code{cpuid} and \code{rdtsc}, for the clarity of shielding these hardware features.
-SGX forbids \code{cpuid} in case of combining with the hardware virtualization (VT),
-to avoid trapping to hypervisors.
-%, which is untrusted in the threat model of SGX.
-SGX also forbids \code{rdtsc}, in order to rule out potential physical attacks on the Time Stamp Counter (TSC). 
-%The application developers would have to remove these instructions from the applications in order to run inside an enclave.
+SGX forbids these instructions
+for blocking
+dangerous behaviors that may jeopardize application security.
+For instance,
+system calls serviced by an untrusted OS
+may returns malicious results
+to applications.
+Also, SGX forbids \code{cpuid} and \code{rdtsc} because these instructions are easily intercepted or spoofed by an OS
+or a hypervisor.
+These restrictions cost developers porting effort to modify existing applications for SGX.
+
+%%including \code{cpuid} and \code{rdtsc}, for the clarity of shielding these hardware features.
+%SGX forbids \code{cpuid} in case of combining with the hardware virtualization (VT),
+%to avoid trapping to hypervisors.
+%%, which is untrusted in the threat model of SGX.
+%SGX also forbids \code{rdtsc}, in order to rule out potential physical attacks on the Time Stamp Counter (TSC). 
+%%The application developers would have to remove these instructions from the applications in order to run inside an enclave.
 
 
 \issuedone{1.2.c}{Discuss challenges of SGX shielding}
-SGX excludes OS services from the trust model, except functions which can be fully ported to user space (e.g. \syscall{malloc}).
+SGX excludes OS services from the trust model, except functions which can be fully ported to user space (e.g., \syscall{malloc}).
 The absence of trusted OS services is an issue for porting any application.
-Existing solutions combines a modified C library with applications, to redirect system interfaces
+Existing solutions combine a modified C library with applications, to redirect system calls
 to the untrusted OS~\cite{osdi16scone,shinde17panoply}.
 The problem, however, is in checking the results of system interfaces, because the OS is not trusted. % to faithfully implement OS services.
 %Checks against simple attacks are possible,
@@ -535,32 +565,39 @@ Previous work~\cite{checkoway13iago} shows that
 checking untrusted system interface results can be subtle, because the existing system interfaces are not designed for an untrusted or compromised OS.
 
 
-In summary, the existing porting models of Intel SGX always requires modifying application binaries, and reasoning about the completeness of checking system interfaces.
+In summary, the existing porting models of SGX requires modifying application binaries, and injecting security checks for all the OS features used by an application.
+%checking reasoning about the completeness of checking system interfaces.
 This thesis argues that, by introducing a library OS into enclaves,
 the interaction with the untrusted OS can be restricted to OS services which have clear semantics for checking.
 %an narrowed, fixed enclave interface can be defined, to restrict interaction with the untrusted OS to services that can be explicitly checked.
 By implementing the host ABI inside an enclave,
-users can easily run an unmodified Linux application, such as an Apache server or an OpenJDK runtime,
-with a trusted \graphene{} library OS instance.
+users can easily run an unmodified Linux application, such as an Apache server or a Python runtime, upon a trusted \libos{}.
 
 
 
-\subsection{Multi-process applications}
+\subsection{Emulating multi-process abstractions}
 \label{sec:intro:multiproc}
 
 
 \issuedone{1.3.b}{Using multi-process as a motivating example}
-One characteristic of a UNIX program is the opportunity of utilizing multiple processes, created by either \syscall{fork} or \syscall{exec},
-to program self-contained sessions or commands in applications.
-Especially, \syscall{fork} is an unique feature in UNIX-style OSes, such as Linux and BSD,
-to clone a process into another child process, with isolation from the parent.
+One characteristic of a UNIX program
+is the utilization of multi-process abstractions,
+such as \syscall{fork}, \syscall{exec},
+and inter-process communication,
+to program self-contained sessions or commands.
+Especially, \syscall{fork} is an unique feature of UNIX-style OSes, such as Linux and BSD,
+which clones a process with address space isolation
+between the parent and child.
 %mostly with copy-on-write paging.
 %The process state can be easily tore down at exit.
-The multi-process abstractions are convenient for creating a temporary session for processing incoming requests or commands, and destroying the session without corrupting the parent process.
+Multi-process abstractions are convenient for creating a temporary session for processing incoming requests or commands, and destroying the session without corrupting the parent process.
 
-Between multiple processes, there are several mechanisms of inter-process communication (IPC)  available for programming.
-The Linux IPC combines the UNIX System V features, including message queues and semaphores,
-and POSIX abstractions, such as signaling and namespaces.
+
+For programmability, Linux and similar OSes export several inter-process communication (IPC) mechanisms,
+each with unique use cases and semantics.
+The Linux IPC essentially combines the UNIX System V features, such as message queues and semaphores,
+and POSIX abstractions, such as signaling and namespaces,
+to present a wide range of options for programming.
 %The implementation of these mechanisms is idiosyncratic to Linux applications, and has to coordinate several global states across all processes.
 Figure~\ref{fig:overview:proc-example} shows a code example of
 two Linux programs (``\code{sh}'' and ``\code{kill}'')
@@ -603,14 +640,16 @@ kill(pid, SIGKILL);
 
 
 
-Implementing IPC mechanisms in an OS used to rely on a coherent kernel space, but can be challenging when an OS makes the opposite assumption.
+Monolithic OSes such as Linux generally implements IPC mechanisms as shared states in a coherent kernel space.
+%Implementing IPC mechanisms in an OS used to rely on a coherent kernel space, but can be challenging when an OS makes the opposite assumption.
 %Since coordination is necessary for multi-process applications, 
-The easiest design is to store the states and namespace in the kernel memory accessible to all processes.
-Sharing kernel states, however, is prone to attacks in an OS with process sandboxing,
-or in an application
-isolated by hardware like Intel SGX.
-An isolated OS design tends to avoid sharing a fully-trusted, coherent kernel space shared with other applications.
-For example, on SGX, an enclave cannot share trusted memory with other enclaves.
+%The easiest design is to store the states and namespace in the kernel memory accessible to all processes.
+Sharing kernel states, however, causes process sandboxing
+to be vulnerable in the kernel space.
+%or in an application
+%isolated by hardware like Intel SGX.
+An isolated OS design tends to avoid sharing privileged OS states with other applications.
+%For example, on SGX, an enclave cannot share trusted memory with other enclaves.
 %The only possible solution without introducing more OS functionality into enclaves is to export the encrypted states to the untrusted kernel, which will suffer significant overheads.
 
 
