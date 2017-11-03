@@ -1,66 +1,26 @@
 \footnotesize
 \centering
-\bgroup
-\def\arraystretch{1.1}
-\setlength{\tabcolsep}{0.25em}
-\begin{tabular}{|>{\palign{l}}p{3.5em}>{\palign{r}}p{6em}|>{\palign{r}}p{3.5em}>{\palign{r}}p{2em}|>{\palign{r}}p{3.5em}>{\palign{r}}p{2em}>{\palign[\em]{r}}p{2.5em}|>{\palign{r}}p{3.5em}>{\palign{r}}p{2em}>{\palign[\em]{r}}p{2.5em}|>{\palign{r}}p{3.5em}>{\palign{r}}p{2em}>{\palign[\em]{r}}p{2.5em}|}
-\hline
-& &
-\multicolumn{11}{c|}{System call latency (\usec{}), +/- Confidence Interval, \% Overhead} \\
+\begin{tabular}{|ll|rr|rrr|}
 \hline
 \multicolumn{2}{|c|}{{\bf Test}} &
-\multicolumn{2}{c|}{{\bf Linux \linuxversion{}}} &
-\multicolumn{3}{c|}{{\bf \graphene{}}} & \multicolumn{3}{c|}{{\bf \graphene{}+SC+RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
-& &
-\usec{} & +/- & 
-\usec{} & +/- & \%O &
-\usec{} & +/- & \%O &
-\usec{} & +/- & \%O  \\
+\multicolumn{2}{c|}{{\bf Linux}} &
+\multicolumn{3}{c|}{{\bf \graphene{}+SC+RM}} \\
+ & & \us{} & +/- & \us{} & +/- & \\
 \hline
-\code{SIGUSR1}	&	in-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-	&	inter-process	&		&		&		&		&		&		&		&		&		&		&		 \\
+msgget   & in-process    & 3320	& 0.7 &  2823 & 0.3 &	-15	\%		\\
+(create) & inter-process & 3336	& 0.5 &  2879 & 3.6 &	-14	\%		\\
+         & persistent    &  N/A	&     & 10015 & 0.7 &	202	\%      \\
+\hline								
+msgget   & in-process    & 3245	& 0.5 &   137 & 0.0 &	-96	\%		\\
+         & inter-process & 3272	& 3.4 &  8362 & 2.4 &	156	\%		\\
+         & persistent    &  N/A	&     &  9386 & 0.4 &	189	\%      \\
+\hline								
+msgsnd   & in-process    &  149	& 0.2 &   443 & 0.2 &	191	\%		\\
+         & inter-process &  153	& 0.3 &   761 & 1.1 &	397	\%		\\
+         & persistent    &  N/A	&     &   471 & 0.8 &	216	\%	    \\
+\hline								
+msgrcv   & in-process    &  149	& 0.1 &   237 & 0.2 &	60	\%		\\
+         & inter-process &  153	& 0.1 &   779 & 2.2 &	409	\%  	\\
+         & persistent    &  N/A	&     &   979 & 0.6 &	561	\%	    \\
 \hline
-\hline
-msgget	&	in-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-(create)	&	inter-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-\hline
-msgget	&	in-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-	&	inter-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-\hline
-msgsnd	&	in-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-	&	inter-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-\hline
-msgrcv	&	in-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-	&	inter-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-\hline
-\hline
-semget	&	in-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-(create)	&	inter-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-\hline
-semget	&	in-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-	&	inter-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-\hline
-semop	&	in-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-(wait)	&	inter-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-\hline
-semop	&	in-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-(signal)	&	inter-process	&		&		&		&		&		&		&		&		&		&		&		 \\
-\hline
-%msgget   & in-process    & 3320	& 0.7 &  2823 & 0.3 &	-15	\%		\\
-%(create) & inter-process & 3336	& 0.5 &  2879 & 3.6 &	-14	\%		\\
-%& persistent    &  N/A	&     & 10015 & 0.7 &	202	\%      \\
-%\hline								
-%msgget   & in-process    & 3245	& 0.5 &   137 & 0.0 &	-96	\%		\\
-%& inter-process & 3272	& 3.4 &  8362 & 2.4 &	156	\%		\\
-%& persistent    &  N/A	&     &  9386 & 0.4 &	189	\%      \\
-%\hline								
-%msgsnd   & in-process    &  149	& 0.2 &   443 & 0.2 &	191	\%		\\
-%& inter-process &  153	& 0.3 &   761 & 1.1 &	397	\%		\\
-%& persistent    &  N/A	&     &   471 & 0.8 &	216	\%	    \\
-%\hline								
-%msgrcv   & in-process    &  149	& 0.1 &   237 & 0.2 &	60	\%		\\
-%& inter-process &  153	& 0.1 &   779 & 2.2 &	409	\%  	\\
-%& persistent    &  N/A	&     &   979 & 0.6 &	561	\%	    \\
-%\hline
 \end{tabular}
-\egroup

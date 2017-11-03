@@ -686,9 +686,123 @@ for porting multi-process applications to a variety of OSes and architectures.
 
 \issuedone{1.1.d}{Separate the motivation for security isolation}
 
-Operating systems empirically contain vulnerabilities
-for attackers to exploit.
 
+
+%In traditional systems, the security of an application is built upon
+%trusting the whole system stack to enforce its security policies.
+%The system stack needed to be trusted
+%--- as part of the application's {\em trusted computing base (TCB)}
+%--- includes the hardware (from CPUs to devices), operating systems, system libraries, and language runtimes (a languge runtime can be considered an application or part of the system stack).
+%If a vulnerability exists anywhere in the system stack,
+%attackers can exploit the vulnerability to bypass the security mechanisms the application rely on,
+%compromising any security policies that application enforces.
+
+
+Besides compatibility, \graphene{} also
+reduces the complexity of enforcing security isolation on applications,
+under different threat models.
+For instance, on a Linux host, the security implication of using \graphene{} is to isolate mutually-untrusting applications,
+similar to running each of these applications inside a OS sandbox.
+A SGX host, on the other hand, enforces a different threat model,
+where an enclave untrusted any OS components and applications running
+outside of the enclave.
+With two opposite threat models,
+\graphene{} shows how to simplify security isolation
+by separating API implementation from enforcing security policies.
+
+
+
+%trusting the whole system stack to enforce its security policies.
+%The system stack needed to be trusted
+%--- as part of the application's {\em trusted computing base (TCB)}
+%--- includes the hardware (from CPUs to devices), operating systems, system libraries, and language runtimes (a languge runtime can be considered an application or part of the system stack).
+%If a vulnerability exists anywhere in the system stack,
+%attackers can exploit the vulnerability to bypass the security mechanisms the application rely on,
+%compromising any security policies that application enforces.
+
+
+%The existence of vulnerabilities in the trusted system stack especially affects applications that run in a multi-tenant environment, such as {\em cloud} environment.
+%If there is only one tenant,
+%the application or user will behaves benignly,
+%without actively attempting to discover or exploit any system vulnerabilities.
+%On the contrary, in a multi-tenant environment,
+%the application or user can share the same host with a malicious application or user,
+%who will act to compromise the system stack.
+%The problem can never be completely resolved by security checks,
+%because vulnerabilities can exist in the security logics,
+%and the attackers who succeed exploiting the vulnerabilities may bypass the checks.
+
+%To address the problem of system vulnerabilities, system researchers have engaged efforts in building more secure operating systems,
+%to isolate the consequence of compromised system stacks.
+%For instance,
+%micro-kernels, such as Exokernel~\cite{engler95exokernel} or HiStar~\cite{zeldovich+histar},
+%intend to reduce the TCB in the operating systems that are shared by applications.
+%The operating system components that are removed from the shared TCB are placed into a {\em library OS}, which operates in the userspace or even in the application processes.
+%If a malicious application attack its library OS,
+%the succeeded exploitation will only affect the very piece of library OS,
+%whereas other applications are isolated.
+%Because the complexity of the host kernel is significantly reduced,
+%it is easier to eliminate its vulnerabilities.
+
+%Another common approach of enforcing security isolation against malicious application to use virtualization.
+%With virtualization, the shared TCB among all the guests (or tenants)
+%are reduced to a minimal hypervisor,
+%and each guest will be running in an isolated virtual machine which loads a monolithic guest operating systems.
+%Similar as the applications isolated by library OSes, the exploitation that occurs in each guest OS will not affect other guests.
+
+%Either library OSes or virtual machines does not defend against two types of attacks.
+%The first type of attack is from the malicious host providers.
+%In cloud environment, a malicious provider can load a modified kernels or hypervisors into the hosts,
+%bypassing the security isolation enforced by library OSes or virtual machines.
+%Even without loading a malicious system stack,
+%the provider can still attack the hosts by physically launching attacks on the hardware, using techniques such as the Cold-boot Attack~\cite{halderman09coldboot} or 
+%intrude the boot process using counterfeit peripheral devices.
+%Finally, library OSes or virtual machines does not defend against vulnerabilities
+%inside an application or a process
+%that can be exploited to attack the application itself.
+%For instance, the Heartbleed bug~\cite{heartbleed} discovered in OpenSSL cryptography library
+%can leak the private keys of trusted authorities through the vulnerability in OpenSSL's heartbeating service.
+%To eliminate vulnerabilities in a complex, modern applications is as infeasible as eliminating vulnerabilities in the operating systems.
+
+
+
+
+Similar as the complexity of emulation,
+%the whole system table on a host,
+security isolation on a monolithic OS is also delicate and prone to mistake.
+%if each abstraction is controlled individually.
+the host ABI f \graphene{} simplifies the isolation of OS abstractions
+down to three host abstractions that are sharable among \picoprocs{}: files, network connecions, and RPC streams.
+For each of these sharable host abstraction, \graphene{} enforces isolation policies using semantics
+commonly known and used by security experts;
+for instance, to specific file access rules, users provide a list of permitted files, similar to a profile for the AppArmor kernel module.
+For network connections,
+users specify firewall-like network rules,
+to permit an application
+to bind to a local network address, or to connect to a remote network address.
+Finally, for RPC streams,
+\graphene{} simply blocks any RPC streams
+which cross sandbox boundary.
+This thesis show that,
+by enforcing isolation rules on three host abstractions,
+\thehostabi{} isolates the whole system call table inside each \picoproc{}.
+
+
+
+For SGX, \graphene{} addresses a specific set of security isolation challenges.
+In addition to isolating mutually-untrusting applications,
+\graphene{} also isolate an SGX application
+from untrusted operating systems, hypervisor, or system software.
+Existing system APIs, such as system calls, expose a wide attack surface
+to an untrusted host, where an adversary
+can manipulate system API results to explore attack vectors~\cite{checkoway13iago}.
+\graphene{} simplifies
+the protection against random system API results which may or may not be malicious,
+by redefining a fixed-width enclave interface
+with security checks in mind.
+This thesis also enumerates the security checks for each enclave call,
+to verify the completeness
+of protection against untrusted host components.
 
 
 

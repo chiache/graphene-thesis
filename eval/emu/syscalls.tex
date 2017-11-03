@@ -31,20 +31,18 @@ and without the \seccomp{} filter and reference monitor.
 The evaluation results categorize
 the system calls emulated inside \thelibos{}
 as three types.
-First, \linuxapis{} that are completely serviced inside \thelibos{} are faster than native.
+The first type of system calls is completely serviced inside \thelibos{};
+the evaluation results show that these system calls are even faster than native, because \thelibos{} does not switch context into the kernal space
+to service the system calls.
 For instance,
-a null \linuxapi{} (i.e., \syscall{getppid})
-or installing a signal handler with \syscall{sigaction}
-are up to three time as fast as
-the native performance.
-
-
-whereas calls that require translation to a native call incur overheads typically under 100\%.
-For instance, 
-the self-signaling test (sig overhead)
-just calls the signal handler as a function,
-which is almost twice as fast
-as the Linux kernel implementation.  
+a null system call (i.e., \syscall{getppid}) and installing a signal handler with \syscall{sigaction}
+are up to three time as fast as the native performance.
+The second type of system call requires translation to a native host system calls.
+%For instance, 
+%the self-signaling test (sig overhead)
+%just calls the signal handler as a function,
+%which is almost twice as fast
+%as the Linux kernel implementation.
 
 \begin{table}[htp!]
 \input{tables/lmbench-syscalls}
@@ -55,70 +53,5 @@ System call bandwidth and throughput are in megabytes per second and operations 
 Overheads are relative to Linux \linuxversion{}; negative overheads indicate improved performance.} 
 \label{tab:eval:lmbench-syscalls}
 \end{table}
-
-
-
-
-
-
-
-
-%\begin{figure*}[t!]
-%\centering
-%\footnotesize
-%\begin{minipage}{.49\linewidth}
-%\centering
-%\includegraphics[width=24em]{open-latency}\\
-%{\bf (a) Opening a file}
-%\vspace{6pt}
-%\end{minipage}
-%\begin{minipage}{.49\linewidth}
-%\centering
-%\includegraphics[width=24em]{read-latency}\\
-%{\bf (b) Reading a file}
-%\vspace{6pt}
-%\end{minipage}
-%\caption{Latency of some expensive system calls in \graphenesgx{}, including opening and reading a secured (authenticated) file, and forking a new process. The results are compared with native Linux and \graphene{}.}
-%\label{fig:eval:sgx-open-read}
-%\end{figure*}
-
-
-%Figure~\ref{fig:eval:sgx-open-read}(a)
-%shows the overhead for authenticating files in \syscall{open}.
-%\fixme{change overhead to latency}
-%Depending on the file size, the latency of \syscall{open} on \graphenesgx{} is 383$\mu$s (64KB file) to 21ms (4MB file), whereas on Linux, the latency is constant at 0.85$\mu$s.
-%We note that this is where enclaves are at a disadvantage, as \syscall{open} 
-%normally does not need to read file content; whereas here \graphenesgx{} uses \syscall{open}
-%as a point at which to validate file content.
-%For a subsequent \syscall{open}, when the Merkle tree is already generated, the overhead of simply exiting enclave for \syscall{open}, and searching the file list in the manifest, is about 9$\times$.
-%%\fixmedp{why?}
-
-
-One might be able to optimize further for cases where only part of a file is accessed
-with incremental hashing.  However, in the common case where nearly all of the file is accessed,
-these costs are difficult to avoid when host file system is untrusted.
-Another opportunity 
-is to create the Merkle tree offline, when the manifest is created.
-%\fixmedp{I think the second idea has legs...}
-
-
-%This is an inevitable cost, because normal \funcname{open} on trusted OSes
-%need not to access file content.
-%After verifying the file, \graphenesgx{} buffers the chunk hash values, to skip whole-file verification when the file is reopened.
-
-Figure~\ref{fig:eval:sgx-open-read}(b)
-shows the overhead for authenticating files in \syscall{read}, which 
-is lower than \syscall{open}.
-Since the whole file has been verified at \syscall{open}, the sequential \syscall{read} only verifies the chunks of files it is reading from untrusted memory.
-%Reads from data cached in enclave memory are cheaper.  %\fixmedp{right? can we say how much cheaper?  Maybe add separate bars for both cases?}
-% Therefore, \syscall{read} is actually much cheaper than \syscall{open}.
-Depending on the size of blocks being read, the latency on \graphenesgx{} is 0.5$\mu$s (64-byte \syscall{read}) to 16.9$\mu$s (4KB \syscall{read}). The latency of \syscall{read} on Linux is \roughly{}0.1$\mu$s for any block size below 4KB.
-If the file is not authenticated,
-\graphenesgx{} only copies the file contents into the buffer, and the overhead reduces to 48\% (64-byte \syscall{read}) to 83\% (4KB \syscall{read}).
-\fixmedp{Consider doing larger buffers, say up to 64k or even 4 MB}
-
-%\fixmedp{In the legend for 7b, unsecure should be insecure}
-
-
 
 

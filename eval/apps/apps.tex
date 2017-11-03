@@ -6,6 +6,233 @@
 \makeatother
 \graphicspath{{eval/apps/figures/}}
 
+\begin{table}[t!b!]
+\footnotesize
+\centering
+\begin{tabular}{|l|r|rr|rr|rr|}
+\hline
+{\bf Test } & {\bf Linux } & \multicolumn{2}{c|}{{\bf KVM}}
+& \multicolumn{2}{c|}{{\bf \graphene{}}} \\\hline
+
+%Start-up time& 88.40& 3293296.77 & 3725349\% & 125350.73 & 1417\%& 622.00 & 604\% \\
+Start-up   & 208 \us{} & 3.3 s & 15K\x{} & 641 \us{} & 3.1\x{}  \\
+\hline
+Checkpoint & N/A   & 0.987 s  &  &   416 \us{} &  \\
+\hline
+Resume     & N/A   & 1.146 s  &  &  1387 \us{} & \\
+\hline\hline
+Checkpoint size & N/A & \multicolumn{2}{l|}{105 MB} & \multicolumn{2}{l|}{376 KB}   \\
+\hline
+\end{tabular}
+\caption[Startup, checkpoint, and resume times in Linux, KVM, and \graphene{}]
+{Startup, checkpoint, and resume times for (1) a native Linux process,
+(2) a KVM virtual machine,
+(3) a \graphene{} \picoproc{},
+(4) a \graphene{} \picoproc{} in a \sgx{} enclave,
+ where appropriate. Lower is better.  
+Overheads are relative to Linux. \fixme{Update \graphene{} and \graphenesgx{} numbers}} 
+\label{tab:graphene:startup}
+\end{table}
+
+
+\subsection{Process Migration and Application Startup}
+
+%A key feature of VMs is the ability to move a running application to a new system.
+\graphene{} supports migration of an application from a \picoproc{} on one machine
+to a \picoproc{} on another machine by checkpointing the application,
+copying the checkpoint over the network, and then resuming the checkpoint.
+%We note that resuming a checkpoint executes entirely in userspace.
+Table~\ref{tab:graphene:startup} shows the time to start
+up a process, VM, or \picoproc{}; as well as the checkpoint and resume time for KVM and \graphene{}.
+Migration across machines is a function of network bandwidth,
+%% and checkpoint size, 
+so we report checkpoint size instead. % of migration time.
+%Only KVM and \graphene{} have the ability to checkpoint and resume, and are the only data points listed.
+
+
+\graphene{} shows dramatically faster initialization times than a VM. This is not surprising,
+since \graphene{} is substantially smaller than an OS kernel. 
+Similarly, checkpointing and restoring a 4 MB application on \graphene{} is 1--4 times faster than checkpointing or restoring a KVM guest.
+
+
+
+%\fixmedp{Error bars on mem usage graphs missing}
+
+\subsection{Memory Footprint}
+\label{sec:graphene:eval:mem}
+
+We begin by measuring the minimal memory footprint of a simple ``hello world'' program 
+on Linux (352 KB) and \graphene{} (1.4 MB).
+Thus, one would expect roughly 1 MB of extra memory usage for any single-\picoproc{} application.
+Because of copy-on-write sharing, however, the incremental cost of adding additional ``hello world'' children
+is only about 790 KB per process.
+%, although this will vary based on usage.
+
+%Figure~\ref{fig:graphene:memusage} lists memory overheads of 
+%a diverse set of {\em unmodified}
+%applications, including 
+%a {\tt make -j 4} of Gra\-phene's {\tt libLinux}
+%using the {\tt \gcc{}} compiler (v4.4.5), 
+%%\busy, a software which combines tiny versions of most common UNIX utilities into a single
+%%small executable;
+%the Lighttpd web server (v1.4.30) with 4 threads,
+%the Apache web server (v2.4.3) with 4 processes,
+%and the \busy{} shell (v4.1) executing the shell script test ({\tt multi.sh}) from the Unixbench suite (v5.1.3)~\citep{unixbench}.
+%We measure memory utilization based on the maximum kernel-reported resident set size
+%of each process or VM. For most applications, memory usage was fairly constant across inputs,
+%so we only display representative examples.
+%
+%\begin{figure}[t!]
+%\centering
+%\includeplot[0.5]{apps-memusage}
+%\centerline{\includegraphics[width=\linewidth]{figures/memusage.pdf}}
+%\caption{Memory usage of applications on Linux, \graphene{}, and KVM, in MB.  Lower s better.
+%\label{fig:graphene:memusage}}
+%\end{figure}
+
+
+We found that the memory footprints of compilation were a function of the 
+size of the source base, even on Linux; we select compile of {\tt libLinux} as a representative example.
+\graphene{} adds less than 15\% overhead in all cases.
+%every compilation we measured on \graphene{} had less than 10\% memory overhead.
+
+Unixbench on \graphene{} uses substantially more memory at a given time than native Linux---more than double.
+In these samples, however, \graphene{} also had 3--4\x{} as many processes
+running; this is because Unixbench simply spawns all of the tasks in the background, rather than
+executing them sequentially.   Because \graphene{} processes execute more slowly (attributable to a slower {\tt fork}---\S\ref{sec:graphene:eval:perf}),
+a given sample will include more \picoprocs{}, pushing total memory usage higher.
+Thus, we expect that further tuning {\tt fork} performance will lower sampled memory usage.
+
+
+Across all workloads, \graphene{}'s memory footprint is 3--20\x{}  
+smaller than KVM.  
+For all tests, we used a minimal KVM disk image, 
+%formatted as a 30GB\fixmewkj{this can be changed to be smaller, but I don't know if disk size would impact memory} raw disk image with ext4. The root image was 
+generated using debootstrap 1.0.39ubuntu0.3 and supplemented only by packages required to obtain, compile, and run the experiments.
+In order to make memory footprint measurements as fair as possible to KVM, 
+we used both the virtio balloon driver and kernel same page merging (KSM)~\citep{ksm}.
+We also reduced the RAM allocated to the VM to the smallest size without harming performance---128MB.  We note that memory measured includes memory used by QEMU for VM device emulation, 
+adding a few dozen MB.
+%hence the total is 
+%a few dozen MB higher than the RAM allocated to the VM.
+
+If the smallest usable Linux VM consumes about 150 MB of RAM, our measurements indicate that 
+one could run anywhere from 12--188 libOSes within the same footprint.
+
+
+\begin{table}[t!b!]
+\footnotesize
+%\tiny
+\centering
+
+\begin{tabular}{|l|rr|rrr|rrr|rrr|}
+\hline
+&\multicolumn{11}{c|}{Execution time (s), +/- Conf. Interval, \% Overhead} \\
+\hline
+{\bf \gcc/make} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \graphene{} + \sgx{}}} \\
+\hline
+% gcc
+%\multicolumn{2}{|l|}{helloworld} & .02 & .02 & 0 \% & .03 & 100 \% \\ 
+%\hline
+%oggenc & 1.42 & .01 & 1.51 & .00 & 6 \% & 1.43 & .00 & 1 \% \\\hline
+gcc (helloworld)  & 0.020 & .000 &  0.022 & .000 & 7 \% &  0.023 & .000 &  12 \% & 6.097 & .012 & 298 $\times$  \\\hline
+gcc (.7M\loc{})   & 21.64 &  .00 &  23.37 &  .02 & 8 \% &  21.88 &  .00 &   1 \% & 75.41 & .03 & 248 \%  \\\hline
+make bzip2        & 2.332 & .000 &  2.448 & .000 & 5 \% &  2.407 & .000 &   3 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+make -j4 bzip2    & 0.888 & .000 &  0.967 & .000 & 9 \% &  0.923 & .004 &   4 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+make libLinux     & 4.832 & .000 &  5.037 & .000 & 4 \% &  5.112 & .001 &   6 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+make -j4 libLinux & 1.361 & .000 &  1.413 & .000 & 4 \% &  1.459 & .000 &   7 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+
+
+
+\hline\hline
+Ap. Bnch     & \multicolumn{11}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% Overhead} \\
+\hline
+{\bf Apache} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}}  & \multicolumn{3}{c|}{{\bf \graphene{} + \sgx{}}} \\
+\hline
+25 conc     & 6.282 & .005 & 5.327 & .031 & 18 \% & 4.586 & .002 & 36 \% & 2.312 & .192 & 171 \%    \\\hline
+50 conc     & 6.305 & .002 & 5.420 & .060 & 16 \% & 4.555 & .012 & 38 \% & 2.752 & .463 & 129 \%  \\\hline
+100 conc    & 6.347 & .010 & 5.152 & .036 & 22 \% & 4.572 & .009 & 39 \% & 2.488 & .781 & 155 \%   \\\hline
+
+{\bf Lighttpd} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \graphene{} + \sgx{}}} \\
+\hline
+
+25 conc    & 6.66 &.01 &6.46 &.03 &3 \% &5.65 &.00 &18 \% & 2.124 & .072 & 171 \%    \\\hline
+50 conc    & 6.65 &.13 &6.41 &.02 &4 \% &4.79 &.00 &39 \% & 2.437 & .107 & 171 \%    \\\hline
+100 conc   & 6.69 &.01 &6.39 &.03 &5 \% &4.56 &.01 &47 \% & 2.417 & .235 & 171 \%    \\\hline
+
+\hline\hline
+%%%%% UnixBench
+
+  & \multicolumn{11}{c|}{Execution Time (s), +/- Conf. Interval, \% Overhead} \\
+\hline
+{\bf bash } & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
+\hline
+%2.1 s linux
+%graphene 10.06s
+
+%bash
+Unix utils & 0.87 & .00 & 1.10 & .01 & 26 \% & 2.01 & .00 & 134 \% & \multicolumn{3}{c|}{not supported yet} \\\hline
+Unixbench  & 0.55 & .00 & 0.55 & .00 &  0 \% & 1.49 & .00 & 192 \% & \multicolumn{3}{c|}{not supported yet} \\\hline
+\end{tabular}
+\caption[Application benchmark results in Linux, KVM and \graphene{}]
+{Application benchmark execution times in a (1) native Linux process, (2) a process inside a KVM virtual machine, (3) a \graphene{} \picoproc{} with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in \sgx{} enclaves. }
+\label{tab:graphene:apps}
+\end{table}
+
+
+\subsection{Application performance}
+\label{sec:graphene:eval:perf}
+
+Table~\ref{tab:graphene:apps} lists 
+execution time of our {\em unmodified} 
+application benchmarks (detailed in \S\ref{sec:graphene:eval:mem}).
+All applications create multiple processes,
+except for Lighttpd, which only creates multiple threads.
+Each data point is the average of at least six runs, 
+and 95\% confidence intervals are listed in the table.
+
+We exercise  {\tt \gcc{}}/{\tt make}
+with inputs of varying sizes:
+%the pbzip2 compression utility (v1.1.6, 4 KLoC),
+%the ogg sound encoder (v1.0.1, 5 KLoC),
+%GNU {\tt make} (v3.82, \fixmedp{XX} KLoC)
+bzip2 (v1.0.6, 5KLoC, 13 files),
+\graphene{}'s {\tt libLinux} (31 KLoC, 78 files)
+and \gcc{} (v3.5.0, 551 KLoC, collected as a single source file). 
+We benchmark Apache (4 preforked workers) and Lighttpd (4 threads) with 
+\ab{},
+which issues 25, 50, and 100 concurrent requests
+to download a 100 byte file 50,000 times.
+
+We exercised \busy{} with 
+300 iterations of the Unixbench benchmark~\citep{unixbench}, as well as 
+300 iterations of a simple shell script benchmark that runs 6 common shell script commands
+({\tt cp}, {\tt rm}, {\tt ls}, {\tt cat}, {\tt date}, and {\tt echo}).
+
+Compilation workloads incur overheads ranging from 5--30\%.
+%All compilation workloads have minimal overheads compared to native when executed sequentially;
+Parallel compilation on both \graphene{} and Linux yields comparable  speedups  over sequential,
+but the percent overhead increases for parallel \graphene{}.
+For instance, {\tt make -j4 libLinux} speeds up 3.7\x{} on Linux and 3.4$\times$ on \graphene{}.
+The compilation overheads are primarily from the reference monitor---nearly all for bzip2 and gcc, and half for {\tt libLinux}.
+%Nearly all of the overhead from the bzip2 and gcc compilations are from the reference monitor; about half of the overheads of {\tt libLinux} compile 
+%are the reference monitor and half are \graphene{} itself.
+In the case of both \busy{} workloads, the key bottleneck is the {\tt fork} system call.
+Profiling indicates that half of the time in {\tt libLinux} is spent on {\tt fork} in both benchmarks.
+The trend is exacerbated in Unixbench, which creates all of the processes at the beginning and
+waits for them all to complete; because \graphene{} cannot create children as quickly as native, this leads to 
+load imbalance throughout the rest of the benchmark.  
+
+With the reference monitor disabled,  Lighttpd has equivalent throughput to a native Linux process;
+as discussed in the next subsection, these overheads come from checking paths in the monitor.
+The Apache web server loses about half of its throughput relative to Lighttpd on \graphene{}.
+The primary bottleneck in Apache relative to Lighttpd is System V semaphores,
+%, which account for about 
+%one third of the additional time spent in {\tt libLinux}
+%relative to Lighttpd, 
+and the remaining overheads are attributable to more time spent waiting for input.
+The overheads for both Lighttpd and Apache on KVM are primarily attributable
+to bridged networking.
 
 
 \begin{table}[t!b!]
@@ -62,7 +289,7 @@ The Apache web server loses about half of its throughput relative to \lighttpd{}
 The primary bottleneck in Apache relative to \lighttpd{} is System V semaphores,
 %, which account for about 
 %one third of the additional time spent in {\tt libLinux}
-%relative to \light{}, 
+%relative to Lighttpd, 
 and the remaining overheads are attributable to more time spent waiting for input.
 The overheads for both \lighttpd{} and Apache on KVM are primarily attributable
 to bridged networking.
