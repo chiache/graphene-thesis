@@ -176,9 +176,8 @@ which supports unmodified Linux multi-process applications.
 %and the decision shall be honored
 %when partitioning the underlying operating systems.
 In \graphene{},
-the idiosyncratic, Linux multi-process abstractions
---- including forking, signals, \sysvipc{}, file descritor sharing, exit notification, etc
---- are coordinated across \picoprocs{}
+the idiosyncratic, Linux multi-process abstractions---including forking, signals, \sysvipc{}, file descritor sharing, exit notification, etc---are coordinated
+across \picoprocs{}
 over simple, pipe-like RPC streams on the host.
 The RPC-based, distributed implementation of OS abstractions
 can be isolated by simply sandboxing the RPC streams.
@@ -197,14 +196,13 @@ and platform independence,
 are comparable to virtualization,
 but at a lower resource cost.
 Especially, with platform independence, \graphene{}
-can extend
-the legacy support for Linux applications
+can reuse unmodified Linux applications
 onto other platforms,
 %such as microkernels like L4, a heterogeneous environment like Barrelfish,
 including isolated execution platforms like Intel SGX enclaves.
 A \graphene{} \picoproc{} isolated in an enclave
-can seal the execution of a legacy application,
-in an environment immune to attacks from host kernels
+can seal the execution of an unmodified application,
+inside of an environment immune to attacks from host OSes, hypervisors,
 and hardware peripherals.
 
 
@@ -226,75 +224,76 @@ and hardware peripherals.
 %as well as miscellaneous features in the Linux file system hierarchy.
 
 
-Besides supporting whole applications,
-we explore opportunity for porting applications
-to a more fine-grained, partitioned model
-using enclaves,
-where an application can be
-split into isolated, selectively trusted components.
-In particular,
-applications developed in managed languages, such as Java,
-will encounter obstacles
-when being ported into enclaves
-due to limitations of Intel SGX.
-%The improvement of granularity is critical for protecting highly sensitive components,
-%to reduce the execution paths
-%potentially exploitable.
-%If the subject of partitioning is a legacy system or application
-%in which code reuse is desired,
-%the challenge falls on
-%clean compartmentalization of code
-%and seamless access of objects across partitions.
-%Code compartmentalization
-%~\cite{addistant, jorchestra, jif-split, swift}
-%is a technique adopted from
-%programming languages and code analysis.
-%However, 
-%From the OS perspective,
-%there are system design efforts that
-%can fundamentally improve the amount of legacy code being reused,
-%based on other techniques from programming languages and code analysis.
-%These efforts include
-%lifting the limitations imposed on more sophisticated languages
-%and creating clean, smooth transition of system states
-%which the partitioning is based on.
-%We demonstrates an example
-%in which applications can be painlessly partitioned
-%into Intel SGX enclaves~\cite{intelsgx},
-%by leveraging advantages from the Java language,
-%on a system designed to transparently load and interface legacy Java classes in enclaves.
-We propose a framework that automatically split a Java application
-into cleanly partitioned enclaves,
-to isolate sensitive execution from untrusted components and hosts.
-%Regardlessly, creating an adaptable design
-%in any partitioned system,
-%in order to resurrect as much legacy system or application code as possible,
-%is a nontrivial effort.
-%The process of building a compatible system will benefit from a more principled procedure,
-%in which the completeness of emulation can be measured.
-%Given an API specification,
-%the compliance of a partial implementation can be evaluated
-%based on a study of API usage in applications and application popularity
-%~\cite{tsai16apistudy}.
-%The measurement provides a methodology
-%for system developers to reason about the
-%preservation of specifications and personalities.
-%More future works target on justifying the generalizability of the compatible solutions,
-%including porting \graphene{} to diverse platforms,
-%and implementing major OS personality that are currently missing,
-%such as resource scheduling APIs,
-%hardware feature support, and in-application security models (capabilities, mandatory access control, etc).
+%Besides supporting whole applications,
+%this thesis explores opportunity for porting applications
+%to a more fine-grained, partitioned model
+%using enclaves,
+%where an application can be
+%split into isolated, selectively trusted components.
+%In particular,
+%applications developed in managed languages, such as Java,
+%will encounter obstacles
+%when being ported into enclaves
+%due to limitations of Intel SGX.
+%%The improvement of granularity is critical for protecting highly sensitive components,
+%%to reduce the execution paths
+%%potentially exploitable.
+%%If the subject of partitioning is a legacy system or application
+%%in which code reuse is desired,
+%%the challenge falls on
+%%clean compartmentalization of code
+%%and seamless access of objects across partitions.
+%%Code compartmentalization
+%%~\cite{addistant, jorchestra, jif-split, swift}
+%%is a technique adopted from
+%%programming languages and code analysis.
+%%However, 
+%%From the OS perspective,
+%%there are system design efforts that
+%%can fundamentally improve the amount of legacy code being reused,
+%%based on other techniques from programming languages and code analysis.
+%%These efforts include
+%%lifting the limitations imposed on more sophisticated languages
+%%and creating clean, smooth transition of system states
+%%which the partitioning is based on.
+%%We demonstrates an example
+%%in which applications can be painlessly partitioned
+%%into Intel SGX enclaves~\cite{intelsgx},
+%%by leveraging advantages from the Java language,
+%%on a system designed to transparently load and interface legacy Java classes in enclaves.
+%We propose a framework that automatically split a Java application
+%into cleanly partitioned enclaves,
+%to isolate sensitive execution from untrusted components and hosts.
+%%Regardlessly, creating an adaptable design
+%%in any partitioned system,
+%%in order to resurrect as much legacy system or application code as possible,
+%%is a nontrivial effort.
+%%The process of building a compatible system will benefit from a more principled procedure,
+%%in which the completeness of emulation can be measured.
+%%Given an API specification,
+%%the compliance of a partial implementation can be evaluated
+%%based on a study of API usage in applications and application popularity
+%%~\cite{tsai16apistudy}.
+%%The measurement provides a methodology
+%%for system developers to reason about the
+%%preservation of specifications and personalities.
+%%More future works target on justifying the generalizability of the compatible solutions,
+%%including porting \graphene{} to diverse platforms,
+%%and implementing major OS personality that are currently missing,
+%%such as resource scheduling APIs,
+%%hardware feature support, and in-application security models (capabilities, mandatory access control, etc).
 
 
 
-In practice,
-developers, including us, struggle to prioritize the implementation of system APIs and abstraction,
-because what they believe to be more important
-is inevitably skewed toward their preferred workloads.
+Developers struggle to prioritize system APIs that are important to compatibility
+due to skewed observations toward
+%because what they believe to be more important
+%is inevitably skewed toward their
+targeted workloads.
 %We suggest a new approach to guide and evaluate the implementation
 %of legacy support~\cite{tsai16apistudy}.
 Alternatively,
-we suggest a more fractal measurement
+this thesis suggests a more fractal measurement
 for estimating how system APIs
 (e.g., Linux system calls)
 are used in applications,
@@ -321,57 +320,57 @@ will grow from 0.42\% to 21.1\%.
 
 
 
-At the high level,
-the principles for developing OS personalities can be vastly distinct
-among different specifications,
-and often entangled with
-the implementation of
-security mechanisms and performance optimizations.
-%The multi-process abstractions in \graphene{}, for instance,
-%compose a critical part of Linux personality,
-%yet must enforce security isolation comparable to a single \picoproc{},
-%with acceptable coordination efficiency.
-Similar challenges can be observed in legacy, monolithic kernels.
-%when redesigning a system component for security or efficiency,
-%legacy support may become obstruction.
-%Many systems provide legacy support
-%in a complex, case-by-case way,
-%potentially causing more security glitches and performance suboptimality.
-%An insight
-%for solving this problem %that affects both partitioned and non-partitioned system
-%is to avoid
-%emulating specifications and checking security policies
-%on the critical path of common cases.
-We demonstrate a case of an performance-centric, heavily engineered component,
-the Linux file system directory cache.
-The directory cache is designed as an optimization for path lookup,
-yet it interleaves searching path components
-with permission checks (e.g., searching prefixes)
-and file system features (e.g., resolving symbolic links),
-%while preserving the legacy file-system features and security models
-%.
-%The original Linux kernel interleaves path component searching
-%in the directory cache
-%with permission checks against security modules,
-%and retrieving file attributions.
-causing suboptimal latency when the cache is warm (no cache misses)
-~\cite{tsai15dcache}.
-A fast path to improve the hit latency
-will decouple searching in the directory cache
-from other operations,
-by %full exploiting the locality and
-caching the results of prefix checking, symbolic links, etc, in the kernel data structures.
-%With the fast path,
-%the latency of Git version control system
-%can be reduced by up to 25\%.
-%Summarizing the similar cases,
-%developers constantly struggle to
-%implement or preserve whole legacy support
-%when adopting new system designs. 
-In conclusion, this thesis seeks systematic and generalizable solutions,
-for mitigating the limitations on
-fulfilling legacy application requirements
-in innovative system designs (e.g., \liboses{}, enclaves, file system fast paths).
+%At the high level,
+%the principles for developing OS personalities can be vastly distinct
+%among different specifications,
+%and often entangled with
+%the implementation of
+%security mechanisms and performance optimizations.
+%%The multi-process abstractions in \graphene{}, for instance,
+%%compose a critical part of Linux personality,
+%%yet must enforce security isolation comparable to a single \picoproc{},
+%%with acceptable coordination efficiency.
+%Similar challenges can be observed in legacy, monolithic kernels.
+%%when redesigning a system component for security or efficiency,
+%%legacy support may become obstruction.
+%%Many systems provide legacy support
+%%in a complex, case-by-case way,
+%%potentially causing more security glitches and performance suboptimality.
+%%An insight
+%%for solving this problem %that affects both partitioned and non-partitioned system
+%%is to avoid
+%%emulating specifications and checking security policies
+%%on the critical path of common cases.
+%We demonstrate a case of an performance-centric, heavily engineered component,
+%the Linux file system directory cache.
+%The directory cache is designed as an optimization for path lookup,
+%yet it interleaves searching path components
+%with permission checks (e.g., searching prefixes)
+%and file system features (e.g., resolving symbolic links),
+%%while preserving the legacy file-system features and security models
+%%.
+%%The original Linux kernel interleaves path component searching
+%%in the directory cache
+%%with permission checks against security modules,
+%%and retrieving file attributions.
+%causing suboptimal latency when the cache is warm (no cache misses)
+%~\cite{tsai15dcache}.
+%A fast path to improve the hit latency
+%will decouple searching in the directory cache
+%from other operations,
+%by %full exploiting the locality and
+%caching the results of prefix checking, symbolic links, etc, in the kernel data structures.
+%%With the fast path,
+%%the latency of Git version control system
+%%can be reduced by up to 25\%.
+%%Summarizing the similar cases,
+%%developers constantly struggle to
+%%implement or preserve whole legacy support
+%%when adopting new system designs. 
+%In conclusion, this thesis seeks systematic and generalizable solutions,
+%for mitigating the limitations on
+%fulfilling legacy application requirements
+%in innovative system designs (e.g., \liboses{}, enclaves, file system fast paths).
 
 
 

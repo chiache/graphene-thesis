@@ -46,18 +46,18 @@ Overheads are relative to Linux \linuxversion{}; negative overheads indicate imp
 
 
 
-Figure~\ref{fig:eval:sgx-fork}(c) shows the overhead of forking a process.
-As described in Section~\ref{sec:sgx:shield:multiproc}, the latency of \syscall{fork} in \graphenesgx{} is affected by three factors:
-creation of a new enclave, local attestation of the integrity, and duplicating the process state over an encrypted RPC stream.
-Combining these factors, \syscall{fork} is one of the most expensive calls in \graphenesgx{}.
-%, but at least it is supported natively on the current hardware.
-The default enclave size is 256MB.
-%which takes \roughly{}0.5s to create. 
-Our evaluation shows that the latency of forking a process is around 0.8s (16MB process) to 2.7s (128MB process), but can be more expensive if the parent process uses more memory.
-The trend matches the performance of \graphene{} without the bulk IPC optimization.
-\fixmedp{If you want, some thoughts on how this might be improved in the future would be nice...  One good suggestion is recycling enclaves, or pre-forking so measurements can be done in parallel}
-%Due to the overhead on \funcname{fork}, \graphenesgx{} is not suitable for fork-intensive workloads like Bash scripts
-%if performance is critical.
+%Figure~\ref{fig:eval:sgx-fork}(c) shows the overhead of forking a process.
+%As described in Section~\ref{sec:sgx:shield:multiproc}, the latency of \syscall{fork} in \graphenesgx{} is affected by three factors:
+%creation of a new enclave, local attestation of the integrity, and duplicating the process state over an encrypted RPC stream.
+%Combining these factors, \syscall{fork} is one of the most expensive calls in \graphenesgx{}.
+%%, but at least it is supported natively on the current hardware.
+%The default enclave size is 256MB.
+%%which takes \roughly{}0.5s to create. 
+%Our evaluation shows that the latency of forking a process is around 0.8s (16MB process) to 2.7s (128MB process), but can be more expensive if the parent process uses more memory.
+%The trend matches the performance of \graphene{} without the bulk IPC optimization.
+%\fixmedp{If you want, some thoughts on how this might be improved in the future would be nice...  One good suggestion is recycling enclaves, or pre-forking so measurements can be done in parallel}
+%%Due to the overhead on \funcname{fork}, \graphenesgx{} is not suitable for fork-intensive workloads like Bash scripts
+%%if performance is critical.
 
 
 %\begin{figure*}[t!]

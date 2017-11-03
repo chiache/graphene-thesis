@@ -1,8 +1,8 @@
 \section{API compatibility metrics}
 \label{sec:metric:definitions}
 
-We started this study from a research perspective, in search of a better way to evaluate
-the completeness of system prototypes with a Unix compatibility layer.
+The study starts with a research perspective, in search of a better way to evaluate
+the completeness of system prototypes with a compatibility layer.
 In general, compatibility is treated as a binary property
 (e.g., bug-for-bug compatibility), which loses 
 important information when evaluating a prototype that is almost certainly incomplete.
@@ -89,11 +89,11 @@ Our data is drawn from over 2.9 million installations
 %%% a virtual machine,
 %%% or even a subsystem installed by 
 
-We introduce two new metrics: one for each API, and one for a whole system.
-For each API, we measure how disruptive its absence
+The thesis introduces two compatibility-related metrics: one for each API, and one for a whole system.
+For each API, a metric should measure how disruptive its absence
 would be to applications and end users---a metric we call {\bf  \usagemetric{}}.
-For a system, we compute a weighted percentage we call {\bf \compatmetric{}}. 
-For simplicity, we define a {\bf system} as a set of implemented or translated APIs,
+For a system, a metric should compute a weighted percentage we call {\bf \compatmetric{}}. 
+For simplicity, this thesis defines a {\bf system} as a set of implemented or translated APIs,
 and assume an 
 application will work on a target system if the application's API footprint is implemented on the system.
 These metrics can be applied to all system APIs,
@@ -106,7 +106,7 @@ or standard library functions.
 
 
 
-This paper focuses on \osdist{}, as it is a well-managed Linux distribution with a wide array of 
+Moreover, this study focuses only on \osdist{}, as it is a well-managed Linux distribution with a wide array of 
 supported software, which also collects
 package installation statistics.
 The default package installer on \osdist{} is \osinstaller{}.
@@ -302,14 +302,13 @@ This is calculated as follows:
 
 \subsection{\Compatmetric{}}
 
-We also measure compatibility at the granularity of an OS,
-which we call \compatmetric{}.
+This thesis also measure compatibility at the granularity of an OS,
+using a metric called \compatmetric{}.
 \Compatmetric{} is the fraction of applications that are likely to work,
 weighted by the likelihood that these applications will be installed on a system.
 %\fixmedp{check this synopsis}
 % function of the APIs supported, weighted by the popularity 
 %of the applications that require these APIs.
-
 The goal of \compatmetric{} is to measure the degree to which a
 new OS prototype or translation layer is compatible with a baseline OS.
 In this study, the baseline OS is \osdist{}.
@@ -398,7 +397,7 @@ a subset of the target system's supported APIs ($\mathtt{API}_\mathtt{Supported}
 
 
 \vspace{10pt}
-We note that this model of a typical installation is useful in reducing the metric to a single number,
+Note that this model of a typical installation is useful in reducing the metric to a single number,
 but also does not capture the distribution of installations.
 This limitation is the result of the available package installation statistics,
 which do not include correlations among installed packages.
@@ -408,9 +407,9 @@ This limitation requires us to
 assume that package installations are independent,
 except when \osinstaller{} identifies a dependency.
 For example, if packages {\em foo} and {\em bar} are both reported as being installed once,
-we cannot tell if they were on the same installation, or if two different installations.
+it is hard to tell if they were on the same installation, or if two different installations.
 If foo and bar both use an obscure system API, we assume that two installations would be affected if the obscure API were removed.
-If foo depends on bar, we assume the installations overlap. % overlapping installations are on the same system.
+If foo depends on bar, this thesis assumes the installations overlap. % overlapping installations are on the same system.
 %We note that packages do include installation dependences, which could be used in future work to reduce this over-approximation.
 %\fixmedp{Check my edit: I was confused by the old wording}
 Appendix \ref{sec:defs:compatmetric} formally defines \compatmetric{}.
@@ -450,7 +449,8 @@ By assuming independence of package installation, we can calculate the probabili
 \section{Data collection}
 \label{sec:metric:collection}
 
-We use static binary analysis to identify the system call footprint of a binary.  This approach has the advantages
+This study uses static binary analysis to identify the
+system call footprint of a binary.  This approach has the advantages
 of not requiring source code or test cases.  Dynamic system call logging using a tool like {\tt strace} is simpler,
 but can miss input-dependent behavior.  A limitation of our static analysis is that we must assume the disassembled binary
 matches the expected instruction stream at runtime.  In other words, we assume that the binary isn't deliberately obfuscating
@@ -458,11 +458,11 @@ itself, such as by jumping into the middle of an instruction (from the perspecti
 %In practice, such obfuscation is generally done only by malware, and our results are not concerned with system security.
 To mitigate this, we spot check that static analysis returns as superset of {\tt strace} results.
 
-We note that, in our experience, things like the system call number or even operation codes are fairly straightforward
+Note that, in our experience, things like the system call number or even operation codes are fairly straightforward
 to identify from a binary.  These tend to be fixed scalars in the binary, whereas other arguments, such as the contents of a write buffer,
 are input at runtime.
-We assume that binaries can issue system calls directly with inline system call instructions, or can call system calls through a library, such as \libc{}.
-Our static analysis identifies system call instructions and constructs a whole-program call graph.
+the assumption is that binaries can issue system calls directly with inline system call instructions, or can call system calls through a library, such as \libc{}.
+The static analysis identifies system call instructions and constructs a whole-program call graph.
 
 \begin{figure}[t!]
 \centering
@@ -473,13 +473,13 @@ Our static analysis identifies system call instructions and constructs a whole-p
 \label{fig:syspop:executable-type}
 \end{figure}
 
-Our study focuses primarily on ELF binaries, which account for the largest fraction of Linux applications
+The study also focuses primarily on ELF binaries, which account for the largest fraction of Linux applications
 %which account for the plurality of Linux applications
 (Figure~\ref{fig:syspop:executable-type}).
 For interpreted languages, such as Python or shell scripts,
-we assume that the system call footprint of the interpreter and major supporting libraries over-approximates the expected system call footprint of the applications.
+The assumption is that the system call footprint of the interpreter and major supporting libraries over-approximates the expected system call footprint of the applications.
 Libraries that are dynamically loaded, such as application modules or
-language native interface (e.g.,JNI, Perl XS) are not considered in our study. 
+language native interface (e.g.,JNI, Perl XS) are not considered in this study. 
 %\fixmedp{Does the analysis handle JNI, Perl XS, or other wrappers for native libraries?  I 
 %could imagine the answer being yes if a .so is shipped, but possibly no 
 %if it is somehow inlined}
@@ -601,7 +601,7 @@ Thus, it is not sufficient to draw inferences about performance.
 
 
 %\note{Move this here}
-We assume that, once a given API (e.g., {\tt write}) is supported and works for a reasonable sample of applications,
+The assumption is that, once a given API (e.g., {\tt write}) is supported and works for a reasonable sample of applications,
 handling missed edge cases should be straightforward engineering that is unlikely to invalidate the experimental results of the project.
 That said, in cases where an input can yield significantly different behavior, e.g.,
 the path given to {\tt open},
@@ -609,12 +609,12 @@ we measure the \usagemetric{} of these arguments.
 Verifying bug-for-bug compatibility generally requires techniques largely orthogonal to the ones used in this study,
 and thus this is beyond the scope of this work.
 
-We do not do inter-procedural data-flow analysis.  As a result,
-we were unable to identify system call numbers for 2,454 call sites (4\% of the
-relevant call sites)
-across all binaries in the repository.  As a result,
-some system call usage values may be underestimated, and may go up 
-with a more sophisticated static analysis.
+%We do not do inter-procedural data-flow analysis.  As a result,
+%we were unable to identify system call numbers for 2,454 call sites (4\% of the
+%relevant call sites)
+%across all binaries in the repository.  As a result,
+%some system call usage values may be underestimated, and may go up 
+%with a more sophisticated static analysis.
 
 
 %% The package installation statistics provided by \osdist{}
