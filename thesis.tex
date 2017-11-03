@@ -8,13 +8,13 @@
 
 
 % comment out the following line when submitting
-\def \debug{}
+%\def \debug{}
 
 
 \usepackage[numbers,sort]{natbib}
 \usepackage[margin=1in]{geometry}
 \usepackage{times}
-\usepackage{titlesec}
+\usepackage[explicit]{titlesec}
 \usepackage{titletoc}
 \usepackage{titlecaps}
 \usepackage{tocloft}
@@ -41,6 +41,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{silence}
 \usepackage[bottom]{footmisc}
+\usepackage{xcolor}
 \renewcommand*{\ttdefault}{cmtt}
 \lstset{basicstyle=\ttfamily\footnotesize}
 \pdfminorversion=7
@@ -264,29 +265,32 @@ This page is optional.
 %\vspace*{4\baselineskip}
 %The frontispiece is generally an illustration, and is an optional page.
 
-\newlength{\charwidth}
-\setlength{\charwidth}{\widthof{\S}}
 
 \newpage
 %\centerline{\bf{Table of Contents}}
 \renewcommand{\contentsname}{\centerline{\Large\bf{Table of Contents}}}
-\renewcommand{\cftchapfont}{\large\bfseries\def\\{}\def\em{}}
-\renewcommand{\cftsecfont}{\normalsize\def\\{}\def\em{}}
-\renewcommand{\cftsubsecfont}{\normalsize\def\\{}\def\em{}}
 \pdfbookmark[0]{Table of Contents}{Contents}
 \tableofcontents
 
+
 \titlespacing*{\section}{0pt}{1.5\baselineskip plus 0.5\baselineskip}{0.5\baselineskip}
 \titlespacing*{\subsection}{0pt}{1.0\baselineskip plus 0.5\baselineskip}{0.5\baselineskip}
-\titlespacing*{\subsubsection}{0pt}{0.5\baselineskip plus 0.5\baselineskip}{0.5\baselineskip}
+\titlespacing*{\subsubsection}{0pt}{0.5\baselineskip plus 0.5\baselineskip}{0pt}
 \titlespacing*{\paragraph}{0pt}{0.5\baselineskip}{1pc}
 
 
 \setcounter{secnumdepth}{3}
-\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
-\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{\charwidth}{}
-\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{\charwidth}{}
+\Addlcwords{and a an the with in of on upon for to vs versus as}
 
+
+\declarecommand{\paperchapter}[1]{\chapter{\titlecap{#1}}}
+\declarecommand{\papersection}[1]{\section{\titlecap{#1}}}
+\declarecommand{\papersubsection}[1]{\subsection{\titlecap{#1}}}
+\declarecommand{\papersubsubsection}[1]{\subsubsection{\titlecap{#1}}}
+
+\titleformat{\chapter}[display]{\centering}{\Large\bf\chaptertitlename{} \thechapter{}}{1pc}{\LARGE\bf #1}
+
+\titleformat{\paragraph}[runin]{}{}{\charwidth}{\bf\titlecap{#1}}
 
 
 \newpage
@@ -340,9 +344,6 @@ This page is optional.
 %\vspace*{4\baselineskip}
 %This page is optional for doctoral students only.
 
-
-\titleformat{\chapter}[display]
-{\Large\centering\bf}{\chaptertitlename{} \thechapter{}}{1pc}{\LARGE\bf}
 
 \def \longconferencenames{}
 \input{conferences}

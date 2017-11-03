@@ -1,4 +1,4 @@
-\subsection{Exception handling}
+\papersubsection{Exception handling}
 
 
 This section evaluates the performance of handling an exception from the host OS or hardware,
@@ -14,7 +14,7 @@ and catching a hardware protection fault
 
 
 Figure~\ref{fig:eval:pal:sig-latency} (a)
-shows the latency of installing an exception handler in either the Linux or SGX PAL, compared with
+shows the latency of installing an exception handler in either the Linux or \sgx{} PAL, compared with
 \syscall{sigaction} in a Linux process.
 The result
 shows that regardless the PAL is running in a regular \picoproc{} or an enclave,
@@ -22,7 +22,7 @@ installing an exception handling
 in the PAL
 is much lower than install a signal handler
 on Linux,
-because the \hostapi{} does not have to take any \linuxapi{} or enclave exits.
+because the \hostapi{} does not have to take any system call or enclave exits.
 
 
 Figure~\ref{fig:eval:pal:sig-latency} (b)
@@ -33,10 +33,10 @@ Thread interruption on the Linux PAL
 is slightly slower than
 delivering a \code{SIGUSR1} signal,
 by \roughly{}25\% without \seccomp{} filter and reference monitor, or \roughly{}32\% with \seccomp{} filter and reference monitor.
-On the SGX PAL,
+On the \sgx{} PAL,
 the latency of thread interrupt
 is much higher, due to the cost of extra thread exits.
-Interrupting a thread running on the SGX PAL
+Interrupting a thread running on the \sgx{} PAL
 is \roughly{}3.1$\times$ shower than delivering a \code{SIGUSR1} signal in a Linux process.
 
 
@@ -69,6 +69,6 @@ for preserving the faulting contexts.
 \includegraphics[height=10em]{sig-catch-latency}
 }
 \caption{Latency of (a) installing an exception handler; (b)
-interrupting a running thread with signals (on Linux) or \palcall{ThreadInterrupt} on the PALs; (c) catching a memory protection fault. Lower is better. The comparison is between (1) signals on Linux; (2) the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the SGX PAL.}
+interrupting a running thread with signals (on Linux) or \palcall{ThreadInterrupt} on the PALs; (c) catching a memory protection fault. Lower is better. The comparison is between (1) signals on Linux; (2) the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the \sgx{} PAL.}
 \label{fig:eval:pal:sig-latency}
 \end{figure*}

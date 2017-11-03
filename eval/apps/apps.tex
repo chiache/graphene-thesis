@@ -1,4 +1,4 @@
-\section{Application performance}
+\papersection{Application performance}
 \label{sec:eval:apps}
 
 \makeatletter
@@ -6,6 +6,236 @@
 \makeatother
 \graphicspath{{eval/apps/figures/}}
 
+
+\begin{comment}
+
+\begin{table}[t!b!]
+\footnotesize
+\centering
+\begin{tabular}{|l|r|rr|rr|rr|}
+\hline
+{\bf Test } & {\bf Linux } & \multicolumn{2}{c|}{{\bf KVM}}
+& \multicolumn{2}{c|}{{\bf \graphene{}}} \\\hline
+
+%Start-up time& 88.40& 3293296.77 & 3725349\% & 125350.73 & 1417\%& 622.00 & 604\% \\
+Start-up   & 208 \us{} & 3.3 s & 15K\x{} & 641 \us{} & 3.1\x{}  \\
+\hline
+Checkpoint & N/A   & 0.987 s  &  &   416 \us{} &  \\
+\hline
+Resume     & N/A   & 1.146 s  &  &  1387 \us{} & \\
+\hline\hline
+Checkpoint size & N/A & \multicolumn{2}{l|}{105 MB} & \multicolumn{2}{l|}{376 KB}   \\
+\hline
+\end{tabular}
+\caption[Startup, checkpoint, and resume times in Linux, KVM, and \graphene{}]
+{Startup, checkpoint, and resume times for (1) a native Linux process,
+(2) a KVM virtual machine,
+(3) a \graphene{} \picoproc{},
+(4) a \graphene{} \picoproc{} in a \sgx{} enclave,
+ where appropriate. Lothe experimentr is better.  
+Overheads are relative to Linux. \fixme{Update \graphene{} and \graphenesgx{} numbers}} 
+\label{tab:graphene:startup}
+\end{table}
+
+
+\papersubsection{Process Migration and Application Startup}
+
+%A key feature of VMs is the ability to move a running application to a new system.
+\graphene{} supports migration of an application from a \picoproc{} on one machine
+to a \picoproc{} on another machine by checkpointing the application,
+copying the checkpoint over the network, and then resuming the checkpoint.
+%We note that resuming a checkpoint executes entirely in userspace.
+Table~\ref{tab:graphene:startup} shows the time to start
+up a process, VM, or \picoproc{}; as the experimentll as the checkpoint and resume time for KVM and \graphene{}.
+Migration across machines is a function of network bandwidth,
+%% and checkpoint size, 
+so the experiment report checkpoint size instead. % of migration time.
+%Only KVM and \graphene{} have the ability to checkpoint and resume, and are the only data points listed.
+
+
+\graphene{} shows dramatically faster initialization times than a VM. This is not surprising,
+since \graphene{} is substantially smaller than an OS kernel. 
+Similarly, checkpointing and restoring a 4 MB application on \graphene{} is 1--4 times faster than checkpointing or restoring a KVM guest.
+
+
+
+%\fixmedp{Error bars on mem usage graphs missing}
+
+\papersubsection{Memory Footprint}
+\label{sec:graphene:eval:mem}
+
+We begin by measuring the minimal memory footprint of a simple ``hello world'' program 
+on Linux (352 KB) and \graphene{} (1.4 MB).
+Thus, one would expect roughly 1 MB of extra memory usage for any single-\picoproc{} application.
+Because of copy-on-write sharing, hothe experimentver, the incremental cost of adding additional ``hello world'' children
+is only about 790 KB per process.
+%, although this will vary based on usage.
+
+%Figure~\ref{fig:graphene:memusage} lists memory overheads of 
+%a diverse set of {\em unmodified}
+%applications, including 
+%a {\tt make -j 4} of Gra\-phene's {\tt libLinux}
+%using the {\tt \gcc{}} compiler (v4.4.5), 
+%%\busy, a software which combines tiny versions of most common UNIX utilities into a single
+%%small executable;
+%the Lighttpd the experimentb server (v1.4.30) with 4 threads,
+%the Apache the experimentb server (v2.4.3) with 4 processes,
+%and the \busy{} shell (v4.1) executing the shell script test ({\tt multi.sh}) from the Unixbench suite (v5.1.3)~\citep{unixbench}.
+%We measure memory utilization based on the maximum kernel-reported resident set size
+%of each process or VM. For most applications, memory usage was fairly constant across inputs,
+%so the experiment only display representative examples.
+%
+%\begin{figure}[t!]
+%\centering
+%\includeplot[0.5]{apps-memusage}
+%\centerline{\includegraphics[width=\linewidth]{figures/memusage.pdf}}
+%\caption{Memory usage of applications on Linux, \graphene{}, and KVM, in MB.  Lothe experimentr s better.
+%\label{fig:graphene:memusage}}
+%\end{figure}
+
+
+We found that the memory footprints of compilation the experimentre a function of the 
+size of the source base, even on Linux; the experiment select compile of {\tt libLinux} as a representative example.
+\graphene{} adds less than 15\% overhead in all cases.
+%every compilation the experiment measured on \graphene{} had less than 10\% memory overhead.
+
+Unixbench on \graphene{} uses substantially more memory at a given time than native Linux---more than double.
+In these samples, hothe experimentver, \graphene{} also had 3--4\x{} as many processes
+running; this is because Unixbench simply spawns all of the tasks in the background, rather than
+executing them sequentially.   Because \graphene{} processes execute more slowly (attributable to a slothe experimentr {\tt fork}---\S\ref{sec:graphene:eval:perf}),
+a given sample will include more \picoprocs{}, pushing total memory usage higher.
+Thus, the experiment expect that further tuning {\tt fork} performance will lothe experimentr sampled memory usage.
+
+
+Across all workloads, \graphene{}'s memory footprint is 3--20\x{}  
+smaller than KVM.  
+For all tests, the experiment used a minimal KVM disk image, 
+%formatted as a 30GB\fixmewkj{this can be changed to be smaller, but I don't know if disk size would impact memory} raw disk image with ext4. The root image was 
+generated using debootstrap 1.0.39ubuntu0.3 and supplemented only by packages required to obtain, compile, and run the experiments.
+In order to make memory footprint measurements as fair as possible to KVM, 
+the experiment used both the virtio balloon driver and kernel same page merging (KSM)~\citep{ksm}.
+We also reduced the RAM allocated to the VM to the smallest size without harming performance---128MB.  We note that memory measured includes memory used by QEMU for VM device emulation, 
+adding a few dozen MB.
+%hence the total is 
+%a few dozen MB higher than the RAM allocated to the VM.
+
+If the smallest usable Linux VM consumes about 150 MB of RAM, our measurements indicate that 
+one could run anywhere from 12--188 libOSes within the same footprint.
+
+
+\begin{table}[t!b!]
+\footnotesize
+%\tiny
+\centering
+
+\begin{tabular}{|l|rr|rrr|rrr|rrr|}
+\hline
+&\multicolumn{11}{c|}{Execution time (s), +/- Conf. Interval, \% Overhead} \\
+\hline
+{\bf \gcc/make} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \graphene{} + \sgx{}}} \\
+\hline
+% gcc
+%\multicolumn{2}{|l|}{helloworld} & .02 & .02 & 0 \% & .03 & 100 \% \\ 
+%\hline
+%oggenc & 1.42 & .01 & 1.51 & .00 & 6 \% & 1.43 & .00 & 1 \% \\\hline
+gcc (helloworld)  & 0.020 & .000 &  0.022 & .000 & 7 \% &  0.023 & .000 &  12 \% & 6.097 & .012 & 298 $\times$  \\\hline
+gcc (.7M\loc{})   & 21.64 &  .00 &  23.37 &  .02 & 8 \% &  21.88 &  .00 &   1 \% & 75.41 & .03 & 248 \%  \\\hline
+make bzip2        & 2.332 & .000 &  2.448 & .000 & 5 \% &  2.407 & .000 &   3 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+make -j4 bzip2    & 0.888 & .000 &  0.967 & .000 & 9 \% &  0.923 & .004 &   4 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+make libLinux     & 4.832 & .000 &  5.037 & .000 & 4 \% &  5.112 & .001 &   6 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+make -j4 libLinux & 1.361 & .000 &  1.413 & .000 & 4 \% &  1.459 & .000 &   7 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
+
+
+
+\hline\hline
+Ap. Bnch     & \multicolumn{11}{c|}{Avg Throughput (MB/s), +/- Conf. Interval, \% Overhead} \\
+\hline
+{\bf Apache} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}}  & \multicolumn{3}{c|}{{\bf \graphene{} + \sgx{}}} \\
+\hline
+25 conc     & 6.282 & .005 & 5.327 & .031 & 18 \% & 4.586 & .002 & 36 \% & 2.312 & .192 & 171 \%    \\\hline
+50 conc     & 6.305 & .002 & 5.420 & .060 & 16 \% & 4.555 & .012 & 38 \% & 2.752 & .463 & 129 \%  \\\hline
+100 conc    & 6.347 & .010 & 5.152 & .036 & 22 \% & 4.572 & .009 & 39 \% & 2.488 & .781 & 155 \%   \\\hline
+
+{\bf Lighttpd} & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + SC + RM}} & \multicolumn{3}{c|}{{\bf \graphene{} + \sgx{}}} \\
+\hline
+
+25 conc    & 6.66 &.01 &6.46 &.03 &3 \% &5.65 &.00 &18 \% & 2.124 & .072 & 171 \%    \\\hline
+50 conc    & 6.65 &.13 &6.41 &.02 &4 \% &4.79 &.00 &39 \% & 2.437 & .107 & 171 \%    \\\hline
+100 conc   & 6.69 &.01 &6.39 &.03 &5 \% &4.56 &.01 &47 \% & 2.417 & .235 & 171 \%    \\\hline
+
+\hline\hline
+%%%%% UnixBench
+
+  & \multicolumn{11}{c|}{Execution Time (s), +/- Conf. Interval, \% Overhead} \\
+\hline
+{\bf bash } & \multicolumn{2}{c|}{\bf Linux} & \multicolumn{3}{c|}{{\bf in KVM}} & \multicolumn{3}{c|}{{\bf \graphene{} + RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
+\hline
+%2.1 s linux
+%graphene 10.06s
+
+%bash
+Unix utils & 0.87 & .00 & 1.10 & .01 & 26 \% & 2.01 & .00 & 134 \% & \multicolumn{3}{c|}{not supported yet} \\\hline
+Unixbench  & 0.55 & .00 & 0.55 & .00 &  0 \% & 1.49 & .00 & 192 \% & \multicolumn{3}{c|}{not supported yet} \\\hline
+\end{tabular}
+\caption[Application benchmark results in Linux, KVM and \graphene{}]
+{Application benchmark execution times in a (1) native Linux process, (2) a process inside a KVM virtual machine, (3) a \graphene{} \picoproc{} with the SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in \sgx{} enclaves. }
+\label{tab:graphene:apps}
+\end{table}
+
+
+\papersubsection{Application performance}
+\label{sec:graphene:eval:perf}
+
+Table~\ref{tab:graphene:apps} lists 
+execution time of our {\em unmodified} 
+application benchmarks (detailed in \S\ref{sec:graphene:eval:mem}).
+All applications create multiple processes,
+except for Lighttpd, which only creates multiple threads.
+Each data point is the average of at least six runs, 
+and 95\% confidence intervals are listed in the table.
+
+The experiment exercise  {\tt \gcc{}}/{\tt make}
+with inputs of varying sizes:
+%the pbzip2 compression utility (v1.1.6, 4 KLoC),
+%the ogg sound encoder (v1.0.1, 5 KLoC),
+%GNU {\tt make} (v3.82, \fixmedp{XX} KLoC)
+bzip2 (v1.0.6, 5KLoC, 13 files),
+\graphene{}'s {\tt libLinux} (31 KLoC, 78 files)
+and \gcc{} (v3.5.0, 551 KLoC, collected as a single source file). 
+The experiment benchmark Apache (4 preforked workers) and Lighttpd (4 threads) with 
+\ab{},
+which issues 25, 50, and 100 concurrent requests
+to download a 100 byte file 50,000 times.
+
+The experiment exercised \busy{} with 
+300 iterations of the Unixbench benchmark~\citep{unixbench}, as the experimentll as 
+300 iterations of a simple shell script benchmark that runs 6 common shell script commands
+({\tt cp}, {\tt rm}, {\tt ls}, {\tt cat}, {\tt date}, and {\tt echo}).
+
+Compilation workloads incur overheads ranging from 5--30\%.
+%All compilation workloads have minimal overheads compared to native when executed sequentially;
+Parallel compilation on both \graphene{} and Linux yields comparable  speedups  over sequential,
+but the percent overhead increases for parallel \graphene{}.
+For instance, {\tt make -j4 libLinux} speeds up 3.7\x{} on Linux and 3.4$\times$ on \graphene{}.
+The compilation overheads are primarily from the reference monitor---nearly all for bzip2 and gcc, and half for {\tt libLinux}.
+%Nearly all of the overhead from the bzip2 and gcc compilations are from the reference monitor; about half of the overheads of {\tt libLinux} compile 
+%are the reference monitor and half are \graphene{} itself.
+In the case of both \busy{} workloads, the key bottleneck is the {\tt fork} system call.
+Profiling indicates that half of the time in {\tt libLinux} is spent on {\tt fork} in both benchmarks.
+The trend is exacerbated in Unixbench, which creates all of the processes at the beginning and
+waits for them all to complete; because \graphene{} cannot create children as quickly as native, this leads to 
+load imbalance throughout the rest of the benchmark.  
+
+With the reference monitor disabled,  Lighttpd has equivalent throughput to a native Linux process;
+as discussed in the next subsection, these overheads come from checking paths in the monitor.
+The Apache the experimentb server loses about half of its throughput relative to Lighttpd on \graphene{}.
+The primary bottleneck in Apache relative to Lighttpd is System V semaphores,
+%, which account for about 
+%one third of the additional time spent in {\tt libLinux}
+%relative to Lighttpd, 
+and the remaining overheads are attributable to more time spent waiting for input.
+The overheads for both Lighttpd and Apache on KVM are primarily attributable
+to bridged networking.
 
 
 \begin{table}[t!b!]
@@ -24,7 +254,7 @@ except for \lighttpd{}, which only creates multiple threads.
 Each data point is the average of at least six runs, 
 and 95\% confidence intervals are listed in the table.
 
-We exercise  {\tt \gcc{}}/{\tt make}
+The experiment exercise  {\tt \gcc{}}/{\tt make}
 with inputs of varying sizes:
 %the pbzip2 compression utility (v1.1.6, 4 KLoC),
 %the ogg sound encoder (v1.0.1, 5 KLoC),
@@ -32,13 +262,13 @@ with inputs of varying sizes:
 bzip2 (v1.0.6, 5KLoC, 13 files),
 \graphene{}'s {\tt libLinux} (31 KLoC, 78 files)
 and \gcc{} (v3.5.0, 551 KLoC, collected as a single source file). 
-We benchmark Apache (4 preforked workers) and \lighttpd{} (4 threads) with 
+The experiment benchmark Apache (4 preforked workers) and \lighttpd{} (4 threads) with 
 \ab{},
 which issues 25, 50, and 100 concurrent requests
 to download a 100 byte file 50,000 times.
 
-We exercised \busy{} with 
-300 iterations of the Unixbench benchmark~\cite{unixbench}, as well as 
+The experiment exercised \busy{} with 
+300 iterations of the Unixbench benchmark~\cite{unixbench}, as the experimentll as 
 300 iterations of a simple shell script benchmark that runs 6 common shell script commands
 ({\tt cp}, {\tt rm}, {\tt ls}, {\tt cat}, {\tt date}, and {\tt echo}).
 
@@ -58,32 +288,34 @@ load imbalance throughout the rest of the benchmark.
 
 With the reference monitor disabled,  \lighttpd{} has equivalent throughput to a native Linux process;
 as discussed in the next subsection, these overheads come from checking paths in the monitor.
-The Apache web server loses about half of its throughput relative to \lighttpd{} on \graphene{}.
+The Apache the experimentb server loses about half of its throughput relative to \lighttpd{} on \graphene{}.
 The primary bottleneck in Apache relative to \lighttpd{} is System V semaphores,
 %, which account for about 
 %one third of the additional time spent in {\tt libLinux}
-%relative to \light{}, 
+%relative to Lighttpd, 
 and the remaining overheads are attributable to more time spent waiting for input.
 The overheads for both \lighttpd{} and Apache on KVM are primarily attributable
 to bridged networking.
 
+\end{comment}
 
-One deployment model for SGX is to host network services
-on an untrusted cloud provider's hardware.
+
+%One deployment model for \sgx{} is to host network services
+%on an untrusted cloud provider's hardware.
 %To measure this case, 
-We measure three widely-used Linux web servers, including {\bf Lighttpd}~\cite{lighttpd} (v1.4.35), {\bf Apache}~\cite{apache} (v2.4.18), and {\bf NGINX}~\cite{nginx} (v1.10).
+The experiment measures three widely-used Linux the experimentb servers, including {\bf Lighttpd}~\cite{lighttpd} (v1.4.35), {\bf Apache}~\cite{apache} (v2.4.18), and {\bf NGINX}~\cite{nginx} (v1.10).
 %, to evaluate the performance of server-type workloads in \graphenesgx{}.
 %These applications are all sophisticated, non-trivial workloads, and are constantly being used for commercial purposes.
-%We test these applications to evaluating significantly different execution patterns, to benchmark the performance of \graphenesgx{} under each circumstances.
-%Also, we do not explicitly configure these servers to secure their payloads using the HTTPS protocol.\fixme{if have time, maybe try again with HTTPS}
-For each workload, we use ApacheBench~\cite{apachebench} to download the web pages on a separate machine.
+%The experiment test these applications to evaluating significantly different execution patterns, to benchmark the performance of \graphenesgx{} under each circumstances.
+%Also, the experiment do not explicitly configure these servers to secure their payloads using the HTTPS protocol.\fixme{if have time, maybe try again with HTTPS}
+For each workload, the experiment use ApacheBench~\cite{apachebench} to download the the experimentb pages on a separate machine.
 %\edit{over Gigabit LAN}. %\fixmedp{more specific?}
 %across a high-speed \fixmedp{Can you say
 %more specifically the specs, like 10 GBps or whatever; also, if this is the same vlan, I might just describe this as being on a LAN, minimizing interference} University network.
 The concurrency of ApacheBench is gradually increased during the experiment, to test the both the per-request latency and the overall throughput of the server.
 Figure~\ref{fig:server-throughput-latency} shows the throughput versus latency of these server applications
 in \graphenesgx{}, \graphene{} and Linux. 
-Each workload is discussed below.
+The paragraphs below discuss each workload individually.
 
 
 
@@ -120,9 +352,9 @@ Each workload is discussed below.
 \vspace{6pt}
 \end{minipage}
 
-\caption{Throughput versus latency of web server workloads, including Lighttpd, Apache, and NGINX, on native Linux, \graphene{}, and \graphenesgx{}.
-We use an ApacheBench client to gradually increase load, and plot
-throughput versus latency at each point.  Lower and further right
+\caption{Throughput versus latency of the experimentb server workloads, including Lighttpd, Apache, and NGINX, on native Linux, \graphene{}, and \graphenesgx{}.
+The experiment use an ApacheBench client to gradually increase load, and plot
+throughput versus latency at each point.  Lothe experimentr and further right
 is better.
 %\fixmedp{RB: Add another sentence or two to explain what the experiment is and how to interpret} }
 }
@@ -130,17 +362,17 @@ is better.
 \end{figure*}
 
 
-{\bf Lighttpd}~\cite{lighttpd} is a web server designed to be light-weight, yet robust enough for commercial uses. 
-Lighttpd is multi-threaded; we test with 25 threads to process HTTP requests. 
+{\bf Lighttpd}~\cite{lighttpd} is a the experimentb server designed to be light-the experimentight, yet robust enough for commercial uses. 
+Lighttpd is multi-threaded; the experiment test with 25 threads to process HTTP requests. 
 By default, Lighttpd uses the \syscall{epoll\_wait} system call to poll listening sockets.
 At peak throughput and load,  both \graphene{} and \graphenesgx{} have marginal overhead on either latency or throughput of the Lighttpd server.
 The overheads of \graphene{} are more apparent when the system
 is more lightly loaded, at 
 %When Lighttpd is not overloaded, \graphenesgx{} causes 
-15--35\% higher response time, or 13--26\% lower throughput. 
-Without SGX, \graphene{} induces 
-11--15\% higher latency or 13-17\% lower throughput over Linux;
-the remaining overheads are attributable to SGX---either hardware or our OS shield.
+15--35\% higher response time, or 13--26\% lothe experimentr throughput. 
+Without \sgx{}, \graphene{} induces 
+11--15\% higher latency or 13-17\% lothe experimentr throughput over Linux;
+the remaining overheads are attributable to \sgx{}---either hardware or our OS shield.
 %platform adaptation layer (PAL) code.
 
 %\fixmedp{Some more detailed analysis would be nice.}
@@ -149,7 +381,7 @@ the remaining overheads are attributable to SGX---either hardware or our OS shie
 %\fixmedp{Why did you comment this out?  Let's discuss: Does it really make sense to have two points at the same  x-axis value?  Perhaps the axes should be inverted?  I'm not really sure about the methodology, but something about the line doubling back on itself seems wrong.  Maybe you want to separate these and show throughput vs. load, and a CDF of latencies?}
 
 
-{\bf Apache}~\cite{apache} is one of the most popular production web servers. We test Apache using 5 preforked worker processes to service HTTP requests,
+{\bf Apache}~\cite{apache} is one of the most popular production the experimentb servers. The experiment test Apache using 5 preforked worker processes to service HTTP requests,
 in order to 
 to evaluate the efficiency of \graphenesgx{} across enclaves.
 %n server, 
@@ -157,16 +389,16 @@ to evaluate the efficiency of \graphenesgx{} across enclaves.
 This application uses IPC extensively---the preforked processes of a server use a System V semaphore to synchronize on each connection.
 %When receiving a connection, the preforked processes of Apache will coordinate among themselves using the system V IPC semaphores.
 Regardless of the workload, the response time on \graphenesgx{} is 12--35\% higher than Linux, due to the overhead of coordination across enclaves over encrypted RPC streams.
-The peak throughput achieved by Apache running in \graphenesgx{} is 26\% lower than running in Linux.
-In this workload, most of the overheads are SGX-specific, such as exiting enclaves when accessing the RPC, as non-SGX Graphene
+The peak throughput achieved by Apache running in \graphenesgx{} is 26\% lothe experimentr than running in Linux.
+In this workload, most of the overheads are \sgx{}-specific, such as exiting enclaves when accessing the RPC, as non-\sgx{} Graphene
 has only 2--8\% overhead compared to Linux.
 
 %The enclave restriction \fixmedp{Huh?} is the main contributor to this overhead, as \graphene{} generally only causes 2--8\% overhead.
 
 %\fixmedp{Check the lightttp graph; the lines are right on top of each other, and dont' look 22\% apart to me.  Some of this may be the scale of the y axis}
 
-{\bf NGINX}~\cite{nginx} is a relatively new web server designed for high programmability, for as a building block to implement different services.
-Unlike the other two web servers, NGINX is event-driven and mostly configured as single-threaded.
+{\bf NGINX}~\cite{nginx} is a relatively new the experimentb server designed for high programmability, for as a building block to implement different services.
+Unlike the other two the experimentb servers, NGINX is event-driven and mostly configured as single-threaded.
 %When running as a simple HTTP server, NGINX uses an event-driven model instead of multi-threading/multi-processing to handle incoming requests.
 \graphenesgx{} currently only supports synchronous I/O at the enclave boundary,
 and so, under load, it cannot as effectively overlap I/O and computation
@@ -175,17 +407,17 @@ as other systems that have batched and asynchronous system calls.
 %\graphenesgx{}, and, 
 Once sufficiently loaded, NGINX on both \graphene{} and \graphenesgx{} 
 performs worse than in a  Linux process. % once sufficiently loaded.
-%We observe that both \graphene{} and \graphenesgx{} tend to perform poorly in an event-driven server.
-The peak throughput of \graphenesgx{} is 1.5$\times$ lower than Linux;
-without SGX, Graphene only reaches 79\% of Linux's peak throughput.
+%The experiment observe that both \graphene{} and \graphenesgx{} tend to perform poorly in an event-driven server.
+The peak throughput of \graphenesgx{} is 1.5$\times$ lothe experimentr than Linux;
+without \sgx{}, Graphene only reaches 79\% of Linux's peak throughput.
 %\fixmedp{Maybe shout out to eleos, or cite other work}
-We expect that using tools like Eleos~\cite{orenbach17eleos} to reduce exits
-would help this workload; in future work, we will improve
+The experiment expect that using tools like Eleos~\cite{orenbach17eleos} to reduce exits
+would help this workload; in future work, the experiment will improve
 asynchronous I/O in \graphenesgx{}.
 
 %\graphenesgx{} causes 17--90\% more response time when the server is not overloaded,
 %but up to 1.5$\times$ at the peak throughput.
-%If we compare the peak throughput with native Linux, \graphenesgx{} is 70\% less.
+%If the experiment compare the peak throughput with native Linux, \graphenesgx{} is 70\% less.
 %\graphene{} also suffers the same performance pattern, as the throughput drops dramatically after reaching 79\% of the peak throughput of NGINX in Linux.
 %The reason of the slowdown is that the host interface of \graphene{} and \graphenesgx{} only supports synchronous IO, so implementing asynchronous IO will be less efficient. This limitation is a trade-off to the portability of \graphene{}.
 %\fixmedp{Didn't get the portability point; please spell out what you meant, if important}
@@ -224,10 +456,10 @@ asynchronous I/O in \graphenesgx{}.
 \paragraph{Command-line applications}
 
 
-We also evaluate the performance of a few commonly-used command-line applications.
+The experiment also evaluate the performance of a few commonly-used command-line applications.
 %, to evaluate the performance of \graphenesgx{} on PCs instead of servers and clouds.
 Three off-the-shelf applications are tested in our experiments:
-{\bf R} (v3.2.3) for statistical computing~\cite{r-project}; {\bf GCC} (v5.4), the general GNU C compiler~\cite{gcc}; {\bf CURL} (v7.74), the default command-line web client on UNIX~\cite{curl}.
+{\bf R} (v3.2.3) for statistical computing~\cite{r-project}; {\bf GCC} (v5.4), the general GNU C compiler~\cite{gcc}; {\bf CURL} (v7.74), the default command-line the experimentb client on UNIX~\cite{curl}.
 These applications are chosen because they are frequently used by Linux users,
 and each of them potentially  be used 
 in an enclave to handle sensitive data---either on a server or a client
@@ -236,25 +468,25 @@ machine.
 
 
 
-We evaluate the latency or execution time of these applications. 
+The experiment evaluate the latency or execution time of these applications. 
 %, because desktop users tend to care more about responsiveness than throughput.
 In our experiments, both R and CURL have internal timing features to measure the wall time
 of individual operations or executions.
-%However, for other applications like GCC which does not include internal timing, evaluating the execution time can be influenced by many factors.
+%Hothe experimentver, for other applications like GCC which does not include internal timing, evaluating the execution time can be influenced by many factors.
 On a Linux host, the time to start a library OS is higher than a simple 
-process, but significantly lower than booting a guest OS in a VM or
+process, but significantly lothe experimentr than booting a guest OS in a VM or
 starting a container. 
-Prior work measured Graphene (non-SGX) start time at 641 $\mu$s~\cite{tsai14graphene}, whereas starting an empty Linux VM takes 10.3s and starting a Linux (LXC) container takes 200 ms~\cite{agarwal15container}. 
+Prior work measured Graphene (non-\sgx{}) start time at 641 $\mu$s~\cite{tsai14graphene}, whereas starting an empty Linux VM takes 10.3s and starting a Linux (LXC) container takes 200 ms~\cite{agarwal15container}. 
 %% dp; Note that this is MILLI seconds, not micro seconds.
 %average memory footprint of an empty Linux VM, with memory deduplication, is about 96MB, . 
 
 
-On SGX, the enclave creation time is relatively higher, \fixme{added more detailed number} ranging from 0.5s (a 256MB enclave) to 5s (a 2G enclave), which is a fixed cost that any application framework
-will have to pay to run on SGX.
-%For library OSes, the time for creating and initializing an enclave is not trivial, because it is similar to booting an lightweight OS.
+On \sgx{}, the enclave creation time is relatively higher, \fixme{added more detailed number} ranging from 0.5s (a 256MB enclave) to 5s (a 2G enclave), which is a fixed cost that any application framework
+will have to pay to run on \sgx{}.
+%For library OSes, the time for creating and initializing an enclave is not trivial, because it is similar to booting an lightthe experimentight OS.
 % a significant part of the start-up time
 % of an application is more significant, because creating enclaves is expensive.
-%We consider the enclave creation time as a fixed cost for any application running in \graphenesgx{},
+%The experiment consider the enclave creation time as a fixed cost for any application running in \graphenesgx{},
 %and acceptable to users as long as it is responsive.
 Enclave creation time is determined by the latency of the hardware and the Intel kernel driver, and is primarily a function of the size of 
 the enclave, which is specified at creation time because it affects the enclave signature. %\fixmedp{although can't it grow with eadd?}.  
@@ -262,57 +494,57 @@ For non-server workloads that create multiple processes during execution,
 such as GCC in Figure~\ref{fig:desktop-overhead},
 the enclave creation contributes a significant portion to the execution time overheads, illustrated as a stacked bar.
 %Since the enclave creation time is related to the enclave size, and unrelated to the workload,
-%we deduct the enclave creation time from the execution time of GCC in Figure~\ref{fig:desktop-overhead}. \fixmedp{I think it might be better to show this as a stacked bar instead of just removing it.  Opaquely subtracting this cost doesn't seem right.  Let's discuss dp: I thought we agreed to change this...}
+%the experiment deduct the enclave creation time from the execution time of GCC in Figure~\ref{fig:desktop-overhead}. \fixmedp{I think it might be better to show this as a stacked bar instead of just removing it.  Opaquely subtracting this cost doesn't seem right.  Let's discuss dp: I thought the experiment agreed to change this...}
 
 {\bf R}~\cite{r-project} is a scripting language often used for
 data processing and statistical computation.
 With enclaves, users can process sensitive data on an
 OS they don't trust.
-We use an R benchmark suite developed by Urbanek et al.~\cite{r-benchmark-25}, which includes 15 CPU-bound workloads such as matrix computation and number processing.
+The experiment use an R benchmark suite developed by Urbanek et al.~\cite{r-benchmark-25}, which includes 15 CPU-bound workloads such as matrix computation and number processing.
 \graphenesgx{} slows down by less than 100\% on the majority of the workloads, excepts the ones which involve allocation and garbage collection: ({\tt matrix1} creates and destroys matrices, and both {\tt FFT} and {\tt hilbert} involve heavy garbage collection.)
 Aside from garbage collection, these R benchmarks do not frequently interact with the host.
-We further note that non-SGX \graphene{} is as efficient as Linux on all workloads, 
-and these overheads appear to be SGX-specific.
+The experiment further note that non-\sgx{} \graphene{} is as efficient as Linux on all workloads, 
+and these overheads appear to be \sgx{}-specific.
 %\fixmedp{Check this pontification}
 In our experience, garbage collection and memory management code in managed language runtime
 systems tends to be written with assumptions that do not match enclaves,
 such as a large, sparse address space or that memory can be demand paged 
-nearly for free (SGX version 1 requires all memory to be mapped
+nearly for free (\sgx{} version 1 requires all memory to be mapped
 at creation); a useful area for future work would be to design
 garbage collection strategies that are optimized for enclaves.
-%we believe the overheads on \graphenesgx{} are contributed by enclaves.
+%the experiment believe the overheads on \graphenesgx{} are contributed by enclaves.
 
 {\bf GCC}~\cite{gcc} is a widely-used C compiler.
 By supporting GCC in enclaves, developers can compile closed-source applications on customers' machines,
 without leaking the source code.
 GCC composes of multiple binaries, including {\tt cc1} (compiler), {\tt as} (assembler), and {\tt ld} (linker).
 Therefore, GCC is a multi-process program using \syscall{execve}.
-We test the compilation of thee source files with varied sizes,
+The experiment test the compilation of thee source files with varied sizes,
 using single C source files collected by MIT~\cite{gcc-benchmark}.
-Each GCC execution typically \fixme{it's five, not four} creates five processes, and we run each process in a 256MB enclave by default.
+Each GCC execution typically \fixme{it's five, not four} creates five processes, and the experiment run each process in a 256MB enclave by default.
 %and has a fixed cost on enclave creation, which is unrelated to workload and depends on the enclave size.
 %\fixme{check this}
-\fixme{clarified this part, to prevent confusion between latency and overhead. also, GCC numbers got better.}
-For a small workload like compiling {\tt gzip.c} (5 kLoC), running in \graphenesgx{} (4.1s) is 18.7$\times$ slower than Linux (0.2s).
+\fixme{clarified this part, to prevent confusion betthe experimenten latency and overhead. also, GCC numbers got better.}
+For a small workload like compiling {\tt gzip.c} (5 kLoC), running in \graphenesgx{} (4.1s) is 18.7$\times$ slothe experimentr than Linux (0.2s).
 The bulk of this time is spent in enclave creation, taking 3.0s in total, while the whole execution inside the enclaves, including initialization of the library OS and OS shield, takes only 1.1s, or 4.2$\times$ overhead.
 For larger workloads like {\tt oggenc.c} (50 kLoC) and {\tt gcc.c} (500 kLoC), 
 the overhead of \graphenesgx{} is less significant. % (3.6$\times$ and 2.1$\times$ overhead, respectively).
-For {\tt gcc.c} (500 kLoC), we have to enlarge one of the enclaves ({\tt cc1}) to 2GB,
-but running on \graphenesgx{} (53.1s) is only 2.1$\times$ slower than Linux (17.2s),
+For {\tt gcc.c} (500 kLoC), the experiment have to enlarge one of the enclaves ({\tt cc1}) to 2GB,
+but running on \graphenesgx{} (53.1s) is only 2.1$\times$ slothe experimentr than Linux (17.2s),
 and 7.1s is spent on enclave creation.
 %and the creation of four enclaves takes 8s.
-%Each compilation has a fixed enclave creation time in \graphenesgx{}, which is about 1--2 seconds per enclave. We deduct the creation time of all enclaves  to gain more meaningful results, but do not hide rest of the overhead on fork.
+%Each compilation has a fixed enclave creation time in \graphenesgx{}, which is about 1--2 seconds per enclave. The experiment deduct the creation time of all enclaves  to gain more meaningful results, but do not hide rest of the overhead on fork.
 %\fixmedp{Also not comfortable with this; add a bar?}
-%In general, GCC in \graphenesgx{} is 1--5$\times$ slower than GCC on native Linux. 
+%In general, GCC in \graphenesgx{} is 1--5$\times$ slothe experimentr than GCC on native Linux. 
 %\fixmedp{This really needs some profiling if possible}
-The overhead of non-SGX \graphene{} on GCC is marginal.
+The overhead of non-\sgx{} \graphene{} on GCC is marginal.
 
 
 
 
-{\bf CURL}~\cite{curl} is a command-line  web downloader.
+{\bf CURL}~\cite{curl} is a command-line  the experimentb downloader.
 \graphenesgx{} can make CURL into a secure downloader that attests both server and client ends.
-We evaluate the total time to download a large file, ranging from 1MB to 1GB, from another machine running Apache. % over Gigabit LAN.
+The experiment evaluate the total time to download a large file, ranging from 1MB to 1GB, from another machine running Apache. % over Gigabit LAN.
 %across high-speed university network\fixmedp{more specific, as above}.
 \graphene{} has marginal overhead on CURL, and
 \graphenesgx{} adds 7--61\% overhead to the downloading time of CURL, due to the latency of I/O.

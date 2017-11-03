@@ -1,4 +1,4 @@
-%\section{User-level {\tt fork} and other Linux library OS challenges}
+%\papersection{User-level {\tt fork} and other Linux library OS challenges}
 %%% \vspace{5pt}
 %%% \label{sec:fork}
 %%% \noindent {\bf Copy-On-Write Fork.~}
@@ -37,7 +37,7 @@ or whether a checkpoint should be loaded instead.
 %After the checkpoint is loaded, all threads resume execution on their stacks.
 
 
-\section{Multi-process applications} 
+\papersection{Multi-process applications} 
 
 %A characteristic of Linux application development is the opportunity of using one of 
 This section explains an efficiency implementation of the process creation mechanisms in \thelibos{},
@@ -47,7 +47,7 @@ including \syscall{fork} and \syscall{execve}.
 
 
 
-\subsection{Forking a process}
+\papersubsection{Forking a process}
 
 
 
@@ -121,7 +121,7 @@ Second, by checkpointing handles individually,
 Finally, \thehostabi{} does not export any functionality for tracing
 the dirty pages during live migration,
 because the low-level hardware support needed
-is not available on a more restricted hardware like Intel SGX.
+is not available on a more restricted hardware like Intel \sgx{}.
 For all the reasons above,
 \thelibos{} only selectively checkpoints \libos{} states rather than snapshotting the whole \picoproc{}.
 
@@ -201,7 +201,7 @@ implemented over a memory mapped file).
 Pipes, however, are not easily recreated without host support.
 \end{comment}
 %One option was to create explicitly named host-level byte streams,
-%similar to System V or Windows named pipes.
+%similar to System V or \win{} named pipes.
 %This strategy is simple to add to the Drawbridge host ABI and easy to program in {\tt libLinux},
 %but complicates security isolation, as guests must be prevented from 
 %opening a host-level pipe outside of their sandbox.
@@ -272,10 +272,10 @@ and facilitates extensibility.
 %\issue{1.3.b}{discuss alternative strategies of forking}
 
 
-\subsection{Process creation with \syscall{execve}}
+\papersubsection{Process creation with \syscall{execve}}
 
 
-Another Linux \linuxapi{}, \syscall{execve}, creates a process with a separate executable and a clean memory state.
+Another Linux system call, \syscall{execve}, creates a process with a separate executable and a clean memory state.
 The specification of \syscall{execve}
 includes detaching the calling thread from a process and moving it to a brand-new virtual address space with the specified executable.
 As a common use case, a shell program (e.g., Bash) calls \syscall{execve} after creating a thread using \syscall{vfork},
@@ -288,7 +288,7 @@ to execute a shell command (e.g., \code{ls}) in a separate process, while the ma
 %is especially common in a shell program (e.g., Bash).
 %A shell program often calls \syscall{execve} after \syscall{vfork} to execute a command in a new process monitored by the job controller, similar to \funcname{spawn} in the POSIX API.
 Linux uses the combination of \syscall{vfork} and \syscall{execve}
-as an equivalent of \funcname{spawn} in the POSIX API, or \funcname{CreateProcess} in the Windows API.
+as an equivalent of \funcname{spawn} in the POSIX API, or \funcname{CreateProcess} in the \win{} API.
 
 
 \thelibos{} implements \syscall{execve} by calling \palcall{ProcessCreate} with

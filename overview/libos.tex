@@ -1,8 +1,9 @@
-\section{\graphene{} overview}
+\papersection{\graphene{} overview}
 \label{sec:overview:libos}
 
-\graphene{} is a library OS designed for compatibility.
-Existing library OSes have been built for compatibility against single-process applications~\cite{porter11drawbridge}. The library OSes map the high-level system APIs onto a few narrowed interfaces to the host kernel. %The reduction of host interfaces provides portability to various platforms that can translate the interfaces to host APIs or abstractions,
+\graphene{} is a library OS designed for reusing unmodified applications.
+%Existing library OSes have established reuse of single-process applications~\cite{porter11drawbridge}.
+The library OSes map a target system API, such as the Linux system calls, to abstractions in \thehostabi{}. %The reduction of host interfaces provides portability to various platforms that can translate the interfaces to host APIs or abstractions,
 %and a narrower attack surface that developers can more likely reason about.
 % and supporting data structures as library functions---mapping
 %high-level APIs onto
@@ -13,8 +14,8 @@ Existing library OSes have been built for compatibility against single-process a
 %eliminating guest-level multiplexing code, as the library OS supports only one application;
 %even compiling out unnecessary guest kernel APIs~\cite{unikernels}.
 A library OS is comparable to a partial, guest OS running in a virtual machine.
-However, compared with an actual VM, a library OS eliminates duplicated features between the guest to the host kernel, such as the CPU scheduler or file system drivers, and thus reduce the memory footprint of a guest library OS~\cite{porter11drawbridge,unikernels}.
-Library OSes have also been proven useful for reusing applications on new hardware platforms, such as SGX enclaves~\cite{baumann14haven}.
+However, compared with an actual virtual machine, a library OS eliminates duplicated features between the guest to the host kernel, such as the CPU scheduler or file system drivers, and thus reduce the memory footprint of a guest library OS~\cite{porter11drawbridge,unikernels}.
+Library OSes have also been proven useful for reusing applications on new hardware platforms, such as \sgx{} enclaves~\cite{baumann14haven}.
 %% dp: This sentence seems a little premature
 %In recent works, library OSes provide rich OS features for isolated contexts while the host OSes are untrusted
 

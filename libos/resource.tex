@@ -1,4 +1,4 @@
-\section{Resource mManagement}
+\papersection{Resource management}
 \label{sec:libos:resource}
 
 
@@ -57,9 +57,9 @@ has a similar role as \thelibos{}.
 %for resource management.
 A language runtime commonly uses the existing system interface
 to request for resources needed by an application.
-For example, a language runtime may use the \syscall{mmap} linuxapi{} to allocate a large heap,
+For example, a language runtime may use \syscall{mmap} to allocate a large heap,
 to assign chunks of the heap to an application.
-%\linuxapis{} like \syscall{mmap} to allocate a large heap,
+%system calls like \syscall{mmap} to allocate a large heap,
 %which is chunked into objects
 %and assigned to variables in an application.
 %Similar strategies have been applied to
@@ -105,8 +105,8 @@ is that they are based on an assumption that the host
 allocates the resources
 on demand, instead of populating the resources all at once.
 However, such an assumption does not apply to all hosts;
-%for an environment like a SGX enclave, overallocating resources such as virtual memory can still have a huge impact on resource footprints.
-for example, the current version of SGX requires a static virtual memory layout,
+%for an environment like a \sgx{} enclave, overallocating resources such as virtual memory can still have a huge impact on resource footprints.
+for example, the current version of \sgx{} requires a static virtual memory layout,
 and each VMA is at least fully populated once at enclave creation
 for checking the integrity of memory data.
 Therefore, overallocating VMAs slows down the creation of an enclave.

@@ -4,15 +4,15 @@
 applications to protect themselves from potentially-malicious
 OSes or hypervisors.  
 In cloud computing and other systems, many users and applications
-could benefit from SGX. % protections.
-Unfortunately, current applications will not work out-of-the-box on SGX.
+could benefit from \sgx{}. % protections.
+Unfortunately, current applications will not work out-of-the-box on \sgx{}.
 Although previous work has shown that %, in principle,
 a library OS can execute unmodified 
-applications on SGX, a belief has developed that 
+applications on \sgx{}, a belief has developed that 
 a library OS will be ruinous for performance and TCB size,
 making 
 application code modification
-an implicit prerequisite to adopting SGX.
+an implicit prerequisite to adopting \sgx{}.
 
 %A protected context is called an {\em enclave} include encrypting 
 
@@ -90,7 +90,7 @@ an implicit prerequisite to adopting SGX.
 %Developers need a platform with sufficient OS compatibility to get existing code running
 %in an enclave quickly (but without defeating the purpose of using \sgx{}), so they can focus on
 %their effort on further hardening their applications with other \sgx{} features, such as remote attestation or finer-grained partitioning.
-%%so most of an application and its supporting libraries can be reused inside an SGX enclave.
+%%so most of an application and its supporting libraries can be reused inside an \sgx{} enclave.
 %%The cutting-edge Software Guard Extension (\sgx{}) is at the point of being universally launched
 %%in upcoming \intel{} processors.
 %%However, the software development for applying this technology, at wherever opportunities lie,
@@ -115,21 +115,21 @@ an implicit prerequisite to adopting SGX.
 This paper demonstrates that 
 these concerns are exaggerated, and 
 that a fully-featured
-library OS can rapidly deploy unmodified applications on SGX
+library OS can rapidly deploy unmodified applications on \sgx{}
 with overheads
 comparable to applications modified to use ``shim'' layers.
 %This paper presents \sysname{}, a framework for running unmodified, Linux COTS applications in enclaves.
-%This paper describes \sysname{}, a framework for transiting Linux COTS applications to SGX,
+%This paper describes \sysname{}, a framework for transiting Linux COTS applications to \sgx{},
 %and decentralizing the effort of packaging application code, authenticating benign applications, and building the trust in provisioning services.
-We present a port of Graphene to SGX,
+We present a port of Graphene to \sgx{},
 as well as a number of improvements to make the security benefits
-of SGX more usable, such as integrity support for dynamically-loaded libraries,
+of \sgx{} more usable, such as integrity support for dynamically-loaded libraries,
 and secure multi-process support.
 \sysname{} supports a wide range of unmodified applications, including
 Apache, GCC, and the R interpreter.
 %, and has been used by several other research groups to 
-%build concurrent submissions exploring SGX.
-%of SGX more usable, such as integrity support for dynamically loaded binaries,
+%build concurrent submissions exploring \sgx{}.
+%of \sgx{} more usable, such as integrity support for dynamically loaded binaries,
 %and secure multi-process support.
 %remote attestation, secure inter-process communication, and enclave-level fork.
 %Users need only configure and sign the enclave parameters %and sign the configuration.
@@ -137,7 +137,7 @@ Apache, GCC, and the R interpreter.
 %both server and desktop workloads.
 %Apache, MySQL, the OpenJDK Java Virtual Machine, the Python and R interpreters,
 %and Memcached, and has been used by several other research groups to 
-%build concurrent submissions exploring SGX.
+%build concurrent submissions exploring \sgx{}.
 %\sysname{} is secure, has acceptable performance costs,
 %and is can run a range of substantial, unmodified Linux applications in \sgx.
 %without any development effort for code modification or recompilation.
@@ -158,7 +158,7 @@ Apache, GCC, and the R interpreter.
 %(i.e., {\em Iago attacks}).
 The performance overheads of \sysname{} range from matching a Linux
 process to less than $2\times$ in most single-process cases;
-these overheads are largely attributable to current SGX hardware 
+these overheads are largely attributable to current \sgx{} hardware 
 or missed opportunities to optimize Graphene internals, 
 and are not necessarily fundamental to leaving the application unmodified.
 %Using the \libos{} reduces the complexity of protecting a broad, state-leaking system interface
@@ -170,7 +170,7 @@ and are not necessarily fundamental to leaving the application unmodified.
 %For compatibility, \sysname{} implements a major portion of the core Linux system calls,
 %supporting xx.x\% \fixme{update this number} of official applications installed on each Ubuntu machine.
 \sysname{} is open-source and has been used concurrently by other groups  
-for SGX research.
+for \sgx{} research.
 
 
 %extends the \graphene{} \libos{}---\graphene{} sustains a narrow interface
@@ -204,13 +204,13 @@ for SGX research.
 %%have been 
 
 
-%Second, \sysname{} exports several SGX features,
+%Second, \sysname{} exports several \sgx{} features,
 %such as attestation and sealing keys,
 %as library OS abstractions ready for employment.
 %In addition, by using off-the-shelf \intel{} processors for development and evaluation,
 %to minimize the gap from the real-world adoption.
 %During the development,
-%we identify several pivotal factors to the SGX performance,
+%we identify several pivotal factors to the \sgx{} performance,
 %which can be fine-tuned in either the \libos{} or applications.
 %and provide insights for developers to tune their applications.
 %For instance, memory usage impacts the start-up time and paging overhead,
@@ -252,12 +252,12 @@ for SGX research.
 %in a sanctuarized memory space ({\it enclave}),
 %with confidentiality and integrity guaranteed and attested by processors.
 %% Recent works like \haven{}~\cite{baumann14haven} use \libos{}es to
-%% facilitate migration of native Windows applications to \sgx{},
+%% facilitate migration of native \win{} applications to \sgx{},
 %% providing ease of use and
 %% a sensible security model to build up the trust for applications
 %% running in the cloud.
 %% However, users of \haven{} must tolerate the limitations that
-%% only single-process Windows applications are supported,
+%% only single-process \win{} applications are supported,
 %% and unpacking of application binaries must alway be provisioned
 %% from remote servers.
 %% Moreover, lack of methods to partition the applications
@@ -284,7 +284,7 @@ for SGX research.
 %%We present a
 %We evaluate \sysname{} on
 %\intel{} \skylake{} processors,
-%and contribute baseline measurements of SGX hardware costs.
+%and contribute baseline measurements of \sgx{} hardware costs.
 %Our results show reasonable application performance overheads,
 %such as xxx\% throughput cost for the Apache web server and
 %xxx\% latency cost on OpenJDK Java virtual machine.

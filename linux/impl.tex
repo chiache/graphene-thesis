@@ -1,4 +1,4 @@
-\section{Exporting the Host ABI}
+\papersection{Exporting the host ABI}
 \label{sec:linux:impl}
 
 \issuedone{1.1.a}{Extend the technical sections}
@@ -13,15 +13,15 @@ Only two \graphene{} components on the host requires extension or modification o
 
 On a Linux host,
 the majority of \hostapis{} are simply wrappers
-for similar Linux \linuxapis{},
+for similar Linux system calls,
 adding on less than 100 LoC on average for each \hostapi{}.
-The most complex \hostapis{} on a Linux host are for exception handling, synchronization, and process creation, and each of these \hostapis{} requires multiple \linuxapis{} and roughly 500--800 LoC in PAL.
+The most complex \hostapis{} on a Linux host are for exception handling, synchronization, and process creation, and each of these \hostapis{} requires multiple system calls and roughly 500--800 LoC in PAL.
 For example, process creation (i.e., \palcall{ProcessCreate}) requires 
-both the \syscall{vfork} and \syscall{execve} \linuxapis{}
+both the \syscall{vfork} and \syscall{execve} system calls
 for creating a clean
 application instance, and would be more efficiently
 implemented inside the Linux kernel.
-Finally, the other major \pal{} components are an ELF loader (2 kLoC),
+Finally, the other major PAL components are an ELF loader (2 kLoC),
 Linux kernel and PAL headers (800 LoC),
 and internal support code providing functions like \funcname{malloc} and \funcname{memcpy} (2.3 kLoC).
 Table~\ref{tab:libos:loc} lists the lines of code of each components of the \graphene{} architecture on a Linux host.
@@ -33,7 +33,7 @@ mostly generic to every host OSes
 and thus fully reusable for each PAL.
 The generic parts include
 the ELF loader, PAL headers, and internal support code, adding up to \roughly{}6,000 LoC.
-The other half of the Linux PAL are host-dependent code containing mainly wrappers for Linux \linuxapis{}.
+The other half of the Linux PAL are host-dependent code containing mainly wrappers for Linux system calls.
 %and has to be replaced with
 %host-dependent code.
 If the targeted host OS has exported a UNIX or POSIX-like API,
@@ -55,7 +55,7 @@ GNU Library C ({\tt libc}, {\tt ld}, {\tt libdl}, {\tt libpthread}) & \libclines
 \hline
 Linux Library OS (\thelibos{}) & 31,112 & \\
 Linux PAL & 12,529 & \\
-%Extra code for Linux SGX host \pal{} & 9.354 & \\
+%Extra code for Linux \sgx{} host \pal{} & 9.354 & \\
 % updated by Chia-Che on Oct. 10, 2013
 \hline
 %Storage Server & \fixmedp{XX} & \\
@@ -71,7 +71,7 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 
 %\paragraph{Alternative \pal{} Ports.}
 %We prove the platform independence of \graphene{}
-%by porting \pal{} to \emph{FreeBSD}, \emph{OSX} and \emph{Windows}.
+%by porting \pal{} to \emph{FreeBSD}, \emph{\osx{}} and \emph{\win{}}.
 %With the alternative host \pal{}, unmodified Linux binaries,
 %along with {\tt glibc} and {libLinux},
 %can be transparently run on the host.
@@ -80,7 +80,7 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 %which are significantly less than FreeBSD Linux compatibility module (10.8 kLoC).
 %\pal{} components including ELF loader and internal support code can be shared by any \pal{} ports.
 
-%\fix{We leave host \pal{} ports to non-unix OSes like Windows as future work,
+%\fix{We leave host \pal{} ports to non-unix OSes like \win{} as future work,
 %but previous works~\cite{porter11drawbridge,baumann13bascule} have already shown it feasible.}
 
 
@@ -94,12 +94,12 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 %\fixmedp{Chia-Che, update LoC table}
 
 
-\subsection{Implementation details}
+\papersubsection{Implementation details}
 
 The rest of this section
 will discuss a few PAL ABI abstractions that are particularly challenging on a Linux host.
 Similar challenges have been presented %have been observed for implementing \thehostabi{}
-on other alternative host kernels such as FreeBSD, OS X, and Windows.
+on other alternative host kernels such as FreeBSD, \osx{}, and \win{}.
 %except that other kernels might introduce additional host-specific challenges.
 
 
@@ -186,13 +186,13 @@ or just kill the \picoproc{} when a double fault happens.
 
 
 %\paragraph{Synchronization.} Perhaps surprisingly, implementing Linux
-%synchronization appears substantially easier than Windows synchronization, 
+%synchronization appears substantially easier than \win{} synchronization, 
 %as {\tt libLinux} did not require all of the various
 %synchronization ABIs provided by Drawbridge.
 %We believe the reason for this is that Linux has consolidated 
 %all user-level synchronization primitives to use futexes~\cite{franke02futex},
 %which are essentially kernel-level wait queues.
-%%In Windows parlance, this is simply an Event associated with a virtual address.
+%%In \win{} parlance, this is simply an Event associated with a virtual address.
 %%Thus, our effort implementing synchronization was relatively straightforward.
 
 

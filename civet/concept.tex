@@ -1,7 +1,7 @@
-\section{Bridge the Gap between Language and Hardware Protections}
+\papersection{Bridge the Gap between Language and Hardware Protections}
 \label{sec:concept}
 
-\subsection{The Challenges of Combining Language and Hardware Protections}
+\papersubsection{The Challenges of Combining Language and Hardware Protections}
 
 Language and hardware protections provide varying benefits
 to application security:
@@ -30,10 +30,10 @@ For example, \sgx{} requires the loaded code to be implemented in C or C++,
 or any languages that can compile applications into static binaries.
 The restriction is not simply a design decision
 made by the hardware or its SDK,
-but a result of the fact that SGX requires a static image to guarantee the integrity of execution.
+but a result of the fact that \sgx{} requires a static image to guarantee the integrity of execution.
 On the other hand, if the language used is a managed language like \java{},
-accessing SGX hardware will be cumbersome,
-because it is hard to provide any APIs to allow direct access to the SGX hardware,
+accessing \sgx{} hardware will be cumbersome,
+because it is hard to provide any APIs to allow direct access to the \sgx{} hardware,
 to harvest its security guarantees
 or to utilize its features.
 
@@ -52,7 +52,7 @@ Green (light) boxes are trusted components and red (dark) boxes are untrusted.
 
 
 Figure~\ref{fig:alternatives} illustrates the alternative approaches
-to access SGX hardware from \java{} applications:
+to access \sgx{} hardware from \java{} applications:
 The first approach is to run the whole \java{} applications with the \java{} VM inside the enclaves,
 using a library OS ({\em libOS-based}).
 This approach can secure applications as a whole,
@@ -74,7 +74,7 @@ the use cases is limited to the pre-defined operations provided by the \java{} V
 Because the backend implementation (isolated components and untrusted interfaces) in the JVM-based approach is the same as the JNI-based approach,
 the same language restriction also applies here. 
 
-\subsection{Modeling Hardware Protections within Managed Languages}
+\papersubsection{Modeling Hardware Protections within Managed Languages}
 
 To secure applications with the advantages from both \java{} language and \sgx{} hardware protection,
 we must allow both isolated and untrusted components to be implemented in \java{}.
@@ -212,7 +212,7 @@ The table also lists other guarantees and features
 that are not natively provided by the \sgx{} hardware
 but enhanced by \sysname{} after combining the language and hardware protection, which will be discussed in the later sections.  
 
-\subsection{Hardening Hardware Protections with Language Protections}
+\papersubsection{Hardening Hardware Protections with Language Protections}
 
 \sysname{} models the high-level security guarantees and features
 of the \sgx{} hardware in the \java{} language,

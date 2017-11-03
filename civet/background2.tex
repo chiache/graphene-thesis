@@ -1,4 +1,4 @@
-\section{Background and Motivation}
+\papersection{Background and Motivation}
 \label{sec:background}
 
 %\fixmets{1.5 page}
@@ -22,7 +22,7 @@ while the partitioned model requires developers to determine the untrusted inter
 \label{fig:libosvssdk}
 \end{figure}
 
-\subsection{\sgx{} Enclaves}
+\papersubsection{\sgx{} Enclaves}
 
 \intel{} \sgx{} ({\it Software Guard Extensions})
 are a set of new x86/x86\_64 instructions
@@ -213,10 +213,10 @@ higher-level languages amenable to formal reasoning.
 %%% without the developers explicit consent. 
 
 
-\subsection{Two \sgx{} Usage Models}
+\papersubsection{Two \sgx{} Usage Models}
 \paragraph{Non-partitioned applications}
 One model for using \sgx{} is to run an entire application in the enclave.
-This is exemplified by Haven~\cite{baumann14haven}, which runs a Windows application and all supporting libraries
+This is exemplified by Haven~\cite{baumann14haven}, which runs a \win{} application and all supporting libraries
 on top of a library OS (\libos{}) inside an enclave.  This approach is illustrated on the left side of Figure~\ref{fig:libosvssdk}.
 The non-partitioned model offers simple deployment, requires no application changes, and can provide practical benefits, 
 such as protecting an application from an untrusted cloud hypervisor.
@@ -249,7 +249,7 @@ which to establish an interface between trusted and untrusted components.
 
 
 
-\subsection{Challenges in Partitioning \java{} Applications on \sgx{}}
+\papersubsection{Challenges in Partitioning \java{} Applications on \sgx{}}
 
 Using a higher-level language can be useful to reduce the risk of semantic errors in an application,
 yet there are several fundamental, technical challenges to using a managed language, like Java,
@@ -475,8 +475,8 @@ We note that using byte code is both a liability and opportunity.
 One could pre-compile byte code to native code on a trusted host, and simply run the signed native code.
 However, this foregoes the opportunity for performance-critical enhancements
 such as profile-guided optimization or heap management optimizations for
-smaller heaps.  Version 1 of SGX only has up to 128 MB of total enclave page cache;
-Version 2 will relax this extension.  As long as SGX is a moving target,
+smaller heaps.  Version 1 of \sgx{} only has up to 128 MB of total enclave page cache;
+Version 2 will relax this extension.  As long as \sgx{} is a moving target,
 we expect there will be value in the ability to dynamically optimize the
 in-enclave code for the constraints and application behavior at runtime.
 
@@ -580,7 +580,7 @@ objects should be placed in the enclave and which should be outside of the encla
 
 \begin{comment}
 
-\subsection{The Challenges of Combining Language and Hardware Protections}
+\papersubsection{The Challenges of Combining Language and Hardware Protections}
 
 Language and hardware protections provide varying benefits
 to application security:

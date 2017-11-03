@@ -12,11 +12,10 @@ Streams &
 {\tt StreamMap} \newline
 {\tt StreamFlush} \newline
 {\tt StreamSetLength} \newline
-{\tt StreamWaitforClient} \newline
+{\tt ServerWaitforClient} \newline
 {\tt StreamAttrQuery} \newline
 {\tt StreamAttrQuerybyHandle} \newline
-{\tt StreamAttrSetbyHandle} $\dagger$ \newline
-{\tt StreamDelete}
+{\tt StreamAttrSetbyHandle} $\dagger$
 & 
 Opening streams using URIs, with prefixes representing stream types (e.g., \code{file:},\code{tcp:},\code{pipe:}),
 as well as common stream operations, including transmission of data, and query to the stream attributes.
@@ -39,15 +38,15 @@ Threads \& scheduling &
 {\tt ThreadExit} \newline
 {\tt ThreadDelayExecution} \newline
 {\tt ThreadYieldExecution} \newline
-{\tt ThreadInterrupt} \newline
-{\tt MutexCreate} \newline
-{\tt MutexUnlock} \newline
+{\tt ThreadInterrupt} $\dagger$ \newline
+{\tt MutexCreate} $\dagger$ \newline
+{\tt MutexUnlock} $\dagger$ \newline
 {\tt SynchronizationEventCreate} \newline
 {\tt NotificationEventCreate} \newline
 {\tt EventSet} \newline
 {\tt EventClear} \newline
-{\tt ObjectsWaitAny} \newline
-{\tt SegmentRegisterAccess} $\dagger$
+{\tt StreamGetEvent} $\dagger$ \newline
+{\tt ObjectsWaitAny}
 &
 Creation and termination of threads; 
 Using scheduling primitives, including suspension, semaphores, events, and pollable IO events.
@@ -69,7 +68,8 @@ Mis\-cel\-la\-ne\-ous &
 {\tt SystemTimeQuery} \newline
 {\tt RandomBitsRead} \newline
 {\tt ExceptionSetHandler} $\dagger$ \newline
-{\tt ExceptionReturn} $\dagger$
+{\tt ExceptionReturn} $\dagger$ \newline
+{\tt SegmentRegisterAccess} $\dagger$
 & 
 Querying system time, and random number generation.
 Setting an exception handler, and returning from the handler.

@@ -1,4 +1,4 @@
-\subsection{Process creation overheads}
+\papersubsection{Process creation}
 
 The most expensive system calls occur when {\tt libLinux} inadvertently duplicates work
 with the host kernel.  
@@ -21,9 +21,9 @@ A more competitive {\tt fork} will require host support and additional {\tt libL
 \fixme{talk about a limitation of improving fork. check this.}
 One way to further optimize \syscall{fork} is to reduce or avoid enclave creation time; one can potentially pre-launch a child enclave, and then migrate the process contents later when \syscall{fork} is called.
 There might be another opportunity to improve the latency of process migration,
-if copy-on-write sharing of enclave pages can be supported in future generations of SGX.
+if copy-on-write sharing of enclave pages can be supported in future generations of \sgx{}.
 %Unfortunately, sending the process contents is difficult to avoid in \syscall{fork},
-%as SGX disallows sharing enclave memory between multiple enclaves.
+%as \sgx{} disallows sharing enclave memory between multiple enclaves.
 
 %\fixmedp{I assume 5.4 isn't done yet}
 
@@ -34,7 +34,7 @@ if copy-on-write sharing of enclave pages can be supported in future generations
 
 \begin{table}[t!b!]
 \input{tables/lmbench-fork}
-\caption{Benchmark results of various combinations of \syscall{fork}, \syscall{vfork}, and \syscall{execve}, based on \lmbench{} 2.5. Comparison is among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with JIT-optimized SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in SGX enclaves.
+\caption{Benchmark results of various combinations of \syscall{fork}, \syscall{vfork}, and \syscall{execve}, based on \lmbench{} 2.5. Comparison is among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with JIT-optimized SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in \sgx{} enclaves.
 Latency is in microseconds, except for \graphenesgx{}, which is orders-of-magnitude slower. Lower latency is better.
 Overheads are relative to Linux \linuxversion{}; negative overheads indicate improved performance.} 
 \label{tab:eval:lmbench-fork}
@@ -74,7 +74,7 @@ The trend matches the performance of \graphene{} without the bulk IPC optimizati
 
 
 
-We also measure the overhead of isolating a \graphene{} \picoproc{} inside the reference monitor.
+The experiments also measure the overhead of isolating a \graphene{} \picoproc{} inside the reference monitor.
 Because most filtering rules can be statically loaded into the kernel,
 the cost of filtering is negligible with few exceptions.
 %TCP and UDP latency is increased slightly because the monitor checks

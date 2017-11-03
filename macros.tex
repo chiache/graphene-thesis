@@ -10,7 +10,10 @@
 
 \usepackage{xstring}
 
-\declarecommand{\projname}[1]{{#1}}
+\newlength{\charwidth}
+\setlength{\charwidth}{\widthof{\S}}
+
+\declarecommand{\projname}[1]{#1}
 
 \declarecommand{\syscall}[1]{{\tt #1()}}
 \declarecommand{\palcall}[1]{{\tt #1()}}
@@ -44,7 +47,7 @@
 
 % project names
 \declarecommand{\graphene}{\projname{Graphene}}
-\declarecommand{\graphenesgx}{\projname{Graphene-SGX}}
+\declarecommand{\graphenesgx}{\projname{Graphene-\sgx{}}}
 \declarecommand{\graphenearch}{{x86-64}}
 \declarecommand{\civet}{\projname{Civet}}
 \declarecommand{\microkernel}{microkernel}
@@ -52,11 +55,12 @@
 \declarecommand{\drawbridge}{\projname{Drawbridge}}
 \declarecommand{\scone}{\projname{SCONE}}
 \declarecommand{\panoply}{\projname{PANOPLY}}
-\declarecommand{\sgx}{{SGX}}
-\declarecommand{\docker}{{Docker}}
 
 
 % terminology
+\declarecommand{\win}{Windows}
+\declarecommand{\osx}{OS X}
+\declarecommand{\sgx}{SGX}
 \declarecommand{\Libos}{Library OS}
 \declarecommand{\Liboses}{Library OSes}
 \declarecommand{\libos}{library OS}
@@ -65,13 +69,6 @@
 \declarecommand{\Picoprocs}{Picoprocesses}
 \declarecommand{\picoproc}{picoprocess}
 \declarecommand{\picoprocs}{picoprocesses}
-\declarecommand{\pal}{PAL}
-\declarecommand{\posixapi}{POSIX function}
-\declarecommand{\posixapis}{POSIX functions}
-\declarecommand{\linuxapi}{system call}
-\declarecommand{\Linuxapi}{System call}
-\declarecommand{\linuxapis}{system calls}
-\declarecommand{\Linuxapis}{System calls}
 \declarecommand{\hostapi}{PAL call}
 \declarecommand{\hostapis}{PAL calls}
 \declarecommand{\thehostabi}{{the PAL ABI}}
@@ -93,9 +90,9 @@
 \declarecommand{\sgxdriverversion}{v1.9}
 \declarecommand{\graphenesyscallnum}{145}
 \declarecommand{\linuxsyscallnum}{318}
-\declarecommand{\palcallnum}{42}
+\declarecommand{\palcallnum}{39}
 \declarecommand{\hostsyscallnum}{50}
-\declarecommand{\sgxpalcallnum}{38}
+\declarecommand{\sgxpalcallnum}{35}
 \declarecommand{\enclavecallnum}{28}
 
 \declarecommand{\gipclines}{1,131}
@@ -112,5 +109,5 @@
 \declarecommand{\lmbench}{LMbench}
 \declarecommand{\ab}{ApacheBench}
 \declarecommand{\busy}{Bash}
-\declarecommand{\sgxsdk}{Intel SGX SDK}
+\declarecommand{\sgxsdk}{Intel \sgx{} SDK}
 

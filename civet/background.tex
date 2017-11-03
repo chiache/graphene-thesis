@@ -1,10 +1,10 @@
-\section{Challenges for Partitioning with Enclaves}
+\papersection{Challenges for Partitioning with Enclaves}
 \label{sec:background}
 In this section, we will give a brief overview of \sgx{}, and discuss 
 the key challenges developers face when trying to manually partition applications using a technology such as \sgx{}.
 %discuss the programming models and threats to security of \sgx{} enclaves.
 
-\subsection{Background on \intel{} SGX Enclaves}
+\papersubsection{Background on \intel{} \sgx{} Enclaves}
 
 \intel{} \sgx{} ({\it Software Guard Extension})
 is a set of new x86/x64 instructions
@@ -23,10 +23,10 @@ similar to a TPM\fixmedp{cite}.
 
 \sgx{} is an appealing tool for protecting small amounts of highly-sensitive data or code, because it can defend 
 against a malicious or compromsed OS, hypervisor, or even hardware peripheral.
-For instance, \fixmedp{Foo} et al.~\fixmedp{cite that SGX workshop paper} show how SGX can be used
+For instance, \fixmedp{Foo} et al.~\fixmedp{cite that \sgx{} workshop paper} show how \sgx{} can be used
 to build a trusted path from a video chat application to a GPU and network card, which maintains confidentiality and integrity of the
 video stream, even if the OS is compromised.
-Simlarly, because DRAM contents are encrypted, SGX can resist cold-boot attacks~\cite{halderman09coldboot} or 
+Simlarly, because DRAM contents are encrypted, \sgx{} can resist cold-boot attacks~\cite{halderman09coldboot} or 
 malicious peripheral devices~\cite{hudson15thunderstrike}.
 
 
@@ -74,8 +74,8 @@ malicious peripheral devices~\cite{hudson15thunderstrike}.
 %%% will affect any software-based isolation, but not \sgx{} enclaves.
 
 \paragraph{Non-Partitioned Applications.}
-One approach to using SGX is to run an entire application in the enclave.
-This is exemplified by Haven~\cite{baumann14haven}, which runs a Windows application and all supporting libraries
+One approach to using \sgx{} is to run an entire application in the enclave.
+This is exemplified by Haven~\cite{baumann14haven}, which runs a \win{} application and all supporting libraries
 on top of a {\em library OS}.  This approach is illustrated on the left side of Figure~\ref{fig:libosvssdk}.
 The library OS approach does not require any application changes, but bloats the TCB \fixmedp{Rough number of how big Haven is}.
 By pulling millions of lines of extraneous code into an enclave, there is a significantly increased risk 
@@ -182,13 +182,13 @@ Similarly, there is no guarantee that a compromised application will ever enter
 an enclave.  Denial-of-service attacks are out of scope for this paper.
 
 
-\subsection{Challenges for Application Partitioning on SGX}
+\papersubsection{Challenges for Application Partitioning on \sgx{}}
 
 \sgx{} provides useful building blocks for secure applications, but does not
 absolve the programmer of any responsibility for reasoning about end-to-end security.
 Bugs in the application or supporting libraries can still disclose sensitive data from an enclave,
-and porting code into SGX can be subtle.
-This subsection outlines several pitfalls in partitioning an application for SGX.
+and porting code into \sgx{} can be subtle.
+This subsection outlines several pitfalls in partitioning an application for \sgx{}.
 
 %%% \sgx{} enclaves provide strong isolation guarantee for applications,
 %%% against the malicious or vulnerable application components, system stack,
@@ -198,12 +198,12 @@ This subsection outlines several pitfalls in partitioning an application for SGX
 %%% even applications or components isolated in enclave can face threats to their security.
 %%% As follows, we discuss a few potential threats
 %%% to the enclave security,
-%%% even under the assumption that the SGX hardware is implemented as completely secure --- which can be another threat otherwise. 
+%%% even under the assumption that the \sgx{} hardware is implemented as completely secure --- which can be another threat otherwise. 
 
 %\fixmedp{I roughly want the rest of this section to have a problem, explanation, solution structure, with the overall theme being that this is subtle and we really need some analysis tools to get this right}
 
 \paragraph{Writes outside of the enclave.}
-SGX allows code inside the enclave to read and write data structures 
+\sgx{} allows code inside the enclave to read and write data structures 
 outside of the enclave.  Thus, it is easy for a developer to inadvertently write
 code that discloses a secret, say by using a library that memoizes intermediate results to the untrusted heap.
 A fundamental requirement is that developers must be able to reason about (or assert)
@@ -354,7 +354,7 @@ to help identify these natural division points.
 % Buggy Code leads to inadvertant information leakage
 
 
-% SGX code only Integrity protected not confidential
+% \sgx{} code only Integrity protected not confidential
 %Moreover, \sgx{} only protects the integrity of the enclave code. The security critical part of the application is stored in plaintext while the secret data is provisioned securely after attestation. However, \sgx{} does not protect the confidentiality of enclave application code which may be executing a secret algorithm. \fixmebj{Talk more about the problem motivating security tag preservation.}
 %\sgx{} can natively guarantee either code integrity or
 %code confidentiality (as part of the enclave data), but not both.
@@ -421,9 +421,9 @@ provisioned from a trusted host.
 
 \paragraph{Discussion.}  This
 section has outlined several pitfalls for developers of partitioned applications.
-These common pitfalls render the hardware protections of SGX useless.
+These common pitfalls render the hardware protections of \sgx{} useless.
 Language-level analysis can automate error-prone reasoning in the best case, or, in the worst case, 
-can at least offer invaluable guidance to the developer.  For SGX-style
+can at least offer invaluable guidance to the developer.  For \sgx{}-style
 hardware to be useful to a wide array of developers, developers need language-level
 tools that can also factor in hardware-level protection mechanisms.
 
