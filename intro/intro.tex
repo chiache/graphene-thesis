@@ -593,23 +593,6 @@ between the parent and child.
 Multi-process abstractions are convenient for creating a temporary session for processing incoming requests or commands, and destroying the session without corrupting the parent process.
 
 
-For programmability, Linux and similar OSes export several inter-process communication (IPC) mechanisms,
-each with unique use cases and semantics.
-The Linux IPC essentially combines the UNIX System V features, such as message queues and semaphores,
-and POSIX abstractions, such as signaling and namespaces,
-to present a wide range of options for programming.
-%The implementation of these mechanisms is idiosyncratic to Linux applications, and has to coordinate several global states across all processes.
-Figure~\ref{fig:overview:proc-example} shows a code example of
-two Linux programs (``\code{sh}'' and ``\code{kill}'')
-running in parallel as part of a multi-process application and communicating with signals.
-%Signaling between the parent and child processes
-%can happen in several occasions, including processes being terminated accidentally or deliberately, and one process calling the \syscall{kill} system call.
-The destination of signaling is determined by a unique process identifier (PID)
-known by all processes.
-These kinds of identifiers or names are globally shared, as part of the POSIX namespaces,
-among applications or processes visible to each other.
-
- 
 
 \begin{figure*}
 \begin{minipage}[t]{.65\textwidth}
@@ -637,6 +620,23 @@ kill(pid, SIGKILL);
 \caption{Sample code for Linux applications using process cloning and inter-process communication (IPC).}
 \label{fig:overview:proc-example}
 \end{figure*}
+
+For programmability, Linux and similar OSes export several inter-process communication (IPC) mechanisms,
+each with unique use cases and semantics.
+The Linux IPC essentially combines the UNIX System V features, such as message queues and semaphores,
+and POSIX abstractions, such as signaling and namespaces,
+to present a wide range of options for programming.
+%The implementation of these mechanisms is idiosyncratic to Linux applications, and has to coordinate several global states across all processes.
+Figure~\ref{fig:overview:proc-example} shows a code example of
+two Linux programs (``\code{sh}'' and ``\code{kill}'')
+running in parallel as part of a multi-process application and communicating with signals.
+%Signaling between the parent and child processes
+%can happen in several occasions, including processes being terminated accidentally or deliberately, and one process calling the \syscall{kill} system call.
+The destination of signaling is determined by a unique process identifier (PID)
+known by all processes.
+These kinds of identifiers or names are globally shared, as part of the POSIX namespaces,
+among applications or processes visible to each other.
+
 
 
 
@@ -674,22 +674,22 @@ for porting multi-process applications to a variety of OSes and architectures.
 \section{Evaluating API compatibility}
 
 
-\rewrite{
-This thesis studies the compatibility requirement in Linux and POSIX
-from the perspectives of applications and users.
-The study begins with building a metric for compatibility,
-weighted by the API usage in applications,
-and application importance (or popularity).
-%for measuring and implementing compatibility. The design principle applies to either a commodity OS, a newly-built OS prototype, or the \graphene{} library OS.
-%This thesis shows that the compatibility against the existing applications, in an OS, can be measured and incrementally improved by scientific approach.
-%Using a metric that is weighted by the usage of system interfaces in a large sample of commonly used applications, as well as the popularity of the sampled applications,
-Using the metric,
-OS developers can quantitatively determine the priority in implementing a system interface,
-and evaluate the developed results.
-The study shows that most applications do not require
-half of the Linux system calls,
-which are either for administrative use (e.g., halting the machine), or unpopular among applications.
-}
+
+%This thesis studies the compatibility requirement in Linux and POSIX
+%from the perspectives of applications and users.
+%The study begins with building a metric for compatibility,
+%weighted by the API usage in applications,
+%and application importance (or popularity).
+%%for measuring and implementing compatibility. The design principle applies to either a commodity OS, a newly-built OS prototype, or the \graphene{} library OS.
+%%This thesis shows that the compatibility against the existing applications, in an OS, can be measured and incrementally improved by scientific approach.
+%%Using a metric that is weighted by the usage of system interfaces in a large sample of commonly used applications, as well as the popularity of the sampled applications,
+%Using the metric,
+%OS developers can quantitatively determine the priority in implementing a system interface,
+%and evaluate the developed results.
+%The study shows that most applications do not require
+%half of the Linux system calls,
+%which are either for administrative use (e.g., halting the machine), or unpopular among applications.
+
 
 
 \section{Summary}
