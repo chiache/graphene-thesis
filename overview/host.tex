@@ -512,15 +512,21 @@ but is much faster because it avoids copying memory in the host.
 
 
 
-\subsection{PAL (platform adaption layer)}
+\subsection{The PALs (Platform Adaption Layers)}
 \label{sec:overview:host:pal}
 
 
-\graphene{} relies on each host to implement \thehostabi{}, using the native system interfaces on the host.
-For each host, a platform translation layer (PAL)
-is loaded below the library OS, to translate each functions in \thehostabi{} to native system interfaces.
-The development of a PAL is a effort paid per host, whereas the library OS is reusable on every hosts. %The simplicity of \thehostabi{} can be also estimated by the effort of implementing a PAL for each host.
-Based on the simplicity of \thehostabi{}, the PAL development is supposed to be straightforward and easy for average developers, except corner cases on a few eccentric hosts, such as SGX.
+On most OSes, OS developers
+implement \thehostabi{} using options in the native system APIs.
+Specifically,
+OS developers will build
+a Platform Translation Layer (PAL)
+as a thin library to translate \hostapis{} to native system APIs
+serviced by the host OS.
+%is loaded below the library OS, to translate each functions in \thehostabi{} to native system interfaces.
+The effort of PAL development is per host OS, whereas the library OS implementation is reusable on every hosts. %The simplicity of \thehostabi{} can be also estimated by the effort of implementing a PAL for each host.
+Based on the principle of porting simplicity, PAL development must be straightforward
+for average developers.
 
 
 
@@ -528,19 +534,15 @@ Based on the simplicity of \thehostabi{}, the PAL development is supposed to be 
 %The host ABI is defined for the simplicity of porting, as well as the sufficiency for implementing a library OS compatible to Linux.
 %First of all, the number of host functions included in \thehostabi{}
 %is much smaller than the number of system calls in a commodity OS such as Linux. 
-\graphene{} is experimented with
-several ``classic'' hosts, including Windows, Linux, OSX, FreeBSD, and Linux with SGX.
+The development of \graphene{} experiments the porting of \thehostabi{}
+on several representative host examples, such Windows, Linux, OS X, FreeBSD, and SGX with an untrusted Linux kernel.
 For most of these hosts,
-implementing \thehostabi{} is straightforward,
-%Most of \thehostabi{} is straightforward to port
-%on these hosts, 
-because most OSes have exported a version of the POSIX API, or similar API.
-Few exceptions where the porting has been challenging
-are mostly caused by usual assumptions made in the host OSes.
-For example, the Windows API disallows directly resizing or protecting part of a memory region, which is essential to implementing the \syscall{munmap} and \syscall{mprotect} system calls.
-A workaround for porting \thehostabi{} to Windows is to change the memory region
-at the physical page level,
-but requires running the PAL in administer permission.
+implementing \thehostabi{} is straightforward because most OSes export a version of the similar POSIX-style API.
+If there are exceptions where porting \thehostabi{} is challenging,
+the cause is likely to be the assumptions made by the developers of the host OS.
+For instance, the Windows API disallows directly resizing or protecting part of a memory region, which is essential to implementing the \syscall{munmap} and \syscall{mprotect} system calls.
+A workaround for porting \thehostabi{} to Windows is to change memory mappings at the physical page level,
+but requires running the PAL in root permission.
 
 %In our experience, the development of a PAL is around ten thousand lines of code.
 
@@ -548,17 +550,24 @@ but requires running the PAL in administer permission.
 
 
 Based on the experience in \graphene{},
-even a host ABI specialized for simplicity cannot guarantee to be portable on every hosts.
-It is possible that a host simply lacks the typical functionality
-provided in other OSes.
-As a principle, \graphene{} does not require each host to implement the whole host ABI,
-but designs the library OS to flexibly switch emulation strategies
-when a function is unavailable.
-For example, when the bulk IPC feature is not available on the host,
-the library OS can always switch back to the RPC-based IPC, with performance penalty.
+it is hard to ensure the portability of \thehostabi{} on every potential hosts.
+%even a host ABI specialized for simplicity cannot guarantee to be portable on every hosts.
+A host may simply lacks the functionality
+for implementing a \hostapi{}.
+The assumption is, maintaining the compatibility of \thehostabi{} poses a much less challenge than maintaining the whole system API.
+Besides, the library OS may flexibly switch among emulation strategies
+to compensate the absence of certain host abstraction.
+As an example,
+bulk IPC is optional in \thehostabi{} since its first definition,
+due to the expectation
+that implementing the feature may not be feasible on some hosts.
+If bulk IPC is not available,
+the library OS can fall back to RPC-based IPC, with a reasonable amount of performance penalty.
 In the worst case, if there is no emulation strategies
-to compensate for the missing of a function,
-at least users can predict whether an application will be affected and thus cannot run on certain hosts.
+to compensate for the absence of a \hostapi{},
+user can predict the affected applications and avoid running these applications
+on specific hosts. 
+%at least users can predict whether an application will be affected and thus cannot run on certain hosts.
 
 
 
@@ -586,26 +595,25 @@ at least users can predict whether an application will be affected and thus cann
 
 
 To target multi-tenant environments, such as cloud,
-\graphene{} has to ensure at least complete security isolation between mutually-untrusted applications running on the same host.
+\graphene{} has to ensure security isolation between mutually-untrusting applications running on the same host.
 The security isolation of \graphene{} is comparable to running each application
-in a VM, featuring a fully-isolated guest OS.
-Similar to the virtual hardware interface isolating the VMs,
-\thehostabi{} also enforces security isolation between library OS instances,
-according to the trust model of the applications.
+in a complete geust OS, featuring a fully-isolated guest OS.
+Similar to the virtual hardware interface isolating each virtual machine,
+\thehostabi{} also enforces security isolation between library OS instances.
+%according to the trust model of the applications.
 
 
-
-\graphene{} delegates the enforcement of security isolation to the hosts.
+On a host where the host OS is fully trusted,
+\graphene{} delegates the enforcement of security isolation to the host OS.
 The library OS and the application are mutually-trusted, as long as they are loaded in the same process.
-The host ABI decouples the implementation of OS functionality
-from the enforcement of security isolation.
+The host ABI also separates API implementation
+from security isolation.
 %To ensure isolation, each host must restrict access from the applications or the library OS, to any unauthorized host abstractions.
 On each host, a reference monitor will enforce security isolation policies assigned to the application, to control the access to the hardware abstractions managed by \thehostabi{}, including files, network sockets, and RPC streams.
-The hosts need not to be aware of the system interfaces and coordination of the OS states
-inside of the library OS.
-The security isolation in the hosts
-is much more straightforward, simply based on monitoring the references
-to the host abstractions.
+The host-level security isolation is orthogonal to API complexity.
+The security checks in the hosts are easily enforced,
+based on monitoring the references to host resources and rejecting authorized resource access.
+%to the host abstractions.
 
 
 
@@ -625,7 +633,7 @@ to the host abstractions.
 
 
 
-A host of \graphene{} will isolate applications in a {\em sandbox}, a container including one or multiple mutually trusting processes.
+A trusted host OS isolates an application a container including one or multiple mutually trusting processes, or a {\em sandbox}.
 For a multi-process application, \graphene{} creates multiple library OS instances,
 which will coordinate to construct a unified OS view.
 As the library OS instances can coordinate shared OS states using simple RPC streams,
@@ -636,8 +644,8 @@ to prevent applications in different sandboxes from interfering each other throu
 %based on the abstraction of a \emph{sandbox},
 %or a set of mutually trusting processes.
 %If a reference monitor exists, the reference monitor permits the processes within the same sandbox to communicate and exchange RPC messages, but disallows cross-sandbox communication.
-The current design focuses on security isolation in an all-or-nothing fashion, although we do expect to extend the design for more sophisticated policies
-in the future.
+%The current design focuses on security isolation , although we do expect to extend the design for more sophisticated policies
+%in the future.
 
 \begin{comment}
 The only host abstractions that are shared across processes and must be mediated by the host for isolation are files, network sockets, and RPC streams
@@ -678,17 +686,17 @@ When a process detaches from a sandbox, effectively splitting the sandbox, the h
 
 
 \paragraph{Threat model.}
-For most of the \graphene{} hosts (except a SGX host),
-an application running inside \graphene{} fully trusts the the library OS,
-as well as the host OS or hypervisor
-for exporting \thehostabi{} and enforcing security isolation.
-the application also trusts other library OS instances in the same sandbox.
-However, other applications or library OS instances running in a separate sandbox
-will not be trusted.
-Other sandboxes on the same host
-will be adversary to the hosts and benign application clients,
-by exploiting any vulnerabilities on \thehostabi{}, or in the reference monitor.
-the \graphene{} design reduces the attack surface between the hosts and the library OS instances, to defend against a malicious application.
+For most of the \graphene{} hosts (except for the SGX host),
+an application running inside \graphene{} fully trusts the local library OS instances
+as well as the host OS.
+For multiple processes inside a sandbox,
+library OS instances also have to trust each others.
+Applications or library OS instances running in a separate sandbox
+are not trusted
+and can adversary to the host OS and
+trusted applications,
+by exploiting vulnerabilities on \thehostabi{}.
+%the \graphene{} design reduces the attack surface between the hosts and the library OS instances, to defend against a malicious application.
 
 %On a host with a reference monitor, the host OS and the reference monitor are both trusted, to mediate all system interfaces used to implement \thehostabi{}. The host must check all access to any abstractions with effects outside of a process's internal state, such as an opened file, or a connected network socket.
 %Processes inside the same sandbox mutually trust each other. The adversary can run arbitrary code inside of one or more processes within one or more sandboxes.
@@ -707,11 +715,12 @@ the \graphene{} design reduces the attack surface between the hosts and the libr
 %the adversary cannot interfere with any victim picoprocess.
 
 
-The threat model of \graphene{} on a SGX host (i.e., \graphenesgx{}) is similar to other hosts, except the applications running on SGX also distrust the host OS, hypervisor, or other system software.
+The threat model of \graphene{} on a SGX host (i.e., \graphenesgx{})
+is similar to running other host OSes, except that the applications does not trust the host OS, hypervisor, or other system software.
 An untrusted OS or hypervisor
 holds a wide attack surface to invade applications or VMs,
 using Iago attacks~\cite{checkoway13iago}.
-The challenges to porting \graphene{} to SGX is not limited to patching the compatibility issues of enclaves, but also requires defending the applications and the library OS against potential Iago attacks.
+The challenges to porting \graphene{} to SGX is not limited to patching the compatibility issues of enclaves, but also requires defending the applications and the library OS against potential exploitations.
 
 
 
