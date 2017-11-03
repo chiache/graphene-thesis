@@ -1,16 +1,36 @@
 \placeholder{}
 
 
-%Compatibility challenges
-%occur on a disruptive hardware such as Intel SGX~\cite{intelsgx}
+Compatibility challenges occur when sharing an application across two distinct system interfaces or reusing an application on a disruptive hardware such as Intel SGX~\cite{intelsgx}.
 %or between distinctive system APIs
 %such as Linux system calls and Windows API.
 %Running an unmodified application, without recompilation or porting,
 %requires a system API to be
 %compatible across OS versions or across host OSes.
-%
+Traditional approaches require either
+exhaustively porting all applications to new APIs, or preserving all previous APIs for backward compatibility. % toward existing applications.
+Since both approaches are resource and time consuming, developers
+urgently require a solution to resolve compatibility issues
+on a new host OS or hardware,
+in order to promptly obtain the benefits of
+new technologies.
 
 
+This thesis demonstrates a library OS approach for reusing applications
+on a new host OS or hardware.
+The development of a library OS starts with
+defining a simplified host ABI,
+which contains only OS abstractions essential to applications, including file systems, networking, page management, threading, and process creation.
+The host ABI divides the effort
+of developing a compatibility layer.
+Below the host ABI, a host-specific PAL (platform adaption layer) translates
+the host ABI to host system APIs
+and enforces security checks on resource sharing.
+Above the host ABI, a reusable library OS
+emulates the Linux system call table
+and namespaces, and only accesses the host ABI when necessary.
+
+ 
  
 
 
@@ -22,6 +42,40 @@
 %Reusing the applications from commodity OSes (e.g., Windows, Linux)
 %on a vastly different platform such as an isolated enclave or a heterogeneous architecture,
 %requires significant rewriting of the applications and systems, to adapt for the new limitations and requirements.
+
+
+This thesis presents \graphene{}, a \libos{} for reusing unmodified Linux applications,
+without any porting efforts for individual applications.
+\graphene{} defines a host ABI
+with simplicity of porting and sufficiency of developing the library OS,
+and demonstrates %both qualities
+by enumerating host abstractions required for emulating
+each Linux system call.
+For instance, \graphene{} can emulate multi-process abstractions such as \syscall{fork} and \syscall{execve}
+by merely two host abstractions; one is creation of a clean, child process, and the other is a simple pipe-like RPC stream.
+Leveraging a distributed coordination model, multiple library OS instances across application processes
+collaboratively present a united OS view to the application.
+
+
+
+Two main porting targets of the \graphene{} library OS, including a Linux host and a SGX enclave,
+each present challenges to enforcing security isolation
+upon the threat models.
+On a Linux host, \graphene{} presents a sandbox abstraction to isolate mutually-untrusting applications.
+Inside a SGX enclave, \graphene{} protects a security-sensitive applications with security checks to validate untrusted system call results.
+Despite the difference of threat models,
+the host ABI simplifies the security checks to target a small amount of sharing host abstractions.
+For a SGX enclave, \graphene{} defines 28 calls
+to exit and access host system calls,
+with explicit semantics or methods to recognize
+benign OS behaviors.
+
+Finally, this thesis presents quantitative measurement to evaluate
+the partial compatibility of an OS prototype. Another metric, which evaluates the importance of each API, helps OS developer prioritize which API to port.
+
+ 
+
+
 
 
 %This thesis proposes using a \libos{}
