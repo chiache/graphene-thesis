@@ -382,7 +382,7 @@ The statelessness of \thehostabi{} guarantees any states in the hosts are tempor
 
 
 
-\subsection{\hostapis{}}
+\subsection{\hostapi{} definitions}
 \label{sec:overview:host:abi}
 
 
@@ -405,14 +405,14 @@ The statelessness of \thehostabi{} guarantees any states in the hosts are tempor
 %fixmedp{give more of the background}
 Table~\ref{tab:overview:abi} enumerates \palcallnum{} \hostapis{} defined in \thehostabi{}:
 %Among these \hostapis{}, 
-27 are inherited from the \drawbridge{} host ABI,
+25 \hostapis{} are inherited from the \drawbridge{} host ABI,
 including functions to managing I/O (e.g., \palcall{StreamOpen}), memory allocation (e.g., \palcall{VirtMemAlloc}), scheduling (e.g., \palcall{ThreadCreate}), and several miscellaneous functions (e.g., \palcall{SystemTimeQuery}).
 %Most of the host functions only affect the OS or hardware states
 %related to the process itself.
 %For example, \syscall{VirtMemAlloc} can only allocate memory in the calling process,
 %and cannot affect other processes running in parallel.
 %Only I/O streaming functions export states to the host OS, and share states with other processes or library OSes.
-Only 8 functions are added by \graphene{}, in order to implement Linux-specific features.
+14 \hostapis{} are added by \graphene{}, in order to implement Linux-specific features.
 For example, unlike Windows or OS X, Linux generally
 %The host ABI is also complemented with several Linux-specific abstractions, such as
 delivers hardware exceptions to a process as signals .
@@ -446,7 +446,7 @@ However, in Windows or OSX, the x86-specific segment registers are mostly ignore
 
 
 
-The host ABI also include 5 functions for 
+\Thehostabi{} includes 5 \hostapis{} for 
 remote procedure call (RPC),
 in order to implement Linux multi-process abstractions.
 The rationale of the multi-process support in \graphene{} is to reduce the complexity of inter-process communication in the host.
@@ -595,7 +595,7 @@ on specific hosts.
 
 
 To target multi-tenant environments, such as cloud,
-\graphene{} has to ensure security isolation between mutually-untrusting applications running on the same host.
+\graphene{} ensures security isolation between mutually-untrusting applications running on the same host.
 The security isolation of \graphene{} is comparable to running each application
 in a complete geust OS, featuring a fully-isolated guest OS.
 Similar to the virtual hardware interface isolating each virtual machine,

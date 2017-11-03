@@ -12,8 +12,8 @@ regardless of host limitations or distinctions.
 %to support compatible OS features.
 %for exporting compatible features.
 An unmodified Linux application assumes the existence of a Linux kernel or equivalent,
-with idiosyncratic features and characteristics,
-or so-called {\bf Linux personality}.
+with OS-specific features and characteristics,
+or {\bf Linux personality}.
 %which an unmodified Linux application depends on.
 %In order to reuse an unmodified Linux application
 %on an incompatible host,
@@ -43,8 +43,8 @@ is a Linux system call table, which redirects \linuxapis{} from a Linux applicat
 %For Linux and similar OSes,
 A system call table is an important entry point to a Linux kernel.
 A system call table contains
-pointers to the kernel functions that implements each \linuxapi{},
-indexed by the \linuxapi{} numbers (e.g., \code{NR\_open}).
+pointers to the kernel functions for each \linuxapi{},
+indexed by the \linuxapi{} numbers (e.g., \code{NR\_open} or 10 on x86-64).
 %and triggers in-kernel operations for servicing requests from applications.
 %and defines the interaction between applications and kernel.
 \graphene{} moves the Linux system call table into \thelibos{},
@@ -60,9 +60,9 @@ or the bug-for-bug behaviors
 observed in a real Linux kernel.
 Some \linuxapis{}, such as \syscall{rt\_sigaction}, are partially documented
 in the man pages, and \thelibos{} imitates a Linux kernel on implementing a poorly-documented \linuxapis{}.
-\graphene{} grows the \thelibos{} functionality
-by extending the guest-level Linux system call table
-with more complete implementation.
+%\graphene{} grows the \thelibos{} functionality
+%by extending the guest-level Linux system call table
+%with more complete implementation.
 
 %Otherwise, for a few \linuxapis{} whose behaviors
 %are not clearly defined by the Linux manpages,
@@ -89,8 +89,8 @@ with more complete implementation.
 \Thelibos{} currently implements \graphenesyscallnum{} \linuxapis{},
 and is sufficient to run a range of applications from servers to command-line programs or runtimes.
 For reference, a recent Linux kernel supports more than 300 \linuxapis{}.
-Among \~300 \linuxapis{}
-there is a long tail of infrequently-used \linuxapis{}.
+A Linux kernel also
+contains a long tail of infrequently-used \linuxapis{}.
 %upon \thehostabi{}. % to interact with the host.
 %Among the whole Linux \linuxapi{} table,
 %A Linux kernel exports a long tail of infrequently-used \linuxapis{}.
@@ -100,7 +100,7 @@ indicates that only 40 \linuxapis{} are indispensable to every applications rele
 %The study also shows that
 In the meantime, more than 100 \linuxapis{} are used by only exactly one application,
 or none at all.
-The development of \thelibos{} begins with
+The development of \thelibos{} began with
 implementing 12 \linuxapis{}, such as \syscall{read} and \syscall{open}, which are fundamental to running a ``hello world'' application,
 %such as \syscall{read}, \syscall{write}, and \syscall{open},
 and gradually grows the \linuxapi{} count.
@@ -272,7 +272,7 @@ and returned to \funcname{IllegalInstrHandler} in \thelibos{}.}
 
 \graphene{} modifies four \glibc{} libraries:
 %When using \graphene{}, an application must be deployed with the modified \libc{} libraries,
-the runtime loader (\code{ld.so}), the core library (\code{libc.so}), the pthread library (\libpthread{}), and the dynamic loading library (\libdl{}).
+a runtime dynamic loader (\code{ld.so}), a core library (\code{libc.so}), a POSIX thread library (\libpthread{}), and a dynamic loading library (\libdl{}).
 Each of the \Glibc{} libraries has separate purposes and features,
 and is mostly loaded on demand except \code{ld.so}.
 %Despite that \glibc{} has partitioned its code into separate libraries,

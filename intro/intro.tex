@@ -357,7 +357,7 @@ to two representative host examples, a Linux kernel and an isolated environment 
 %So far \graphene{}
 %has been targeting several host options,
 Other ongoing ports
-include alternative kernels, such as Windows, OSX, and FreeBSD, and research-type OSes, such as L4 microkernels~\cite{l4family}, and Barrelfish~\cite{baumann09barrelfish}.
+include alternative kernels such as Windows, OSX, and FreeBSD, and research OSes such as L4 microkernels~\cite{l4family} and Barrelfish~\cite{baumann09barrelfish}.
 
 
 
@@ -467,7 +467,24 @@ in a \libos{} or a research prototype.
 %\end{compactenum}
 
 
+%\section{Evaluating API compatibility}
 
+
+
+%This thesis studies the compatibility requirement in Linux and POSIX
+%from the perspectives of applications and users.
+%The study begins with building a metric for compatibility,
+%weighted by the API usage in applications,
+%and application importance (or popularity).
+%%for measuring and implementing compatibility. The design principle applies to either a commodity OS, a newly-built OS prototype, or the \graphene{} library OS.
+%%This thesis shows that the compatibility against the existing applications, in an OS, can be measured and incrementally improved by scientific approach.
+%%Using a metric that is weighted by the usage of system interfaces in a large sample of commonly used applications, as well as the popularity of the sampled applications,
+%Using the metric,
+%OS developers can quantitatively determine the priority in implementing a system interface,
+%and evaluate the developed results.
+%The study shows that most applications do not require
+%half of the Linux system calls,
+%which are either for administrative use (e.g., halting the machine), or unpopular among applications.
 
 \section{Motivating examples}
 
@@ -475,7 +492,7 @@ in a \libos{} or a research prototype.
 This section shows two examples in which developing a compatible OS for existing applications can be challenging, to motivate the library OS design.
 
 
-\subsection{Running unmodified applications on SGX}
+\subsection{Unmodified applications on SGX}
 \label{sec:intro:sgx}
 
 
@@ -653,8 +670,9 @@ An isolated OS design tends to avoid sharing privileged OS states with other app
 %The only possible solution without introducing more OS functionality into enclaves is to export the encrypted states to the untrusted kernel, which will suffer significant overheads.
 
 
-Moreover, not all architectures assume inter-connected, coherent memory.
-Several recent multi-CPUs architectures choose not to implement memory coherence for simplicity~\cite{gschwind2007,cascaval2002evaluation}.
+Moreover, not all architectures share the same assumption of having an inter-connected, coherent memory.
+Several recent architectures lack memory coherence
+in exchange of simplicity of implementation~\cite{gschwind2007,cascaval2002evaluation}.
 Barrelfish~\cite{baumann09barrelfish} demonstrates an efficient OS design, called multikernels, which runs distributed OS nodes on CPUs with inter-node coordination by message passing.
 The distributed OS design resonates with the \graphene{} library OS, which uses RPC (remote procedure call) streams to implement multi-process abstractions.
 %\graphene{} can be a flexible option for building up compatibility against multi-process applications.
@@ -666,29 +684,17 @@ for porting multi-process applications to a variety of OSes and architectures.
 \section{Security isolation}
 \label{sec:intro:security}
 
-\issue{1.1.d}{Separate the motivation for security isolation}
+\issuedone{1.1.d}{Separate the motivation for security isolation}
+
+Operating systems empirically contain vulnerabilities
+for attackers to exploit.
 
 
 
 
-\section{Evaluating API compatibility}
 
 
 
-%This thesis studies the compatibility requirement in Linux and POSIX
-%from the perspectives of applications and users.
-%The study begins with building a metric for compatibility,
-%weighted by the API usage in applications,
-%and application importance (or popularity).
-%%for measuring and implementing compatibility. The design principle applies to either a commodity OS, a newly-built OS prototype, or the \graphene{} library OS.
-%%This thesis shows that the compatibility against the existing applications, in an OS, can be measured and incrementally improved by scientific approach.
-%%Using a metric that is weighted by the usage of system interfaces in a large sample of commonly used applications, as well as the popularity of the sampled applications,
-%Using the metric,
-%OS developers can quantitatively determine the priority in implementing a system interface,
-%and evaluate the developed results.
-%The study shows that most applications do not require
-%half of the Linux system calls,
-%which are either for administrative use (e.g., halting the machine), or unpopular among applications.
 
 
 

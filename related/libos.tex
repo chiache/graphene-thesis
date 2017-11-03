@@ -1,23 +1,16 @@
-\section{Library OSes}
+\section{Library OSes and virtualization}
 
 
-\begin{comment}
-Recent library OSes, including Graphene,
-search for a better
-division of labor between the host kernel and guests.
-Paravirtualized VMs attempt to move away from modeling specific hardware designs in software
-toward a more virtualization-friendly hardware model~\citep{barham03xen,whitaker02denali, eiraku09outsourcing}.
-Library OSes can be viewed as extreme paravirtualization---attempting
-to find the most ideal interface between guest and host. %abstractions of hardware without also baking-in host semantics.
-\end{comment}
+
+
 
 \paragraph{Previous library OSes.}
-This work extends previous library OSes~\citep{porter11drawbridge,xax,unikernels,baumann13bascule,osv},
-which focused on single-process applications,
-to support coordination abstractions required 
-for multi-process applications, such as shell scripts.
-
-
+Previous library OSes~\citep{porter11drawbridge,xax,unikernels,baumann13bascule,osv}
+focus on running single-process applications
+in a \picoproc{} or a unikernel
+for verious reasons including compatibility and security isolation.
+%to support coordination abstractions required 
+%for multi-process applications, such as shell scripts.
 Bascule~\citep{baumann13bascule} implements a Linux library OS on a variant of the Drawbridge ABI,
 but does not include support for multi-process abstractions such as signals or copy-on-write fork.
 The Bascule Linux library OS also implements fewer Linux system calls than Graphene, missing
@@ -86,8 +79,20 @@ that uses Linux host system calls. % to emulate this functionality.
 UML is best described as  an alternative approach to paravirtualization~\citep{barham03xen},
 and, unlike a library OS, does not deduplicate functionality.
 
-\paragraph{Distributed coordination APIs.}
-Distributed operating systems, such as LOCUS~\citep{locus83sosp,fleisch86locus}, Amoeba~\citep{mullender90amoeba,cheriton89naming} and  
+
+\paragraph{Virtualization.}
+Recent library OSes, including Graphene,
+search for a better
+division of labor between the host kernel and guests.
+Paravirtualized VMs attempt to move away from modeling specific hardware designs in software
+toward a more virtualization-friendly hardware model~\citep{barham03xen,whitaker02denali, eiraku09outsourcing}.
+Library OSes can be viewed as extreme paravirtualization---attempting
+to find the most ideal interface between guest and host. %abstractions of hardware without also baking-in host semantics.
+
+
+
+\paragraph{Distributed coordination.}
+Distributed operating systems,such as LOCUS~\citep{locus83sosp,fleisch86locus}, Amoeba~\citep{mullender90amoeba,cheriton89naming} and  
 Athena~\citep{champine90athena} required a consistent namespace for process identifiers and other IPC abstractions
 across physical machines.
 %A key requirement for naming in a distributed OS is network transparency---that the name should be independent of the physical placement of an object in the system.
