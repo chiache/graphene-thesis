@@ -44,11 +44,11 @@ which does not include the latency of retrieving the file attributes from the di
 %of retrieving the file metadata cached inside the host OS.
 Without disk I/O cost,
 the latency of \syscall{open}
-%or other file-searchig \linuxapis{} (e.g., \syscall{stat})
+%or other file-searchig system calls (e.g., \syscall{stat})
 in a native Linux process is dominated by lookup time inside the Linux file system directory cache,
 and is proportional to the number of components in the path~\cite{tsai15dcache}.
 %shows that, with a warm cache,
-%the latency of a file-searching \linuxapi{} on Linux,
+%the latency of a file-searching system call on Linux,
 %such \syscall{open} or \syscall{stat}, 
 %is strictly correlated with
 %lengths and depths of the requested paths,
@@ -61,7 +61,7 @@ and is proportional to the number of components in the path~\cite{tsai15dcache}.
 %Figure~\ref{fig:eval:pal:latency} (a)
 %shows a similar pattern for \palcall{StreamOpen}
 %on the Linux PAL,
-%because \syscall{open} is used as the underlying host \linuxapi{}. %of \palcall{StreamOpen}.
+%because \syscall{open} is used as the underlying host system call. %of \palcall{StreamOpen}.
 The latency of \palcall{StreamOpen} on the Linux PAL includes the latency of \syscall{open},
 with additional cost for translating a URI
 to the corresponding file path.
@@ -276,8 +276,8 @@ on TCP bandwidth.
 %64KB messages between \picoprocs{}.
 %On the Linux PAL,
 %the overheads of ping-ponging over TCP or UDP primarily contribute to the translation cost between
-%the \hostapis{} to Linux \linuxapis{} (specifically, \syscall{sendmsg} and \syscall{recvmsg}),
-%since the the \hostapis{} use strings as the network URIs and the Linux \linuxapis{} take a network address structure (\code{struct sockaddr}) that contains numeric representations in integers.
+%the \hostapis{} to Linux system calls (specifically, \syscall{sendmsg} and \syscall{recvmsg}),
+%since the the \hostapis{} use strings as the network URIs and the Linux system calls take a network address structure (\code{struct sockaddr}) that contains numeric representations in integers.
 %The translation costs for a TCP stream and a UDP stream are \roughly{}18\% and \roughly{}30\%, respectively.
 %The overhead is relatively marginal in the TCP bandwidth test,
 %at \roughly{}4\%.
@@ -409,7 +409,7 @@ at opening the file or the I/O stream.
 %and copying stream buffers.
 %Only a few exceptions, such as the translation of URIs to network addresses,
 %or copying the arguments or buffers in or out of an enclave,
-%cause more significant overheads to the overhead of these \linuxapis{}.
+%cause more significant overheads to the overhead of these system calls.
 
 
 

@@ -3,7 +3,7 @@ on each host.
 As a baseline, the latency or throughput
 of a \hostapi{} is always bound by the performance of the underlying host system interface.
 For instance, the Linux PAL implements \palcall{StreamRead}
-using the \syscall{read} \linuxapi{},
+using the \syscall{read} system call,
 and thus introduces the same performance
 patterns to the \hostapi{}.
 However, the performance of \thehostabi{} and the underlying host system interface
@@ -33,7 +33,7 @@ on a last-level cache miss.
 %is meant to minimize the translation cost to most host system interfaces,
 %by adopting similar, UNIX-like semantics.
 %%Since most \hostapis{} are just wrappers
-%%of the underlying \linuxapis{},
+%%of the underlying system calls,
 %%the translation cost is mostly reduced to simply replacing the generic identifiers and control flags
 %%to the semantics that are recognized by the host OS.
 %A major cost
@@ -46,7 +46,7 @@ on a last-level cache miss.
 %%For portability, \thehostabi{} is defined with generic semantics, without host-specific notions
 %%such as process identifiers, file descriptors,
 %%file system paths,
-%%and \linuxapi{} flags.
+%%and system call flags.
 %%The PAL must translate the arguments of \hostapis{}, including PAL handles, URIs (Uniform Resource Identifiers), and generic flags,
 %%to the arguments interpretable by the host kernel.
 %Other translation costs,
@@ -57,9 +57,9 @@ on a last-level cache miss.
 %%and little memory copy.
 %%Without extra security checks,
 %%a \hostapi{} is more likely to suffer high overheads if the implementation
-%%requires additional \linuxapis{} for complementary operations
+%%requires additional system calls for complementary operations
 %%to the base abstraction,
-%%or constantly retrying a \linuxapis{} at failures.
+%%or constantly retrying a system calls at failures.
 
 
 
@@ -78,12 +78,12 @@ For example, the threat model on a Linux host
 focuses on the attacks between mutually-untrusting applications via system interfaces;
 therefore,
 the security checks on the Linux PAL
-restrict the sharing of host resources and block \linuxapis{} that are not required by the Linux PAL.
+restrict the sharing of host resources and block system calls that are not required by the Linux PAL.
 %using both the reference monitor and \seccomp{} filter.
 In another threat model, with the SGX enclave, 
 security checks for each \hostapi{}
 protects the application and \libos{} against malicious inputs from an untrusted OS,
-%and thus focus on validating the results of \linuxapis{},
+%and thus focus on validating the results of system calls,
 using either cryptographic techniques or semantic checks.
 %Cryptographic techniques are used to: (1) validate the file against the secure hash, at \palcall{StreamOpen}, (2) check the file chunks against a Merkle tree of hash values, at \palcall{StreamRead}, and (3) establish a TLS connection over inter-enclave RPC, at \palcall{ProcessCreate}.
 On the SGX PAL, the latency of a \hostapi{} may be dominated
@@ -104,7 +104,7 @@ The evaluation focuses on \hostapis{} that are especially sensitive for the perf
 % the efficiency of \hostapis{} on both Linux and SGX hosts, and shows the impact of each performance factor.
 %The evaluation is based on micro-benchmark programs similar to \lmbench{} 2.5~\cite{McVoy:lmbench},
 %and is compared against
-%similar \linuxapis{} on Linux.
+%similar system calls on Linux.
 
 
 

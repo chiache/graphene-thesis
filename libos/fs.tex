@@ -68,19 +68,19 @@ The implementation of common file operations in a chroot file system is mostly a
 As previously stated, opening a file in a chroot file system
 simply requires calling \palcall{StreamOpen} with the file URI translated from the requested path.
 If the chroot file system successfully opens the file in the host,
-it associates the returned PAL handle with a file descriptor, to translate common file system \linuxapis{} such as \syscall{pread} and \syscall{pwrite}
+it associates the returned PAL handle with a file descriptor, to translate common file system system calls such as \syscall{pread} and \syscall{pwrite}
 as \hostapis{} such as \palcall{StreamRead} ad \palcall{StreamWrite}, since \thehostabi{} defines these two \hostapis{} to be positionless.
 For the more commonly-used \syscall{read} and \syscall{write},
 %Besides any further optimization, 
 the chroot file system
-simply tracks the current offset of the file descriptor, and atomically retrieves and updates the offset in each \linuxapi{}.
+simply tracks the current offset of the file descriptor, and atomically retrieves and updates the offset in each system call.
 %for implementing \syscall{read} and \syscall{write}
 %are merely to store the PAL handle
 %and to atomically retrieve and update the current offset inside the opened file.
 The batched \syscall{readv} and \syscall{writev}
 is translated to multiple \palcall{StreamRead} ad \palcall{StreamWrite} calls
 on the same file.
-Another two common \linuxapis{},
+Another two common system calls,
 \syscall{stat} and \syscall{fstat}, which retrieve the metadata of a file or a directory,
 need only one more step as
 translating the returned host-level stream attributes
@@ -88,11 +88,11 @@ translating the returned host-level stream attributes
 to the POSIX data structure (i.e., \code{struct stat}).
 
 
-The definition of \thehostabi{} allows several opportunities of optimizing the latency of file system \linuxapi{}.
+The definition of \thehostabi{} allows several opportunities of optimizing the latency of file system system call.
 Two common techniques being broadly used in \thelibos{}
 are buffering and caching.
 To improve the latency of reading and writing a file,
-\thelibos{} effectively buffers the content of multiple \syscall{read} and \syscall{write} \linuxapis{},
+\thelibos{} effectively buffers the content of multiple \syscall{read} and \syscall{write} system calls,
 until the application calls \syscall{fsync} or the file offset exceeds the range of buffering.
 Buffering file changes potentially delay the timing of writing the data
 to physical disks,
@@ -222,7 +222,7 @@ a generic file descriptor is returned to represent the opened file resources
 and is fully independent from the underlying implementations.
 By presenting different resources as a generic primitive
 as file descriptors,
-an application can consistently use identical \linuxapis{},
+an application can consistently use identical system calls,
 such as \syscall{read} and \syscall{write}, to invoke file and directory operations
 defined by the file system drivers.
 In a POSIX file system, an application can mostly be reused
@@ -236,12 +236,12 @@ upon different file systems, as long as the required file resources are availabl
 %The file and directory operations in a POSIX file system
 %is based on a few generic primitives,
 %such as file descriptors and directory entries.
-%Whenever an application accesses a file using a \linuxapi{} such as \syscall{read} or \syscall{write},
-%the arguments given to the \linuxapi{}, including a numeric file descriptor, are irrelevant with the type of file system
+%Whenever an application accesses a file using a system call such as \syscall{read} or \syscall{write},
+%the arguments given to the system call, including a numeric file descriptor, are irrelevant with the type of file system
 %where the file is located.
 %For example, a user can choose to mount a NTFS partition
 %or a NFS share as a root file system;
-%yet, the \linuxapis{} for accessing any files on the file system
+%yet, the system calls for accessing any files on the file system
 %will mostly not differ upon different mounts.
 
 
@@ -262,7 +262,7 @@ upon different file systems, as long as the required file resources are availabl
 %to the file and directory operations implemented by the residing file system.
 %\fixme{not enough explanation}
 %The virtual file system layer has decoupled
-%the implementation of \linuxapis{} and file system operations in \thelibos{}.
+%the implementation of system calls and file system operations in \thelibos{}.
 
 
 
@@ -319,7 +319,7 @@ as the Linux file system directory cache.
 Each directory entry in the directory cache records the existence or nonexistence of a file system path,
 as well as the file attributes
 (e.g., file types, sizes, and permissions).
-If an application has given a path as a \linuxapi{} argument,
+If an application has given a path as a system call argument,
 \thelibos{} first looks up
 in the directory cache to find any directory entries
 that matches with the given path.
@@ -335,7 +335,7 @@ Shrinking or freeing the directory cache space
 is a future work to \thelibos{}.
 
 
-The directory cache in \thelibos{} contains several optimizations for reducing the latency of file-searching \linuxapis{}.
+The directory cache in \thelibos{} contains several optimizations for reducing the latency of file-searching system calls.
 As one of the optimizations, the directory cache can confirm the existence of every prefixes
 of a canonical path by using one \hostapi{}.
 Since \thelibos{} does not maintain the mapping between
@@ -373,7 +373,7 @@ Another optimization
 is to aggressively create {\em negative} directory entries
 for paths that are known to be non-existent.
 Whenever an application has unlinked or moved a file,
-a negative directory entry can be created inside the directory cache, to prevent future \linuxapis{} from calling \palcall{StreamAttrQuery} to query the existence of the path.
+a negative directory entry can be created inside the directory cache, to prevent future system calls from calling \palcall{StreamAttrQuery} to query the existence of the path.
 
 
 

@@ -4,7 +4,7 @@ one is an unmodified Linux kernel, and the other is inside of an SGX enclave run
 The evaluation
 targets the following four aspects:
 (1) translation, isolation, and shielding costs of the host ABI and startup time;
-(2) emulation overheads of the \libos{} on \linuxapis{} latency and throughput;
+(2) emulation overheads of the \libos{} on system calls latency and throughput;
 (3) end-to-end performance of sample applications;
 (4) resource costs, including both memory footprint and CPU occupancy.
 The evaluation compares experiment results
@@ -18,7 +18,7 @@ to show the cost of leveraging a \libos{} for compatibility and security isolati
 
 
 
-% the overhead on start-up times, memory footprints, server throughputs and command-line program latencies, and micro-benchmark results regarding \linuxapi{} overheads.
+% the overhead on start-up times, memory footprints, server throughputs and command-line program latencies, and micro-benchmark results regarding system call overheads.
 %The evaluation on the Linux host also includes a study of Linux kernel vulnerabilities contained by \graphene{}.
 %The evaluation on the SGX host includes a summary of trusted computing base (TCB) that \graphenesgx{} adds to an enclave, in lines of code (LoC), and attack surfaces.
 
@@ -118,7 +118,7 @@ which is also the baseline for comparison.
 All test programs and applications are dynamically linked
 with a modified \glibc{} \glibcversion{}.
 The experiments for \graphenesgx{}
-use the Intel \sgx{} Linux SDK~\cite{intel-sgx-linux-sdk} and driver~\cite{intel-sgx-linux-driver} \sgxdriverversion{}.
+use the Intel SGX Linux SDK~\cite{intel-sgx-linux-sdk} and driver~\cite{intel-sgx-linux-driver} \sgxdriverversion{}.
 %The host OS also
 %includes KVM on QEMU version 2.5 and Xen 4.6.5 for comparison.
 %%%Adding more detail of KVM environment

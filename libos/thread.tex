@@ -18,7 +18,7 @@ Moreover,
 %to fully utilize the host CPU resources.
 
 
-The creation of a pthread in \libpthread{} is based on the \syscall{clone} \linuxapi{}.
+The creation of a pthread in \libpthread{} is based on the \syscall{clone} system call.
 When \syscall{clone} is used to create a new thread,
 the application or \libpthread{} assigns a preallocated space as the stack of the new thread, and a user function to start the thread execution.
 \thelibos{} implement thread creation of \syscall{clone} by calling \palcall{ThreadCreate} in \thehostabi{}.
@@ -54,14 +54,14 @@ and both the TCB and thread-private variables
 are accessed by directly reading or writing at a specific offset from the FS segment register.
 Since accessing FS segment register is a privileged operation,
 an application can only set the TCB address
-by calling the \syscall{arch\_prctl} \linuxapi{} or passing the address as an argument to \syscall{clone}.
+by calling the \syscall{arch\_prctl} system call or passing the address as an argument to \syscall{clone}.
 \thelibos{} uses \palcall{SegmentRegisterSet} in the host ABI
 to set the FS segment register
 in the implementation of \syscall{arch\_prctl} and \syscall{clone}.
 
 
 Besides creation of pthreads, \libpthread{} also provides a collection of synchronization primitives, including mutexes, semaphores, read-write locks, conditional variables, and barriers.
-\libpthread{} implements all these synchronization primitives based on futexes (accessed by Linux's \syscall{futex} \linuxapi{}). %one single \syscall{futex} \linuxapi{}.
+\libpthread{} implements all these synchronization primitives based on futexes (accessed by Linux's \syscall{futex} system call). %one single \syscall{futex} system call.
 A futex is a blocking and notification mechanism
 supported by a Linux kernel.
 The primary types of operations on a futex: 

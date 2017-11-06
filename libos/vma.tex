@@ -105,7 +105,7 @@ and the VMA list can determine whether the address has overlapped with an existi
 %simply needs to allocate a new memory region that has not overlapped
 %with existing memory regions.
 %If an application gives a memory address
-%as an argument to a \linuxapi{},
+%as an argument to a system call,
 %\thelibos{} needs verifying the validity of address by checking against existing memory regions. 
 %As a result,
 %\thelibos{} maintains a list of currently-allocated VMAs,
@@ -135,7 +135,7 @@ the mappings of PAL and the \thelibos{} binary.
 %to create a memory mapping suitable for the expected usage.
 %Therefore, \thelibos{} can control the address
 %for allocating a new VMA,
-%to service a \syscall{mmap} \linuxapi{},
+%to service a \syscall{mmap} system call,
 %or to extend the internal slab allocator of \thelibos{}.
 %The bookkeeping of VMAs also includes
 %the VMAs preserved by PAL and the VMAs for the \thelibos{} binary mapping,
@@ -144,7 +144,7 @@ the mappings of PAL and the \thelibos{} binary.
 %\thelibos{} records these VMAs at the beginning of a \picoproc{}, based on address ranges specified by the PAL control block.
 
 
-Whenever an application or \glibc{} invokes a \linuxapi{} like \syscall{mmap}, \syscall{mprotect}, or \syscall{munmap}, \thelibos{} updates the VMA list
+Whenever an application or \glibc{} invokes a system call like \syscall{mmap}, \syscall{mprotect}, or \syscall{munmap}, \thelibos{} updates the VMA list
 to reflect the virtual address space layout created by the host.
 The basic design of a VMA list is a sorted, double-linked list of unique address ranges.
 Because Linux allows arbitrary allocation, protection, and deallocation at page granularity, \thelibos{} often has to shrink or divide a VMA
@@ -156,9 +156,9 @@ the virtual address space layout with the host OS, by tracing each memory alloca
 %To maintain a VMA list,
 %\thelibos{} needs to dynamically modify, shrink, or divide VMAs, to support all corner cases
 %of memory allocation.
-%Three key \linuxapis{} in Linux---\syscall{mmap}, \syscall{mprotect}, and \syscall{munmap}---permit allocation, protection, and deallocation of pages
+%Three key system calls in Linux---\syscall{mmap}, \syscall{mprotect}, and \syscall{munmap}---permit allocation, protection, and deallocation of pages
 %at arbitrary page-aligned addresses.
-%If a \syscall{mmap}, \syscall{mprotect}, or \syscall{munmap} \linuxapi{}
+%If a \syscall{mmap}, \syscall{mprotect}, or \syscall{munmap} system call
 %partially frees or modifies a VMA,
 %\thelibos{} divides the VMA bookkeeping into two, and then destroys of rewrites one of the VMAs.
 %\thelibos{} is responsible of synchronizing the VMA lists of the host OS and \thelibos{}.
@@ -238,7 +238,7 @@ The threat model of \graphene{} does not assume
 \paragraph{Implementing \syscall{brk}.}
 
 %Take \syscall{brk} for example.
-\syscall{brk} is a Linux \linuxapi{} for 
+\syscall{brk} is a Linux system call for 
 allocating memory space at the ``program break'', which defines the end of the executable's data segment.
 What \syscall{brk} manages is a contiguous ``brk region'', which can be grown or shrunk by an application.
 Unlike \syscall{mmap}, \syscall{brk} allocates arbitrary-size memory regions, by simply moving the program break
@@ -269,7 +269,7 @@ During the initialization, \thelibos{} reserves an unpopulated memory space
 behind the executable's data segment, using \palcall{VirtMemAlloc}.
 The size reserved for the brk region is determined
 by user configurations.
-%preallocates a \code{brk} area for future \syscall{brk} \linuxapis{}.
+%preallocates a \code{brk} area for future \syscall{brk} system calls.
 %The \code{brk} area has a limited, configurable capacity,
 %and maintains a \code{brk} pointer to the top of heap currently assigned by the application.
 \thelibos{} adjusts the end of the brk region

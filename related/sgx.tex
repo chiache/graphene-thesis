@@ -96,7 +96,7 @@ to securely bootstrap application execution inside the enclaves.
 After a brief attempt of building a \libos{} like \haven{},
 \scone{} chooses a different approach of shielding the system API usage in applications, by designing shielding strategies based on each API.
 \scone{} stacks the application on top of file-system and network shielding libraries, and extends a standard library C (musl~\cite{musl}) to securely exit the enclave for system calls.
-Within the \sgx{}-aware \libc{}, \scone{} carefully filters the inputs from the host system calls, as the defend against known Iago attacks.
+Within the SGX-aware \libc{}, \scone{} carefully filters the inputs from the host system calls, as the defend against known Iago attacks.
 For instance, \scone{} ensures that pointers given to and returned by a host system call will point to addresses outside the enclave,
 to prevent the host OS to manipulate pointers and cause memory corruption in the enclave.
 \scone{} also authenticates or encrypts file or network streams

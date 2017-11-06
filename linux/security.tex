@@ -35,11 +35,11 @@ any vulnerabilities inside the VM or the \libos{} from compromising the host ker
 \graphene{} enforces security isolation %between applications
 by separating 
 backward-compatible OS features from security mechanisms.
-A Linux kernel exports a wide range of \linuxapis{},
+A Linux kernel exports a wide range of system calls,
 either as a legacy of previous kernels or as new programmability features. % of newer kernels.
 By implementing OS features in a \libos{},
 \graphene{} reduces the attack surface of a Linux kernel
-to a small amount of \linuxapi{} corner cases.
+to a small amount of system call corner cases.
 %to implement \thehostabi{}.
 %If a machine only runs applications in \graphene{},
 %a Linux developer can try to carve out a minimal Linux kernel, containing only features needed by the Linux PAL.
@@ -49,28 +49,28 @@ The complexity of Linux features and APIs exported by a \libos{} is unrelated wi
 unless the \libos{} asks for additional \hostapis{}.
 A Linux developer can even carve out a minimal Linux kernel with only the features needed by the Linux PAL,
 similar to shrinking a Linux kernel to a microkernel.
-Otherwise, \graphene{} depends on the host security mechanisms to restrict a \libos{} from accessing unauthorized \linuxapis{} and resources upon an unmodified Linux kernel.
+Otherwise, \graphene{} depends on the host security mechanisms to restrict a \libos{} from accessing unauthorized system calls and resources upon an unmodified Linux kernel.
 
 
 
 
 
-The Linux PAL installs a {\bf \linuxapi{} filter} and a {\bf reference monitor}
-for restricting the \linuxapis{}, files, RPC streams, and network addresses
+The Linux PAL installs a {\bf system call filter} and a {\bf reference monitor}
+for restricting the system calls, files, RPC streams, and network addresses
 accessed by a \picoproc{}.
-The Linux PAL requires \hostsyscallnum{} \linuxapis{} in total
+The Linux PAL requires \hostsyscallnum{} system calls in total
 for implementing both required and optional \hostapis{}.
-A \linuxapi{} filter, such as the Linux \seccomp{} filter~\cite{seccomp},
-can restrict the \linuxapi{} access of an application
-to only a small subset of all the \linuxapis{}, with additional constraints on the parameters and optional flags permitted for each \linuxapi{}.
-%The \linuxapi{} filter
-%forbids an application from invoking any \linuxapis{}
+A system call filter, such as the Linux \seccomp{} filter~\cite{seccomp},
+can restrict the system call access of an application
+to only a small subset of all the system calls, with additional constraints on the parameters and optional flags permitted for each system call.
+%The system call filter
+%forbids an application from invoking any system calls
 %that will interfere other \picoproc{} or increase the risk of exploitation in the host kernel.
-A reference monitor further examines the arguments of permitted \linuxapis{} to restrict the host resources accessed by an application, based on security policies configured in a manifest file~\cite{hunt07rethink}.
-The \linuxapi{} filter and the reference monitor
+A reference monitor further examines the arguments of permitted system calls to restrict the host resources accessed by an application, based on security policies configured in a manifest file~\cite{hunt07rethink}.
+The system call filter and the reference monitor
 significantly limit the ability of an untrusted \graphene{} \picoproc{} to interfere with the rest of the system,
 preventing the risk of exposing any unknown vulnerabilities
-on a kernel path never exercised by the \linuxapi{} footprint of \graphene{}.
+on a kernel path never exercised by the system call footprint of \graphene{}.
 
 
 
@@ -124,9 +124,9 @@ are fully trusted by the other parts of the host kernel and the \graphene{} \pic
 %such as file {\tt open} or network socket {\tt bind} or {\tt connect}.
 On the other hand,
 the host Linux kernel does not trust the \picoproc{}, including the Linux PAL, a \thelibos{} instance, \glibc{}, and the application.
-The \linuxapi{} filter and reference monitor
+The system call filter and reference monitor
 initialized before an application starts running
-defend the whole host kernel from malicious \linuxapis{} invoked by a \picoproc{}.
+defend the whole host kernel from malicious system calls invoked by a \picoproc{}.
 
 
 
@@ -174,7 +174,7 @@ the adversary cannot interfere with any victim \picoprocs{}.
 %%% as well as preventing exploitation of vulnerabilities in picoprocesses
 %%% are beyond the scope of this work.
 
-\graphene{} reduces the attack surface of the host Linux kernel, but does not change the trusted computing base; however, reducing the effective \linuxapi{} table size of a \picoproc{} does facilitate adoption of a smaller host kernel.
+\graphene{} reduces the attack surface of the host Linux kernel, but does not change the trusted computing base; however, reducing the effective system call table size of a \picoproc{} does facilitate adoption of a smaller host kernel.
 This thesis leaves the creation of a smaller host kernel for future work.
 
 \subsection{System call restriction}
@@ -182,12 +182,12 @@ This thesis leaves the creation of a smaller host kernel for future work.
 
 
 \graphene{} reduces the host ABI to \palcallnum{} calls
-and the Linux \linuxapi{} footprint to \hostsyscallnum{} \linuxapis{}.
+and the Linux system call footprint to \hostsyscallnum{} system calls.
 To reduce the effective attack surface to a Linux host,
-the Linux host restricts a \picoproc{} from accessing any \linuxapis{} that are not part of the ordinary footprint of a Linux PAL.
-The \linuxapi{} restriction on Linux focuses on blocking most of the \linuxapis{}
+the Linux host restricts a \picoproc{} from accessing any system calls that are not part of the ordinary footprint of a Linux PAL.
+The system call restriction on Linux focuses on blocking most of the system calls
 that interferes with other processes.
-The remaining permitted \linuxapis{} with external effects are checked by 
+The remaining permitted system calls with external effects are checked by 
 the reference monitor (see Section~\ref{sec:linux:security:ref-monitor}).
  
 %% dp: Meh
@@ -235,38 +235,38 @@ the reference monitor (see Section~\ref{sec:linux:security:ref-monitor}).
 
 
 \issuedone{1.3.d}{Extend the discussion of \seccomp{} filter}
-\graphene{} restricts the host \linuxapis{} 
+\graphene{} restricts the host system calls 
 using a \seccomp{} %(SECure COMPuting)
 filter~\cite{seccomp}, a feature introduced in Linux 2.6.12.
 % a recent Linux system call filtering mechanism, called 
 A \seccomp{} filter allows a Linux process to install an immutable Berkeley Packet Filter (BPF) program
-that specifies allowed \linuxapis{}, as well as specifies
-the consequence of invoking certain \linuxapis{}, such as creating a \code{ptrace} event or raising a \code{SIGSYS} signal.
+that specifies allowed system calls, as well as specifies
+the consequence of invoking certain system calls, such as creating a \code{ptrace} event or raising a \code{SIGSYS} signal.
 The BPF grammar is rich enough to filter scalar argument values,
 such as only permitting specific opcodes for \syscall{ioctl},
-as well as filter certain register values, such as blocking \linuxapis{} from program counters (i.e., \code{RIP} register values) outside of the Linux PAL.
+as well as filter certain register values, such as blocking system calls from program counters (i.e., \code{RIP} register values) outside of the Linux PAL.
 %This feature is particularly salient in the case of {\tt ioctl},
 %where the \pal{} uses 5 out of over 400 opcodes for our bulk IPC module and sandbox creation;
 %our BPF rules will block any other {\tt ioctl} opcode.
-The current \seccomp{} filter installed by the Linux PAL contains \seccomplines{} lines of straightforward BPF macros.  %Experiments show that adding more precise argument checks has no significant impact on \linuxapi{} latency.
+The current \seccomp{} filter installed by the Linux PAL contains \seccomplines{} lines of straightforward BPF macros.  %Experiments show that adding more precise argument checks has no significant impact on system call latency.
 Once a \seccomp{} filter is installed in a process,
 the filter intermediates
-every \linuxapis{} from the process and its future children, and guarantees the processes can never bypass the restriction.
-The Linux PAL uses \code{SIGSYS} signals to capture rejected \linuxapis{},
+every system calls from the process and its future children, and guarantees the processes can never bypass the restriction.
+The Linux PAL uses \code{SIGSYS} signals to capture rejected system calls,
 and can either terminate the whole application or
-redirect the \linuxapi{} to \thelibos{}.
-The consecutive steps of \linuxapi{} redirection are described in Section~\ref{sec:libos:syscall-redirection}.
+redirect the system call to \thelibos{}.
+The consecutive steps of system call redirection are described in Section~\ref{sec:libos:syscall-redirection}.
 
 
 
 Developing a \seccomp{} filter presents several technical challenges.
 First, a filter must restrict consecutive \picoprocs{}
-to install a new filter the reverts the \linuxapi{} restriction.
-%A \seccomp{} filter is installed using the \syscall{prctl} \linuxapi{}, so
-Blocking the \syscall{prctl} \linuxapi{} in a \seccomp{} filter will prevent further installation of \seccomp{} filters.
+to install a new filter the reverts the system call restriction.
+%A \seccomp{} filter is installed using the \syscall{prctl} system call, so
+Blocking the \syscall{prctl} system call in a \seccomp{} filter will prevent further installation of \seccomp{} filters.
 Second, the BPF grammar can only filter certain values or ranges of a register.
 The filter needs to
-ensure that only the Linux PAL can invoke \linuxapis{};
+ensure that only the Linux PAL can invoke system calls;
 however,
 for satisfying the dynamic loading behavior of \thehostabi{},
 the Linux PAL
@@ -274,10 +274,10 @@ is built as a shared library loaded at an address randomized by the Linux ASLR (
 If a filter only permits a specific range of program counters,
 a child \picoproc{}
 will load the Linux PAL at another randomized address,
-and the inherited filter will restrict the child \picoproc{} to invoke any \linuxapis{}.
+and the inherited filter will restrict the child \picoproc{} to invoke any system calls.
 The Linux PAL introduces a small, initial loader
 loaded at a fixed address
-within each \picoproc{} and permitted to invoke \linuxapis{}.
+within each \picoproc{} and permitted to invoke system calls.
 Finally, a \seccomp{} filter
 cannot check a string argument, such as a file path for \syscall{open} or a network address for \syscall{bind}.
 Checking a string argument requires
@@ -292,11 +292,11 @@ must rely on a trusted reference monitor (see Section~\ref{sec:linux:security:re
 
 
 
-The \seccomp{} filter blocks  unauthorized \linuxapis{}
+The \seccomp{} filter blocks  unauthorized system calls
 from anywhere inside a \picoproc{}.
 Even if none of the application binaries contains any \assembly{syscall} or \assembly{int \$80} instruction,
 a piece of malicious application code can always bypass the Linux PAL
-to invoke unauthorized \linuxapis{}.
+to invoke unauthorized system calls.
 The application code can simply
 jump to a \assembly{syscall} instruction inside the Linux PAL,
 or corrupt a returned address on the current stack to launch a ROP (return-oriented programming) attack.
@@ -304,7 +304,7 @@ Even if the Linux PAL is hidden or isolated from the application,
 an adversary can always leverage a gadget, a byte sequence that resembles the target instruction, within an executable or a library.
 Therefore, the \seccomp{} enforces both program-counter-based 
 and argument-based restrictions
-to block unauthorized \linuxapis{} from both the Linux PAL and the rest of \picoproc{}.
+to block unauthorized system calls from both the Linux PAL and the rest of \picoproc{}.
 
 
 %In order to reduce the impact of bugs in the reference monitor,
@@ -312,7 +312,7 @@ to block unauthorized \linuxapis{} from both the Linux PAL and the rest of \pico
 
 
 \paragraph{Security implications.}
-Using an existing \linuxapi{} restriction mechanism like \seccomp{},
+Using an existing system call restriction mechanism like \seccomp{},
 \graphene{} limits the ability of an untrusted application to attack a Linux kernel.
 Ideally, since \thelibos{} only requires \thehostabi{},
 \graphene{} can adopt a modified Linux kernel
@@ -321,13 +321,13 @@ that only exports \palcallnum{} \hostapis{} to each \picoproc{}.
 The \seccomp{} filter instead isolates a \picoproc{} on an unmodified Linux kernel,
 with a reduced attack surface 
 comparable to only exporting \thehostabi{}.
-%The filter only permits \hostsyscallnum{} \linuxapis{} with specific flags and opcodes
+%The filter only permits \hostsyscallnum{} system calls with specific flags and opcodes
 %required by the Linux PAL.
 According to the principle of least privilege,
 each component or layer in a system should only be granted access to a minimal amount of resources or abstractions
 required for performing the expected tasks.
 The \seccomp{} filter only permits
-a minimal amount of \linuxapis{} with specific flags and opcodes
+a minimal amount of system calls with specific flags and opcodes
 required by the Linux PAL,
 so an untrusted application
 can only trigger
@@ -335,24 +335,24 @@ a limited amount of execution paths inside the host Linux kernel.
 \graphene{} limits
 the ability of an untrusted application to explore
 known and unknown vulnerabilities
-on any kernel execution paths for servicing one of the blocked \linuxapis{}.
+on any kernel execution paths for servicing one of the blocked system calls.
 
 
 
 Although a regular Linux process can also leverage a \seccomp{} filter,
 \graphene{} makes a major contribution
-to reduce the \linuxapi{} footprint of any large-scale application
-to a fixed, small \linuxapi{} profile.
+to reduce the system call footprint of any large-scale application
+to a fixed, small system call profile.
 Analysis %of applications and libraries
 %in the official Ubuntu repositories
-shows that the \linuxapi{}  footprint of a large-scale application such as Apache or MySQL can contain more than 100 \linuxapis{}.
-Since \thelibos{} has absorbed the Linux \linuxapi{} table,
-running Apache, MySQL, or any other application in \graphene{} leads to at most \hostsyscallnum{} host \linuxapis{}.
+shows that the system call  footprint of a large-scale application such as Apache or MySQL can contain more than 100 system calls.
+Since \thelibos{} has absorbed the Linux system call table,
+running Apache, MySQL, or any other application in \graphene{} leads to at most \hostsyscallnum{} host system calls.
 As a system
 running a wide range of applications
-can exposes a different partial view of the \linuxapi{} table to each application,
+can exposes a different partial view of the system call table to each application,
 \graphene{}
-has a static \linuxapi{} profile for all applications,
+has a static system call profile for all applications,
 allowing OS developers to focus
 on testing or analyzing a small portion of execution paths and corner cases
 of a Linux kernel.
@@ -370,16 +370,16 @@ with an unpredictable \thelibos{} implementation.
 \paragraph{Static binaries.}
 Besides security purposes,
 a \seccomp{} filter provides a compatibility feature
-for redirecting hard-coded \linuxapis{}
+for redirecting hard-coded system calls
 in a statically-linked application binary.
-\graphene{} leverages the \seccomp{} filter to redirect these leaked \linuxapis{}
+\graphene{} leverages the \seccomp{} filter to redirect these leaked system calls
 back to \thelibos{}. 
 The filter contains BPF rules to check if the program counters
-invoking the \linuxapis{}
+invoking the system calls
 are parts of the Linux PAL.
-The filter blocks \linuxapi{} invoked outside of the Linux PAL
+The filter blocks system call invoked outside of the Linux PAL
 and delivers a \code{SIGSYS} signal
-to the PAL signal handler for redirecting the \linuxapis{} to \thelibos{}.
+to the PAL signal handler for redirecting the system calls to \thelibos{}.
 
 
 
@@ -387,8 +387,8 @@ to the PAL signal handler for redirecting the \linuxapis{} to \thelibos{}.
 \label{sec:linux:security:ref-monitor}
 
 The reference monitor on a Linux host
-checks the arguments of host \linuxapis{} for referencing any sharable host resources.
-A host \linuxapi{} like \syscall{open}, \syscall{connect}, or \syscall{bind}
+checks the arguments of host system calls for referencing any sharable host resources.
+A host system call like \syscall{open}, \syscall{connect}, or \syscall{bind}
 specifies a file system path or a network address
 for opening a file or network stream and cannot be filtered by a \seccomp{} filter.
 The host kernel trusts the reference monitor
@@ -399,7 +399,7 @@ rules in a manifest file.
 Once the reference monitor has permitted the creation of a file or network stream,
 consecutive operations on the stream
 such as reading or writing data can be trusted
-as long as being mediated by one of the permitted \linuxapis{}.
+as long as being mediated by one of the permitted system calls.
 
 
 \begin{figure}
@@ -498,7 +498,7 @@ The security loader
 reads the manifest file given by the user,
 and submits the sandbox rules to the reference monitor.
 The reference monitor exports a miscellaneous device called \code{/dev/graphene}
-for the security loader to submit sandbox rules using the \syscall{ioctl} \linuxapi{}.
+for the security loader to submit sandbox rules using the \syscall{ioctl} system call.
 Once the reference monitor
 starts a \picoproc{} in a sandbox, neither the first \picoproc{} nor any consecutive \picoprocs{} spawned in the sandbox can ever escape the sandbox or drop the restrictions on certain resources.
 
@@ -506,9 +506,9 @@ starts a \picoproc{} in a sandbox, neither the first \picoproc{} nor any consecu
 \paragraph{Alternative approaches.}
 Other approaches can implement the reference monitor without modifying a Linux kernel, with a trade-off of performance or development simplicity.
 An approach is to implement the reference monitor as a trusted process receiving \code{ptrace} events from \graphene{} \picoprocs{}.
-Using the \syscall{ptrace} \linuxapi{}, this reference monitor can retrieve user memory from the monitored \picoprocs{},
-and block the \linuxapis{} which request for unpermitted resources.
-Unfortunately, intercepting every \linuxapis{} with \code{ptrace} events introduces significant overhead to \hostapis{};
+Using the \syscall{ptrace} system call, this reference monitor can retrieve user memory from the monitored \picoprocs{},
+and block the system calls which request for unpermitted resources.
+Unfortunately, intercepting every system calls with \code{ptrace} events introduces significant overhead to \hostapis{};
 thus, this approach is not ideal for isolating \graphene{} applications on a Linux host.
 
 

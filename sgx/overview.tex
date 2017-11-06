@@ -295,7 +295,7 @@ to prove the integrity to a remote client.
 
 
 For a single-process application,
-the Linux \linuxapis{} are serviced by a \libos{}
+the Linux system calls are serviced by a \libos{}
 inside the enclave.
 \graphenesgx{} reuses the same \libos{} used on other hosts, such as Linux, Windows, and FreeBSD,
 by including an in-enclave SGX PAL for exporting \thehostabi{}.
@@ -648,7 +648,7 @@ is temporary, since SGX version 2 will add instructions for adding empty pages t
 \paragraph{Threading.}
 \graphenesgx{} currently uses a 1:1 threading model,
 whereas \scone{} and \panoply{} support an m:n threading model.
-The issue is that \sgx{} version 1 requires the maximum number of threads in the enclave
+The issue is that SGX version 1 requires the maximum number of threads in the enclave
 to be specified at initialization time.
 Since the number of threads in an enclave is restricted
 by the space allocated for thread control sections (TCSs),
@@ -740,7 +740,7 @@ By handling exceptions inside the enclave, \graphenesgx{} can emulate instructio
 Use of these instructions will ultimately trap to a handler inside the enclave,
 to call out to the OS for actual values, which are treated as untrusted input and are checked.
 SGX also traps \assembly{syscall} or \assembly{int \$80} inside an enclave;
-thus, \graphenesgx{} redirects the \linuxapis{} inside a static binary
+thus, \graphenesgx{} redirects the system calls inside a static binary
 to \thelibos{}.
 
 
