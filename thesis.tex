@@ -265,8 +265,6 @@ This page is optional.
 %\vspace*{4\baselineskip}
 %The frontispiece is generally an illustration, and is an optional page.
 
-\newlength{\charwidth}
-\setlength{\charwidth}{\widthof{\S}}
 
 \newpage
 %\centerline{\bf{Table of Contents}}
@@ -277,6 +275,7 @@ This page is optional.
 \pdfbookmark[0]{Table of Contents}{Contents}
 \tableofcontents
 
+
 \titlespacing*{\section}{0pt}{1.5\baselineskip plus 0.5\baselineskip}{0.5\baselineskip}
 \titlespacing*{\subsection}{0pt}{1.0\baselineskip plus 0.5\baselineskip}{0.5\baselineskip}
 \titlespacing*{\subsubsection}{0pt}{0.5\baselineskip plus 0.5\baselineskip}{0.5\baselineskip}
@@ -284,10 +283,19 @@ This page is optional.
 
 
 \setcounter{secnumdepth}{3}
-\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
-\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{\charwidth}{}
-\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{\charwidth}{}
+\Addlcwords{and a an the with in of on upon for to}
 
+\titleformat{\section}[block]{}{\normalfont\Large\bfseries\thesection}{1em}{\formatsectiontitle}
+\newcommand{\formatsectiontitle}[1]{\normalfont\Large\bfseries\titlecap{#1}}
+
+\titleformat{\subsection}[block]{}{\normalfont\large\bfseries\thesubsection}{1em}{\formatsubsectiontitle}
+\newcommand{\formatsubsectiontitle}[1]{\normalfont\large\bfseries\titlecap{#1}}
+
+\titleformat{\subsubsection}[block]{}{\normalfont\normalsize\bfseries\thesubsubsection}{1em}{\formatsubsubsectiontitle}
+\newcommand{\formatsubsubsectiontitle}[1]{\normalfont\normalsize\bfseries\titlecap{#1}}
+
+\titleformat{\paragraph}[runin]{}{}{\charwidth}{\formatparagraphtitle}
+\newcommand{\formatparagraphtitle}[1]{\normalfont\normalsize\bfseries\titlecap{#1}}
 
 
 \newpage

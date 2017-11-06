@@ -1,22 +1,26 @@
-\section{The Host ABI}
+\section{The host interface}
 \label{sec:overview:host}
 
 \issuedone{1.1.b}{Describe \thehostabi{} specification}
-The \graphene{} architecture starts with defining a simple host ABI with
-OS abstractions essential to application execution,
-namely \thehostabi{}.
+\graphene{} starts with defining a simple but sufficient host interface;
+the host interface
+contains OS abstractions essential to application execution
+and is easily ported to different platforms.
 %and minimal specifications for the host OSes and hardware.
 %The host ABI is a new boundary between OSes (or hypervisors) and applications.
-\thehostabi{} separates
+Defining such a host interface separates
 low-level abstractions, such as hardware management and drivers,
 from implementing the API (application programming interfaces) which applications depend on.
-Exporting \thehostabi{} on each host allows OS components
+Upon the host interface,
+\graphene{} moves OS components
 such as the system call table
-and namespaces to move into the guest space as a \libos{}.
-As a result,
-OS developers can focus on porting \thehostabi{}
-to new host OSes and hardware,
-instead of maintaining the backward compatibility of an API.
+and namespaces into the guest space as a \libos{}.
+In short,
+for porting \graphene{} to any new host OS or hardware,
+OS developers only have to focus on
+porting a simple host interface
+%to new host OSes and hardware,
+instead of reproducing the whole API for backward compatibility.
 
 
 
