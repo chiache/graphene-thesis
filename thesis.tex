@@ -14,7 +14,7 @@
 \usepackage[numbers,sort]{natbib}
 \usepackage[margin=1in]{geometry}
 \usepackage{times}
-\usepackage{titlesec}
+\usepackage[explicit]{titlesec}
 \usepackage{titletoc}
 \usepackage{titlecaps}
 \usepackage{tocloft}
@@ -269,9 +269,6 @@ This page is optional.
 \newpage
 %\centerline{\bf{Table of Contents}}
 \renewcommand{\contentsname}{\centerline{\Large\bf{Table of Contents}}}
-\renewcommand{\cftchapfont}{\large\bfseries\def\\{}\def\em{}}
-\renewcommand{\cftsecfont}{\normalsize\def\\{}\def\em{}}
-\renewcommand{\cftsubsecfont}{\normalsize\def\\{}\def\em{}}
 \pdfbookmark[0]{Table of Contents}{Contents}
 \tableofcontents
 
@@ -285,17 +282,15 @@ This page is optional.
 \setcounter{secnumdepth}{3}
 \Addlcwords{and a an the with in of on upon for to}
 
-\titleformat{\section}[block]{}{\normalfont\Large\bfseries\thesection}{1em}{\formatsectiontitle}
-\newcommand{\formatsectiontitle}[1]{\normalfont\Large\bfseries\titlecap{#1}}
+\titleformat{\chapter}[display]{\centering}{\Large\bf\chaptertitlename{} \thechapter{}}{1pc}{\LARGE\bf #1}
 
-\titleformat{\subsection}[block]{}{\normalfont\large\bfseries\thesubsection}{1em}{\formatsubsectiontitle}
-\newcommand{\formatsubsectiontitle}[1]{\normalfont\large\bfseries\titlecap{#1}}
+\titleformat{\section}[block]{}{\Large\bf\thesection}{1em}{\Large\bf\titlecap{#1}}
 
-\titleformat{\subsubsection}[block]{}{\normalfont\normalsize\bfseries\thesubsubsection}{1em}{\formatsubsubsectiontitle}
-\newcommand{\formatsubsubsectiontitle}[1]{\normalfont\normalsize\bfseries\titlecap{#1}}
+\titleformat{\subsection}[block]{}{\large\bf\thesubsection}{1em}{\large\bf\titlecap{#1}}
 
-\titleformat{\paragraph}[runin]{}{}{\charwidth}{\formatparagraphtitle}
-\newcommand{\formatparagraphtitle}[1]{\normalfont\normalsize\bfseries\titlecap{#1}}
+\titleformat{\subsubsection}[block]{}{\bf\thesubsubsection}{1em}{\bf\titlecap{#1}}
+
+\titleformat{\paragraph}[runin]{}{}{\charwidth}{\bf\titlecap{#1}}
 
 
 \newpage
@@ -349,9 +344,6 @@ This page is optional.
 %\vspace*{4\baselineskip}
 %This page is optional for doctoral students only.
 
-
-\titleformat{\chapter}[display]
-{\Large\centering\bf}{\chaptertitlename{} \thechapter{}}{1pc}{\LARGE\bf}
 
 \def \longconferencenames{}
 \input{conferences}
