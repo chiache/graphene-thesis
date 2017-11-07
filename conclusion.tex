@@ -1,4 +1,4 @@
-\chapter{Conclusion}
+\paperchapter{Conclusion}
 \label{chap:conclusion}
 
 %Unknown security vulnerabilities and performance bottlenecks exist
@@ -49,7 +49,7 @@
 %%can be removed from the critical paths.
 %These solutions provide more secure or more efficient options
 %than monolithic kernels
-%(e.g., Windows, Linux).
+%(e.g., \win{}, Linux).
 %%will perfectly enforce security policies
 %%and effectively reduce system bottlenecks.
 
@@ -89,7 +89,7 @@
 %partitioning and optimization.
 %Only few works~\cite{porter11drawbridge, baumann13bascule, tsai14graphene}
 %are designed for isolating or optimizing
-%legacy applications adopted from mainstream operating systems such as Windows or Linux.
+%legacy applications adopted from mainstream operating systems such as \win{} or Linux.
 
 
 %To reduce the risk of exploitation in the system stacks,
@@ -121,22 +121,22 @@ due to
 API distinction
 or host-specific restrictions.
 %distinction between the \emph{personalities} of platforms
-%--- either they are Windows, UNIX, \liboses{}, etc.
+%--- either they are \win{}, UNIX, \liboses{}, etc.
 %Among two systems that are ideally compatible, \emph{no} porting efforts will be needed.
 %to harvest the development efforts made
 %prior to the redesigning,
 %and to lower the barrier for users to adopt the system.
 %Essentially, millions of applications built and deployed
 %on mainstream OSes,
-%such as Windows and Linux,
+%such as \win{} and Linux,
 %will require porting efforts if users need to adapt them to another platform. 
 %maximizing the legacy support in a system
 %will lower the barricade for users to adopt it.
 Existing library OSes~\cite{porter11drawbridge, baumann13bascule, baumann14haven}
-provide the personalities of monolithic kernels, such as Windows or Linux,
+provide the personalities of monolithic kernels, such as \win{} or Linux,
 within a single \picoproc{}.
 %%are designed for isolating or optimizing
-%%legacy applications adopted from mainstream operating systems such as Windows or Linux.
+%%legacy applications adopted from mainstream operating systems such as \win{} or Linux.
 %by emulating
 %%The key challenge for reusing legacy application code
 %%is to emulate 
@@ -184,8 +184,8 @@ can be isolated by simply sandboxing the RPC streams.
 %\graphene{} can simplified the complexity of isolating shareable abstractions
 %by simply forbidding RPC streams across untrusting applications.
 %\graphene{} can expand the support for Linux multi-process applications
-%to various platforms, including \term{Intel SGX enclaves}.
-%In Intel SGX enclaves, \graphene{} can isolate Linux multi-process applications
+%to various platforms, including \term{Intel \sgx{} enclaves}.
+%In Intel \sgx{} enclaves, \graphene{} can isolate Linux multi-process applications
 %in a sealed environment,
 %fully immune to 
 %attacks from host OSes and hardware peripherals.
@@ -199,7 +199,7 @@ Especially, with platform independence, \graphene{}
 can reuse unmodified Linux applications
 onto other platforms,
 %such as microkernels like L4, a heterogeneous environment like Barrelfish,
-including isolated execution platforms like Intel SGX enclaves.
+including isolated execution platforms like Intel \sgx{} enclaves.
 A \graphene{} \picoproc{} isolated in an enclave
 can seal the execution of an unmodified application,
 inside of an environment immune to attacks from host OSes, hypervisors,
@@ -234,7 +234,7 @@ and hardware peripherals.
 %applications developed in managed languages, such as Java,
 %will encounter obstacles
 %when being ported into enclaves
-%due to limitations of Intel SGX.
+%due to limitations of Intel \sgx{}.
 %%The improvement of granularity is critical for protecting highly sensitive components,
 %%to reduce the execution paths
 %%potentially exploitable.
@@ -258,7 +258,7 @@ and hardware peripherals.
 %%which the partitioning is based on.
 %%We demonstrates an example
 %%in which applications can be painlessly partitioned
-%%into Intel SGX enclaves~\cite{intelsgx},
+%%into Intel \sgx{} enclaves~\cite{intelsgx},
 %%by leveraging advantages from the Java language,
 %%on a system designed to transparently load and interface legacy Java classes in enclaves.
 %We propose a framework that automatically split a Java application
@@ -391,15 +391,15 @@ will grow from 0.42\% to 21.1\%.
 
 
 %\graphene{} \libos{} can also secure native applications from potentially compromised system stacks, if it is combined with isolated execution.
-%Isolated execution, either enforced by hardware (e.g., Intel SGX~\cite{intelsgx}) or hypervisors (e.g., Flicker~\cite{flicker}, VirtualGhost~\cite{criswell2014virtualghost}, etc), creates a privileged context for applications,
+%Isolated execution, either enforced by hardware (e.g., Intel \sgx{}~\cite{intelsgx}) or hypervisors (e.g., Flicker~\cite{flicker}, VirtualGhost~\cite{criswell2014virtualghost}, etc), creates a privileged context for applications,
 %and prevents the system stacks above the hardware or the hypervisors
 %to compromise the confidentiality and integrity of the applications.  
-%We focus on combining \graphene{} with SGX, as {\em \graphene{}-SGX},
+%We focus on combining \graphene{} with \sgx{}, as {\em \graphene{}-\sgx{}},
 %to provide stronger isolated execution than hypervisor-based solutions,
 %for defending against both OS-level and hardware-level attacks.
-%\gsgx{} improves the usability of SGX, by minimizing the effort of porting native applications to the SGX platform,
+%\gsgx{} improves the usability of \sgx{}, by minimizing the effort of porting native applications to the \sgx{} platform,
 %but still maintains compatible security guarantees as the applications that built for the platform.
-%Compare to other library OSes that are combined with SGX (e.g., \haven{}~\cite{baumann14haven}),
+%Compare to other library OSes that are combined with \sgx{} (e.g., \haven{}~\cite{baumann14haven}),
 %\gsgx{} provides more fine-grained protection for applications binaries and processes,
 %breaking down the isolated execution of
 %an application that are already partitioned into processes,
@@ -413,11 +413,11 @@ will grow from 0.42\% to 21.1\%.
 %applications can be partitioned by automation,
 %and the trusted components needed to be loaded into the isolated execution
 %can be effectively reduced.
-%We present {\em \civet{}}, a framework that combines SGX and Language protection in Java,
+%We present {\em \civet{}}, a framework that combines \sgx{} and Language protection in Java,
 %to benefit from both types of protection.
 %Using Civet,
 %developers of Java applications can enforce the partitioning and security guarantees they desired.
-%Moreover, the components loaded into SGX can be harden by language-based protection,
+%Moreover, the components loaded into \sgx{} can be harden by language-based protection,
 %such as filtering the output
 %that are tainted by the information flow.
 

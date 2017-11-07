@@ -1,4 +1,4 @@
-\section{The host ABI}
+\papersection{The host ABI}
 \label{sec:overview:host}
 
 \issuedone{1.1.b}{Describe \thehostabi{} specification}
@@ -32,7 +32,7 @@ instead of reproducing the whole Linux system call table for backward compatibil
 
 
 
-\subsection{Platform Adaption Layers (PALs)}
+\papersubsection{Platform Adaption Layers (PALs)}
 \label{sec:overview:host:pal}
 
 
@@ -55,13 +55,13 @@ for average developers.
 %First of all, the number of host functions included in \thehostabi{}
 %is much smaller than the number of system calls in a commodity OS such as Linux. 
 The development of \graphene{} experiments the porting of \thehostabi{}
-on several representative host examples, such Windows, Linux, OS X, FreeBSD, and SGX with an untrusted Linux kernel.
+on several representative host examples, such \win{}, Linux, \osx{}, FreeBSD, and \sgx{} with an untrusted Linux kernel.
 For most of these hosts,
 implementing \thehostabi{} is straightforward because most OSes export a version of the similar POSIX-style API.
 If there are exceptions where porting \thehostabi{} is challenging,
 the cause is likely to be the assumptions made by the developers of the host OS.
-For instance, the Windows API disallows directly resizing or protecting part of a memory region, which is essential to implementing the \syscall{munmap} and \syscall{mprotect} system calls.
-A workaround for porting \thehostabi{} to Windows is to change memory mappings at the physical page level,
+For instance, the \win{} API disallows directly resizing or protecting part of a memory region, which is essential to implementing the \syscall{munmap} and \syscall{mprotect} system calls.
+A workaround for porting \thehostabi{} to \win{} is to change memory mappings at the physical page level,
 but requires running the PAL in root permission.
 
 %In our experience, the development of a PAL is around ten thousand lines of code.
@@ -91,24 +91,24 @@ on specific hosts.
 
 
 
-%For a host OS that does not support ELF binaries, the PAL must follow the binary format which the host OS accepts, such as the Portable Executable (PE) format on Windows.
+%For a host OS that does not support ELF binaries, the PAL must follow the binary format which the host OS accepts, such as the Portable Executable (PE) format on \win{}.
 %The PAL is the only layer in the user space which cannot be reused
 %across different hosts. Besides the PAL, all of the other binaries in the user space are fully reusable, including the library OS, the supporting libraries, and the application executable.
 
 
 
 %The host abstractions map to several common system calls in a commodity OS.
-%For example, \funcname{StreamRead} and \funcname{StreamWrite} can directly map to the POSIX functions \funcname{pread} and \funcname{pwrite}, which are available in most OSes including Linux, BSD, OS X, and Windows.
+%For example, \funcname{StreamRead} and \funcname{StreamWrite} can directly map to the POSIX functions \funcname{pread} and \funcname{pwrite}, which are available in most OSes including Linux, BSD, \osx{}, and \win{}.
 %More than half of the functions in \thehostabi{} can be counted toward this category.
 %The rest of the host abstractions are either specific to Linux
 %(e.g., TLS support),
 %or belong to the POSIX functions that are not shared with commodity OSes
-%(e.g., \funcname{mmap} on Windows).
+%(e.g., \funcname{mmap} on \win{}).
 %The PAL emulates these host abstractions, using existing system interfaces available on the host OS, unless the software emulation is fundamentally impossible (e.g., restricted by the system interfaces), or too expensive (e.g., high overhead from copying data).
 
 
 
-\subsection{Formal definitions}
+\papersubsection{Formal definitions}
  
 %The host ABI defines the interaction between the library OS and a specific host.
 %The \graphene{} library OS can be deployed on any ``host'' where \thehostabi{} has been ported.
@@ -119,33 +119,33 @@ as an OS or a hypervisor
 that provides sufficient OS features to run a standalone application
 or virtual machine.
 An example of a host is a monolithic kernel
-such as Linux, BSD, or Windows,
+such as Linux, BSD, or \win{},
 which has defined a massive system API for programmability.
 Other example,
-such as an Intel SGX (Software Guard Extensions) enclaves~\cite{intelsgx},
+such as an Intel \sgx{} (Software Guard Extensions) enclaves~\cite{intelsgx},
 has more restricted OS functionality;
-for instance, SGX virtualizes the exception handlers
+for instance, \sgx{} virtualizes the exception handlers
 inside each enclave, but provides no other OS functionality. The only way to obtain common OS functionality such as file systems or networking,
 besides introducing a \libos{},
 is to request from a host OS outside the enclave
 through RPC (remote procedure call)~\cite{checkoway13iago,osdi16scone}.
 Due to compatibility challenges
-on SGX, this thesis use SGX as a representative example of a host
+on \sgx{}, this thesis use \sgx{} as a representative example of a host
 with unusual assumptions (e.g., threat models) and restrictions
 than a monolithic kernel.
 
-%An innovative hardware abstraction like SGX (software guard extensions)
+%An innovative hardware abstraction like \sgx{} (software guard extensions)
 %imposes unique assumptions and restrictions
 %on a commodity OS,
-%%creates a special host on top of Linux or Windows,
+%%creates a special host on top of Linux or \win{},
 %%with unique interfaces and specifications regarding the host OSes.
 %and thus creates a special host above the OS.
 
 %If an OS has mutated or tweaked the interface for a hardware platform,
-%such as an SGX enclave 
+%such as an \sgx{} enclave 
 %running on an untrusted Linux kernel,
-%the combination of the OS (Linux) and the hardware platform (SGX) is considered a specialized host.
-%Especially, the SGX port of \thehostabi{} faces several unique challenges,
+%the combination of the OS (Linux) and the hardware platform (\sgx{}) is considered a specialized host.
+%Especially, the \sgx{} port of \thehostabi{} faces several unique challenges,
 %which will be discussed in Chapter~\ref{chap:sgx}.
 
 
@@ -300,13 +300,13 @@ tend to commonly exist in most OSes.
 %, to reduce the learning curve for programming applications.
 For instance,
 system calls like \syscall{read} and \syscall{write} exist on Linux, BSD, and POSIX API;
-Windows also has \syscall{ReadFile} and \syscall{WriteFile}
+\win{} also has \syscall{ReadFile} and \syscall{WriteFile}
 with similar functionality and semantics.
 %and 
-%looks similar to \syscall{ReadFile} in Windows, except the data types.
+%looks similar to \syscall{ReadFile} in \win{}, except the data types.
 %The definition of \thehostabi{}
 %is based on observations of the system interfaces in some of the important hosts,
-%including Linux system calls and Windows API.
+%including Linux system calls and \win{} API.
 %exported by the targeted hosts,
 %and defines the functions in \thehostabi{}, to be easily translated to the native system interfaces.
 %The host ABI is essentially a subset of the common features from every potential hosts.
@@ -350,10 +350,10 @@ or creating a virtual memory mapping.
 %offered on most of the potential hosts,
 For most hosts,
 implementing \thehostabi{} should be as straightforward as redirecting the functions to the closest host system calls.
-%such as the Linux system calls or the Windows APIs.
+%such as the Linux system calls or the \win{} APIs.
 For example, the functionality of \syscall{StreamRead} and \syscall{StreamWrite} in \thehostabi{}s can loosely match with
 \syscall{read} and \syscall{write} in Linux,
-or \syscall{ReadFile} and \syscall{WriteFile} in Windows.
+or \syscall{ReadFile} and \syscall{WriteFile} in \win{}.
 %This thesis also evaluates the simplicity of \thehostabi{}s by counting the lines of code used to implement \thehostabi{}s on each host platforms.
 Since most OSes have inherited a similar design from UNIX,
 it is fair to assume finding
@@ -422,20 +422,20 @@ which is sufficient to emulating both \syscall{mmap} and \syscall{brk}.
 
 The definition of \thehostabi{} in \graphene{} is based on
 \drawbridge{},
-a library OS for running single-process Windows applications
+a library OS for running single-process \win{} applications
 in a lightweight, guest environment.
 The host ABI of \drawbridge{} 
 including 36 functions,
 %demonstrates that its host ABI is sufficient
-%for running a library OS in which 99.7\% of code comes from the Windows 7 source.
+%for running a library OS in which 99.7\% of code comes from the \win{} 7 source.
 %The host ABIs of \drawbridge{} are later extended
 %for running a Linux-based library OS called Bascule~\cite{baumann13bascule}.
 and is ported to multiple hosts,
-including Windows, Linux, Barrelfish, and SGX~\cite{porter11drawbridge,baumann14haven,mssql-on-linux,baumann13bascule}.
+including \win{}, Linux, Barrelfish, and \sgx{}~\cite{porter11drawbridge,baumann14haven,mssql-on-linux,baumann13bascule}.
 %and is capable of running a library OS for single-process, Linux applications, with a few host ABI changes~\cite{baumann13bascule}.
 %ill loads and links the rest of application binaries, just like the native Linux loader (i.e., \code{ld.so}).
 %\graphene{} takes the high-level definitions of the \drawbridge{} and Bascule host ABIs, and customizes for general-purpose Linux applications and a wider range of hosts. 
-Although running Windows and Linux applications may face
+Although running \win{} and Linux applications may face
 a different set of challenges,
 the nature of their APIs is mostly similar, with a few exceptions.
 During the development of \graphene{}, developers found the occasions in which
@@ -448,7 +448,7 @@ The Linux-specific extensions will be further discussed in Section~\ref{sec:over
 \paragraph{Migration.}
 The \graphene{} library OS shares several features of VMs, including the convenience of checkpointing a running application and migrating to other hosts.
 The migration feature is also the key to implementing copy-on-write forking for applications,
-on a host that does not allow memory sharing (e.g., SGX).
+on a host that does not allow memory sharing (e.g., \sgx{}).
 For a virtual machine, checkpointing and migration is based on snapshotting the guest states above a stateless virtual hardware interface. % as a clean boundary for snapshotting the application and OS state.
 \Thehostabi{} shares the same property of statelessness.
 The statelessness of \thehostabi{} guarantees any states in the hosts are temporary to the applications and \libos{}, and can be reproduced without checkpointing host states.
@@ -457,7 +457,7 @@ The statelessness of \thehostabi{} guarantees any states in the hosts are tempor
 
 
 
-\subsection{An overview of \hostapis{}}
+\papersubsection{An overview of \hostapis{}}
 \label{sec:overview:host:abi}
 
 
@@ -468,7 +468,7 @@ The statelessness of \thehostabi{} guarantees any states in the hosts are tempor
 %The definition of the host functions
 %should be unsurprising to average OS developers,
 %making the implementation on a new host to be fairly straightforward.
-%The host ABI reflects the common functionality of most OSes, including Linux and Windows.
+%The host ABI reflects the common functionality of most OSes, including Linux and \win{}.
 %Although the same OS abstractions may be defined
 %as different idiosyncratic system interfaces on each host OSes,
 %\graphene{} takes into consideration of porting the host functions to either OSes, in the most effortless way possible.
@@ -488,19 +488,19 @@ including functions to managing I/O (e.g., \palcall{StreamOpen}), memory allocat
 %and cannot affect other processes running in parallel.
 %Only I/O streaming functions export states to the host OS, and share states with other processes or library OSes.
 14 \hostapis{} are added by \graphene{}, in order to implement Linux-specific features.
-For example, unlike Windows or OS X, Linux generally
+For example, unlike \win{} or \osx{}, Linux generally
 %The host ABI is also complemented with several Linux-specific abstractions, such as
 delivers hardware exceptions to a process as signals .
 Linux also requires 
 the x86-specific segment registers (i.e., FS/GS registers)
 to determine the location of thread-local storage (TLS), which can be hard-coded in application binaries by a compilation mode of GCC.
-However, in Windows or OSX, the x86-specific segment registers are mostly ignored, and even frequently reset to avoid being manipulated by attackers.
+However, in \win{} or \osx{}, the x86-specific segment registers are mostly ignored, and even frequently reset to avoid being manipulated by attackers.
 %The host ABI contains host functions (), which can be directly called from the library OS. \graphene{} shows that \thehostabi{} is sufficient to implementing a large portion of the Linux system calls.
-%These functions are not defined in \drawbridge{}, the Windows-based library OS,
-%because these abstractions do not exist in Windows.
+%These functions are not defined in \drawbridge{}, the \win{}-based library OS,
+%because these abstractions do not exist in \win{}.
 %The \drawbridge{} host ABI does not contain exception delivery because the feature is
-%not commonly used in Windows applications.
-%Moreover, the x86 segment registers cannot be modified in Windows
+%not commonly used in \win{} applications.
+%Moreover, the x86 segment registers cannot be modified in \win{}
 %because the OS assigns fixed values to these registers
 %for the whole execution.
 %Although \drawbridge{} excludes these abstractions, Bascule extends \thehostabi{} to include similar functions,
@@ -591,7 +591,7 @@ but is much faster because it avoids copying memory in the host.
 
 
 
-\subsection{Security isolation}
+\papersubsection{Security isolation}
 \label{sec:overview:host:security}
 
 
@@ -687,7 +687,7 @@ When a process detaches from a sandbox, effectively splitting the sandbox, the h
 
 
 \paragraph{Threat model.}
-For most of the \graphene{} hosts (except for the SGX host),
+For most of the \graphene{} hosts (except for the \sgx{} host),
 an application running inside \graphene{} fully trusts the local library OS instances
 as well as the host OS.
 For multiple processes inside a sandbox,
@@ -716,12 +716,12 @@ by exploiting vulnerabilities on \thehostabi{}.
 %the adversary cannot interfere with any victim picoprocess.
 
 
-The threat model of \graphene{} on a SGX host (i.e., \graphenesgx{})
+The threat model of \graphene{} on a \sgx{} host (i.e., \graphenesgx{})
 is similar to running other host OSes, except that the applications does not trust the host OS, hypervisor, or other system software.
 An untrusted OS or hypervisor
 holds a wide attack surface to invade applications or VMs,
 using Iago attacks~\cite{checkoway13iago}.
-The challenges to porting \graphene{} to SGX is not limited to patching the compatibility issues of enclaves, but also requires defending the applications and the library OS against potential exploitations.
+The challenges to porting \graphene{} to \sgx{} is not limited to patching the compatibility issues of enclaves, but also requires defending the applications and the library OS against potential exploitations.
 
 
 

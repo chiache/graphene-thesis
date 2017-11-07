@@ -1,9 +1,9 @@
 \placeholder{}
 
 
-Compatibility challenges occur when sharing an application across two distinct system interfaces or reusing an application on a disruptive hardware such as Intel SGX~\cite{intelsgx}.
+Compatibility challenges occur when sharing an application across two distinct system interfaces or reusing an application on a disruptive hardware such as Intel \sgx{}~\cite{intelsgx}.
 %or between distinctive system APIs
-%such as Linux system calls and Windows API.
+%such as Linux system calls and \win{} API.
 %Running an unmodified application, without recompilation or porting,
 %requires a system API to be
 %compatible across OS versions or across host OSes.
@@ -38,8 +38,8 @@ and namespaces, and only accesses the host ABI when necessary.
 
 %Legacy applications dominate a substantial part of the present software products.
 %In order to reuse the development effort of existing applications, system engineers design emulation layers and translation toolchains for accelerating the process of porting any application from one platform to another.
-%Essentially, the complexity of porting is determined by the distinction of \emph{personalities} among platforms. In particular, for a platform as unique as a \libos{}, reusing the applications from commodity operation systems (e.g., Windows and Linux) on a vastly different platform, like the \liboses{},
-%Reusing the applications from commodity OSes (e.g., Windows, Linux)
+%Essentially, the complexity of porting is determined by the distinction of \emph{personalities} among platforms. In particular, for a platform as unique as a \libos{}, reusing the applications from commodity operation systems (e.g., \win{} and Linux) on a vastly different platform, like the \liboses{},
+%Reusing the applications from commodity OSes (e.g., \win{}, Linux)
 %on a vastly different platform such as an isolated enclave or a heterogeneous architecture,
 %requires significant rewriting of the applications and systems, to adapt for the new limitations and requirements.
 
@@ -58,14 +58,14 @@ collaboratively present a united OS view to the application.
 
 
 
-Two main porting targets of the \graphene{} library OS, including a Linux host and a SGX enclave,
+Two main porting targets of the \graphene{} library OS, including a Linux host and a \sgx{} enclave,
 each present challenges to enforcing security isolation
 upon the threat models.
 On a Linux host, \graphene{} presents a sandbox abstraction to isolate mutually-untrusting applications.
-Inside a SGX enclave, \graphene{} protects a security-sensitive applications with security checks to validate untrusted system call results.
+Inside a \sgx{} enclave, \graphene{} protects a security-sensitive applications with security checks to validate untrusted system call results.
 Despite the difference of threat models,
 the host ABI simplifies the security checks to target a small amount of sharing host abstractions.
-For a SGX enclave, \graphene{} defines 28 calls
+For a \sgx{} enclave, \graphene{} defines 28 calls
 to exit and access host system calls,
 with explicit semantics or methods to recognize
 benign OS behaviors.
@@ -87,7 +87,7 @@ the partial compatibility of an OS prototype. Another metric, which evaluates th
 %are designed to translate the high-level APIs and abstractions relied by the legacy applications,to a narrow, generic host interface.
 %The qualitative benefits of \liboses{}, such as isolation between mutually untrusting applications,
 %platform independence, and migration of OS state, are comparable to virtualization --- at a lower cost~\cite{porter11drawbridge}.
-%However, the reuse of multi-process applications, a vast domain commonly required on UNIX platforms (e.g., Linux, BSD and OSX), is lacked in previous \liboses{} due to the splitting of OS functionality into application processes, as the so-called \emph{\picoprocs{}}. Supporting the multi-process abstractions requires multiple \libos{} instances to collaboratively maintain the system state, as one shared OS for the application.
+%However, the reuse of multi-process applications, a vast domain commonly required on UNIX platforms (e.g., Linux, BSD and \osx{}), is lacked in previous \liboses{} due to the splitting of OS functionality into application processes, as the so-called \emph{\picoprocs{}}. Supporting the multi-process abstractions requires multiple \libos{} instances to collaboratively maintain the system state, as one shared OS for the application.
 
 
 
@@ -142,7 +142,7 @@ the partial compatibility of an OS prototype. Another metric, which evaluates th
 %%can be removed from the critical paths.
 %These solutions provide more secure or more efficient options
 %than monolithic kernels
-%(e.g., Windows, Linux).
+%(e.g., \win{}, Linux).
 %%will perfectly enforce security policies
 %%and effectively reduce system bottlenecks.
 %
@@ -182,7 +182,7 @@ the partial compatibility of an OS prototype. Another metric, which evaluates th
 %partitioning and optimization.
 %Only few works~\cite{porter11drawbridge, baumann13bascule, tsai14graphene}
 %are designed for isolating or optimizing
-%legacy applications adopted from mainstream operating systems such as Windows or Linux.
+%legacy applications adopted from mainstream operating systems such as \win{} or Linux.
 
 
 %To reduce the risk of exploitation in the system stacks,
@@ -211,22 +211,22 @@ the partial compatibility of an OS prototype. Another metric, which evaluates th
 %to fundamental re-implementation.
 %Essentially,
 %the difficulty of porting is determined by the distinction between the \emph{personalities} of platforms
-%--- Windows, UNIX, \liboses{}, etc.
+%--- \win{}, UNIX, \liboses{}, etc.
 %Among two systems that are ideally compatible, \emph{no} porting efforts will be needed.
 %%to harvest the development efforts made
 %%prior to the redesigning,
 %%and to lower the barrier for users to adopt the system.
 %%Essentially, millions of applications built and deployed
 %%on mainstream OSes,
-%%such as Windows and Linux,
+%%such as \win{} and Linux,
 %%will require porting efforts if users need to adapt them to another platform. 
 %%maximizing the legacy support in a system
 %%will lower the barricade for users to adopt it.
 %Existing library OSes~\cite{porter11drawbridge, baumann13bascule, baumann14haven}
-%provide the personalities of a commodity OS, such as Windows or Linux,
+%provide the personalities of a commodity OS, such as \win{} or Linux,
 %within a single \picoproc{}.
 %%%are designed for isolating or optimizing
-%%%legacy applications adopted from mainstream operating systems such as Windows or Linux.
+%%%legacy applications adopted from mainstream operating systems such as \win{} or Linux.
 %%by emulating
 %%%The key challenge for reusing legacy application code
 %%%is to emulate 
@@ -253,8 +253,8 @@ the partial compatibility of an OS prototype. Another metric, which evaluates th
 %when partitioning the underlying operating systems.
 %In \graphene{},the idiosyncratic, Linux multi-process abstractions---forking, signals, \sysvipc{}, file descritor sharing, exit notification, etc---are coordinated across \picoprocs{} ver host-provided, pipe-like RPC streams.
 %The RPC-based, distributed implementation of OS abstractions can be isolated by simply sandboxing the RPC streams. \graphene{} can simplified the complexity of isolating shareable abstractions by simply forbidding RPC streams across untrusting applications.
-%\graphene{} can expand the support for Linux multi-process applications to various platforms, including \term{Intel SGX enclaves}.
-%In Intel SGX enclaves, \graphene{} can isolate Linux multi-process applications in a sealed environment,
+%\graphene{} can expand the support for Linux multi-process applications to various platforms, including \term{Intel \sgx{} enclaves}.
+%In Intel \sgx{} enclaves, \graphene{} can isolate Linux multi-process applications in a sealed environment,
 %fully immune to attacks from host OSes and hardware peripherals.
 %The design facilitates the security isolation of shareable OS state and abstraction via the simple, isolating host ABI.
 %The beneficial features of \graphene{}, %are comparable to virtualization
@@ -299,7 +299,7 @@ the partial compatibility of an OS prototype. Another metric, which evaluates th
 %based on other techniques from programming languages and code analysis.
 %These efforts include lifting the limitations imposed on more sophisticated languages
 %and creating clean, smooth transition of system states which the partitioning is based on.
-%We demonstrates an example in which applications can be painlessly partitioned into Intel SGX enclaves~\cite{intelsgx},
+%We demonstrates an example in which applications can be painlessly partitioned into Intel \sgx{} enclaves~\cite{intelsgx},
 %by leveraging advantages from the \java{} language,
 %on a system designed to transparently load and interface legacy \java{} classes in enclaves.
 %We propose a framework that automatically split a \java{} application into cleanly partitioned enclaves,
@@ -410,7 +410,7 @@ the partial compatibility of an OS prototype. Another metric, which evaluates th
 %Isolated execution, either enforced by hardware (e.g., \intel{} \sgx{}~\cite{intelsgx}) or hypervisors (e.g., Flicker~\cite{flicker}, VirtualGhost~\cite{criswell2014virtualghost}, etc), creates a privileged context for applications,
 %and prevents the system stacks above the hardware or the hypervisors
 %to compromise the confidentiality and integrity of the applications.  
-%We focus on combining \graphene{} with \sgx{}, as {\em \graphene{}-SGX},
+%We focus on combining \graphene{} with \sgx{}, as {\em \graphene{}-\sgx{}},
 %to provide stronger isolated execution than hypervisor-based solutions,
 %for defending against both OS-level and hardware-level attacks.
 %\gsgx{} improves the usability of \sgx{}, by minimizing the effort of porting native applications to the \sgx{} platform,

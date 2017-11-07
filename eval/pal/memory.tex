@@ -1,4 +1,4 @@
-\subsection{Page management}
+\papersubsection{Page management}
 \label{sec:eval:pal:memory}
 
 
@@ -10,13 +10,13 @@ due to different memory management models.
 The Linux PAL, for instance, has a memory management model
 similar to Linux,
 backed by demand paging.
-The SGX PAL, on the other hand, has to preallocate all pages at loading time.
-Although the SGX driver still swaps enclave pages,
+The \sgx{} PAL, on the other hand, has to preallocate all pages at loading time.
+Although the \sgx{} driver still swaps enclave pages,
 the latency of page-in and page-out can be up to 40,000 cycles~\cite{orenbach17eleos},
 %than normal page-in and page-out latency,
-and the current SGX hardware does not allow dynamically adding pages
+and the current \sgx{} hardware does not allow dynamically adding pages
 to an enclave.
-As a result, the SGX PAL includes an in-enclave memory allocator
+As a result, the \sgx{} PAL includes an in-enclave memory allocator
 which manages unused enclave pages
 and assigns the pages to memory allocation requests.
 To evaluate
@@ -44,7 +44,7 @@ the benchmark tests with different memory mapping sizes.
 \parbox{0.49\textwidth}{\centering\bf (a) allocation + deallocation}
 \parbox{0.49\textwidth}{\centering\bf (b) allocation + memory access + deallocation}
 \caption{Latency of (a) allocating and deallocating a range of virtual pages, and (b) the same operations with writing to each page after allocation. Lower is better.
-The comparison is between (1) \syscall{mmap} and \syscall{munmap} on Linux; (2) \palcall{VirtMemAlloc} and \palcall{VirtMemFree} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, with and without zeroing the pages before use ({\bf +Zero}).}
+The comparison is between (1) \syscall{mmap} and \syscall{munmap} on Linux; (2) \palcall{VirtMemAlloc} and \palcall{VirtMemFree} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the \sgx{} PAL, with and without zeroing the pages before use ({\bf +Zero}).}
 \label{fig:eval:pal:mmap-latency}
 \end{figure*}
 
@@ -61,7 +61,7 @@ For the Linux PAL, the latency
 of \palcall{VirtMemAlloc} and  \palcall{VirtMemFree} is 50--80\% higher
 than \syscall{mmap} and \syscall{munmap} on Linux
 (the overheads of \seccomp{} filter and reference monitor is negligible).
-For the SGX PAL,
+For the \sgx{} PAL,
 the latency of allocation and deallocation
 is much lower,
 at \roughly{}10\% of the latency of \syscall{mmap} and \syscall{munmap}.
@@ -69,15 +69,15 @@ at \roughly{}10\% of the latency of \syscall{mmap} and \syscall{munmap}.
 %updates the bookkeeping inside the page allocator
 %and never exits the enclave.
 However,
-since SGX doesn't guarantee the initial state of unmeasured enclave pages,
-the SGX PAL needs to zero all pages
+since \sgx{} doesn't guarantee the initial state of unmeasured enclave pages,
+the \sgx{} PAL needs to zero all pages
 before passing to the guest.
 Accessing the pages after allocation
 may cause cache misses and enclave page swapping,
 when the allocation size
 is larger than the size of last-level cache.
 The result shows that,
-if the SGX PAL zeros pages after allocation,
+if the \sgx{} PAL zeros pages after allocation,
 the latency of allocation and deallocation can increase by up to several orders of magnitude.
 %be order-of-magnitude higher than \syscall{mmap} and \syscall{munmap}.
 
@@ -91,9 +91,9 @@ The benchmark results show almost no difference
 between the latency on the Linux PAL and in a native Linux process.
 Because the benchmark only access the first words
 of every pages,
-the latency on the SGX PAL without page zeroing
+the latency on the \sgx{} PAL without page zeroing
 is still lower than the Linux PAL.
-If the SGX PAL zeros the pages after allocation,
+If the \sgx{} PAL zeros the pages after allocation,
 accessing the first words
 of every pages causes no additional overheads
 on the overall latency.

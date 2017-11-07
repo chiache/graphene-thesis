@@ -1,4 +1,4 @@
-\section{Coordinating guest OS states}
+\papersection{Coordinating guest OS states}
 \label{sec:libos:namespaces}
 
 %\fixmedp{RF: what are the few, powerful mechanisms?  Expect that there are many cases 
@@ -170,7 +170,7 @@ presents the design and driving insights of the coordination framework,
 followed by representative examples 
 and a discussion of failure recovery.
 
-\subsection{Building blocks}
+\papersubsection{Building blocks}
 \label{sec:libos:namespaces:building-blocks}
 
 The general problem underlying each of the coordinated \libos{} states is 
@@ -264,7 +264,7 @@ ensuring serializability and consistency for that resource.
 %encode both state replication and RPC 
 %messages.
 
-\subsection{Examples and discussion}
+\papersubsection{Examples and discussion}
 \label{sec:libos:namespaces:details}
 
 %This subsection describes \libos{} coordination by example.
@@ -528,7 +528,7 @@ does not currently permit shared memory among \picoprocs{}.
 This thesis expects that an extra \hostapi{} and the existing support for System V IPC coordination would be sufficient to implement this,
 with the caveat that the host must be able to handle sandbox disconnection gracefully, perhaps converting the pages to copy-on-write.
 Thus far \graphene{} have avoided the use of shared memory in \thelibos{},
-both to maximize flexibility in placement of \picoprocs{}, potentially on an unconventional host (e.g., Intel SGX) or different physical machines.
+both to maximize flexibility in placement of \picoprocs{}, potentially on an unconventional host (e.g., Intel \sgx{}) or different physical machines.
 and to keep all coordination requests explicit.
 Shared memory may be useful to reduce latency for RPC messaging across \picoprocs{} on the same host.
 
@@ -585,7 +585,7 @@ as a result, the sandboxed \picoproc{} seamlessly transitions to new namespaces 
 
 %Once it starts the leadership recovery, it will automatically win because no other \picoproc{} is sharing the broadcast stream. The procedure can be skipped by informing the sandboxed \picoproc{} before detaching.
 
-\subsection{Lessons learned}
+\papersubsection{Lessons learned}
 \label{sec:libos:namespaces:lessons}
 
 The current coordination design is the product of several iterations, which began 

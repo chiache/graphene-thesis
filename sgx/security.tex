@@ -1,4 +1,4 @@
-\section{Security models}
+\papersection{Security models}
 \label{sec:sgx:security}
 
 This section discusses 
@@ -16,12 +16,12 @@ multi-process applications.
 % of the \graphenesgx{} framework, including the trusted and untrusted components,
 %and the security implications of known \sgx{}-related threats to this framework.
 
-%\subsection{Single-process, Linux COTS applications}
+%\papersubsection{Single-process, Linux COTS applications}
 
-\subsection{Threat model}
+\papersubsection{Threat model}
 \label{sec:sgx:overview:threat}
 
-\graphenesgx{} assumes a typical threat model for SGX enclaves, different from \graphene{} on a trusted Linux kernel or other hosts.
+\graphenesgx{} assumes a typical threat model for \sgx{} enclaves, different from \graphene{} on a trusted Linux kernel or other hosts.
 An application only trusts the CPUs package and any code running inside the enclave, including the library OS (\thelibos{}), a trusted PAL, \libc{}, and any supporting libraries. 
 All other components are untrusted:
 (1) hardware outside of the Intel CPU package(s),
@@ -45,23 +45,23 @@ only for liveness, but not safety.
 %\fixmedp{pls check}
 The trust computing base (TCB) of \graphenesgx{} also includes
 an architectural enclave,
-called \code{aesmd}, provided by Intel's SGX SDK~\cite{intel-sgx-linux-sdk}.
+called \code{aesmd}, provided by Intel's \sgx{} SDK~\cite{intel-sgx-linux-sdk}.
 \code{aesmd} is a privileged enclave
 authenticated by Intel's master signing key;
 \code{aesmd} receives attributes in the enclave signature of an application,
 and generates a token for approving enclave creation.
 %\fixmedp{please check the next sentence}
-Any framework that uses SGX for remote attestation must connect to {\tt aesmd}
+Any framework that uses \sgx{} for remote attestation must connect to {\tt aesmd}
 to obtain a quote for proving that the enclave is running on an authentic Intel CPU, instead of a simulator. 
-\graphenesgx{} uses, but does not trust, the Intel SGX kernel driver, which mediates the creation of enclaves and swaps enclave pages.
-The current SGX hardware
+\graphenesgx{} uses, but does not trust, the Intel \sgx{} kernel driver, which mediates the creation of enclaves and swaps enclave pages.
+The current \sgx{} hardware
 has a 128MB limitation on the total amount of physical memory shared among all concurrent enclaves on the same host,
-and the Intel SGX kernel driver swaps enclave pages to storage,
+and the Intel \sgx{} kernel driver swaps enclave pages to storage,
 %in an encrypted and authenticated form,
 when one of the running enclaves demands more
 physical memory.
-%\edit{Any framework that uses SGX for remote attestation must also trust {\tt aesmd} for generating a cryptographic proof of the integrity of the Intel CPU.}
-Other than the {\tt aesmd} enclave and the Intel SGX kernel driver, \graphenesgx{} does not use or trust any other system software.
+%\edit{Any framework that uses \sgx{} for remote attestation must also trust {\tt aesmd} for generating a cryptographic proof of the integrity of the Intel CPU.}
+Other than the {\tt aesmd} enclave and the Intel \sgx{} kernel driver, \graphenesgx{} does not use or trust any other system software.
 
 %Any application that does remote attestation, including on \graphenesgx{}, must also trust {\tt AESMD},
 %an enclave provided by Intel which implements remote attestation.
@@ -69,7 +69,7 @@ Other than the {\tt aesmd} enclave and the Intel SGX kernel driver, \graphenesgx
 
 \graphenesgx{} only handles the challenges of shielding an application from any attacks leveraging the vulnerabilities on the host interface (i.e., Iago attacks).
 Other application-specific security threats
-for SGX are beyond the scope of \graphenesgx{}.
+for \sgx{} are beyond the scope of \graphenesgx{}.
 For instance, an untrusted kernel
 can interrupt the enclave execution and refuse to schedule CPU resources to enclaves,
 causing deinal-of-service (DoS) in applications.
@@ -77,10 +77,10 @@ Several work point out that
 an enclave can leak application secrets through
 side channels or controlled channels
 in cache architectures, memory access patterns, network traffics, and more.~\cite{xu15controlledchannel,atc17side-channel,chen17side-channel,gotzfried17cache-attack,moghimi17cachezoom,xiao17stacco,wang17side-channel}.
-%are vulnerabilities common to all SGX frameworks, and 
+%are vulnerabilities common to all \sgx{} frameworks, and 
 %are beyond the scope of this work.
 %\edit{Denial-of-service attacks by blocking CPU, memory, or IO resources are also beyond our scope.}
-The techniques of thwarting or concealing side channels are application-specific and cannot be solely enforced in SGX frameworks or hardware.
+The techniques of thwarting or concealing side channels are application-specific and cannot be solely enforced in \sgx{} frameworks or hardware.
 Several cryptographic function implementations
 have been known to be vulnerable to side channel attacks~\cite{zhou2005side-channels,yarom2017cachebleed};
 %developers and users should avoid using these vulnerable implementations
@@ -90,11 +90,11 @@ and switch to more secure,
 hardware-accelerated AES-NI~\cite{hofemeier2012aesni}.
 
 
-\subsection{User policy configuration}
+\papersubsection{User policy configuration}
 \label{sec:sgx:overview:config}
 
 
-Despite that \graphenesgx{} supports running an unmodified application on SGX,
+Despite that \graphenesgx{} supports running an unmodified application on \sgx{},
 the user must make certain policy decisions
 regarding how \graphenesgx{} should shield the application.
 The requirement is that
@@ -159,12 +159,12 @@ and enabling debug output, are also protected as part of the signed manifest.
 %%% The manifest file and enclave signature can be shipped and stored on an untrusted media, since the enclave signature also uniquely reflects manifest file.
 
 \begin{comment}
-\subsection{Provisioning and Attestation}
+\papersubsection{Provisioning and Attestation}
 
 \fixmedp{We need a 1 para introduction to provisioning.  What is a provisioning server, and why do I need it?}
 
 Once the \graphenesgx{} framework takes an application with its manifest file and enclave signature,
-it creates an SGX enclave and step-by-step establishes
+it creates an \sgx{} enclave and step-by-step establishes
 the trust of the remote provisioning server(s). 
 We divide the process of trust establishment into three stages:
 
@@ -213,10 +213,10 @@ an architectural enclave, {\tt AESMD}, introduced by the \sgxsdk{},
 has to be trusted in our threat model.
 The purpose of this enclave is to verify the attributes in enclave signatures
 and generate a run-time token for initializing the enclave execution.
-The {\tt AESMD} enclave is secured by a private key owned by Intel and the correspondent public key is recognized by all Intel CPUs with SGX.
+The {\tt AESMD} enclave is secured by a private key owned by Intel and the correspondent public key is recognized by all Intel CPUs with \sgx{}.
 
 %Besides the enclaves where applications are loaded,
-%an architectural enclave called {\tt aesm} on each platform that supports SGX
+%an architectural enclave called {\tt aesm} on each platform that supports \sgx{}
 %must be trusted by all enclave.
 %{\tt AESM} is a secured service signed by Intel for generating
 %valid enclave tokens.
@@ -229,13 +229,13 @@ The {\tt AESMD} enclave is secured by a private key owned by Intel and the corre
 
 
 
-%\subsection{Remote Attestation and Secure Provisioning}
+%\papersubsection{Remote Attestation and Secure Provisioning}
 %
 %For enclaves, the only way to be securely provisioned by another entity
 %is by attestation.
-%SGX provides a signed proof of the enclave measurement,
+%\sgx{} provides a signed proof of the enclave measurement,
 %which can be verified by other entities as long as their platforms
-%also support SGX.
+%also support \sgx{}.
 %In \haven{} model, the same shielding module cannot have different applications
 %securely provisioned, because their enclave measurements will simply
 %appear no difference.
@@ -246,7 +246,7 @@ The {\tt AESMD} enclave is secured by a private key owned by Intel and the corre
 
 
 
-\subsection{Inter-enclave coordination}
+\papersubsection{Inter-enclave coordination}
 \label{sec:sgx:overview:multiproc}
 
 
@@ -341,7 +341,7 @@ a mechanism to securely fork into a new enclave, adding the child to the enclave
 %\fixmedp{This subsection isn't adding much (a lot of philosophy that isnt' directly relevant; cutting for now}
 
 \begin{comment}
-\subsection{Verification and authentication}
+\papersubsection{Verification and authentication}
 
 
 Despite that most applications hosted by
@@ -365,7 +365,7 @@ is still an option, we argue that it is feasible to automate the verification pr
 
 
 
-\subsection{Side-channel Attacks}
+\papersubsection{Side-channel Attacks}
 
 Preventing the enclaves from leaking side-channel information to the untrusted hosts is extremely challenging.
 %Since enclaves are launched on untrusted hosts, it is hard to prevent

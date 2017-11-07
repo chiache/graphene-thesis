@@ -1,10 +1,10 @@
-\subsection{Shielding multi-process applications}
+\papersubsection{Shielding multi-process applications}
 \label{sec:sgx:shield:multiproc}
 
 Many Linux applications use multi-process abstractions,
 which are implemented using copy-on-write fork and in-kernel
 IPC abstractions.
-In SGX, the host OS is untrusted, and enclaves cannot share protected memory.
+In \sgx{}, the host OS is untrusted, and enclaves cannot share protected memory.
 Fortunately, \graphene{} implements multi-process support
 including \syscall{fork}, \syscall{execve}, signals, and a subset of IPC mechanisms,
 using message passing instead of shared memory.
@@ -37,7 +37,7 @@ multi-processing abstractions from an untrusted OS.
 %(namespace coordination, signals, System V IPC, etc)
 %with process isolation.
 
-%\subsubsection{Forking into new enclaves}
+%\papersubsubsection{Forking into new enclaves}
 %\label{sec:multiproc:fork}
 
 \begin{figure}[t!]
@@ -236,9 +236,9 @@ from the OS.
 %by coordinating OS state over RPC streams, rather than using shared memory. 
 
 %% dp: this point already made above
-%Because SGX does not allow enclaves to share trusted memory,
+%Because \sgx{} does not allow enclaves to share trusted memory,
 %the fact that the original Graphene design did not require shared memory
-%made porting to SGX considerably easier.
+%made porting to \sgx{} considerably easier.
 
 % (pipes).
 %Such a design is perfect for porting multi-process applications to enclaves.

@@ -1,4 +1,4 @@
-\section{Exporting the host ABI}
+\papersection{Exporting the host ABI}
 \label{sec:linux:impl}
 
 \issuedone{1.1.a}{Extend the technical sections}
@@ -55,7 +55,7 @@ GNU Library C ({\tt libc}, {\tt ld}, {\tt libdl}, {\tt libpthread}) & \libclines
 \hline
 Linux Library OS (\thelibos{}) & 31,112 & \\
 Linux PAL & 12,529 & \\
-%Extra code for Linux SGX host \pal{} & 9.354 & \\
+%Extra code for Linux \sgx{} host \pal{} & 9.354 & \\
 % updated by Chia-Che on Oct. 10, 2013
 \hline
 %Storage Server & \fixmedp{XX} & \\
@@ -71,7 +71,7 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 
 %\paragraph{Alternative \pal{} Ports.}
 %We prove the platform independence of \graphene{}
-%by porting \pal{} to \emph{FreeBSD}, \emph{OSX} and \emph{Windows}.
+%by porting \pal{} to \emph{FreeBSD}, \emph{\osx{}} and \emph{\win{}}.
 %With the alternative host \pal{}, unmodified Linux binaries,
 %along with {\tt glibc} and {libLinux},
 %can be transparently run on the host.
@@ -80,7 +80,7 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 %which are significantly less than FreeBSD Linux compatibility module (10.8 kLoC).
 %\pal{} components including ELF loader and internal support code can be shared by any \pal{} ports.
 
-%\fix{We leave host \pal{} ports to non-unix OSes like Windows as future work,
+%\fix{We leave host \pal{} ports to non-unix OSes like \win{} as future work,
 %but previous works~\cite{porter11drawbridge,baumann13bascule} have already shown it feasible.}
 
 
@@ -94,12 +94,12 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 %\fixmedp{Chia-Che, update LoC table}
 
 
-\subsection{Implementation details}
+\papersubsection{Implementation details}
 
 The rest of this section
 will discuss a few PAL ABI abstractions that are particularly challenging on a Linux host.
 Similar challenges have been presented %have been observed for implementing \thehostabi{}
-on other alternative host kernels such as FreeBSD, OS X, and Windows.
+on other alternative host kernels such as FreeBSD, \osx{}, and \win{}.
 %except that other kernels might introduce additional host-specific challenges.
 
 
@@ -186,13 +186,13 @@ or just kill the \picoproc{} when a double fault happens.
 
 
 %\paragraph{Synchronization.} Perhaps surprisingly, implementing Linux
-%synchronization appears substantially easier than Windows synchronization, 
+%synchronization appears substantially easier than \win{} synchronization, 
 %as {\tt libLinux} did not require all of the various
 %synchronization ABIs provided by Drawbridge.
 %We believe the reason for this is that Linux has consolidated 
 %all user-level synchronization primitives to use futexes~\cite{franke02futex},
 %which are essentially kernel-level wait queues.
-%%In Windows parlance, this is simply an Event associated with a virtual address.
+%%In \win{} parlance, this is simply an Event associated with a virtual address.
 %%Thus, our effort implementing synchronization was relatively straightforward.
 
 

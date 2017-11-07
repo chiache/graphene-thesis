@@ -1,4 +1,4 @@
-\chapter{Introduction}
+\paperchapter{Introduction}
 \label{chap:intro}
 
 Operating systems simplify programming an application utilizing different hardware.
@@ -44,7 +44,7 @@ across hardware configurations.
 %The only exception is the portability across CPU architectures,
 %Otherwise, application developers would expect an application, built without dependency to %specific hardware, to be reusable in an OS regardless of what hardware users choose.
 %The same assumption on application portability has been shared among
-%Linux~\cite{linux-standard-base}, Windows~\cite{win-api}, or POSIX~\cite{ieee-posix}.
+%Linux~\cite{linux-standard-base}, \win{}~\cite{win-api}, or POSIX~\cite{ieee-posix}.
 
 
 
@@ -132,37 +132,37 @@ encapsulated by OSes;
 %and thus demands extra attention for adoption.}
 %The challenges emerge as more ground-breaking hardware technologies
 %have been released in the industry.
-\issuedone{1.2.b}{Specify SGX as a motivating example}
-one example is SGX (software guard extensions)~\cite{intelsgx}
+\issuedone{1.2.b}{Specify \sgx{} as a motivating example}
+one example is \sgx{} (software guard extensions)~\cite{intelsgx}
 on recent Intel CPUs.
-SGX protects an application
+\sgx{} protects an application
 with integrity and confidentiality, without trusting other system components 
 such as OSes, hypervisors, and system software.
-Although an SGX application
+Although an \sgx{} application
 may still utilize system interfaces for OS functionality
 such as file systems and networking, the application does not assume
 the OS to be reliable.
-Therefore, SGX raises several compatibility issues to
+Therefore, \sgx{} raises several compatibility issues to
 existing system interfaces,
 including the challenges of checking system interface results
 on an untrusted OS.
-%however, SGX also raises several compatibility issues, including reverting the trusted nature of OS services.
+%however, \sgx{} also raises several compatibility issues, including reverting the trusted nature of OS services.
 %and restricting the sharing of isolated application memory~\cite{shinde17panoply}.
 Other examples can be found among research-type architectures,
 such as an asymmetric multi-processing architectures
 without inter-connected memory~\cite{gschwind2007,cascaval2002evaluation},
 which challenges inter-process coordination.
 %which complicates the implementation of state-sharing, multi-process abstractions. 
-%Despite the benefits of SGX on application protection,
-%SGX requires changing the applications to defend against malicious OS services,
-%and to work around several compatibility issues of the restricted ISA of SGX (more details discussed in Section~\ref{sec:intro:sgx}).
-%Especially, the size and subtlety of the Linux or Windows system interface
-%makes it unsuitable for adopting applications to SGX~\cite{checkoway13iago}, because SGX has fundamentally changed the nature of OS services.
-%Several recent publications mitigate part of the compatibility issue for deploying applications on SGX~\cite{baumann14haven,osdi16scone,shinde17panoply}.
+%Despite the benefits of \sgx{} on application protection,
+%\sgx{} requires changing the applications to defend against malicious OS services,
+%and to work around several compatibility issues of the restricted ISA of \sgx{} (more details discussed in Section~\ref{sec:intro:sgx}).
+%Especially, the size and subtlety of the Linux or \win{} system interface
+%makes it unsuitable for adopting applications to \sgx{}~\cite{checkoway13iago}, because \sgx{} has fundamentally changed the nature of OS services.
+%Several recent publications mitigate part of the compatibility issue for deploying applications on \sgx{}~\cite{baumann14haven,osdi16scone,shinde17panoply}.
 %This thesis
-%uses SGX as a strong motivating example (see Section~\ref{sec:intro:sgx}),
-%because SGX fundamentally reverses a critical OS assumption, and causes a combination of compatibility and security problems.
-%SGX shows that compatibility issues can be distraction to innovations.
+%uses \sgx{} as a strong motivating example (see Section~\ref{sec:intro:sgx}),
+%because \sgx{} fundamentally reverses a critical OS assumption, and causes a combination of compatibility and security problems.
+%\sgx{} shows that compatibility issues can be distraction to innovations.
 As more disruptive hardware
 may emerge in the future, OS developers should
 gradually promote new system interfaces which encapsulate latest hardware semantics; simultaneously, existing applications require timely solutions to resolve urgent compatibility issues on specific hardware.
@@ -186,17 +186,17 @@ the unsafe version.
 %until the process finally expires.
 %Imaginably, a more large-scale modification of the system interface
 %may be catastrophic.
-At a larger scale, an early version of Windows Vista introduces
+At a larger scale, an early version of \win{} Vista introduces
 %Moreover, if a system interface is changed on a large scale,
 %the result may be catastrophic:
-%a well-known example is an early version of Windows Vista,
+%a well-known example is an early version of \win{} Vista,
 %codenamed ``Longhorn'',
 a brand-new user interface API
 and file system,
 but ends up losing popularity due to compatibility-related complaints~\cite{spolsky04microsoft-api-war}.
 Because users prefer to use an application or a system
 that hasn't broke,
-earlier versions of OSes, such as Windows XP, remain popular even after end-of-service.
+earlier versions of OSes, such as \win{} XP, remain popular even after end-of-service.
 %Maintaining system interface compatibility is generally a responsibility of OS developers;
 %while extending an OS for expanding the portability of applications
 %on new hardware.
@@ -238,8 +238,8 @@ for adopting new hardware or addressing system challenges.
 A compatibility layer between the application and the OS
 can bridge the gap between interfaces.
 %system interface definitions, including both the APIs and the nature of OS features.
-Take SGX for example;
-the compatibility challenges on SGX include
+Take \sgx{} for example;
+the compatibility challenges on \sgx{} include
 secure dynamic loading,
 redirecting system calls to host OSes, and inject security checks against untrusted system call results.
 The goal is to reduce the effort of porting a compatibility layer
@@ -269,7 +269,7 @@ majority of code does not have to be rewritten when porting to a new host interf
 %
 %%is influenced by the design of plenty of pre-existing hardware,
 %%and thus is difficult to change for another disruptive hardware.
-%%For example, a monolithic OS, such as Linux or Windows, assumes a unified kernel, which mediates all operations from applications to request hardware resources and abstractions.
+%%For example, a monolithic OS, such as Linux or \win{}, assumes a unified kernel, which mediates all operations from applications to request hardware resources and abstractions.
 %Also, an OS prototype built from scratch
 %can redefine a system interface which accommodates a new hardware, or optimizes for it~\cite{baumann09barrelfish,peter14arrakis,belay14ix}.
 %%and may require compatibility against deployed applications.
@@ -347,7 +347,7 @@ and is easily ported to different host system interfaces
 and hardware platforms. 
 This thesis demonstrates the simplicity
 by porting the host ABI
-to two representative host examples, a Linux kernel and an isolated environment with SGX.
+to two representative host examples, a Linux kernel and an isolated environment with \sgx{}.
 %The \graphene{} library OS
 %is developed upon a narrowed host interface, defined as a host ABI (application binary interface),
 %to be easily ported to various host options.
@@ -357,7 +357,7 @@ to two representative host examples, a Linux kernel and an isolated environment 
 %So far \graphene{}
 %has been targeting several host options,
 Other ongoing ports
-include alternative kernels such as Windows, OSX, and FreeBSD, and research OSes such as L4 microkernels~\cite{l4family} and Barrelfish~\cite{baumann09barrelfish}.
+include alternative kernels such as \win{}, \osx{}, and FreeBSD, and research OSes such as L4 microkernels~\cite{l4family} and Barrelfish~\cite{baumann09barrelfish}.
 
 
 
@@ -414,16 +414,16 @@ upon a narrowed host ABI containing \palcallnum{} functions.
 a part of the host ABI from \drawbridge{}~\cite{porter11drawbridge},
 a previous library OS developed for reusing 
 %which has demonstrated compatibility benefit over
-Windows applications.
+\win{} applications.
 \drawbridge{} uses the \libos{} as a lightweight VM
-to run Windows desktop applications such as in a guest environment.
+to run \win{} desktop applications such as in a guest environment.
 Running a \libos{} as a partitioned OS component also requires
 less memory resource than a full VM,
 and thus improve the density of packing guests in a physical machine.
 Bascule~\cite{baumann13bascule} later adopts the design
 to implement single-process, Linux system calls.
 %, and inserting host-level extension layers.
-Finally, Haven~\cite{baumann14haven} ports \drawbridge{} to SGX, to shield Windows application from untrusted host OSes.
+Finally, Haven~\cite{baumann14haven} ports \drawbridge{} to \sgx{}, to shield \win{} application from untrusted host OSes.
 \graphene{} %extends the concept of previous work
 presents solution for running unmodified applications
 upon a variety of host OSes and hardware,
@@ -467,7 +467,7 @@ in a \libos{} or a research prototype.
 %\end{compactenum}
 
 
-%\section{Evaluating API compatibility}
+%\papersection{Evaluating API compatibility}
 
 
 
@@ -486,26 +486,26 @@ in a \libos{} or a research prototype.
 %half of the Linux system calls,
 %which are either for administrative use (e.g., halting the machine), or unpopular among applications.
 
-\section{Motivating examples}
+\papersection{Motivating examples}
 
 \issuedone{1.1.b}{Adding motivating examples in the intro}
 This section shows two examples in which developing a compatible OS for existing applications can be challenging, to motivate the library OS design.
 
 
-\subsection{Unmodified applications on SGX}
+\papersubsection{Unmodified applications on \sgx{}}
 \label{sec:intro:sgx}
 
 
 %One of the motivating examples, for using \libos{} to improve application compatibility,
 %is the support of unmodified Linux application
-%on the platform of Intel (SGX)~\cite{intelsgx}.
-SGX~\cite{intelsgx}, or Software Guard Extensions, are a set of new instructions on Intel CPUs.
+%on the platform of Intel (\sgx{})~\cite{intelsgx}.
+\sgx{}~\cite{intelsgx}, or Software Guard Extensions, are a set of new instructions on Intel CPUs.
 %provide the hardware support for trustworthy, isolated execution, as part of the sixth-generation Intel CPU extensions.
-%Using SGX, application developers 
-The purpose of SGX
+%Using \sgx{}, application developers 
+The purpose of \sgx{}
 is to protect application code from compromised OSes, hypervisors, and system software,
 with both integrity and confidentiality protection.
-The abstraction of SGX is 
+The abstraction of \sgx{} is 
 an {\bf enclaves}, 
 an isolation environment where an application can securely
 utilize the CPU and memory
@@ -517,29 +517,29 @@ Application code and data inside an enclave are both signed and encrypted
 inside the DRAM,
 and will be authenticated and decrypted
 when bringing into the last-level cache at cache miss.
-%By running the application code on SGX, the code has 
+%By running the application code on \sgx{}, the code has 
 %emory state inside of the protected code
 %to be signed and encrypted, when the code and data leave the CPU package and are stored in the DRAM or swap device.
-SGX also offers remote attestation of the integrity of an enclave
+\sgx{} also offers remote attestation of the integrity of an enclave
 and the CPU.
-SGX provides opportunities of delegating security-sensitive operations
+\sgx{} provides opportunities of delegating security-sensitive operations
 to untrusted hosts such as a public cloud
 or a client machine,
 without compromising on security.
 
 
 
-%A Linux application running on Intel SGX can receive end-to-end protection from the untrusted OSes, but also no longer have a trustworthy OS to faithfully return correct, benign OS features, such as reading a file or creating a thread.
+%A Linux application running on Intel \sgx{} can receive end-to-end protection from the untrusted OSes, but also no longer have a trustworthy OS to faithfully return correct, benign OS features, such as reading a file or creating a thread.
 %The untrusted OS can potentially launch attacks through manipulating  
 %valid return values to applications, which are known as the Iago attacks.
-%The problem of defending against Iago attacks is that these attacks are hard to predict among all the scenarios and corner cases in the full OS functionality of a modern OS like Linux or Windows, given the complexity of OS semantics and the lack of study on untrusted OSes.
+%The problem of defending against Iago attacks is that these attacks are hard to predict among all the scenarios and corner cases in the full OS functionality of a modern OS like Linux or \win{}, given the complexity of OS semantics and the lack of study on untrusted OSes.
 %As a result,
-%building an ad hoc compatibility layer to implement and defend OS features for general Linux applications in Intel SGX
+%building an ad hoc compatibility layer to implement and defend OS features for general Linux applications in Intel \sgx{}
 %not only is cumbersome but also cannot be properly checked for security.
 
 
 Despite the benefits,
-the common expectation for utilizing SGX is
+the common expectation for utilizing \sgx{} is
 that developers partition a piece of application code to run inside an enclave.
 The restriction is for both security and simplicity reasons.
 The initial code in an enclave must be
@@ -548,29 +548,29 @@ with a security measurement to verify inside the CPU.
 %and thus is easier to sign and verify.
 Developers must also removing system calls and
 certain instructions such as \code{cpuid} and \code{rdtsc} from an application.
-%If users intend to run an unmodified application, SGX imposes several restrictions on running unmodified applications inside an enclave.
-%The restrictions are either imposed by the SGX hardware in the run time, or statically by the official Intel SGX SDK (software development kit).
-SGX forbids these instructions
+%If users intend to run an unmodified application, \sgx{} imposes several restrictions on running unmodified applications inside an enclave.
+%The restrictions are either imposed by the \sgx{} hardware in the run time, or statically by the official Intel \sgx{} SDK (software development kit).
+\sgx{} forbids these instructions
 for blocking
 dangerous behaviors that may jeopardize application security.
 For instance,
 system calls serviced by an untrusted OS
 may returns malicious results
 to applications.
-Also, SGX forbids \code{cpuid} and \code{rdtsc} because these instructions are easily intercepted or spoofed by an OS
+Also, \sgx{} forbids \code{cpuid} and \code{rdtsc} because these instructions are easily intercepted or spoofed by an OS
 or a hypervisor.
-These restrictions cost developers porting effort to modify existing applications for SGX.
+These restrictions cost developers porting effort to modify existing applications for \sgx{}.
 
 %%including \code{cpuid} and \code{rdtsc}, for the clarity of shielding these hardware features.
-%SGX forbids \code{cpuid} in case of combining with the hardware virtualization (VT),
+%\sgx{} forbids \code{cpuid} in case of combining with the hardware virtualization (VT),
 %to avoid trapping to hypervisors.
-%%, which is untrusted in the threat model of SGX.
-%SGX also forbids \code{rdtsc}, in order to rule out potential physical attacks on the Time Stamp Counter (TSC). 
+%%, which is untrusted in the threat model of \sgx{}.
+%\sgx{} also forbids \code{rdtsc}, in order to rule out potential physical attacks on the Time Stamp Counter (TSC). 
 %%The application developers would have to remove these instructions from the applications in order to run inside an enclave.
 
 
-\issuedone{1.2.c}{Discuss challenges of SGX shielding}
-SGX excludes OS services from the trust model, except functions which can be fully ported to user space (e.g., \syscall{malloc}).
+\issuedone{1.2.c}{Discuss challenges of \sgx{} shielding}
+\sgx{} excludes OS services from the trust model, except functions which can be fully ported to user space (e.g., \syscall{malloc}).
 The absence of trusted OS services is an issue for porting any application.
 Existing solutions combine a modified C library with applications, to redirect system calls
 to the untrusted OS~\cite{osdi16scone,shinde17panoply}.
@@ -582,7 +582,7 @@ Previous work~\cite{checkoway13iago} shows that
 checking untrusted system interface results can be subtle, because the existing system interfaces are not designed for an untrusted or compromised OS.
 
 
-In summary, the existing porting models of SGX requires modifying application binaries, and injecting security checks for all the OS features used by an application.
+In summary, the existing porting models of \sgx{} requires modifying application binaries, and injecting security checks for all the OS features used by an application.
 %checking reasoning about the completeness of checking system interfaces.
 This thesis argues that, by introducing a library OS into enclaves,
 the interaction with the untrusted OS can be restricted to OS services which have clear semantics for checking.
@@ -592,7 +592,7 @@ users can easily run an unmodified Linux application, such as an Apache server o
 
 
 
-\subsection{Emulating multi-process abstractions}
+\papersubsection{Emulating multi-process abstractions}
 \label{sec:intro:multiproc}
 
 
@@ -664,9 +664,9 @@ Monolithic OSes such as Linux generally implements IPC mechanisms as shared stat
 Sharing kernel states, however, causes process sandboxing
 to be vulnerable in the kernel space.
 %or in an application
-%isolated by hardware like Intel SGX.
+%isolated by hardware like Intel \sgx{}.
 An isolated OS design tends to avoid sharing privileged OS states with other applications.
-%For example, on SGX, an enclave cannot share trusted memory with other enclaves.
+%For example, on \sgx{}, an enclave cannot share trusted memory with other enclaves.
 %The only possible solution without introducing more OS functionality into enclaves is to export the encrypted states to the untrusted kernel, which will suffer significant overheads.
 
 
@@ -681,7 +681,7 @@ for porting multi-process applications to a variety of OSes and architectures.
 
 
 
-\section{Security isolation}
+\papersection{Security isolation}
 \label{sec:intro:security}
 
 \issuedone{1.1.d}{Separate the motivation for security isolation}
@@ -703,7 +703,7 @@ reduces the complexity of enforcing security isolation on applications,
 under different threat models.
 For instance, on a Linux host, the security implication of using \graphene{} is to isolate mutually-untrusting applications,
 similar to running each of these applications inside a OS sandbox.
-A SGX host, on the other hand, enforces a different threat model,
+A \sgx{} host, on the other hand, enforces a different threat model,
 where an enclave untrusted any OS components and applications running
 outside of the enclave.
 With two opposite threat models,
@@ -790,9 +790,9 @@ by enforcing isolation rules on three host abstractions,
 
 
 
-For SGX, \graphene{} addresses a specific set of security isolation challenges.
+For \sgx{}, \graphene{} addresses a specific set of security isolation challenges.
 In addition to isolating mutually-untrusting applications,
-\graphene{} also isolate an SGX application
+\graphene{} also isolate an \sgx{} application
 from untrusted operating systems, hypervisor, or system software.
 Existing system APIs, such as system calls, expose a wide attack surface
 to an untrusted host, where an adversary
@@ -813,7 +813,7 @@ of protection against untrusted host components.
 
 
 
-\section{Summary}
+\papersection{Summary}
 
 This thesis contributes a library OS design, called \graphene{},
 which demonstrates the benefits on reusing unmodified Linux applications, upon new hardware or OS prototypes.
@@ -830,19 +830,19 @@ to reuse a wide range of applications, from server applications to language runt
 \paragraph{Previous publications.}
 The initial design of the \graphene{} library OS is presented in \cite{tsai14graphene}, which emphasizes on security isolation, between mutually-untrusted applications.
 A later publication~\cite{tsai17graphene-sgx} focuses on porting the host ABI
-to Intel SGX, and demonstrates the security benefit 
+to Intel \sgx{}, and demonstrates the security benefit 
 over a thin redirection layer, and the usability feature to run unmodified applications.
 \cite{tsai16apistudy} presents the compatibility metrics for compatibility,
 with a study of the Linux API usage among Ubuntu users and applications.
 
-\section{Organization}
+\papersection{Organization}
 
 The rest of this thesis is organized as follows:
 Chapter~\ref{chap:overview} describes the overview of Graphene (including the host ABI and the library OS) and the design principles behind the implementation.
 Chapter~\ref{chap:abi} formally defines the host ABI, and provides a specification of the host-specific PAL (platform adaption layer).
 Chapter~\ref{chap:libos} discusses the library OS in details.
 Chapter~\ref{chap:linux} describes the PAL on Linux, as an example of implementing the host ABI and security isolation between library OS instances.
-Chapter~\ref{chap:sgx} discusses SGX-specific challenges to application porting, and the PAL implementation inside a SGX enclave.
+Chapter~\ref{chap:sgx} discusses \sgx{}-specific challenges to application porting, and the PAL implementation inside a \sgx{} enclave.
 Chapter~\ref{chap:eval} evaluates the performance and memory footprint of \graphene{} and \graphenesgx{},
 and presents a security study.
 Chapter~\ref{chap:metric} presents a quantitative metric for compatibility,

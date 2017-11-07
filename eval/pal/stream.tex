@@ -1,4 +1,4 @@
-\subsection{Stream I/O}
+\papersubsection{Stream I/O}
 \label{sec:eval:pal:stream}
 
 This section separate the evaluation of stream I/O in \thehostabi{} into 
@@ -35,7 +35,7 @@ is correlated with the length and depth
 of file paths request,
 as shown in Figure~\ref{fig:eval:pal:open-latency} (a).
 %The evaluation shows the latency of identifying a file inside the host storage and attaching the file resources to the running application. 
-%Figure~\ref{fig:eval:pal:open-latency} (a) and (b) shows the latency of \palcall{StreamOpen} on the Linux and SGX PALs,
+%Figure~\ref{fig:eval:pal:open-latency} (a) and (b) shows the latency of \palcall{StreamOpen} on the Linux and \sgx{} PALs,
 %in comparison with \syscall{open} in a native Linux process.
 The experiment
 measures the latency of repeatedly opening a file,
@@ -88,22 +88,22 @@ and thus is correlated with path length.
 \includegraphics[height=10em]{sgx-open-latency}
 }
 \parbox{0.49\textwidth}{\centering\bf (a) Linux vs. Linux PAL}
-\parbox{0.49\textwidth}{\centering\bf (b) Linux vs. Linux PAL vs. SGX PAL}
-\caption{Latency of \palcall{StreamOpen} on the Linux PAL  and SGX PAL, versus \syscall{open} on Linux.
+\parbox{0.49\textwidth}{\centering\bf (b) Linux vs. Linux PAL vs. \sgx{} PAL}
+\caption{Latency of \palcall{StreamOpen} on the Linux PAL  and \sgx{} PAL, versus \syscall{open} on Linux.
 Lower is better.
 Figure (a) compares \palcall{StreamOpen} on the Linux PAL,
 with and without a \seccomp{} filter ({\bf +SC})
-and reference monitor ({\bf +RM}), against \syscall{open} on Linux. Figure (b) compares \palcall{StreamOpen} on a SGX PAL,
+and reference monitor ({\bf +RM}), against \syscall{open} on Linux. Figure (b) compares \palcall{StreamOpen} on a \sgx{} PAL,
 with and without integrity checks ({\bf +CHK}),
 against the Linux PAL and \syscall{open} on Linux.}
 \label{fig:eval:pal:open-latency}
 \end{figure*}
 
 
-Opening a file on the SGX PAL
+Opening a file on the \sgx{} PAL
 imposes significant overheads for verifying
 the integrity of file contents.
-Figure~\ref{fig:eval:pal:open-latency} (b) shows the latency of \palcall{StreamOpen} inside of an SGX enclave, versus the latency on the Linux PAL
+Figure~\ref{fig:eval:pal:open-latency} (b) shows the latency of \palcall{StreamOpen} inside of an \sgx{} enclave, versus the latency on the Linux PAL
 and in a native Linux process.
 Without any security checks to shield the guest from the untrusted OS,
 the latency of \palcall{StreamOpen} is dominated by the overhead of exiting the enclave and copying the argument, such as the file paths, out of the enclave.
@@ -183,17 +183,17 @@ and reference monitor ({\bf +RM}), against \syscall{read} and \syscall{write} on
 }
 \parbox{0.49\textwidth}{\centering\bf (a) Sequential read}
 \parbox{0.49\textwidth}{\centering\bf (b) Sequential write}
-\caption{Latency of sequential \palcall{StreamRead} and \palcall{StreamWrite} on the SGX PAL,
+\caption{Latency of sequential \palcall{StreamRead} and \palcall{StreamWrite} on the \sgx{} PAL,
 versus the Linux PAL and Linux.
 Lower is better.
-Figure (a) and (b) respectively compares \palcall{StreamRead} and \palcall{StreamWrite} on the SGX PAL,
+Figure (a) and (b) respectively compares \palcall{StreamRead} and \palcall{StreamWrite} on the \sgx{} PAL,
 with and without integrity checks ({\bf +CHK})
 and reference monitor ({\bf +RM}), against the Linux PAL and \syscall{read} and \syscall{write} on Linux. The current design does not support integrity checks for \palcall{StreamWrite}.}
 \label{fig:eval:pal:sgx-read-write-latency}
 \end{figure*}
 
 
-On the SGX PAL,
+On the \sgx{} PAL,
 as shown in
 Figure~\ref{fig:eval:pal:sgx-read-write-latency} (a) and (b), both sequential reads and writes
 have significant overheads over the latency on Linux or the Linux PAL.
@@ -203,7 +203,7 @@ integrity checks. Without any integrity checks,
 the cost of exiting the enclave
 and copying the contents across the enclave boundary is
 8--12 \usec{} for reads and 8--50 \usec{} for writes.
-If the SGX PAL checks the integrity of file contents
+If the \sgx{} PAL checks the integrity of file contents
 at file reads,
 the latency is bounded by
 the cost of copying 16KB blocks into the enclave
@@ -214,7 +214,7 @@ the latency of small reads,
 but also will increase the size of Merkle tree.
 The experiment does not measure the overhead of integrity protection on file writes
 because the feature is not yet implemented
-in the SGX PAL.
+in the \sgx{} PAL.
 
 
 
@@ -239,7 +239,7 @@ in the SGX PAL.
 \parbox{0.49\textwidth}{\centering\bf (a) Latency ({\usec})}
 \parbox{0.24\textwidth}{\centering\bf (b) Bandwidth (MB/\asec{})}
 \caption{(a) Latency of sending a short message over TCP and UDP sockets (lower is better), and (b) bandwidth of sending large data over TCP (higher is better).
-The comparison is between (1) \syscall{recv} and \syscall{send} on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on a Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, without data protection.}
+The comparison is between (1) \syscall{recv} and \syscall{send} on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on a Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the \sgx{} PAL, without data protection.}
 \label{fig:eval:pal:network-latency-bandwidth}
 \end{figure*}
 
@@ -286,17 +286,17 @@ on TCP bandwidth.
 %to either the latency or bandwidth of TCP or UDP sockets.
 
 
-TCP and UDP sockets on the SGX PAL
+TCP and UDP sockets on the \sgx{} PAL
 also have significant overheads compared to the Linux PAL,
 due to the cost of enclave interface.
 As shown in
 both Figure~\ref{fig:eval:pal:network-latency-bandwidth}
 (a) and (b),
-the overheads of the SGX PAL on TCP and UDP latency
+the overheads of the \sgx{} PAL on TCP and UDP latency
 are \roughly{}167\% and \roughly{}131\%,
 respectively; the overhead on TCP bandwidth also reaches \roughly{}79\%. 
 Note that the current design
-of the SGX PAL does not protect the messages sent or received
+of the \sgx{} PAL does not protect the messages sent or received
 over a TCP or UDP socket.
 The decision is based on previous work~\cite{osdi16scone},
 which concludes that
@@ -321,7 +321,7 @@ to protect the confidentiality and integrity of network payloads.
 \parbox{0.34\textwidth}{\centering\bf (a) Latency ({\usec})}
 \parbox{0.34\textwidth}{\centering\bf (b) Bandwidth (MB/\asec{})}
 \caption{(a) Latency of sending a short message over RPC (lower is better), and (b) bandwidth of sending large data (higher is better).
-The comparison is between (1) \syscall{read} and \syscall{write} over a pipe or an AF\_UNIX socket on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the SGX PAL, with and without data protection ({\bf +CHK}).}
+The comparison is between (1) \syscall{read} and \syscall{write} over a pipe or an AF\_UNIX socket on Linux; (2) \palcall{StreamRead} and \palcall{StreamWrite} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapis{} on the \sgx{} PAL, with and without data protection ({\bf +CHK}).}
 \label{fig:eval:pal:pipe-latency-bandwidth}
 \end{figure*}
 
@@ -361,7 +361,7 @@ in the Linux PAL
 
 
 
-For the SGX PAL,
+For the \sgx{} PAL,
 the fundamental cost of enclave exits and copying message contents,
 without protecting the message contents,
 is \roughly{}154\% to the latency,
@@ -371,9 +371,9 @@ applications generally assume transferring data over a local pipe or FIFO to be 
 %\graphenesgx{} cannot assume RPC streams to be protected by SSL/TLS in applications.
 %Since it is likely that an application may send sensitive information
 %over a pipe or a UNIX socket,
-%the underlying RPC streams must always be protected by the SGX PAL.
-For each RPC stream, the SGX PAL establishes a TLS connection using a 256-bits AES-GCM algorithm, which both authenticates and encrypts the message contents.
-The AES-GCM algorithm is accelerated by the Intel AES-NI instructions, which exist on all SGX-enabled CPUs.
+%the underlying RPC streams must always be protected by the \sgx{} PAL.
+For each RPC stream, the \sgx{} PAL establishes a TLS connection using a 256-bits AES-GCM algorithm, which both authenticates and encrypts the message contents.
+The AES-GCM algorithm is accelerated by the Intel AES-NI instructions, which exist on all \sgx{}-enabled CPUs.
 With the hardware acceleration,
 when sending one-byte messages,
 the overhead on RPC latency is \roughly{}10\% compared to the UNIX domain socket;
@@ -426,7 +426,7 @@ the overheads of \seccomp{} filter is generally less than 10\%.
 The overheads of security monitors can range from 0--21\%, but only impact \hostapis{} which accept an URI as argument (e.g., \palcall{StreamOpen} and \palcall{StreamAttrQuery}).
 
  
-The SGX PAL further adopts several cryptographic techniques
+The \sgx{} PAL further adopts several cryptographic techniques
 for protecting the confidentiality and integrity of I/O streams, and cryptographic operations tend to cause significant overheads.
 Verifying the file contents, either at first open of the file or consequential file reads,
 causes 500--24,000$\times$ overheads on \palcall{StreamOpen}

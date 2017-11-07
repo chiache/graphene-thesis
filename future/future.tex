@@ -1,4 +1,4 @@
-\chapter{Future Directions}
+\paperchapter{Future Directions}
 \label{chap:future}
 
 
@@ -30,7 +30,7 @@ and mitigating the principal weaknesses.
 
 
 
-\section{Generalizing Platform Independence}
+\papersection{Generalizing Platform Independence}
 \label{sec:future:independence}
 
 Existing \liboses{} support legacy applications
@@ -71,9 +71,9 @@ as well as its completeness to support \liboses{} for implementing all high-leve
 %a complex application will exercise a wide range of system features and conventions,
 %that mostly overlap with the common footprints of other applications.
 %For instance, Drawbridge~\cite{porter11drawbridge} is tested with
-%popular Windows applications such as Internet Explorer and Microsoft Powerpoint.
+%popular \win{} applications such as Internet Explorer and Microsoft Powerpoint.
 %To demonstrate the platform independence of the host ABI,
-%\graphene{} is ported to many platform such as FreeBSD, Windows, OSX and \intel{} \sgx{} enclaves,
+%\graphene{} is ported to many platform such as FreeBSD, \win{}, \osx{} and \intel{} \sgx{} enclaves,
 %and most applications can be supported on all these platforms
 %transparently.
 
@@ -84,9 +84,9 @@ the host ABI is mostly defined for supporting \liboses{} with single OS personal
 %is mostly biased by the specifications that developers choose to implement,
 %and the applications preferred for testing.
 For instance, in \drawbridge{}~\citep{porter11drawbridge}, the host ABI
-is defined to support a \libos{} with Windows personality.
+is defined to support a \libos{} with \win{} personality.
 %, which is adopted by many other library OSes,
-%is defined for a library OS of Windows personality.
+%is defined for a library OS of \win{} personality.
 In \graphene{}, we implement Linux personality over the \drawbridge{} host ABI,
 and observe a few necessary, but missing host abstractions,
 due to the difference between the platforms.
@@ -169,11 +169,11 @@ that need be provided in the \graphene{} host ABI.
 \toprule
 {\bf Feature} & {\bf Platform} & {\bf Limitations} & {\bf Proposed strategy} \\
 \midrule
-Memory mappings & Windows & No fine-grained deallocation or protection & Redesign ABI functions for platform independence \\
+Memory mappings & \win{} & No fine-grained deallocation or protection & Redesign ABI functions for platform independence \\
 \midrule
-Thread-local storage & Windows, OSX & FS or GS register is not available & Overwrite TLS allocation in libc, or binary translation \\
+Thread-local storage & \win{}, \osx{} & FS or GS register is not available & Overwrite TLS allocation in libc, or binary translation \\
 \midrule
-Position-dependent binaries & Windows, \sgx{} & Memory addresses are occupied or restricted & Reserve virtual memory before \picoprocs{} start \\
+Position-dependent binaries & \win{}, \sgx{} & Memory addresses are occupied or restricted & Reserve virtual memory before \picoprocs{} start \\
 \midrule
 Special instructions & \sgx{} & {\tt CPUID} and {\tt RDTSC} are forbidden & Exception handling or binary translation \\
 \bottomrule
@@ -198,7 +198,7 @@ Such a requirement is a challenge to the platforms
 in which the virtual memory of a process is partially preoccupied by the host,
 or restricted to a specific range.
 We observe the phenomenon in two of the ported platforms:
-in Windows, user stacks and PCBs (process control blocks) can overlap with the demanded address;
+in \win{}, user stacks and PCBs (process control blocks) can overlap with the demanded address;
 in \sgx{} enclaves, the range of mappable memory is
 restricted to a preset region.
 %processes are only allowed to access a limited range of virtual memory.
@@ -277,7 +277,7 @@ the rest of host ABI.
 %and uses asynchronous message passing across heterogeneous cores pinned to applications.
 %The distributed POSIX implementation of \graphene{}
 %will be an advantage when porting it to Barrelfish.
-%%In addition, the OSX and Windows ports of \graphene{} are still in-progress.
+%%In addition, the \osx{} and \win{} ports of \graphene{} are still in-progress.
 %Overall, when generalizing the host ABI implementation to more platforms,
 %we observe that a large portion of \graphene{} \pal{}
 %can be reused for another platform.
@@ -288,7 +288,7 @@ the rest of host ABI.
 
 
 
-\section{Partitioning Legacy Applications}
+\papersection{Partitioning Legacy Applications}
 \label{sec:future:partitioning}
 
 
@@ -430,7 +430,7 @@ to fundamentally shrink the size of enclave code.
 %can all technically be removed with manageable efforts.
 
 
-\section{Emulating Legacy Security Models in Applications}
+\papersection{Emulating Legacy Security Models in Applications}
 \label{sec:future:security}
 
 %In \graphene{} or many others like VM or container-based solutions,
@@ -692,12 +692,12 @@ for developers and users to define their desired policies.
 
 
 
-%\section{Seamless Transition of Partitioned Systems}
+%\papersection{Seamless Transition of Partitioned Systems}
 
 
 
 
-%\section{Future Directions}
+%\papersection{Future Directions}
 
 %
 %\paragraph{Security Isolation for Multi-Principle Applications.}

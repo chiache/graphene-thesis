@@ -1,4 +1,4 @@
-\subsection{Stream I/O}
+\papersubsection{Stream I/O}
 \label{sec:abi:streams}
 
 
@@ -115,7 +115,7 @@ The following sections will discuss these \hostapis{} in details.
 
 
 
-\subsubsection*{Opening or creating an I/O stream}
+\papersubsubsection{Opening or creating an I/O stream}
 
 
 
@@ -287,7 +287,7 @@ whitelisting the URIs that are permitted for an application.
 
 
 
-\subsubsection*{Reading or writing an I/O stream}
+\papersubsubsection{Reading or writing an I/O stream}
 
 
 
@@ -410,7 +410,7 @@ because synchronous I/O is a more common feature in host OSes.
 
 
 
-\subsubsection*{Mapping a file to memory}
+\papersubsubsection{Mapping a file to memory}
                    
 \begin{paldef}            
 u64 StreamMap (HANDLE stream_handle, u64 expect_addr,
@@ -452,7 +452,7 @@ without an efficient way of marking recently-updated pages (page table dirty bit
 %is to externalize the latest file state
 %written by the application,
 %on a host which disallows file-backed memory.
-%For example, in a SGX enclave, all memory will have to be private memory,
+%For example, in a \sgx{} enclave, all memory will have to be private memory,
 %to be individually encrypted by the CPU.
 %For a host which doesn't support pass-through file mappings,
 %\palcall{StreamMap}
@@ -465,7 +465,7 @@ Although \palcall{StreamMap} allows multiple processes to map the same file into
 Because memory-mapped I/O is asynchronous,
 the data written in the memory is only guaranteed to be flushed to the storage
 when the memory mapping is unmapped.
-Also, the host ABI drops the assumption of memory sharing, especially for an isolated environment like SGX.
+Also, the host ABI drops the assumption of memory sharing, especially for an isolated environment like \sgx{}.
 It is optional for the host to flush earlier,
 or to coherently share the memory across multiple processes.
 
@@ -481,7 +481,7 @@ or to coherently share the memory across multiple processes.
 
 
 
-\subsubsection*{Listening on a server}
+\papersubsubsection{Listening on a server}
 
 
 \begin{paldef}
@@ -522,7 +522,7 @@ the host can optionally buffer the connection in a limited backlog; the maximal 
 
 
 
-\subsubsection*{File and stream attributes}
+\papersubsubsection{File and stream attributes}
 
 %The host ABI features also include retrieving the metadata of an I/O stream.
 %The retrieval of metadata is not limited to files,
@@ -579,7 +579,7 @@ typedef struct {
 \end{paldef}
 
 
-The \palcall{STREAM_ATTRS} data structure consists of multiple fields specifying the attributes assigned to an I/O stream since creation.
+The \palkeyword{STREAM_ATTRS} data structure consists of multiple fields specifying the attributes assigned to an I/O stream since creation.
 \palkeyword{stream_type} specifies the type of I/O stream that the handle references to.
 \palkeyword{access_flags}, \palkeyword{share_flags}, and \palkeyword{options} are the same attributes assigned to an I/O stream when the stream is created by \palcall{StreamOpen}.
 \palkeyword{stream_size} has different meanings for files and network/RPC streams:
@@ -644,7 +644,7 @@ if the guest tries to set an unavailable attribute.
 %or enabling the TCP keepalive feature.
 
 
-%\subsubsection*{Truncating a file or flushing a stream}
+%\papersubsubsection*{Truncating a file or flushing a stream}
 
 
 
@@ -677,7 +677,7 @@ if the file has overallocated resources earlier.
 
 
 
-%\subsection*{\graphene{}-specific stream I/O features}
+%\papersubsection*{\graphene{}-specific stream I/O features}
 
 %\begin{paldef}
 %void StreamDelete (HANDLE stream_handle, uint direction);

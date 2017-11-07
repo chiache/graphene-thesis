@@ -1,4 +1,4 @@
-\subsection{Multi-process abstractions}
+\papersubsection{Multi-process abstractions}
 \label{sec:eval:pal:multi-proc}
 
 This section evaluates the performance of two multi-process abstractions in \thehostabi:
@@ -15,7 +15,7 @@ Instead of adopting copy-on-write style, fork-like semantics,
 only creates clean processes
 to avoid the requirement of page sharing.
 Therefore, the latency of creating a process,
-on either the Linux or SGX PAL,
+on either the Linux or \sgx{} PAL,
 includes the cost of initializing the PAL binary in a new process or enclave.
 The following benchmarks evaluate
 the slowdown of process creation in \thehostabi{}
@@ -38,9 +38,9 @@ which returns immediately.
 \includegraphics[height=10em]{sgx-proc-latency}
 }
 \parbox{0.59\textwidth}{\centering\bf (a) process creation+exit}
-\parbox{0.39\textwidth}{\centering\bf (b) SGX enclave creation+termination}
-\caption{Latency of creating (a) a clean process on the Linux PAL, and (b) an enclave on the SGX PAL, in respect of different enclave sizes.
-The comparison is between (1) a combination of \syscall{vfork} and \syscall{exec}'ing a minimal static program on Linux; (2) \palcall{ProcessCreate} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapi{} on the SGX PAL.}
+\parbox{0.39\textwidth}{\centering\bf (b) \sgx{} enclave creation+termination}
+\caption{Latency of creating (a) a clean process on the Linux PAL, and (b) an enclave on the \sgx{} PAL, in respect of different enclave sizes.
+The comparison is between (1) a combination of \syscall{vfork} and \syscall{exec}'ing a minimal static program on Linux; (2) \palcall{ProcessCreate} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapi{} on the \sgx{} PAL.}
 \label{fig:eval:pal:proc-latency}
 \end{figure*}
 
@@ -81,7 +81,7 @@ is \roughly{}93\%.
 
 
 
-For the SGX PAL,
+For the \sgx{} PAL,
 the latency of creating a new enclave for each child process
 is significantly higher
 than creating a normal \picoproc{}.
@@ -100,7 +100,7 @@ preallocating empty enclave may reduce
 the enclave creation time,
 this thesis leaves such experiment as future work.
 Furthermore,
-the SGX version 2 hardware
+the \sgx{} version 2 hardware
 with support dynamic memory management,
 and eliminate the need of preserving large heap space in enclave
 

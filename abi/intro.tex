@@ -7,7 +7,7 @@ The specification of the host ABI is primarily based on two criterions:
 {\em simplicity}, for reducing the development effort per host, and {\em sufficiency}, for encapsulating enough host-specific system abstractions.}
 The chapter discusses
 the rationale behind the definition of the current host ABI,
-according to the experience of porting the host ABI to several host examples, such as Linux, Windows, and SGX.
+according to the experience of porting the host ABI to several host examples, such as Linux, \win{}, and \sgx{}.
 
 
 
@@ -59,13 +59,13 @@ according to the experience of porting the host ABI to several host examples, su
 %with minor extensions. % for implementing Linux system calls.
 %\graphene{} and \drawbridge{} share a similar motivation: reusing unmodified applications across host platforms.
 %%\drawbridge{} 
-%%tries to reuse Windows code
+%%tries to reuse \win{} code
 %%in most of its library OS implementation.
 %%As a result, most functions defined in the \drawbridge{} host ABI have certain level of similarity with 
-%%the Windows API.
+%%the \win{} API.
 %%such as the scheduling primitives.
 %%\drawbridge{} makes the decision
-%%primarily for maximally reusing the Windows OS code in the library OS.
+%%primarily for maximally reusing the \win{} OS code in the library OS.
 %Although inheriting the host ABI from \drawbridge{} 
 %is mostly an engineering decision
 %in \graphene{},
@@ -113,7 +113,7 @@ according to the experience of porting the host ABI to several host examples, su
 %A host-specific \graphene{} loader is responsible for resolving the linking, from the library OS to the host ABI.
 
 
-%\section{Formal Definition}
+%\papersection{Formal Definition}
 %
 %
 %This section formally defines the calling convention, data types, and functions
@@ -128,7 +128,7 @@ according to the experience of porting the host ABI to several host examples, su
 
 
 
-\section{PAL calling convention}
+\papersection{PAL calling convention}
 
 
 
@@ -155,7 +155,7 @@ according to the experience of porting the host ABI to several host examples, su
 %We choose to dynamically link the library OS for keeping the initialization
 %adaptable to different hosts;
 %For example,
-%A host such as SGX can impose additional restriction on the application code to be loaded,
+%A host such as \sgx{} can impose additional restriction on the application code to be loaded,
 %including to validate a signature of application code at beginning.
 %which requires all trusted code to execute in one context.
  
@@ -205,7 +205,7 @@ Another benefit is to simplify the debugging with GDB, which only recognizes one
 %the host ABI, without any redirection.
 %For other hosts,
 % that do not share the calling convention with the library OS,
-%such as OSX and Windows, the PALs redirect
+%such as \osx{} and \win{}, the PALs redirect
 %the function arguments to the correct registers or offsets on the stack frames assigned by the calling convention.
 %Dynamic linking is beneficial for
 %building a pluggable, host-independent library OS binary, and leveraging the compiler optimizations across the host ABI.
@@ -228,15 +228,15 @@ Another benefit is to simplify the debugging with GDB, which only recognizes one
 %For a host with a different calling convention from Linux,
 A PAL is responsible for translating the calling convention between the host ABI and a system interface on the host.
 For example,
-Windows or OSX applications follow a different calling convention and binary format
+\win{} or \osx{} applications follow a different calling convention and binary format
 from Linux applications.
 \fixmedp{Make this point clearer}
 On all hosts, the PAL includes a simple ELF loader (even on a Linux host).
-On a host like Windows or OSX, the PAL is not itself ELF,
+On a host like \win{} or \osx{}, the PAL is not itself ELF,
 but rather a host-specific binary that includes an ELF loader.
-%therefore, a Windows PAL needs
+%therefore, a \win{} PAL needs
 %to swap the register values when the library OS calls the host ABI.
-%Windows and OSX also accepts a different type of binary format,
+%\win{} and \osx{} also accepts a different type of binary format,
 %and requires the PAL to implement an ad-hoc linking scheme for the library OS as an ELF binary.
 
 
@@ -265,7 +265,7 @@ to running most of the Linux applications without modification or recompilation.
 
 
 
-However, there are cases where static linking is preferred on a host (e.g., SGX), and recompilation is acceptable to the users.
+However, there are cases where static linking is preferred on a host (e.g., \sgx{}), and recompilation is acceptable to the users.
 Compiling an application, library OS, and PAL
 into a single binary is similar to the technique of unikernels~\cite{unikernels},
 which has the benefit of compiling out unnecessary code and execution paths
@@ -274,7 +274,7 @@ Theoretically, it is possible for \graphene{} to statically link an application 
 but this technique is out of the scope of this thesis.
 
 
-\section{The PAL ABI}
+\papersection{The PAL ABI}
 
 \fixmedp{make this chapter self-contained; should be like a manual of the host ABI; avoid taking about libOS and focus on PAL}
 This section defines the \hostapis{}

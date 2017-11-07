@@ -1,4 +1,4 @@
-\section{Security isolation}
+\papersection{Security isolation}
 \label{sec:linux:security}
 
 \issuedone{1.1.d}{Describe the security isolation story for Linux hosts}
@@ -8,7 +8,7 @@ The discussion starts with the security guarantees and threat model, followed by
 
 
 
-\subsection{Goals and threat model}
+\papersubsection{Goals and threat model}
 
 The security isolation model of \graphene{} ensures that mutually-untrusting applications cannot interfere with each other.
 A goal of \graphene{} is to provide security isolation with comparable strength as
@@ -18,7 +18,7 @@ the security requirement
 of the OS involves not only blocking unauthorized access under normal circumstance,
 but also preventing an application
 from maliciously exploiting OS vulnerabilities to attack the other application.
-Because a modern OS, such as Linux or Windows, contains a rich of features and APIs,
+Because a modern OS, such as Linux or \win{}, contains a rich of features and APIs,
 it is difficult to eliminate OS vulnerabilities
 or even just to verify whether an OS contains any vulnerabilities. 
 A Linux container~\cite{lxc}
@@ -117,7 +117,7 @@ specify a minimal list of files and network addresses that a \picoproc{} needs t
 
 
 \paragraph{Threat model (details).}
-When running on a normal Linux host (without SGX or other security hardware), \graphene{} assumes a trusted host kernel and reference monitor.
+When running on a normal Linux host (without \sgx{} or other security hardware), \graphene{} assumes a trusted host kernel and reference monitor.
 All the components inside the kernel space, including the \code{gipc} kernel module for bulk IPC, and the reference monitor,
 are fully trusted by the other parts of the host kernel and the \graphene{} \picoprocs{}.
 %which mediates all system calls with effects outside of a picoprocess's address space,
@@ -177,7 +177,7 @@ the adversary cannot interfere with any victim \picoprocs{}.
 \graphene{} reduces the attack surface of the host Linux kernel, but does not change the trusted computing base; however, reducing the effective system call table size of a \picoproc{} does facilitate adoption of a smaller host kernel.
 This thesis leaves the creation of a smaller host kernel for future work.
 
-\subsection{System call restriction}
+\papersubsection{System call restriction}
 \label{sec:linux:security:syscall-restriction}
 
 
@@ -383,7 +383,7 @@ to the PAL signal handler for redirecting the system calls to \thelibos{}.
 
 
 
-\subsection{Reference monitor}
+\papersubsection{Reference monitor}
 \label{sec:linux:security:ref-monitor}
 
 The reference monitor on a Linux host

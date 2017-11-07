@@ -1,4 +1,4 @@
-\section{Application performance}
+\papersection{Application performance}
 \label{sec:eval:apps}
 
 \makeatletter
@@ -38,7 +38,7 @@ Overheads are relative to Linux. \fixme{Update \graphene{} and \graphenesgx{} nu
 \end{table}
 
 
-\subsection{Process Migration and Application Startup}
+\papersubsection{Process Migration and Application Startup}
 
 %A key feature of VMs is the ability to move a running application to a new system.
 \graphene{} supports migration of an application from a \picoproc{} on one machine
@@ -61,7 +61,7 @@ Similarly, checkpointing and restoring a 4 MB application on \graphene{} is 1--4
 
 %\fixmedp{Error bars on mem usage graphs missing}
 
-\subsection{Memory Footprint}
+\papersubsection{Memory Footprint}
 \label{sec:graphene:eval:mem}
 
 We begin by measuring the minimal memory footprint of a simple ``hello world'' program 
@@ -183,7 +183,7 @@ Unixbench  & 0.55 & .00 & 0.55 & .00 &  0 \% & 1.49 & .00 & 192 \% & \multicolum
 \end{table}
 
 
-\subsection{Application performance}
+\papersubsection{Application performance}
 \label{sec:graphene:eval:perf}
 
 Table~\ref{tab:graphene:apps} lists 
@@ -300,7 +300,7 @@ to bridged networking.
 \end{comment}
 
 
-%One deployment model for SGX is to host network services
+%One deployment model for \sgx{} is to host network services
 %on an untrusted cloud provider's hardware.
 %To measure this case, 
 The experiment measures three widely-used Linux the experimentb servers, including {\bf Lighttpd}~\cite{lighttpd} (v1.4.35), {\bf Apache}~\cite{apache} (v2.4.18), and {\bf NGINX}~\cite{nginx} (v1.10).
@@ -370,9 +370,9 @@ The overheads of \graphene{} are more apparent when the system
 is more lightly loaded, at 
 %When Lighttpd is not overloaded, \graphenesgx{} causes 
 15--35\% higher response time, or 13--26\% lothe experimentr throughput. 
-Without SGX, \graphene{} induces 
+Without \sgx{}, \graphene{} induces 
 11--15\% higher latency or 13-17\% lothe experimentr throughput over Linux;
-the remaining overheads are attributable to SGX---either hardware or our OS shield.
+the remaining overheads are attributable to \sgx{}---either hardware or our OS shield.
 %platform adaptation layer (PAL) code.
 
 %\fixmedp{Some more detailed analysis would be nice.}
@@ -390,7 +390,7 @@ This application uses IPC extensively---the preforked processes of a server use 
 %When receiving a connection, the preforked processes of Apache will coordinate among themselves using the system V IPC semaphores.
 Regardless of the workload, the response time on \graphenesgx{} is 12--35\% higher than Linux, due to the overhead of coordination across enclaves over encrypted RPC streams.
 The peak throughput achieved by Apache running in \graphenesgx{} is 26\% lothe experimentr than running in Linux.
-In this workload, most of the overheads are SGX-specific, such as exiting enclaves when accessing the RPC, as non-SGX Graphene
+In this workload, most of the overheads are \sgx{}-specific, such as exiting enclaves when accessing the RPC, as non-\sgx{} Graphene
 has only 2--8\% overhead compared to Linux.
 
 %The enclave restriction \fixmedp{Huh?} is the main contributor to this overhead, as \graphene{} generally only causes 2--8\% overhead.
@@ -409,7 +409,7 @@ Once sufficiently loaded, NGINX on both \graphene{} and \graphenesgx{}
 performs worse than in a  Linux process. % once sufficiently loaded.
 %The experiment observe that both \graphene{} and \graphenesgx{} tend to perform poorly in an event-driven server.
 The peak throughput of \graphenesgx{} is 1.5$\times$ lothe experimentr than Linux;
-without SGX, Graphene only reaches 79\% of Linux's peak throughput.
+without \sgx{}, Graphene only reaches 79\% of Linux's peak throughput.
 %\fixmedp{Maybe shout out to eleos, or cite other work}
 The experiment expect that using tools like Eleos~\cite{orenbach17eleos} to reduce exits
 would help this workload; in future work, the experiment will improve
@@ -476,13 +476,13 @@ of individual operations or executions.
 On a Linux host, the time to start a library OS is higher than a simple 
 process, but significantly lothe experimentr than booting a guest OS in a VM or
 starting a container. 
-Prior work measured Graphene (non-SGX) start time at 641 $\mu$s~\cite{tsai14graphene}, whereas starting an empty Linux VM takes 10.3s and starting a Linux (LXC) container takes 200 ms~\cite{agarwal15container}. 
+Prior work measured Graphene (non-\sgx{}) start time at 641 $\mu$s~\cite{tsai14graphene}, whereas starting an empty Linux VM takes 10.3s and starting a Linux (LXC) container takes 200 ms~\cite{agarwal15container}. 
 %% dp; Note that this is MILLI seconds, not micro seconds.
 %average memory footprint of an empty Linux VM, with memory deduplication, is about 96MB, . 
 
 
-On SGX, the enclave creation time is relatively higher, \fixme{added more detailed number} ranging from 0.5s (a 256MB enclave) to 5s (a 2G enclave), which is a fixed cost that any application framework
-will have to pay to run on SGX.
+On \sgx{}, the enclave creation time is relatively higher, \fixme{added more detailed number} ranging from 0.5s (a 256MB enclave) to 5s (a 2G enclave), which is a fixed cost that any application framework
+will have to pay to run on \sgx{}.
 %For library OSes, the time for creating and initializing an enclave is not trivial, because it is similar to booting an lightthe experimentight OS.
 % a significant part of the start-up time
 % of an application is more significant, because creating enclaves is expensive.
@@ -503,13 +503,13 @@ OS they don't trust.
 The experiment use an R benchmark suite developed by Urbanek et al.~\cite{r-benchmark-25}, which includes 15 CPU-bound workloads such as matrix computation and number processing.
 \graphenesgx{} slows down by less than 100\% on the majority of the workloads, excepts the ones which involve allocation and garbage collection: ({\tt matrix1} creates and destroys matrices, and both {\tt FFT} and {\tt hilbert} involve heavy garbage collection.)
 Aside from garbage collection, these R benchmarks do not frequently interact with the host.
-The experiment further note that non-SGX \graphene{} is as efficient as Linux on all workloads, 
-and these overheads appear to be SGX-specific.
+The experiment further note that non-\sgx{} \graphene{} is as efficient as Linux on all workloads, 
+and these overheads appear to be \sgx{}-specific.
 %\fixmedp{Check this pontification}
 In our experience, garbage collection and memory management code in managed language runtime
 systems tends to be written with assumptions that do not match enclaves,
 such as a large, sparse address space or that memory can be demand paged 
-nearly for free (SGX version 1 requires all memory to be mapped
+nearly for free (\sgx{} version 1 requires all memory to be mapped
 at creation); a useful area for future work would be to design
 garbage collection strategies that are optimized for enclaves.
 %the experiment believe the overheads on \graphenesgx{} are contributed by enclaves.
@@ -537,7 +537,7 @@ and 7.1s is spent on enclave creation.
 %\fixmedp{Also not comfortable with this; add a bar?}
 %In general, GCC in \graphenesgx{} is 1--5$\times$ slothe experimentr than GCC on native Linux. 
 %\fixmedp{This really needs some profiling if possible}
-The overhead of non-SGX \graphene{} on GCC is marginal.
+The overhead of non-\sgx{} \graphene{} on GCC is marginal.
 
 
 

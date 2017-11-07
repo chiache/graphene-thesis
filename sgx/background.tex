@@ -1,27 +1,27 @@
-%I think the story here is that fears of the costs of library OSes are greatly exaggerated, and the performance is fine + it is easy to use.  Although SGX has a lot of limits, it doesn't have to be hard to bring up code on SGX (or other upcoming secure HW platforms) quickly.
+%I think the story here is that fears of the costs of library OSes are greatly exaggerated, and the performance is fine + it is easy to use.  Although \sgx{} has a lot of limits, it doesn't have to be hard to bring up code on \sgx{} (or other upcoming secure HW platforms) quickly.
 %* Yes, you can do better with custom code in swift or whatever, but a lot of people benefit from thunking code down and having it "just work" with protection
 %To this end, we also contribute usability enhancements, like dynamic linking, remote attestation, ipc, fork, etc.
-%We contribute a measurement of a relatively mature SGX libos on real hardware.
+%We contribute a measurement of a relatively mature \sgx{} libos on real hardware.
 %Shit works, lots of people are using Graphene.
 
-\section{Intel SGX overview}
+\papersection{Intel \sgx{} overview}
 \label{sec:sgx:overview}
 
-This section summarizes SGX,
-and current design points for running or porting applications on the SGX platform.
+This section summarizes \sgx{},
+and current design points for running or porting applications on the \sgx{} platform.
 %and the legacy frameworks of porting 
 %including \haven{}~\cite{baumann14haven}, \scone{}~\cite{osdi16scone}, and Panoply~\cite{shinde17panoply}. 
 
 
-\subsection{SGX (software guard extensions)}
+\papersubsection{\sgx{} (software guard extensions)}
 \label{sec:sgx:background:sgx}
 
 
-SGX~\cite{intelsgx} is a feature added in the Intel sixth-generation CPUs,
+\sgx{}~\cite{intelsgx} is a feature added in the Intel sixth-generation CPUs,
 as a hardware support for trusted execution environments (TEEs)~\cite{santos09tccp,lie2003implementing,trustzone,amd-sme}.
-SGX introduces a number of essential hardware features that allow an application
+\sgx{} introduces a number of essential hardware features that allow an application
 to protect itself from the host OS, hypervisor, BIOS, and other software.
-The security guarantees of SGX is particularly appealing in cloud computing, as users 
+The security guarantees of \sgx{} is particularly appealing in cloud computing, as users 
 might not fully trust the cloud provider.
 Even if the whole cloud infrastructure
 is under on administrative domain,
@@ -29,17 +29,17 @@ commodity operating systems have a long history of exposing security vulnerabili
 to untrusted users, due to \fixme{find even more citations}
 flaws in software and hardware
 ~\cite{arbaugh00vulnerability,dirtycow,xu15ccs,liu15llc-attack,kim14rowhammer}.
-%That said, for any sufficiently-sensitive application, using SGX may be prudent,
+%That said, for any sufficiently-sensitive application, using \sgx{} may be prudent,
 %even within one administrative domain,
 %as the security track record of commodity operating systems is not without blemish.
 %Thus, a significant number of users would benefit from running
-%security-sensitive applications on SGX as soon as possible.
+%security-sensitive applications on \sgx{} as soon as possible.
 Any sufficiently-sensitive applications
-would benefit from running on SGX to evade the consequences of a compromised OS kernel.
+would benefit from running on \sgx{} to evade the consequences of a compromised OS kernel.
 
 
-The primary abstraction of the SGX platform is an {\bf enclave}, an isolated execution environment within the virtual address space of an application process.
-%With SGX, part or all of an application can run in an {\em enclave}.
+The primary abstraction of the \sgx{} platform is an {\bf enclave}, an isolated execution environment within the virtual address space of an application process.
+%With \sgx{}, part or all of an application can run in an {\em enclave}.
 The features of an enclave include confidentiality and integrity protection:
 %for the enclave's virtual address space;
 %restricting control flow into well-defined entry points for an enclave;
@@ -49,9 +49,9 @@ the code and data in an enclave memory region do not leave the CPU package unenc
 the CPU decrypts the contents, and checks the integrity of cache lines and the virtual-to-physical mapping.
 The memory encryption
 prevents a OS kernel, hypervisor, or even firmware from physically fetching the application secret from DRAMs;
-SGX can even survive a stronger attack at the hardware level,
+\sgx{} can even survive a stronger attack at the hardware level,
 such as cold-boot attack~\cite{halderman09coldboot}, an attack based on removing DRAM from the memory bus at a low temperature and placing it in another machine.
-SGX also cryptographically measures the integrity of enclave code and data at start up, and
+\sgx{} also cryptographically measures the integrity of enclave code and data at start up, and
 is able to generate
 attestation to remote systems or enclaves to prove the integrity of a local enclave.
 %Remote entities can identify the owners of enclaves by distinguishing the cryptographic measurements
@@ -97,10 +97,10 @@ attestation to remote systems or enclaves to prove the integrity of a local encl
 %to allow remote entities to verify the soundness of execution and establish the trust
 %needed for provisioning sensitive data.
 
-SGX enables the defense against a threat model where one only trusts the Intel CPUs and the 
+\sgx{} enables the defense against a threat model where one only trusts the Intel CPUs and the 
 code running in the enclaves.
 %whereas the rest of application, system software, off-CPU-package hardware devices and providers are untrusted. 
-SGX protects applications from three different types of attacks on the same host, which are summarized in Figure~\ref{fig:sgx:threats}. First, untrusted application code inside the same process but outside the enclave
+\sgx{} protects applications from three different types of attacks on the same host, which are summarized in Figure~\ref{fig:sgx:threats}. First, untrusted application code inside the same process but outside the enclave
 cannot access enclave memory or arbitrarily jump into enclave code. Second, OSes, hypervisors, and other system software cannot peek into enclaves from administrative domains;
 %\fixme{added Mona's suggestion}
 Third, other applications on the same host
@@ -108,14 +108,14 @@ cannot exploit vulnerabilities in a OS kernel or system software
 to escalate privileges.
 Finally, off-chip hardware, such as buses, DRAM, and peripheral devices can be hijacked or replaced with malicious components, but can never steal or corrupt enclave secrets
 both encrypted and authenticated inside the memory. 
-A SGX enclave can choose to trust a remote service or enclave and be trusted in return
+A \sgx{} enclave can choose to trust a remote service or enclave and be trusted in return
 after performing a procedure of inter-platform attestation~\cite{sgx-attestation}.
 
 
 \begin{figure}[t!]
 \centering
 \includegraphics[width=34em]{sgx.pdf}
-\caption{The threat model of SGX. SGX protects applications
+\caption{The threat model of \sgx{}. \sgx{} protects applications
 from three types of attacks:
 in-process attacks from outside of the enclave,
 attacks from OS or hypervisor, and attacks from off-chip hardware.}
@@ -229,7 +229,7 @@ attacks from OS or hypervisor, and attacks from off-chip hardware.}
 %
 %\fixme{Disabled the whole discussion about SDK. dp: ok with me, but probably drop from figure} 
 \begin{comment}
-\subsection{The legacy framework (The \sdk{})}
+\papersubsection{The legacy framework (The \sdk{})}
 
 {\bf Intel's \sgx{} SDK} (software development kit) for Linux~\cite{intel-sgx-sdk} is the official framework
 for programming \sgx{} execution within Linux applications.
@@ -298,11 +298,11 @@ The generated interface code essentially filters input and output of the enclave
 and prevents randomly copying memory across the enclave boundary, leaking or corrupting internal data.
 
 
-%The Intel SDK has its limitations. The infrastructure of the SDK provides APIs in enclaves for accessing SGX features (e.g., attestation), as well as a small set of POSIX APIs
+%The Intel SDK has its limitations. The infrastructure of the SDK provides APIs in enclaves for accessing \sgx{} features (e.g., attestation), as well as a small set of POSIX APIs
 %(\roughly{}10 functions, such as {\tt printf} and {\tt memset}).
 
 
-Despite that \sdk{} attempts to alleviate the difficulty of partitioning for SGX,
+Despite that \sdk{} attempts to alleviate the difficulty of partitioning for \sgx{},
 porting a piece of application code that is sophisticated and interactive to the rest of application
 is still a significant cost to pay.
 In general, developers want to find a reasonable granularity of partitioning---a ``sweet spot'' that partitions the application code neither too small nor too large, 
@@ -322,27 +322,27 @@ The missing APIs encapsulates system calls, which can expose the enclave to some
 
 \end{comment}
 
-\subsection{SGX frameworks}
+\papersubsection{\sgx{} frameworks}
 \label{sec:sgx:background:frameworks}
 
 
 
 %This subsection summarizes the principal design choices facing any 
-%framework for running applications on SGX.  We explain the decisions in
-%recent systems for SGX applications, and the trade-offs in this space.
+%framework for running applications on \sgx{}.  We explain the decisions in
+%recent systems for \sgx{} applications, and the trade-offs in this space.
 
 \issuedone{1.2.c}{Compare library OS approach with shim layers}
 Despite the security benefits,
-%Unfortunately, applications do not ``just work'' on SGX.
-SGX imposes a number of restrictions on enclave code 
+%Unfortunately, applications do not ``just work'' on \sgx{}.
+\sgx{} imposes a number of restrictions on enclave code 
 that require application changes
 or a layer of indirection. % to work around.
 Some of these restrictions are motivated by security, such as disallowing system calls
 inside of an enclave, so that system call results can be sanitized by a piece of carefully-written shielding code in the enclave before being used by the application.
 %Other restrictions are subtle interactions with unrelated other features, such
-%as disallowing the {\tt cpuid} instruction to ensure clear semantics when SGX is combined
+%as disallowing the {\tt cpuid} instruction to ensure clear semantics when \sgx{} is combined
 %with VT (one mode of VT ensures that using {\tt cpuid} will trap to the hypervisor).
-%Intel's SGX SDK includes a limited C library, which is missing a number of features by design.
+%Intel's \sgx{} SDK includes a limited C library, which is missing a number of features by design.
 The typical applications
 for processing security-sensitive data
 in a cloud environment
@@ -350,27 +350,27 @@ include servers, language runtimes, and
 command-line programs,
 %databases (not all are evaluated in this paper), 
 which rely on faithful emulation of Linux system call semantics, such as \syscall{mmap} and \syscall{futex}.
-Developers who wish to run these applications on SGX
+Developers who wish to run these applications on \sgx{}
 must either use 
 a trusted, wrapper library that reproduces these semantics in an enclave, or replace large portion of application code
 unrelated to security.
 The extra effort for adapting existing application code
-into SGX causes delay to deployment of the technology; a number of \fixme{cite some examples here} security-sensitive applications
-can benefit from porting into SGX as soon as possible.
+into \sgx{} causes delay to deployment of the technology; a number of \fixme{cite some examples here} security-sensitive applications
+can benefit from porting into \sgx{} as soon as possible.
 
 
 
 
-%Besides SGX, a number of CPU vendors are developing similar, but not identical, hardware protection mechanisms, including IBM's SecureBlue++~\cite{secureblue++} and AMD SEV~\cite{amd-sme}---each
+%Besides \sgx{}, a number of CPU vendors are developing similar, but not identical, hardware protection mechanisms, including IBM's SecureBlue++~\cite{secureblue++} and AMD SEV~\cite{amd-sme}---each
 %with different idiosyncrasies.
 %Thus, the need to adapt applications to use hardware security features will only increase in the near term.
 
 
-Related work shows concerns about the significant code changes to applications involved during porting to SGX.
+Related work shows concerns about the significant code changes to applications involved during porting to \sgx{}.
 Although Haven~\cite{baumann14haven} showed that a library OS
-could run unmodified applications on SGX, this work pre-dated availability of SGX hardware.
-Since then, several papers have argued that the library OS approach is impractical for SGX,
-both in performance overhead and trusted computing base (TCB) bloat, and that one must instead refactor one's application for SGX.
+could run unmodified applications on \sgx{}, this work pre-dated availability of \sgx{} hardware.
+Since then, several papers have argued that the library OS approach is impractical for \sgx{},
+both in performance overhead and trusted computing base (TCB) bloat, and that one must instead refactor one's application for \sgx{}.
 For instance, a feasibility analysis in the \scone{} paper
 concludes that ``On average, the library OS increases the TCB size by $5\times$, the service latency by $4\times$,
 and halves the service throughput''~\cite{osdi16scone}.
@@ -381,7 +381,7 @@ a thin API wrapper layer with shielding ability.
 
 
 \graphenesgx{} shows that 
-a \libos{} can facilitate deployment of an unmodified application to SGX,
+a \libos{} can facilitate deployment of an unmodified application to \sgx{},
 granting immediate security benefits
 without crippling performance cost and full-blown TCB increase.
 The comparison between \liboses{} and thin shielding layers is inclusive in many ways.
@@ -389,7 +389,7 @@ Besides the fact that
 Haven is evaluated upon a simulated hardware,
 Haven has a large TCB due to using Drawbridge~\cite{porter11drawbridge},
 a full-featured \libos{}
-which recycles a significant portion of the Windows 7 source code.
+which recycles a significant portion of the \win{} 7 source code.
 \graphenesgx{}, on the other hand,
 shows performance overheads comparable to the range of overheads reported in \scone{}.
 The authors of \panoply{} also notes that \graphenesgx{}
@@ -406,25 +406,25 @@ OS requirements.
 %terminating a TLS connection in the enclave.
 When one normalizes for functionality required by the code in the enclave, the design choice between a library OS or a thin shielding layer has no significant impact on TCB size.
 
-%To be clear, SGX-specific coding has benefits, but we must not let the perfect be the enemy of the good.
+%To be clear, \sgx{}-specific coding has benefits, but we must not let the perfect be the enemy of the good.
 %For example, privilege separating a complex application into multiple enclaves may be a good idea
-%for security~\cite{flicker,Provos:2003:PPE:1251353.1251369,shinde17panoply}, and replacing particularly expensive operations can improve performance on SGX.
-%%Our experience with supporting a rich array of applications on SGX, including web servers, language runtimes, and
+%for security~\cite{flicker,Provos:2003:PPE:1251353.1251369,shinde17panoply}, and replacing particularly expensive operations can improve performance on \sgx{}.
+%%Our experience with supporting a rich array of applications on \sgx{}, including web servers, language runtimes, and
 %%databases (not all are evaluated in this paper), is that
 %%a number of software components orthogonal to the primary functionality of the application
 %%rely on faithful emulation of arcane semantics of Linux system calls, such as {\tt mmap} and {\tt futex}.
-%The goal of \graphene{} is to bring up rich applications on SGX quickly, and then let developers
+%The goal of \graphene{} is to bring up rich applications on \sgx{} quickly, and then let developers
 %optimize code or reduce the TCB as needed.
 
 
-Besides running unmodified Linux binaries on SGX, \graphenesgx{} also contributes a number of usability enhancements,
+Besides running unmodified Linux binaries on \sgx{}, \graphenesgx{} also contributes a number of usability enhancements,
 including integrity support for dynamically-loaded libraries, enclave-level forking, and secure inter-process communication (IPC).
 Users need only configure features and cryptographically sign the configuration.
-\graphenesgx{} is also useful as a tool to accelerate SGX research.
+\graphenesgx{} is also useful as a tool to accelerate \sgx{} research.
 %\graphenesgx{} has been open-sourced since June 2016\footnote{Available at https://github.com/oscarlab/graphene}.
 \graphenesgx{} does not subvert
-any opportunities of optimizing an application for SGX or partitioning application code outside of an enclave for further reducing TCB size.
-A number of SGX frameworks and security enhancements~\cite{orenbach17eleos,kuvaiskii17sgxbound,shih2017t-sgx,seo2017sgx-shield} are complementary to \graphenesgx{}. 
+any opportunities of optimizing an application for \sgx{} or partitioning application code outside of an enclave for further reducing TCB size.
+A number of \sgx{} frameworks and security enhancements~\cite{orenbach17eleos,kuvaiskii17sgxbound,shih2017t-sgx,seo2017sgx-shield} are complementary to \graphenesgx{}. 
 
 %Although our focus is unmodified applications, \graphenesgx{} can also run smaller pieces of
 %code in an enclave, as in a partitioned application.
@@ -432,20 +432,20 @@ A number of SGX frameworks and security enhancements~\cite{orenbach17eleos,kuvai
 %\graphenesgx{}~\cite{shinde17panoply, orenbach17eleos, kim2017enhancing}
 %\fixmedp{I think there are more - Chia-Che please check recent google scholar activity}\fixme{these are all I can find; others are all just citing Graphene as related work}, 
 %and we are aware of ongoing projects using \graphenesgx{}.
-%One published paper has already benchmarked against Graphene-SGX~\cite{shinde17panoply},
+%One published paper has already benchmarked against Graphene-\sgx{}~\cite{shinde17panoply},
 %and we are aware of a number of concurrent submissions to other conferences that
-%use Graphene as either a building block or comparison point for software that uses SGX.
-%In a short time, Graphene-SGX has already had significant use outside of this group,
+%use Graphene as either a building block or comparison point for software that uses \sgx{}.
+%In a short time, Graphene-\sgx{} has already had significant use outside of this group,
 %Has already been benchmarked in published papers by other groups.
 %We are aware of several concurrent submissions to other conferences that are
 %buiding extensions to Graphene
 
 
-\subsection{Shielding complexity}
+\papersubsection{Shielding complexity}
 \label{sec:sgx:background:shielding}
 
 
-A key question for developing a SGX framework is how much OS functionality should be pull into an enclave.
+A key question for developing a \sgx{} framework is how much OS functionality should be pull into an enclave.
 A \libos{} and a thin shielding layer essentially make opposite decisions
 in protecting OS functionality on untrusted hosts.
 At one extreme, a \libos{} like \graphenesgx{} and \haven{} pulls most
@@ -459,7 +459,7 @@ outside of an enclave and shield the application from malicious API or system ca
 The decisions of pulling OS functionality into enclaves
 impact the complexity of shielding an application from the untrusted host.
 The code and data inside of an enclave
-gain confidentiality and integrity protection from SGX;
+gain confidentiality and integrity protection from \sgx{};
 If an OS feature is kept outside of an enclave, the application or a wrapper layer in the enclave must design
 sufficient shielding code to check the results of the OS feature
 as part of the untrusted host.
@@ -519,15 +519,15 @@ attacks from an OS.
 
 
 
-%SGX hardware can isolate an application from an untrusted OS, but 
-%SGX alone can't protect an application that  requires
+%\sgx{} hardware can isolate an application from an untrusted OS, but 
+%\sgx{} alone can't protect an application that  requires
 %functionality from the OS.  {\em Iago attacks}~\cite{checkoway13iago}
 %are semantic attacks from the untrusted OS against the application, where an unchecked system call return 
 %value or effect compromises the application.
 %Iago attacks can be subtle and hard to comprehensively detect, at least with the current
 %POSIX or Linux system call table interfaces.
 
-%Thus, any SGX framework must provide some {\em shielding} support, to 
+%Thus, any \sgx{} framework must provide some {\em shielding} support, to 
 %validate or reject inputs from the untrusted OS.  
 %The complexity of shielding is directly related to the interface complexity:
 %inasmuch as a library OS or shim can reduce the size or complexity of the 
@@ -580,7 +580,7 @@ Among \enclavecallnum{} enclave calls defined in \graphenesgx{}, 18 calls are sa
 
 
 \paragraph{Application code complexity.}
-The motivating applications for SGX
+The motivating applications for \sgx{}
 are small cryptographic functions like an encryption engine,
 or a simple network service running in the cloud.
 These applications are relatively small
@@ -597,7 +597,7 @@ This thesis argues that the best solution for ensuring an application to be secu
 is up to the demand of the application.
 This chapter provides an efficient baseline for the approach of pulling functionality into a \libos{},
 to run a wider range of unmodified applications
-on SGX. However, developers should be free to explore the other two approaches if application modification is possible. 
+on \sgx{}. However, developers should be free to explore the other two approaches if application modification is possible. 
 
 
 
@@ -630,7 +630,7 @@ coordinate shared state across enclaves.
 \begin{comment}
 \fixmedp{Did a first cut at 2.2; needs to integrate the figure (or drop it).  I didn't know what to write for 2.3 yet.  I left the old text below for now (if there is anything you really want to save), but it needs to go away}
 
-\subsection{Open Challenges}
+\papersubsection{Open Challenges}
 
 \fixmedp{Here, I would give a taste of some of the issues we solve and why they are hard, like dynamic loading (and maybe fork or IPC).  Keep it short, a few paragraphs.}
 \end{comment}
@@ -651,13 +651,13 @@ coordinate shared state across enclaves.
 %is expensive; if the division of labor reduces enclave border crossings, 
 %it will improve performance.
 %The second is the size of the Enclave Page Cache (EPC),
-%limited to 128MB on version 1 of SGX.
+%limited to 128MB on version 1 of \sgx{}.
 %If a large supporting framework tips the application's working set size
 %past this mark, the enclave will incur expensive swapping.
 
 
 \begin{comment}
-\subsection{\sgx{} shielding systems}
+\papersubsection{\sgx{} shielding systems}
 \label{sec:background:shielding-systems}
 
 
@@ -667,7 +667,7 @@ coordinate shared state across enclaves.
 
 
 
-\subsection{Comparison and security implications}
+\papersubsection{Comparison and security implications}
 
 \fixme{need to drop the SDK discussion, revisit the security claims, and discuss Iago attacks in details.}
 
@@ -686,7 +686,7 @@ The comparison of TCB size is only meaningful when two systems have comparable s
 and are order-of-magnitude different in term of LoC or binary size.
 For instance, the comparison of TCB size between \haven{} and \scone{} is never an apples-to-apples comparison.
 The implemented system features and personalities
-in these two systems are fundamentally different, and \haven{} supports a much larger fraction of Windows features than the fraction of Linux features supported by \scone{}.
+in these two systems are fundamentally different, and \haven{} supports a much larger fraction of \win{} features than the fraction of Linux features supported by \scone{}.
 
 We argue that the only occasion that the reduction of TCB size
 can be convincingly demonstrated is when a design has partitioned a system into isolated components,
@@ -704,7 +704,7 @@ Most studies estimate the severity of having an attack surface by the size of in
 The experience of \scone{} provides an important insight for estimating attack surface: the narrowness of interface is not proportional to the difficulty of defending against incoming attacks.
 An interface overloaded with too many features or semantics can become a major source of vulnerabilities.
 
-%\subsection{The \graphene{} Library OS}
+%\papersubsection{The \graphene{} Library OS}
 %
 %\graphene{}~\cite{tsai14graphene} introduces a \libos{} design that supports
 %both single-process and multi-process Linux applications,

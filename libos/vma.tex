@@ -1,4 +1,4 @@
-\subsection{Virtual address space}
+\papersubsection{Virtual address space}
 \label{sec:libos:vma}
 
 
@@ -202,8 +202,8 @@ The threat model of \graphene{} does not assume
 %However, upon a host where \thelibos{} can be given a small virtual address space,
 %an application may eventually run out of virtual address space
 %despite of the holes created by arbitrary allocation and deallocation.
-%For example, a SGX enclave is always restricted within a specific region, which is given as a configuration signed off by the developers.
-%To run an application in a SGX enclave, \thelibos{} must fit both application and internal states into a restricted enclave region.
+%For example, a \sgx{} enclave is always restricted within a specific region, which is given as a configuration signed off by the developers.
+%To run an application in a \sgx{} enclave, \thelibos{} must fit both application and internal states into a restricted enclave region.
 %Therefore, \thelibos{} can recycle the holes between VMAs
 %for storing internal OS states, which can be separated and fit into smaller regions.
 
@@ -215,9 +215,9 @@ The threat model of \graphene{} does not assume
 %allocate new VMAs at higher or lower addresses. 
 %The assumption is problematic on a host where the virtual address space of
 %a guest is a limited resource.
-%For example, a SGX enclave has a limited virtual address space in the enclave, constrained by the enclave initialization.
+%For example, a \sgx{} enclave has a limited virtual address space in the enclave, constrained by the enclave initialization.
 %As a result, external fragmentation in the virtual address space
-%can potentially cause a significant waste of resources on a specific host like SGX.
+%can potentially cause a significant waste of resources on a specific host like \sgx{}.
 
 
 

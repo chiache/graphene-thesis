@@ -1,4 +1,4 @@
-\subsection{CPU scheduling}
+\papersubsection{CPU scheduling}
 \label{sec:abi:thread}
 
 \issuedone{1.2.a}{Discuss resource management at host level (threading)}
@@ -32,7 +32,7 @@ are still critical to the application performance, but the host scheduler is res
 
 
 
-\subsubsection*{Creating or terminating a thread}
+\papersubsubsection{Creating or terminating a thread}
 
 
 
@@ -104,7 +104,7 @@ for creating the current thread, including the initial stack.
 % assigned by a child thread ID field given to  
 
 
-\subsubsection*{Scheduling a thread}
+\papersubsubsection{Scheduling a thread}
 
 
 The host ABI allows a running thread to voluntarily give up the CPU core,
@@ -236,7 +236,7 @@ bool ThreadSetCPUAffinity (u8 cpu_indexes[], u8 num);
 
 
 
-\subsubsection*{Scheduling primitives}
+\papersubsubsection{Scheduling primitives}
 
 
 The host ABI includes two scheduling primitives: one is mutex (mutually-exclusive) locking, and the other is a waitable event object.
@@ -310,8 +310,8 @@ void   EventClear (HANDLE event_handle);
 %blocking on a queue;
 %the latter notifies the occurrence of a condition
 %and prevent further blocking of threads.
-%Both semaphores and events resemblance the abstractions provided by the Windows API;
-%we show that these scheduling primitives are also portable on other hosts, including Linux, BSD, and SGX, using futexes or similar locking mechanisms.
+%Both semaphores and events resemblance the abstractions provided by the \win{} API;
+%we show that these scheduling primitives are also portable on other hosts, including Linux, BSD, and \sgx{}, using futexes or similar locking mechanisms.
 
 
 
@@ -342,7 +342,7 @@ to wait for an event object to be signaled.
 %for example, a thread calling \palcall{ThreadCreate} can use a notification event to block until a new thread is created and starts execution.
 
 
-\subsubsection*{Waiting for scheduling events}
+\papersubsubsection{Waiting for scheduling events}
 
 
 %The host ABI allows the library OS to poll one or several handles
@@ -432,10 +432,10 @@ and \palkeyword{ERROR}, for notifying that certain failures occur on the stream.
 %is wakened, or the call timeouts.
 
 
-\subsubsection*{Thread-local storage}
+\papersubsubsection{Thread-local storage}
 
 
-Some OSes, such as Linux and Windows, requires a thread-local storage (TLS),
+Some OSes, such as Linux and \win{}, requires a thread-local storage (TLS),
 either to store thread-private variables, or to maintain a thread control block (TCB).
 A TLS area can potentially be frequently accessed by an application or library.
 Therefore, on \graphenearch{},
@@ -474,13 +474,13 @@ being a pointer that references to the TLS area.
 Otherwise, the \palkeyword{register} argument
 can be \palkeyword{READ_FS} or \palkeyword{READ_GS},
 to retrieve the FS/GS register value.
-Regardless, \palcall{SegmentRegisterAccess} returns the current value of FS/GS register.
+On success, the \hostapi{} returns the current value of FS/GS register.
 
 
 
 \issuedone{1.3.e}{Discuss the FS/GS limitation}
 Unfortunately, the feasibility of implementing \palcall{SegmentRegisterAccess}
-deoends on the host OS.
+depends on the host OS.
 %The implementation of \palcall{SegmentRegSet}
 %depends the host system interfaces. 
 %By default, reading or writing the value of the FS/GS registers is a privileged operation
@@ -489,18 +489,18 @@ Linux and similar OSes allow the usage of FS/GS register,
 primarily because the FS register is heavily used in the standard C library.
 %or BSD, the FS register is commonly used for bookkeeping in the standard C library;
 %thus, the Linux or BSD system calls naturally include the feature of reading or writing the FS/GS registers in the kernel space (although only the FS register is used in the user space).
-However, in other OSes, especially Windows and OSX,
+However, in other OSes, especially \win{} and \osx{},
 changing the FS/GS register %is considered an unnecessary or even dangerous behavior,
 is forbidden by the OS kernels.
-The Windows 7, 8, and 10 kernels confiscate the FS register for storing a thread control block (TCB),
+The \win{} 7, 8, and 10 kernels confiscate the FS register for storing a thread control block (TCB),
 and thus forbid users to change the FS register value.
-OSX's xnu kernel considers FS/GS registers to be of no concrete use.
+\osx{}'s xnu kernel considers FS/GS registers to be of no concrete use.
 These OS kernels
 have been aggressively resetting the FS/GS register values
 to mitigate any user attempt of changing them.
-Therefore, the host ABI declares \palcall{SegmentRegisterAccess}
-as one of the optional \hostapis{},
-as the guest should consider developing a workaround if the \hostapi{} is not supported on a certain host.
+Therefore, \palcall{SegmentRegisterAccess}
+is optional,
+and the guest may have to develope a workaround if the \hostapi{} is not supported on a certain host.
 
 
 %we observe the case where changing the FS/GS registers is considered unnecessary and dangerous to the kernel.
@@ -524,7 +524,7 @@ as the guest should consider developing a workaround if the \hostapi{} is not su
 
 
 
-\subsection{Processes}
+\papersubsection{Processes}
 \label{sec:abi:proc}
 
 
@@ -597,7 +597,7 @@ as well as to inherit I/O stream handles from each other.
 
 
 
-\subsubsection*{Sharing a handle}
+\papersubsubsection{Sharing a handle}
 
 
 
@@ -640,7 +640,7 @@ that references to the shared I/O stream.
 The abstraction is similar to a feature in Linux and similar OSes that
 shares file descriptors over a UNIX domain socket.
 
-\subsubsection*{Bulk IPC (physical memory store)}
+\papersubsubsection{Bulk IPC (physical memory store)}
 
 
 %Migrating the guest state over a RPC stream can suffer significant overhead,
@@ -706,7 +706,7 @@ to a memory range in the current process.
 
 
 
-\subsection{Sandboxing}
+\papersubsection{Sandboxing}
 \label{sec:abi:proc:sandbox}
 
 

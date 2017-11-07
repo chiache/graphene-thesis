@@ -1,4 +1,4 @@
-\subsection{The \libos{} architecture}
+\papersubsection{The \libos{} architecture}
 \label{sec:overview:libos:arch}
 
 %Recent library OSes~\cite{porter11drawbridge,unikernels,baumann13bascule,osv}
@@ -18,7 +18,7 @@ which includes an {\em unmodified} application and its supporting libraries, whi
 The \libos{} is implemented over \thehostabi{} designed to expose very generic abstractions that can be easily implemented on any host OS.
 %Although the \graphene{} prototype  host kernel is Linux, 
 %we adapt a host ABI from Drawbridge/Bascule,
-%which has been previously implemented on Windows, Hyper-V, and Barrelfish~\cite{porter11drawbridge,baumann13bascule,baumann09barrelfish}.
+%which has been previously implemented on \win{}, Hyper-V, and Barrelfish~\cite{porter11drawbridge,baumann13bascule,baumann09barrelfish}.
 %The \graphene{} host ABI is
 % summarized in Table~\ref{tab:abi} and discussed in more detail in \S\ref{sec:linux:pal}\fixmedp{if not cut...}.  
 %which exposes only tens of simple host calls. \daniela{briefly define \picoproc{}: A \picoproc{} is unmodified application code running with a \libos{}.}
@@ -75,7 +75,7 @@ A \picoproc{} may not modify another \picoproc{}'s OS state.
 
 
 
-\subsection{Multi-process abstractions}
+\papersubsection{Multi-process abstractions}
 \label{sec:overview:libos:multiproc}
 
 
@@ -190,7 +190,7 @@ an application on a dedicated VM; this isolation could be implemented on a multi
 %%% some known techniques to a new environment.
 
 %The \graphene{} host ABI could be described as a hybrid microkernel, which also exposes the file system and network of the host kernel.
-%Similarly, picoprocesses are assumed to be provided by a production OS, like Linux or Windows, or by a Type 2 hypervisor.  A bare metal hypervisor could potentially export a PAL, but would require services from a trusted VM, such as Xen's dom0~\cite{barham03xen}.
+%Similarly, picoprocesses are assumed to be provided by a production OS, like Linux or \win{}, or by a Type 2 hypervisor.  A bare metal hypervisor could potentially export a PAL, but would require services from a trusted VM, such as Xen's dom0~\cite{barham03xen}.
 %%or the \pal{} would implement more thread scheduling, networking, and file system code;
 %%or the \pal{} ABI would change to push this code into the \libos{}.
 %Arguably, recent library OS designs might be improved by rethinking the division of labor, but this is beyond the scope of this thesis.
@@ -200,7 +200,7 @@ an application on a dedicated VM; this isolation could be implemented on a multi
 %in order to implement a second process abstraction, memory manager, and scheduler in the library OS.
 %This approach threatens the efficiency benefits of deduplicating these features.
 %A final option is exposing additional system interfaces, such as signals, by adding more system calls to a picoprocess. This approach undermines compatibility, as many of these coordination abstractions tend to be very OS-specific.
-%%Unix signals vs.\ Windows events, {\tt waitpid()} vs.\ blocking on a process handle, etc.
+%%Unix signals vs.\ \win{} events, {\tt waitpid()} vs.\ blocking on a process handle, etc.
 %%Although legacy OSes do enforce some access control rules on coordination abstractions,
 %%kernel developers must audit and add hooks to millions of lines of code.
 %%As a result,
@@ -219,7 +219,7 @@ an application on a dedicated VM; this isolation could be implemented on a multi
 %coordination or isolation.  
 
 
-%Traditional OS kernels typically provide  rich multi-process coordination APIs, but this richness also makes for a very porous attack surface area.  For instance, on Windows, a program may inject libraries and create threads in another program~\cite{windows-dll-inject}; 
+%Traditional OS kernels typically provide  rich multi-process coordination APIs, but this richness also makes for a very porous attack surface area.  For instance, on \win{}, a program may inject libraries and create threads in another program~\cite{windows-dll-inject}; 
 %similarly, unchecked file descriptor inheritance in Linux can lead to security problems~\cite{close-on-exec}.  
 %Although legacy OSes do enforce some access control rules on these abstractions, kernel developers must audit and add hooks to so much code that users have lost confidence that an OS can comprehensively enforce security isolation on these abstractions.
 
