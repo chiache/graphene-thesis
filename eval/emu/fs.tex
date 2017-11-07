@@ -1,0 +1,18 @@
+\papersubsection{File systems}
+\label{sec:eval:libos:fs}
+
+
+\begin{table}[t!b!]
+\input{tables/lmbench-fs}
+\caption{File system performance. The host file system is EXT4. Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
+System call latency is in microseconds, and lower is better.
+System call throughput is in operations per second, and higher is better. 
+Overheads are relative to Linux; negative overheads indicate improvement.} 
+\label{tab:eval:libos:lmbench-fs}
+\end{table}
+
+
+
+Figure~\ref{tab:eval:libos:lmbench-fs}
+lists the latency or throughput of several system calls
+for accessing an isolated host file system mounted into the \thelibos{} instance, or a {\bf chroot} file system.

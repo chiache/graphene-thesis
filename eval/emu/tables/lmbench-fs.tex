@@ -1,0 +1,65 @@
+\footnotesize
+\centering
+\bgroup
+\def\arraystretch{1.1}
+\setlength{\tabcolsep}{0.4em}
+\begin{tabular}{|ll|>{\palign{r}}p{3.5em}r|>{\palign{r}}p{3.5em}rr|>{\palign{r}}p{3.5em}rr|>{\palign{r}}p{3.5em}rr|}
+\hline
+& & \multicolumn{11}{c|}{System call latency (\usec{}), +/- Confidence Interval, \% Overhead} \\
+\hline
+\multicolumn{2}{|c|}{{\bf Test}} &
+\multicolumn{2}{c|}{{\bf Linux \linuxversion{}}} &
+\multicolumn{3}{c|}{{\bf \graphene{}}} & \multicolumn{3}{c|}{{\bf \graphene{}+SC+RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
+& &
+\usec{} & +/- & 
+\usec{} & +/- & \%O &
+\usec{} & +/- & \%O &
+\usec{} & +/- & \%O \\
+\hline
+
+{\tt open}	&	(d=2,len=\hspace{.5em}8)	&	0.947	&	.072	&	2.337	&	.013	&	147	&	2.719	&	.007	&	187	&	16.600	&	.007	&	1,653		 \\\hline
+{\tt open}	&	(d=4,len=16)	&	1.011	&	.074	&	2.627	&	.009	&	160	&	2.922	&	.009	&	189	&	17.168	&	.016	&	1,598		 \\\hline
+%{\tt open}	&	(d=6,len=24)	&	1.074	&	.068	&	2.719	&	.008	&	153	&	3.131	&	.007	&	192	&	17.527	&	.016	&	1,532		 \\\hline
+{\tt open}	&	(d=8,len=32)	&	1.131	&	.074	&	3.360	&	.000	&	197	&	3.812	&	.007	&	237	&	18.415	&	.016	&	1,528		 \\\hline
+\hline																										
+{\tt stat}	&	(d=2,len=\hspace{.5em}8)	&	0.361	&	.000	&	0.502	&	.000	&	39	&	0.499	&	.000	&	38	&	0.487	&	.000	&	35		 \\\hline
+{\tt stat}	&	(d=4,len=16)	&	0.420	&	.000	&	0.585	&	.000	&	39	&	0.584	&	.000	&	39	&	0.571	&	.001	&	36		 \\\hline
+%{\tt stat}	&	(d=6,len=24)	&	0.486	&	.000	&	0.685	&	.000	&	41	&	0.685	&	.000	&	41	&	0.671	&	.000	&	38		 \\\hline
+{\tt stat}	&	(d=8,len=32)	&	0.553	&	.000	&	0.780	&	.000	&	41	&	0.780	&	.000	&	41	&	0.767	&	.000	&	39		 \\\hline
+\hline																										
+{\tt fstat} 	&	(any length)	&	0.120	&	.000	&	0.193	&	.000	&	61	&	0.193	&	.000	&	61	&	0.187	&	.000	&	56		 \\\hline
+\hline																										
+\hline																										
+%{\tt read} 	&	(0.25KB)	&	0.207	&	.072	&	0.252	&	.000	&	22	&	0.255	&	.000	&	23	&	0.342	&	.000	&	65		 \\\hline
+{\tt read} 	&	(\hspace{.5em}1KB)	&	0.227	&	.072	&	0.435	&	.000	&	92	&	0.434	&	.000	&	91	&	0.805	&	.001	&	255		 \\\hline
+{\tt read} 	&	(\hspace{.5em}4KB)	&	0.315	&	.072	&	0.545	&	.001	&	73	&	0.607	&	.000	&	93	&	9.545	&	.006	&	2,930		 \\\hline
+{\tt read} 	&	(16KB)	&	1.022	&	.072	&	1.308	&	.000	&	28	&	1.356	&	.000	&	33	&	11.437	&	.022	&	1,019		 \\\hline
+%{\tt read} 	&	(64KB)	&	3.931	&	.072	&	4.190	&	.001	&	7	&	4.189	&	.001	&	7	&	17.071	&	.004	&	334		 \\\hline
+\hline																										
+%{\tt write} 	&	(0.25KB)	&	0.515	&	.002	&	0.285	&	.000	&	-45	&	0.287	&	.000	&	-44	&	0.490	&	.000	&	-5		 \\\hline
+{\tt write} 	&	(\hspace{.5em}1KB)	&	0.535	&	.001	&	0.575	&	.000	&	7	&	0.580	&	.000	&	8	&	1.420	&	.002	&	165		 \\\hline
+{\tt write} 	&	(\hspace{.5em}4KB)	&	0.618	&	.000	&	0.856	&	.002	&	39	&	0.909	&	.002	&	47	&	9.784	&	.006	&	1,483		 \\\hline
+{\tt write} 	&	(16KB)	&	2.034	&	.000	&	2.303	&	.013	&	13	&	2.356	&	.001	&	16	&	19.730	&	.021	&	870		 \\\hline
+%{\tt write} 	&	(64KB)	&	7.614	&	.001	&	7.929	&	.020	&	4	&	7.971	&	.002	&	5	&	59.899	&	.017	&	687		 \\\hline
+
+\hline
+\hline
+& & \multicolumn{11}{c|}{System call throughput (operations/s), +/- Confidence Interval, \% Overhead} \\
+\hline
+\multicolumn{2}{|c|}{{\bf Test}} &
+\multicolumn{2}{c|}{{\bf Linux \linuxversion{}}} &
+\multicolumn{3}{c|}{{\bf \graphene{}}} & \multicolumn{3}{c|}{{\bf \graphene{}+SC+RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
+& &
+ops/s & +/- & 
+ops/s & +/- & \%O &
+ops/s & +/- & \%O &
+ops/s & +/- & \%O \\
+\hline
+create	&	(\hspace{.5em}0KB)	&	151,819	&	734	&	122,526	&	343	&	24	&	116,195	&	205	&	31	&	40,471	&	248	&	275		 \\\hline
+delete	&	(\hspace{.5em}0KB)	&	247,750	&	1,048	&	133,397	&	424	&	86	&	120,683	&	138	&	105	&	37,706	&	127	&	557		 \\\hline
+create	&	(\hspace{.5em}4KB)	&	154,318	&	21	&	83,880	&	201	&	84	&	73,797	&	993	&	109	&	21,989	&	37	&	602		 \\\hline
+delete	&	(\hspace{.5em}4KB)	&	250,097	&	461	&	109,782	&	504	&	128	&	101,480	&	480	&	146	&	35,355	&	14	&	607		 \\\hline
+create	&	(10KB)	&	102,749	&	90	&	64,693	&	134	&	59	&	62,891	&	72	&	63	&	18,194	&	6	&	465		 \\\hline
+delete	&	(10KB)	&	186,029	&	458	&	93,833	&	232	&	98	&	89,493	&	129	&	108	&	33,368	&	94	&	458		 \\\hline
+\end{tabular}
+\egroup

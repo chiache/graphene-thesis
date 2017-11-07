@@ -1,4 +1,16 @@
 \papersubsection{Process creation}
+\label{sec:eval:libos:fork}
+
+\begin{table}[t!b!]
+\input{tables/lmbench-fork}
+\caption{Process creation latency. Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
+Latency is in microseconds, except for \graphenesgx{}, which is in seconds. Lower latency is better.
+Overheads are relative to Linux; negative overheads indicate improvement.} 
+\label{tab:eval:libos:lmbench-fork}
+\end{table}
+
+Figure~\ref{tab:eval:libos:lmbench-fork}
+lists
 
 The most expensive system calls occur when {\tt libLinux} inadvertently duplicates work
 with the host kernel.  
@@ -32,13 +44,7 @@ if copy-on-write sharing of enclave pages can be supported in future generations
 %Unless otherwise noted, \graphenesgx{} measurements include the Phosphor instrumentation.
 
 
-\begin{table}[t!b!]
-\input{tables/lmbench-fork}
-\caption{Benchmark results of various combinations of \syscall{fork}, \syscall{vfork}, and \syscall{execve}, based on \lmbench{} 2.5. Comparison is among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with JIT-optimized SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in \sgx{} enclaves.
-Latency is in microseconds, except for \graphenesgx{}, which is orders-of-magnitude slower. Lower latency is better.
-Overheads are relative to Linux \linuxversion{}; negative overheads indicate improved performance.} 
-\label{tab:eval:lmbench-fork}
-\end{table}
+
 
 
 

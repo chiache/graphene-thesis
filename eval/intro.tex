@@ -10,8 +10,9 @@ targets the following four aspects:
 The evaluation compares experiment results
 %(either execution time, processing bandwidth, or resource usage)
 %of benchmarks and applications,
-between \graphene{}, \graphenesgx{}, and native processes running on an unmodified, generic Linux kernel,
-to show the cost of leveraging a \libos{} for compatibility and security isolation.
+between \graphene{}, \graphenesgx{}, and native processes running on an unmodified, generic Linux kernel.
+The results
+show the cost of leveraging \graphene{} for compatibility and security isolation.
 %of a micro-benchmark or sample application on \graphene{} or \graphenesgx{}, with the results collected on a native Linux kernel.
 
 
@@ -100,6 +101,7 @@ to show the cost of leveraging a \libos{} for compatibility and security isolati
 
 \paragraph{Experimental setup.}
 
+The evaluation is based on \graphene{} \grapheneversion{}\footnote{\graphene{} is released at \url{https://github.com/oscarlab/graphene}}.
 All experiment results are collected on a Dell Optiplex 790 Small-Form Desktop,
 with a 4-core 3.2GHz Intel Core i5-6500 CPU (no hyper-threading, with 256KB I-Cache and D-Cache, 1MB L2 Cache, and 6MB L3 Cache),
 two 4GB DIMM 1600MHz DDR3 RAMs (8GB in total), and a Seagate 512GB, 7200 RPM SATA disk formatted as EXT4.
@@ -108,11 +110,12 @@ To prevent fluctuated benchmarking results,
 Turbo Boost, SpeedStep, and CPU idle states are disabled for
 all experiments.
 %We disable SpeedStep and TurboBoost to prevent interference.
-All networked servers are evaluated over an 1Gbps Ethernet card connected to a dedicated local network.
+All networked servers are evaluated over an 1Gbps Ethernet card connected to a dedicated local network,
+except that some micro-benchmarks are evaluated over a local loopback device (i.e., localhost).
 
 
 
-All experiments are evaluated upon \graphene{} \grapheneversion{}\footnote{\graphene{} is released at \url{https://github.com/oscarlab/graphene}}.
+
 The host OS for evaluating the Linux and \sgx{} ports is Ubuntu \ubuntuversion{} with Linux kernel \linuxversion{},
 which is also the baseline for comparison.
 All test programs and applications are dynamically linked

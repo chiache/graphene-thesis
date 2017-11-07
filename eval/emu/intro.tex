@@ -19,9 +19,92 @@ of Linux system call in a \picoproc{} with the native system call performance in
 and the related \hostapis{}, as evaluated in Section~\ref{sec:eval:pal}.
 Finally,
 the evaluation shows that with the right emulation strategies,
-\thelibos{} can achieve acceptable performance at the Linux system call level,
-which also contributes as an important factor to
-application performance.
+\thelibos{} can achieve acceptable performance on system calls.
+
+
+The benchmark results in this section are based on
+\lmbenchwithver{}~\cite{McVoy:lmbench},
+extended with extra tests.
+Each result
+reports a mean and 95\% confidence interval,
+assuming the benchmark results are normally distributed;
+to improve the precision,
+the number of iterations in each test is increased to at least a hundred times, which effectively lowers the variance
+in most tests.
+Although assuming a normal distribution may not be realistic for most benchmark results,
+the error is likely to be marginal with the very low variance
+observed in the tests.
+%we use the default number of iterations for each test case.
+%We have added code to \lmbench{} to also calculate 95\% confidence intervals 
+%within a run~\footnote{The lmbench authors deliberately exclude variation statistics
+%because most methods assume a known distribution, generally a normal distribution---an 
+%assumption which is often not the case for a computer microbenchmark~\cite{staelin05lmbench}.
+%Though confidence intervals should be taken with a grain of salt, 
+%we include them because they clearly indicate that these experiments have very low variance. In 
+%a few cases of minor performance improvement, one can assess the impact of noise.}.
+Besides, to measure the marginal cost of the \seccomp{} filter and reference monitor on a Linux host,
+the experiments include the cases both with
+and without the \seccomp{} filter and reference monitor.
+
+
+The evaluation results categorize
+system calls as three types.
+The first type of system calls can be completely serviced inside \thelibos{};
+in this case, the latency of system calls
+inside \graphene{} or \graphenesgx{}
+can be close to the native performance
+or even be faster than native,
+depending on how optimized the emulation is.
+\graphene{} emulates
+these system calls with relative small costs or even performance gains
+because each of these system calls requires
+no native host system calls
+or enclave exits.
+%to use system calls in the host OS or even exit enclaves.
+%the evaluation results show that these system calls are even faster than native, because \thelibos{} does not switch context into the kernal space
+%to service the system calls.
+For instance,
+\syscall{getppid} only returns an OS state
+(parent process ID),
+and thus is 67\% faster
+in \graphene{} or \graphenesgx{}
+than in a native Linux process.
+
+
+The second type of system calls requires translation to a native host system calls,
+with enclave exits if running on SGX.
+There system calls are slower in \graphene{} or \graphenesgx{} than native,
+because emulating each of the system calls
+requires calling the native host system call at least once,
+or more if the \thelibos{} or PAL implementation
+requires so.
+For example, to implement \syscall{open}, \thelibos{} calls \palcall{DkStreamOpen} to open a handle
+for accessing the host file,
+and ends up calling \syscall{open} in the host OS.
+
+
+The third type of system calls also requires native host system calls, but \thelibos{} can batch
+the results of several operations by buffering
+or caching data inside of the \libos{} instance.
+For these system calls,
+\thelibos{} can often emulate with low overheads,
+even if the translation to each native host system calls is relatively expensive.
+For instance, on Linux host, \thelibos{} buffers both \syscall{read} and \syscall{write} to a host file
+by mapping a part of the file inside the \picoproc{}
+without necessarily flushing the written data to the disks.
+Writing 256 bytes
+to a host file is \roughly{}45\% faster in \graphene{} than in a native Linux process.  
+
+
+As a conclusion,
+the emulation overheads of system calls usually depend on how many native host system calls
+is required.
+If \thelibos{} requires no host system calls
+or can defer host system calls
+until a later moment, \thelibos{} can reduce the emulation costs to mostly in-memory operations.
+Otherwise,
+\thelibos{} tends to impose larger overheads
+if it has to directly translate guest system calls to \hostapis{}, and eventually to host system calls.
 
 
 

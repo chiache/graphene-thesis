@@ -1,57 +1,82 @@
 \papersubsection{Single-process system calls}
-\label{eval:perf:syscalls}
+\label{sec:eval:libos:syscalls}
 
 
-%In order to understand the overheads of individual system calls,
-Table~\ref{tab:eval:lmbench-syscalls} lists 
-a representative sample of 
-tests from \lmbench{} 2.5 benchmark suite~\cite{McVoy:lmbench}
-(extended with additional experiments).
-Each row reports a mean and 95\% confidence interval,
-assuming the benchmark results are normally distributed;
-to improve the precision,
-the number of iterations in each test is increased to at least a thousand times, which effectively lower the variance
-in most tests.
-Although assuming a normal distribution may not be realistic for most benchmark results,
-the error is likely to be marginal with the very low variance
-observed in the tests.
-%we use the default number of iterations for each test case.
-%We have added code to \lmbench{} to also calculate 95\% confidence intervals 
-%within a run~\footnote{The lmbench authors deliberately exclude variation statistics
-%because most methods assume a known distribution, generally a normal distribution---an 
-%assumption which is often not the case for a computer microbenchmark~\cite{staelin05lmbench}.
-%Though confidence intervals should be taken with a grain of salt, 
-%we include them because they clearly indicate that these experiments have very low variance. In 
-%a few cases of minor performance improvement, one can assess the impact of noise.}.
-Besides, to measure the marginal cost of the \seccomp{} filter and reference monitor on a Linux host,
-the experiments include the cases both with
-and without the \seccomp{} filter and reference monitor.
-
-
-The evaluation results categorize
-the system calls emulated inside \thelibos{}
-as two types.
-The first type of system calls is completely serviced inside \thelibos{};
-the evaluation results show that these system calls are even faster than native, because \thelibos{} does not switch context into the kernal space
-to service the system calls.
-For instance,
-a null system call (i.e., \syscall{getppid}) and installing a signal handler with \syscall{sigaction}
-are up to three time as fast as the native performance.
-The second type of system call requires translation to a native host system calls.
-%For instance, 
-%the self-signaling test (sig overhead)
-%just calls the signal handler as a function,
-%which is almost twice as fast
-%as the Linux kernel implementation.
-
-\begin{table}[htp!]
+\begin{table}[t!b!]
 \input{tables/lmbench-syscalls}
-\caption{System call benchmark results based on \lmbench{} 2.5. Comparison is among (1) native Linux processes, (2) \graphene{} \picoprocs{} on Linux host, both without and with JIT-optimized SECCOMP filter ({\bf +SC}) and reference monitor ({\bf +RM}), and (3) \graphene{} in \sgx{} enclaves.
+\caption{Single-process system call performance. Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
 System call latency is in microseconds, and lower is better.
-System call bandwidth and throughput are in megabytes per second and operations per second, respectively, and higher is better. 
-%The file system is measured in thousands operations per second, and higher is better.
-Overheads are relative to Linux \linuxversion{}; negative overheads indicate improved performance.} 
-\label{tab:eval:lmbench-syscalls}
+Overheads are relative to Linux; negative overheads indicate improvement.} 
+\label{tab:eval:libos:lmbench-syscalls}
 \end{table}
+
+
+Figure~\ref{tab:eval:libos:lmbench-syscalls}
+lists the latency of several system calls directly serviced inside \thelibos{} instances,
+and several cases where the host OS delivers an exception
+(segmentation faults or forbidden system calls).
+A few system calls show optimized performance
+in \graphene{} and \graphenesgx{} compared to Linux.
+For instance,
+\syscall{getppid}, \syscall{sigaction}, and sending a \code{SIGUSR1} signal (to current process)
+are 23--80\% faster in \graphene{} and \graphenesgx{} than in a native Linux process,
+due to no native host system calls and little emulation complexity.
+
+
+
+As another example, access to a pseudo file
+such as \code{/dev/zero}
+is also a feature emulated
+inside \thelibos{},
+with less speedups or slowdowns.
+Opening \code{/dev/zero}
+or retrieving the attributes of \code{/dev/zero} using \syscall{stat}
+is 21--29\% slower in \graphene{} or \graphenesgx{} than native,
+due to file system directory cache lookup latency
+in \thelibos{}.
+For other system calls, \thelibos{} emulates \syscall{fstat} and \syscall{read}
+on \code{/dev/zero}
+with negligible overheads,
+and emulates \syscall{write} with
+similar latency as \syscall{read}.
+For each of these system calls, either the \seccomp{} filter, reference monitor, or enclave
+has no impact on the performance.
+
+
+Two test results in Figure~\ref{tab:eval:libos:lmbench-syscalls}
+show the performance of delivering exceptions from the host OS or hardware.
+One example is direct system calls from a statically
+compiled binary
+or assembly code calling \assembly{syscall} or \assembly{int \$80}.
+With \seccomp{} filter,
+\graphene{} can capture these system calls and redirect into \thelibos{} as a host exception (not supported if \seccomp{} filter is disabled).
+For \graphenesgx{},
+the SGX hardware also captures these system calls
+inside an enclave
+and delivers an
+``illegal instruction'' exception.
+\graphene{} services these direct system calls primarily as a compatibility feature;
+however, the overhead on direct system calls
+is up to 24$\times$ on Linux and 128$\times$ on SGX.
+As another example,
+delivering a memory fault
+into a \picoproc{} and an enclave also has significant overheads at 3$\times$ and 15$\times$ compared to native performance.
+A potential optimization
+is to virtualize the exception handler using hardware support such as VT~\cite{VT} so that a \libos{} can avoid trapping
+into the host OS
+when memory faults or other exceptions happen.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
