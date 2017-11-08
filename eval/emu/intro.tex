@@ -48,7 +48,7 @@ and without the \seccomp{} filter and reference monitor.
 
 
 The evaluation results categorize
-system calls as two types.
+system calls as three types.
 The first type of system calls can be completely serviced inside \thelibos{};
 in this case, the latency of system calls
 inside \graphene{} or \graphenesgx{}
@@ -63,10 +63,14 @@ to use system calls in the host OS or even exit enclaves.
 %to service the system calls.
 For instance,
 a system call which only fetches a in-kernel variable, such as \syscall{getppid},
-is 75\% faster in \graphene{} or \graphenesgx{} than native.
-%The second type of system call requires translation to a native host system calls.
+is 67\% faster in \graphene{} or \graphenesgx{} than native.
+
+
+The second type of system call requires translation to a native host system calls
+or exiting enclaves to request
+untrusted OS services.
 %For instance, 
 %the self-signaling test (sig overhead)
-%just calls the signal handler as a function,
+%just calls the sign al handler as a function,
 %which is almost twice as fast
 %as the Linux kernel implementation.
