@@ -3,31 +3,31 @@
 \bgroup
 \def\arraystretch{1.1}
 \setlength{\tabcolsep}{.5em}
-\begin{tabular}{|l|>{\palign{r}}p{3em}r|>{\palign{r}}p{3em}rr|>{\palign{r}}p{3em}rr|>{\palign{r}}p{3em}rr|}
+\begin{tabular}{|ll|>{\palign{r}}p{3em}r|>{\palign{r}}p{3em}rr|>{\palign{r}}p{3em}rr|>{\palign{r}}p{3em}rr|}
 \hline
-&\multicolumn{11}{c|}{System call latency (\usec{}), +/- Confidence Interval, \% Overhead} \\
+& & \multicolumn{11}{c|}{System call latency (\usec{}), +/- Confidence Interval, \% Overhead} \\
 \hline
-\multicolumn{1}{|c|}{{\bf Test}} &
+\multicolumn{2}{|c|}{{\bf Test}} &
 \multicolumn{2}{c|}{{\bf Linux \linuxversion{}}} &
 \multicolumn{3}{c|}{{\bf \graphene{}}} & \multicolumn{3}{c|}{{\bf \graphene{}+SC+RM}} & \multicolumn{3}{c|}{{\bf \graphenesgx{}}} \\
-&
+& &
 \usec{} & +/- & 
 \usec{} & +/- & \%O &
 \usec{} & +/- & \%O &
 \usec{} & +/- & \%O \\
 \hline																					
-\code{getppid}	&	0.045	&	.000	&	0.015	&	.000	&	-67	&	0.015	&	.000	&	-67	&	.015	&	.000	&	-67		 \\\hline
-\code{getppid} (direct)	&	0.045	&	.000	&	\multicolumn{3}{c|}{Not supported}					&	1.155	&	.000	&	2,467	&	5.800	&	.001	&	12,789		 \\\hline
-																								
-\parbox{\widthof{write}}{open} \code{/dev/zero}	&	0.997	&	.072	&	1.354	&	.000	&	36	&	1.359	&	.000	&	36	&	1.316	&	.004	&	32		 \\\hline
-\parbox{\widthof{write}}{stat} \code{/dev/zero}	&	0.362	&	.000	&	0.844	&	.000	&	133	&	0.844	&	.000	&	133	&	0.834	&	.000	&	130		 \\\hline
-\parbox{\widthof{write}}{fstat} \code{/dev/zero}	&	0.117	&	.000	&	0.111	&	.000	&	-5	&	0.111	&	.000	&	-5	&	0.107	&	.000	&	-9		 \\\hline
-\parbox{\widthof{write}}{read} \code{/dev/zero}	&	0.116	&	.000	&	0.137	&	.001	&	18	&	0.121	&	.000	&	4	&	0.115	&	.000	&	-1		 \\\hline
-\parbox{\widthof{write}}{write} \code{/dev/zero}	&	0.077	&	.000	&	0.116	&	.000	&	51	&	0.116	&	.000	&	51	&	0.111	&	.000	&	44		 \\\hline
-																								
-install sigaction	&	0.146	&	.000	&	0.113	&	.000	&	-23	&	0.113	&	.000	&	-23	&	0.110	&	.000	&	-25		 \\\hline
-\parbox{\widthof{catch}}{send} {\tt SIGUSR1}	&	0.895	&	.000	&	0.189	&	.000	&	-79	&	0.187	&	.000	&	-79	&	0.178	&	.000	&	-80		 \\\hline
-\parbox{\widthof{catch}}{catch} {\tt SIGSEGV}	&	0.379	&	.000	&	1.526	&	.000	&	303	&	1.575	&	.000	&	316	&	6.117	&	.000	&	1,514		 \\\hline
+\multicolumn{2}{|l|}{{\tt getppid}}			&	0.045	&	.000	&	0.015	&	.000	&	-67	&	0.015	&	.000	&	-67	&	0.015	&	.000	&	-67		 \\\hline
+\multicolumn{2}{|l|}{{\tt getppid} (direct)}			&	0.045	&	.000	&	\multicolumn{3}{c|}{Not supported}					&	1.155	&	.000	&	2,467	&	5.800	&	.001	&	12,789		 \\\hline
+\hline																										
+{\tt open}	&	{\tt /dev/zero}	&	0.997	&	.072	&	1.354	&	.000	&	36	&	1.359	&	.000	&	36	&	1.316	&	.004	&	32		 \\\hline
+{\tt stat}	&	{\tt /dev/zero}	&	0.362	&	.000	&	0.844	&	.000	&	133	&	0.844	&	.000	&	133	&	0.834	&	.000	&	130		 \\\hline
+{\tt fstat}	&	{\tt /dev/zero}	&	0.117	&	.000	&	0.111	&	.000	&	-5	&	0.111	&	.000	&	-5	&	0.107	&	.000	&	-9		 \\\hline
+{\tt read}	&	{\tt /dev/zero}	&	0.116	&	.000	&	0.137	&	.001	&	18	&	0.121	&	.000	&	4	&	0.115	&	.000	&	-1		 \\\hline
+{\tt write}	&	{\tt /dev/zero}	&	0.077	&	.000	&	0.116	&	.000	&	51	&	0.116	&	.000	&	51	&	0.111	&	.000	&	44		 \\\hline
+\hline																										
+install	&	sigaction	&	0.146	&	.000	&	0.113	&	.000	&	-23	&	0.113	&	.000	&	-23	&	0.110	&	.000	&	-25		 \\\hline
+send	&	{\tt SIGUSR1}	&	0.895	&	.000	&	0.189	&	.000	&	-79	&	0.187	&	.000	&	-79	&	0.178	&	.000	&	-80		 \\\hline
+catch	&	{\tt SIGSEGV}	&	0.379	&	.000	&	1.526	&	.000	&	303	&	1.575	&	.000	&	316	&	6.117	&	.000	&	1,514		 \\\hline
 																	
 \end{tabular}
 \egroup
