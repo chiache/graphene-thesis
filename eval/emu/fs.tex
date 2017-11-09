@@ -14,5 +14,44 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 
 
 Figure~\ref{tab:eval:libos:lmbench-fs}
-lists the latency or throughput of several system calls
-for accessing an isolated host file system mounted into the \thelibos{} instance, or a {\bf chroot} file system.
+lists the latency or throughput of system calls
+for accessing an isolated host file system mounted in a \thelibos{} instance,
+or a {\bf chroot} file system.
+Each system call in a chroot file system
+accesses a file or a directory in the host file system,
+and therefore requires
+translation to one or multiple
+host system calls.
+As a result, the system call latency
+is determined by the underlying \hostapi{} latency and the translation cost inside \thelibos{}.
+%Besides, as previously stated, \thelibos{}
+%can optimize system calls such as \syscall{read} and \syscall{write}
+%by buffering read or written data.
+
+
+
+System calls like \syscall{open} and \syscall{stat}
+%access a specific path
+%in the file system.
+%The performance of this type of system calls
+are sensitive to lengths and depths (i.e., numbers of components) in the requested paths.
+For optimization,
+\thelibos{} implements a file system directory cache
+to store path information and file attributes retrieved from the host OS.
+Because the \lmbench{} tests %for \syscall{stat} and \syscall{open}
+access the same path repeatedly,
+the directory cache
+is guaranteed to optimize every system calls measured.
+As a result,
+\syscall{stat} in both \graphene{} and \graphenesgx{} is only 35--41\% slower than native
+and mostly irrelevant from the host system call latency. 
+\syscall{fstat} also benefits from directory caching
+(35--41\% overheads).
+%Different from \syscall{stat},
+For \syscall{open}, %despite the optimization of directory caching,
+\graphene{} imposes
+extra overheads for opening PAL handles and allocating file descriptors in \thelibos{}.
+To access a path with 2--8 components,
+the overheads on \syscall{open} are 147--197\% for \graphene{} on Linux host, and 187--237\% with \seccomp{} filter and reference monitor.
+For \graphenesgx{}, the overheads are 15.2--16.5$\times$
+without considering the checksum calculation costs.
