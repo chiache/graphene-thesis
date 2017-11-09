@@ -4,7 +4,8 @@
 
 \begin{table}[t!b!]
 \input{tables/lmbench-fs}
-\caption{File system performance. The host file system is EXT4. Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
+\caption{File-related system call performance based on \lmbench{}. 
+Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
 System call latency is in microseconds, and lower is better.
 System call throughput is in operations per second, and higher is better. 
 Overheads are relative to Linux; negative overheads indicate improvement.} 
@@ -55,3 +56,26 @@ To access a path with 2--8 components,
 the overheads on \syscall{open} are 147--197\% for \graphene{} on Linux host, and 187--237\% with \seccomp{} filter and reference monitor.
 For \graphenesgx{}, the overheads are 15.2--16.5$\times$
 without considering the checksum calculation costs.
+
+
+For \syscall{read} and \syscall{write},
+the latency in \graphene{} depends on the buffering strategy in \thelibos{}.
+The experiments
+are based on a strategy which
+buffers reads and writes smaller than 4KB (not including 4KB)
+using a 16KB buffer directly mapped from the file.
+In Figure~\ref{tab:eval:libos:lmbench-fs}, buffered reads and writes (256 bytes and 1KB) on Linux host
+are 22--92\% and -45--8\% slower than native, respectively.
+For unbuffered reads and writes (4KB and 16KB),
+the latency in \graphene{} and \graphenesgx{}
+is closer to native with larger reading and writing sizes.
+Unbuffered reads and writes
+on \graphenesgx{}
+have significant overheads around 10--29$\times$, primarily for copying file contents
+between enclave and untrusted memory.
+
+\lmbench{} also tests the throughput of creating and deleting a large amount of files,
+measured in operations per second.
+For both \graphene{} and \graphenesgx{}, deletion has higher overheads than creation; \graphenesgx{} also imposes much more significant overheads than \graphene{}, at 2.7--6$\times$.
+
+
