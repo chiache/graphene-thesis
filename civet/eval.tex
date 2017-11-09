@@ -265,13 +265,13 @@ For the stability of the experiment, we disable the \java{} JIT optimization in 
  & & {\footnotesize +/-} & &  {\footnotesize +/-} & Overhead &  & {\footnotesize +/-} & Overhead \\
 \hline
 \addlinespace[2pt]
-Start-up time &  0.06 \hspace{0.5em}\asec{}  & 0.00 \hspace{0.5em}\asec{} & 7.92 \hspace{0.5em}\asec{} & 0.03 \hspace{0.5em}\asec{} & 127 $\times$ & 9.01 \hspace{0.5em}\asec{} & 0.01 \hspace{0.5em}\asec{} & 145 $\times$ \\
-Cross-partition allocation &  145.00 \nsec{}  & 4.15 \nsec{} & 1.59 \usec{} & 0.03 \usec{} & 11K $\times$ & 4.85 \usec{} & 0.73 \usec{} & 33K $\times$ \\
-Cross-partition call       & 66.13 nS & 5.83 nS & 0.71 \usec{} & 0.05 \usec{} & 10K $\times$ & 4.02 \usec{} & 0.28 \usec{} & 60K $\times$ \\
+Start-up time &  0.06 \hspace{0.5em}\asec{}  & 0.00 \hspace{0.5em}\asec{} & 7.92 \hspace{0.5em}\asec{} & 0.03 \hspace{0.5em}\asec{} & 127 \x{} & 9.01 \hspace{0.5em}\asec{} & 0.01 \hspace{0.5em}\asec{} & 145 \x{} \\
+Cross-partition allocation &  145.00 \nsec{}  & 4.15 \nsec{} & 1.59 \usec{} & 0.03 \usec{} & 11K \x{} & 4.85 \usec{} & 0.73 \usec{} & 33K \x{} \\
+Cross-partition call       & 66.13 nS & 5.83 nS & 0.71 \usec{} & 0.05 \usec{} & 10K \x{} & 4.02 \usec{} & 0.28 \usec{} & 60K \x{} \\
 \addlinespace[2pt]
 \hline
 \addlinespace[2pt]
-Memory footprint & \multicolumn{2}{r}{32.046 M}&  \multicolumn{2}{r}{1.232 G} & 38 $\times$ & \multicolumn{2}{r}{1.334 G} & 41 $\times$ \\
+Memory footprint & \multicolumn{2}{r}{32.046 M}&  \multicolumn{2}{r}{1.232 G} & 38 \x{} & \multicolumn{2}{r}{1.334 G} & 41 \x{} \\
 %Partition mem footprint &  &  &  &  &  &  &  &  &  &  &  \\
 \addlinespace[2pt]
 \hline
@@ -279,7 +279,7 @@ Memory footprint & \multicolumn{2}{r}{32.046 M}&  \multicolumn{2}{r}{1.232 G} & 
 \label{tab:perf}
 \end{table*}
 
-The experiment results show a non-trivial, 127--145 $\times$ overhead on
+The experiment results show a non-trivial, 127--145 \x{} overhead on
 the start-up time. % of run-time environment.
 The overhead on bootstrapping the \sysname{} run-time component
 is dominated by the latency of creating an 1GB \sgx{} enclave.
@@ -294,7 +294,7 @@ from the untrusted classes.
 For the native \jvm{}, with no partitioning, the latency of directly invoking a constructor or method
 on any classes is merely 60--145 nanoseconds.
 However, for \sysname{}, triggering the allocation or invocation of in-enclave objects involves serialization of input, entry of the enclave,
-and creation of correspondent proxy objects. The latency of allocating and calling an in-enclave object is 10k--60k $\times$ to direct invocation.
+and creation of correspondent proxy objects. The latency of allocating and calling an in-enclave object is 10k--60k \x{} to direct invocation.
 %Depending on the workload, the frequency of accessing in-enclave object should be reduced to minimum.
 
 %In addition, the memory footprint of the \sysname{} framework is dominated by the enclave size for running a \jvm{}.

@@ -4,7 +4,8 @@
 
 \begin{table}[t!b!]
 \input{tables/lmbench-fs}
-\caption{File system performance. The host file system is EXT4. Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
+\caption{File-related system call performance based on \lmbench{}. 
+Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
 System call latency is in microseconds, and lower is better.
 System call throughput is in operations per second, and higher is better. 
 Overheads are relative to Linux; negative overheads indicate improvement.} 
@@ -14,5 +15,68 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 
 
 Figure~\ref{tab:eval:libos:lmbench-fs}
-lists the latency or throughput of several system calls
-for accessing an isolated host file system mounted into the \thelibos{} instance, or a {\bf chroot} file system.
+lists the latency or throughput of system calls
+for accessing an isolated host file system mounted in a \thelibos{} instance,
+or a {\bf chroot} file system.
+Each system call in a chroot file system
+accesses a file or a directory in the host file system,
+and therefore requires
+translation to one or multiple
+host system calls.
+As a result, the system call latency
+is determined by the underlying \hostapi{} latency and the translation cost inside \thelibos{}.
+%Besides, as previously stated, \thelibos{}
+%can optimize system calls such as \syscall{read} and \syscall{write}
+%by buffering read or written data.
+
+
+
+System calls like \syscall{open} and \syscall{stat}
+%access a specific path
+%in the file system.
+%The performance of this type of system calls
+are sensitive to path lengths and depths (i.e., numbers of components).
+As an optimization,
+\thelibos{} implements a file system directory cache
+to store path information and file attributes retrieved from the host OS.
+Because the \lmbench{} tests %for \syscall{stat} and \syscall{open}
+access the same path repeatedly,
+the directory cache
+is guaranteed to optimize every system calls measured.
+As a result,
+\syscall{stat} in both \graphene{} and \graphenesgx{} is only 35--41\% slower than native
+and mostly irrelevant from the host system call latency. 
+\syscall{fstat} also benefits from directory caching
+(35--41\% overheads).
+%Different from \syscall{stat},
+For \syscall{open}, %despite the optimization of directory caching,
+\graphene{} imposes
+extra overheads for opening PAL handles and allocating file descriptors in \thelibos{}.
+To access a path with 2--8 components,
+the overheads on \syscall{open} are 147--197\% for \graphene{} on Linux host, and 187--237\% with \seccomp{} filter and reference monitor.
+For \graphenesgx{}, the overheads are 15.2--16.5\x{}
+without considering the checksum calculation costs.
+
+
+For \syscall{read} and \syscall{write},
+the latency in \graphene{} depends on the buffering strategy in \thelibos{}.
+The experiments
+are based on a strategy which
+buffers reads and writes smaller than 4KB (not including 4KB)
+using a 16KB buffer directly mapped from the file.
+In Figure~\ref{tab:eval:libos:lmbench-fs}, buffered reads and writes (256 bytes and 1KB) on Linux host
+are 22--92\% and -45--8\% slower than native, respectively.
+For unbuffered reads and writes (4KB and 16KB),
+the latency in \graphene{} and \graphenesgx{}
+is closer to native with larger reading and writing sizes.
+Unbuffered reads and writes
+on \graphenesgx{}
+have significant overheads around 10--29\x{}, primarily for copying file contents
+between enclave and untrusted memory.
+
+\lmbench{} also tests the throughput of creating and deleting a large amount of files,
+measured in operations per second.
+On all tests, deletion throughputs have much higher overheads than creation. Moreover, compared with \graphene{}, 
+both file creation and deletion on \graphenesgx{} have much more significant overheads,
+at 2.7--6\x{}.
+

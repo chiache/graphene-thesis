@@ -5,7 +5,7 @@
 \setlength{\tabcolsep}{.5em}
 \begin{tabular}{|ll|>{\palign{r}}p{4em}r|>{\palign{r}}p{4em}rr|>{\palign{r}}p{4em}rr|}
 \hline
-& & \multicolumn{8}{c|}{System call latency (\usec{}), +/- Confidence Interval, \%/$\times$ Overhead} \\
+& & \multicolumn{8}{c|}{System call latency (\usec{}), +/- Confidence Interval, \%/\x{} Overhead} \\
 \hline
 \multicolumn{2}{|c|}{{\bf Test}} &
 \multicolumn{2}{c|}{{\bf Linux \linuxversion{}}} &
@@ -19,25 +19,25 @@
 \usec{} & +/- & O \\
 \hline
 
-mmap	&	(\hspace{.5em}1MB)	&	0.854	&	.011	& \iffalse	11.397	&	.089	&	12	$\times$ & \fi	11.382	&	.077	&	12	$\times$ &	53	&	0	&	61	$\times$	 \\\hline
-mmap	&	(\hspace{.5em}4MB)	&	0.872	&	.055	& \iffalse	11.631	&	.103	&	12	$\times$ & \fi	11.524	&	.129	&	12	$\times$ &	279	&	13	&	319	$\times$	 \\\hline
-mmap	&	(16MB)	&	0.872	&	.056	& \iffalse	11.575	&	.086	&	12	$\times$ & \fi	11.371	&	.061	&	12	$\times$ &	7,762	&	30	&	8,901	$\times$	 \\\hline
-%mmap	&	(64MB)	&	0.889	&	.050	& \iffalse	11.574	&	.145	&	12	$\times$ & \fi	11.419	&	.063	&	12	$\times$ &	36,832	&	70	&	41,430	$\times$	 \\\hline
+mmap+free	&	(\hspace{.5em}1MB)	&	0.854	&	.011	& \iffalse	11.397	&	.089	&	12	\x{} & \fi	11.382	&	.077	&	12	\x{} &	53	&	0	&	61	\x{}	 \\\hline
+mmap+free	&	(\hspace{.5em}4MB)	&	0.872	&	.055	& \iffalse	11.631	&	.103	&	12	\x{} & \fi	11.524	&	.129	&	12	\x{} &	279	&	13	&	319	\x{}	 \\\hline
+mmap+free	&	(16MB)	&	0.872	&	.056	& \iffalse	11.575	&	.086	&	12	\x{} & \fi	11.371	&	.061	&	12	\x{} &	7,762	&	30	&	8,901	\x{}	 \\\hline
+%mmap+free	&	(64MB)	&	0.889	&	.050	& \iffalse	11.574	&	.145	&	12	\x{} & \fi	11.419	&	.063	&	12	\x{} &	36,832	&	70	&	41,430	\x{}	 \\\hline
 \hline																										
-mmap/access	&	(\hspace{.5em}1MB)	&	7.930	&	.052	& \iffalse	14.6	&	.054	&	84	\% & \fi	14.664	&	.049	&	85	\% &	53	&	0	&	6	$\times$	 \\\hline
-mmap/access	&	(\hspace{.5em}4MB)	&	33.440	&	11.567	& \iffalse	48.5	&	10.873	&	45	\% & \fi	45.189	&	10.214	&	35	\% &	264	&	10	&	7	$\times$	 \\\hline
-mmap/access	&	(16MB)	&	101.416	&	11.547	& \iffalse	93.7	&	8.347	&	-8	\% & \fi	93.381	&	12.239	&	-8	\% &	7,738	&	33	&	75	$\times$	 \\\hline
-%mmap/access	&	(64MB)	&	313.162	&	30.100	& \iffalse	302.3	&	23.752	&	-3	\% & \fi	315.187	&	23.690	&	1	\% &	36,832	&	44	&	117	$\times$	 \\\hline
+mmap+write+free	&	(\hspace{.5em}1MB)	&	7.930	&	.052	& \iffalse	14.6	&	.054	&	84	\% & \fi	14.664	&	.049	&	85	\% &	53	&	0	&	6	\x{}	 \\\hline
+mmap+write+free	&	(\hspace{.5em}4MB)	&	33.440	&	11.567	& \iffalse	48.5	&	10.873	&	45	\% & \fi	45.189	&	10.214	&	35	\% &	264	&	10	&	7	\x{}	 \\\hline
+mmap+write+free	&	(16MB)	&	101.416	&	11.547	& \iffalse	93.7	&	8.347	&	-8	\% & \fi	93.381	&	12.239	&	-8	\% &	7,738	&	33	&	75	\x{}	 \\\hline
+mmap+write+free	&	(64MB)	&	313.162	&	30.100	& \iffalse	302.3	&	23.752	&	-3	\% & \fi	315.187	&	23.690	&	1	\% &	36,832	&	44	&	117	\x{}	 \\\hline
 \hline																										
-brk	&	(\hspace{.5em}1KB)	&	0.445	&	.002	& \iffalse	0.159	&	.000	&	-64	\% & \fi	0.146	&	.000	&	-67	\% &	0.136	&	.000	&	-69	\%	 \\\hline
-brk	&	(\hspace{.5em}4KB)	&	0.446	&	.003	& \iffalse	0.159	&	.000	&	-64	\% & \fi	0.146	&	.000	&	-67	\% &	0.136	&	.000	&	-70	\%	 \\\hline
-brk	&	(16KB)	&	0.444	&	.004	& \iffalse	0.159	&	.000	&	-64	\% & \fi	0.146	&	.000	&	-67	\% &	0.136	&	.000	&	-69	\%	 \\\hline
-%brk	&	(64KB)	&	0.444	&	.001	& \iffalse	0.159	&	.000	&	-64	\% & \fi	0.146	&	.000	&	-67	\% &	0.136	&	.000	&	-69	\%	 \\\hline
+brk+free	&	(\hspace{.5em}1KB)	&	0.445	&	.002	& \iffalse	0.159	&	.000	&	-64	\% & \fi	0.146	&	.000	&	-67	\% &	0.136	&	.000	&	-69	\%	 \\\hline
+brk+free	&	(\hspace{.5em}4KB)	&	0.446	&	.003	& \iffalse	0.159	&	.000	&	-64	\% & \fi	0.146	&	.000	&	-67	\% &	0.136	&	.000	&	-70	\%	 \\\hline
+brk+free	&	(16KB)	&	0.444	&	.004	& \iffalse	0.159	&	.000	&	-64	\% & \fi	0.146	&	.000	&	-67	\% &	0.136	&	.000	&	-69	\%	 \\\hline
+%brk+free	&	(64KB)	&	0.444	&	.001	& \iffalse	0.159	&	.000	&	-64	\% & \fi	0.146	&	.000	&	-67	\% &	0.136	&	.000	&	-69	\%	 \\\hline
 \hline																										
-brk/access	&	(\hspace{.5em}1KB)	&	1.783	&	.059	& \iffalse	0.169	&	.000	&	-91	\% & \fi	0.167	&	.000	&	-91	\% &	0.160	&	.000	&	-91	\%	 \\\hline
-brk/access	&	(\hspace{.5em}4KB)	&	1.924	&	.266	& \iffalse	0.199	&	.000	&	-90	\% & \fi	0.197	&	.000	&	-90	\% &	0.190	&	.000	&	-90	\%	 \\\hline
-brk/access	&	(16KB)	&	4.195	&	.033	& \iffalse	0.320	&	.000	&	-92	\% & \fi	0.317	&	.000	&	-92	\% &	0.311	&	.000	&	-93	\%	 \\\hline
-%brk/access	&	(64KB)	&	14.067	&	.030	& \iffalse	1.309	&	.009	&	-91	\% & \fi	1.323	&	.024	&	-91	\% &	1.292	&	.001	&	-91	\%	 \\\hline
+brk+write+free	&	(\hspace{.5em}1KB)	&	1.783	&	.059	& \iffalse	0.169	&	.000	&	-91	\% & \fi	0.167	&	.000	&	-91	\% &	0.160	&	.000	&	-91	\%	 \\\hline
+brk+write+free	&	(\hspace{.5em}4KB)	&	1.924	&	.266	& \iffalse	0.199	&	.000	&	-90	\% & \fi	0.197	&	.000	&	-90	\% &	0.190	&	.000	&	-90	\%	 \\\hline
+brk+write+free	&	(16KB)	&	4.195	&	.033	& \iffalse	0.320	&	.000	&	-92	\% & \fi	0.317	&	.000	&	-92	\% &	0.311	&	.000	&	-93	\%	 \\\hline
+%brk+write+free	&	(64KB)	&	14.067	&	.030	& \iffalse	1.309	&	.009	&	-91	\% & \fi	1.323	&	.024	&	-91	\% &	1.292	&	.001	&	-91	\%	 \\\hline
 
 \end{tabular}
 \egroup

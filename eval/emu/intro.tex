@@ -1,38 +1,36 @@
 This section evaluates the performance
-of Linux ABI emulation
-inside the \graphene{} \libos{},
-or \thelibos{}.
-The evaluation is based on benchmark results
-of Linux system call inside a \picoproc{},
-since the Linux system call table is the main target that \thelibos{} emulates
-as a guest.
-The Linux system call performance
-on \thelibos{}
-is affected by the emulation strategies
-or the underlying host abstractions (i.e., \hostapis{})
-that \thelibos{}
-selects to implement system call.
-This section
-shows the emulation overhead of \thelibos{}
-by comparing the benchmark results
-of Linux system call in a \picoproc{} with the native system call performance in a Linux process
-and the related \hostapis{}, as evaluated in Section~\ref{sec:eval:pal}.
-Finally,
-the evaluation shows that with the right emulation strategies,
-\thelibos{} can achieve acceptable performance on system calls.
-
-
-The benchmark results in this section are based on
-\lmbenchwithver{}~\cite{McVoy:lmbench},
-extended with extra tests.
-Each result
-reports a mean and 95\% confidence interval,
-assuming the benchmark results are normally distributed;
+of Linux system call emulation
+in the \graphene{} \libos{}, or \thelibos{}.
+%The evaluation is based on benchmark results
+%of Linux system call inside a \picoproc{},
+%since the Linux system call table is the main target that \thelibos{} emulates
+%as a guest.
+%Linux system call performance
+%on \thelibos{}
+%is affected by the emulation strategies
+%or the underlying host abstractions (i.e., \hostapis{})
+%that \thelibos{}
+%selects to implement system call.
+%This section
+%shows the emulation overhead of \thelibos{}
+%by comparing the benchmark results
+%of Linux system call in a \picoproc{} with the native system call performance in a Linux process
+%and the related \hostapis{}, as evaluated in Section~\ref{sec:eval:pal}.
+%Finally,
+%the evaluation shows that with the right emulation strategies,
+%\thelibos{} can achieve acceptable performance on system calls.
+The evaluation is based on
+an extended version of \lmbenchwithver{}~\cite{McVoy:lmbench},
+including
+extra system call tests.
+Each \lmbench{} test
+reports a mean and 95\% confidence interval.
+\lmbench{} assumes the results of each test to be normally distributed;
 to improve the precision,
-the number of iterations in each test is increased to at least a hundred times, which effectively lowers the variance
-in most tests.
-Although assuming a normal distribution may not be realistic for most benchmark results,
-the error is likely to be marginal with the very low variance
+this evaluation increases the number of iterations in each to at least 111 times, which effectively
+lowers the variance in most tests to acceptable range.
+Although assuming a normal distribution may not be realistic for most benchmark results~\cite{staelin05lmbench},
+the error is likely to be marginal with the low variance
 observed in the tests.
 %we use the default number of iterations for each test case.
 %We have added code to \lmbench{} to also calculate 95\% confidence intervals 
@@ -45,6 +43,11 @@ observed in the tests.
 Besides, to measure the marginal cost of the \seccomp{} filter and reference monitor on a Linux host,
 the experiments include the cases both with
 and without the \seccomp{} filter and reference monitor.
+For SGX, the experiments
+measure system call performance based on a default user policy, which always enforces
+security checks on enclave call return values,
+but not on file contents
+or network payloads.
 
 
 The evaluation results categorize

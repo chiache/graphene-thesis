@@ -4,7 +4,7 @@
 
 \begin{table}[t!b!]
 \input{tables/lmbench-syscalls}
-\caption{Single-process system call performance. Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
+\caption{Single-process system call performance based on \lmbench{}. Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
 System call latency is in microseconds, and lower is better.
 Overheads are relative to Linux; negative overheads indicate improvement.} 
 \label{tab:eval:libos:lmbench-syscalls}
@@ -14,7 +14,7 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 Figure~\ref{tab:eval:libos:lmbench-syscalls}
 lists the latency of several system calls directly serviced inside \thelibos{} instances,
 and several cases where the host OS delivers an exception
-(segmentation faults or forbidden system calls).
+(segmentation faults or illegal system calls).
 A few system calls show optimized performance
 in \graphene{} and \graphenesgx{} compared to Linux.
 For instance,
@@ -57,14 +57,14 @@ and delivers an
 ``illegal instruction'' exception.
 \graphene{} services these direct system calls primarily as a compatibility feature;
 however, the overhead on direct system calls
-is up to 24$\times$ on Linux and 128$\times$ on SGX.
+is up to 24\x{} on Linux and 128\x{} on SGX.
 As another example,
 delivering a memory fault
-into a \picoproc{} and an enclave also has significant overheads at 3$\times$ and 15$\times$ compared to native performance.
+into a \picoproc{} and an enclave also has significant overheads at 3\x{} and 15\x{} compared to native performance.
 A potential optimization
 is to virtualize the exception handler using hardware support such as VT~\cite{VT} so that a \libos{} can avoid trapping
 into the host OS
-when memory faults or other exceptions happen.
+at exceptions.
 
 
 
