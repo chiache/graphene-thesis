@@ -138,7 +138,7 @@ one could run anywhere from 12--188 libOSes within the same footprint.
 %\multicolumn{2}{|l|}{helloworld} & .02 & .02 & 0 \% & .03 & 100 \% \\ 
 %\hline
 %oggenc & 1.42 & .01 & 1.51 & .00 & 6 \% & 1.43 & .00 & 1 \% \\\hline
-gcc (helloworld)  & 0.020 & .000 &  0.022 & .000 & 7 \% &  0.023 & .000 &  12 \% & 6.097 & .012 & 298 $\times$  \\\hline
+gcc (helloworld)  & 0.020 & .000 &  0.022 & .000 & 7 \% &  0.023 & .000 &  12 \% & 6.097 & .012 & 298 \x{}  \\\hline
 gcc (.7M\loc{})   & 21.64 &  .00 &  23.37 &  .02 & 8 \% &  21.88 &  .00 &   1 \% & 75.41 & .03 & 248 \%  \\\hline
 make bzip2        & 2.332 & .000 &  2.448 & .000 & 5 \% &  2.407 & .000 &   3 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
 make -j4 bzip2    & 0.888 & .000 &  0.967 & .000 & 9 \% &  0.923 & .004 &   4 \% & \multicolumn{3}{c|}{not supported yet}   \\\hline
@@ -216,7 +216,7 @@ Compilation workloads incur overheads ranging from 5--30\%.
 %All compilation workloads have minimal overheads compared to native when executed sequentially;
 Parallel compilation on both \graphene{} and Linux yields comparable  speedups  over sequential,
 but the percent overhead increases for parallel \graphene{}.
-For instance, {\tt make -j4 libLinux} speeds up 3.7\x{} on Linux and 3.4$\times$ on \graphene{}.
+For instance, {\tt make -j4 libLinux} speeds up 3.7\x{} on Linux and 3.4\x{} on \graphene{}.
 The compilation overheads are primarily from the reference monitor---nearly all for bzip2 and gcc, and half for {\tt libLinux}.
 %Nearly all of the overhead from the bzip2 and gcc compilations are from the reference monitor; about half of the overheads of {\tt libLinux} compile 
 %are the reference monitor and half are \graphene{} itself.
@@ -276,7 +276,7 @@ Compilation workloads incur overheads ranging from 5--30\%.
 %All compilation workloads have minimal overheads compared to native when executed sequentially;
 Parallel compilation on both \graphene{} and Linux yields comparable  speedups  over sequential,
 but the percent overhead increases for parallel \graphene{}.
-For instance, {\tt make -j4 libLinux} speeds up 3.7\x{} on Linux and 3.4$\times$ on \graphene{}.
+For instance, {\tt make -j4 libLinux} speeds up 3.7\x{} on Linux and 3.4\x{} on \graphene{}.
 The compilation overheads are primarily from the reference monitor---nearly all for bzip2 and gcc, and half for {\tt libLinux}.
 %Nearly all of the overhead from the bzip2 and gcc compilations are from the reference monitor; about half of the overheads of {\tt libLinux} compile 
 %are the reference monitor and half are \graphene{} itself.
@@ -408,7 +408,7 @@ as other systems that have batched and asynchronous system calls.
 Once sufficiently loaded, NGINX on both \graphene{} and \graphenesgx{} 
 performs worse than in a  Linux process. % once sufficiently loaded.
 %The experiment observe that both \graphene{} and \graphenesgx{} tend to perform poorly in an event-driven server.
-The peak throughput of \graphenesgx{} is 1.5$\times$ lothe experimentr than Linux;
+The peak throughput of \graphenesgx{} is 1.5\x{} lothe experimentr than Linux;
 without \sgx{}, Graphene only reaches 79\% of Linux's peak throughput.
 %\fixmedp{Maybe shout out to eleos, or cite other work}
 The experiment expect that using tools like Eleos~\cite{orenbach17eleos} to reduce exits
@@ -416,7 +416,7 @@ would help this workload; in future work, the experiment will improve
 asynchronous I/O in \graphenesgx{}.
 
 %\graphenesgx{} causes 17--90\% more response time when the server is not overloaded,
-%but up to 1.5$\times$ at the peak throughput.
+%but up to 1.5\x{} at the peak throughput.
 %If the experiment compare the peak throughput with native Linux, \graphenesgx{} is 70\% less.
 %\graphene{} also suffers the same performance pattern, as the throughput drops dramatically after reaching 79\% of the peak throughput of NGINX in Linux.
 %The reason of the slowdown is that the host interface of \graphene{} and \graphenesgx{} only supports synchronous IO, so implementing asynchronous IO will be less efficient. This limitation is a trade-off to the portability of \graphene{}.
@@ -525,17 +525,17 @@ Each GCC execution typically \fixme{it's five, not four} creates five processes,
 %and has a fixed cost on enclave creation, which is unrelated to workload and depends on the enclave size.
 %\fixme{check this}
 \fixme{clarified this part, to prevent confusion betthe experimenten latency and overhead. also, GCC numbers got better.}
-For a small workload like compiling {\tt gzip.c} (5 kLoC), running in \graphenesgx{} (4.1s) is 18.7$\times$ slothe experimentr than Linux (0.2s).
-The bulk of this time is spent in enclave creation, taking 3.0s in total, while the whole execution inside the enclaves, including initialization of the library OS and OS shield, takes only 1.1s, or 4.2$\times$ overhead.
+For a small workload like compiling {\tt gzip.c} (5 kLoC), running in \graphenesgx{} (4.1s) is 18.7\x{} slothe experimentr than Linux (0.2s).
+The bulk of this time is spent in enclave creation, taking 3.0s in total, while the whole execution inside the enclaves, including initialization of the library OS and OS shield, takes only 1.1s, or 4.2\x{} overhead.
 For larger workloads like {\tt oggenc.c} (50 kLoC) and {\tt gcc.c} (500 kLoC), 
-the overhead of \graphenesgx{} is less significant. % (3.6$\times$ and 2.1$\times$ overhead, respectively).
+the overhead of \graphenesgx{} is less significant. % (3.6\x{} and 2.1\x{} overhead, respectively).
 For {\tt gcc.c} (500 kLoC), the experiment have to enlarge one of the enclaves ({\tt cc1}) to 2GB,
-but running on \graphenesgx{} (53.1s) is only 2.1$\times$ slothe experimentr than Linux (17.2s),
+but running on \graphenesgx{} (53.1s) is only 2.1\x{} slothe experimentr than Linux (17.2s),
 and 7.1s is spent on enclave creation.
 %and the creation of four enclaves takes 8s.
 %Each compilation has a fixed enclave creation time in \graphenesgx{}, which is about 1--2 seconds per enclave. The experiment deduct the creation time of all enclaves  to gain more meaningful results, but do not hide rest of the overhead on fork.
 %\fixmedp{Also not comfortable with this; add a bar?}
-%In general, GCC in \graphenesgx{} is 1--5$\times$ slothe experimentr than GCC on native Linux. 
+%In general, GCC in \graphenesgx{} is 1--5\x{} slothe experimentr than GCC on native Linux. 
 %\fixmedp{This really needs some profiling if possible}
 The overhead of non-\sgx{} \graphene{} on GCC is marginal.
 

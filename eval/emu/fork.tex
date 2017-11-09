@@ -9,22 +9,20 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 \label{tab:eval:libos:lmbench-fork}
 \end{table}
 
-Figure~\ref{tab:eval:libos:lmbench-fork}
-lists
 
-The most expensive system calls occur when {\tt libLinux} inadvertently duplicates work
+The most expensive system calls occur when \thelibos{} inadvertently duplicates work
 with the host kernel.  
-For instance, many of the file path and handle management calls duplicate some of the effort of the host file system,
-leading to a 1--3\x{} slower implementation than native.
-As the worst example,
-{\tt fork+exit} is 5.9\x{} slower than Linux.
+For instance, many of the file path and handle management calls duplicate efforts of host file system,
+leading to a 1--3\x{} slower latency than native.
+As the worst example on Linux host,
+the combination of \syscall{fork} and \syscall{exit} is 4.4\x{} slower in \graphene{} than native.
 Profiling indicates that about one sixth of this overhead is in process creation, which 
 takes additional work to create a clean \picoproc{} on Linux; we expect this overhead could be reduced
-with a kernel-level implementation of the process creation ABI, rather than emulating this behavior on {\tt clone}.
+with a kernel-level implementation of the process creation ABI, rather than emulating this behavior on \syscall{clone}.
 Another half of the overhead comes from the
-{\tt libLinux} checkpointing code (commensurate with the data in Table~\ref{tab:eval:lmbench-fork}), which 
+checkpointing code in \thelibos{} (commensurate with the data in Table~\ref{tab:eval:libos:lmbench-fork}), which 
 includes a substantial amount of serialization effort which might be reduced by checkpointing the data structures in place.
-A more competitive {\tt fork} will require host support and additional {\tt libLinux} tuning.
+A more competitive \syscall{fork} will require host support and additional tuning on \thelibos{} implementation.
 %Thus, we think a competitive {\tt fork} implementation will require both a more suitable host kernel
 %and more tuning in the {\tt libLinux} code. 
 %\fixmewkj{explain why TCP faster than UDP?}

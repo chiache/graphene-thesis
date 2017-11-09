@@ -107,7 +107,7 @@ Figure~\ref{fig:eval:pal:open-latency} (b) shows the latency of \palcall{StreamO
 and in a native Linux process.
 Without any security checks to shield the guest from the untrusted OS,
 the latency of \palcall{StreamOpen} is dominated by the overhead of exiting the enclave and copying the argument, such as the file paths, out of the enclave.
-The overheads of unshielded \palcall{StreamOpen} is 4.7--5.5$\times$, or \roughly{}5 \usec{}.
+The overheads of unshielded \palcall{StreamOpen} is 4.7--5.5\x{}, or \roughly{}5 \usec{}.
 If a file is shielded with integrity protection,
 \palcall{StreamOpen} will verify the checksum of the whole file against the manifest, and generate a Merkel Tree of file chunk hashes
 for optimizing the latency of following \palcall{StreamRead} or \palcall{StreamMap}.
@@ -378,7 +378,7 @@ With the hardware acceleration,
 when sending one-byte messages,
 the overhead on RPC latency is \roughly{}10\% compared to the UNIX domain socket;
 furthermore, RPC bandwidth of sending large messages
-is reduced by \roughly{}31$\times$, at \roughly{}0.176 GB/s.
+is reduced by \roughly{}31\x{}, at \roughly{}0.176 GB/s.
 Switching to a more efficient cryptographic algorithm or library may improve the efficiency of RPC streams,
 and such experiments are left for future work.
 
@@ -429,11 +429,11 @@ The overheads of security monitors can range from 0--21\%, but only impact \host
 The \sgx{} PAL further adopts several cryptographic techniques
 for protecting the confidentiality and integrity of I/O streams, and cryptographic operations tend to cause significant overheads.
 Verifying the file contents, either at first open of the file or consequential file reads,
-causes 500--24,000$\times$ overheads on \palcall{StreamOpen}
-or 25--150$\times$ overheads on \palcall{StreamRead}.
+causes 500--24,000\x{} overheads on \palcall{StreamOpen}
+or 25--150\x{} overheads on \palcall{StreamRead}.
 Authenticating and encrypting a RPC stream with a hardware-accelerated AES-GCM algorithm
 causes up to 335\% overheads on latency in comparison with
 the underlying UNIX domain sockets,
-or up uo \roughly{}20 $\times$ overhead on bandwidth.
+or up uo \roughly{}20 \x{} overhead on bandwidth.
 
 
