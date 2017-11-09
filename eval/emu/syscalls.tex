@@ -28,13 +28,13 @@ As another example, access to a pseudo file
 such as \code{/dev/zero}
 is also a feature emulated
 inside \thelibos{},
-with less speedup or even with slowdown.
+with less speedups or slowdowns.
 Opening \code{/dev/zero}
 or retrieving the attributes of \code{/dev/zero} using \syscall{stat}
-is relatively expensive in \graphene{}
-due to the latency of directory cache lookup
-inside \thelibos{}.
-\thelibos{} emulates \syscall{fstat} and \syscall{read}
+is 21--29\% slower in \graphene{} or \graphenesgx{} than native,
+due to file system directory cache lookup latency
+in \thelibos{}.
+For other system calls, \thelibos{} emulates \syscall{fstat} and \syscall{read}
 on \code{/dev/zero}
 with negligible overheads,
 and emulates \syscall{write} with
