@@ -1,17 +1,71 @@
 \papersubsection{Single-process system calls}
-\label{eval:perf:syscalls}
+\label{sec:eval:libos:syscalls}
 
 
 \begin{table}[t!b!]
 \input{tables/lmbench-syscalls}
-\caption{Single-process system call performance, mostly serviced inside the \libos{}. Comparison is among (1) native Linux processes; (2) \graphene{} \picoprocs{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphene{} in \sgx{} enclaves.
+\caption{Single-process system call performance. Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
 System call latency is in microseconds, and lower is better.
 Overheads are relative to Linux; negative overheads indicate improvement.} 
-\label{tab:eval:lmbench-syscalls}
+\label{tab:eval:libos:lmbench-syscalls}
 \end{table}
 
 
-%In order to understand the overheads of individual system calls,
+Figure~\ref{tab:eval:libos:lmbench-syscalls}
+lists the latency of several system calls directly serviced inside \thelibos{} instances,
+and several cases where the host OS delivers an exception
+(segmentation faults or forbidden system calls).
+A few system calls show optimized performance
+in \graphene{} and \graphenesgx{} compared to Linux.
+For instance,
+\syscall{getppid}, \syscall{sigaction}, and sending a \code{SIGUSR1} signal (to current process)
+are 23--80\% faster in \graphene{} and \graphenesgx{} than in a native Linux process,
+due to no native host system calls and little emulation complexity.
+
+
+
+As another example, access to a pseudo file
+such as \code{/dev/zero}
+is also a feature emulated
+inside \thelibos{},
+with less speedup or even with slowdown.
+Opening \code{/dev/zero}
+or retrieving the attributes of \code{/dev/zero} using \syscall{stat}
+is relatively expensive in \graphene{}
+due to the latency of directory cache lookup
+inside \thelibos{}.
+\thelibos{} emulates \syscall{fstat} and \syscall{read}
+on \code{/dev/zero}
+with negligible overheads,
+and emulates \syscall{write} with
+similar latency as \syscall{read}.
+For each of these system calls, either the \seccomp{} filter, reference monitor, or enclave
+has no impact on the performance.
+
+
+Two test results in Figure~\ref{tab:eval:libos:lmbench-syscalls}
+show the performance of delivering exceptions from the host OS or hardware.
+One example is direct system calls from a statically
+compiled binary
+or assembly code calling \assembly{syscall} or \assembly{int \$80}.
+With \seccomp{} filter,
+\graphene{} can capture these system calls and redirect into \thelibos{} as a host exception (not supported if \seccomp{} filter is disabled).
+For \graphenesgx{},
+the SGX hardware also captures these system calls
+inside an enclave
+and delivers an
+``illegal instruction'' exception.
+\graphene{} services these direct system calls primarily as a compatibility feature;
+however, the overhead on direct system calls
+is up to 24$\times$ on Linux and 128$\times$ on SGX.
+As another example,
+delivering a memory fault
+into a \picoproc{} and an enclave also has significant overheads at 3$\times$ and 15$\times$ compared to native performance.
+A potential optimization
+is to virtualize the exception handler using hardware support such as VT~\cite{VT} so that a \libos{} can avoid trapping
+into the host OS
+when memory faults or other exceptions happen.
+
 
 
 

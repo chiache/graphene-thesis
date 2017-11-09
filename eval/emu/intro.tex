@@ -85,16 +85,28 @@ and ends up calling \syscall{open} in the host OS.
 
 The third type of system calls also requires native host system calls, but \thelibos{} can batch
 the results of several operations by buffering
-or caching.
+or caching data inside of the \libos{} instance.
 For these system calls,
 \thelibos{} can often emulate with low overheads,
 even if the translation to each native host system calls is relatively expensive.
 For instance, on Linux host, \thelibos{} buffers both \syscall{read} and \syscall{write} to a host file
 by mapping a part of the file inside the \picoproc{}
 without necessarily flushing the written data to the disks.
-Therefore, writing 256 byte
-to a file is 45\% faster in
-\graphene{} than native.  
+Writing 256 bytes
+to a host file is \roughly{}45\% faster in \graphene{} than in a native Linux process.  
+
+
+As a conclusion,
+the emulation overheads of system calls usually depend on how many native host system calls
+is required.
+If \thelibos{} requires no host system calls
+or can defer host system calls
+until a later moment, \thelibos{} can reduce the emulation costs to mostly in-memory operations.
+Otherwise,
+\thelibos{} tends to impose larger overheads
+if it has to directly translate guest system calls to \hostapis{}, and eventually to host system calls.
+
+
 
 
 
