@@ -1,22 +1,30 @@
 \papersubsection{Stream I/O}
 \label{sec:eval:pal:stream}
 
-This section separate the evaluation of stream I/O in \thehostabi{} into 
+This section
+evaluates two type of I/O operations:
+% separate the evaluation of stream I/O in \thehostabi{} into 
 %The \hostapis{} for stream I/O can be separated into 
-two categories:
-(1) file system operations and (2) I/O operations on a network socket or a RPC stream.
-The evaluation for file system operations
-primarily measures
-the latency of retrieving file metadata from the storage or a host kernel file system directory cache,
-as well as the latency of sequential reads or writes
-inside a regular file.
+%two categories:
+file system operations,
+and other streams such as network sockets or RPC streams (i.e., pipes).
+%(1) file system operations and (2) I/O operations on a network socket or a RPC stream.
+For file system operations,
+the evaluation
+measures the performance of opening, reading, and writing a regular host file through \hostapis{} or native host system calls.
+%the latency of retrieving file metadata from the storage or a host kernel file system directory cache,
+%as well as the latency of sequential reads or writes
+%inside a regular file.
 %access a UNIX-style, hierarchical, host file system,
 %with either random access to file contents,
 %or access to file attributes (metadata).
-The evaluation for other I/O streams, such as a network socket or a RPC stream,
-then focuses on measuring the latency or bandwidth
-of sending and receiving messages 
-across \picoprocs{} or applications.
+Fo network sockets or RPC streams,
+the evaluation measures 
+%The evaluation for other I/O streams, such as a network socket or a RPC stream,
+%then focuses on measuring the
+latency and bandwidth of data transfer over the abstractions.
+%of sending and receiving messages 
+%across \picoprocs{} or applications.
 
 %over a network address or a local, in-kernel queue.
 %Due to the difference in the nature of these operations,

@@ -10,10 +10,12 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 \end{table}
 
 
-The most expensive system calls occur when \thelibos{} inadvertently duplicates work
-with the host kernel.  
-For instance, many of the file path and handle management calls duplicate efforts of host file system,
-leading to a 1--3\x{} slower latency than native.
+Process creation is one of the most expensive operations
+in \graphene{}.
+%The most expensive system calls occur when \thelibos{} inadvertently duplicates work
+%with the host kernel.  
+%For instance, many of the file path and handle management calls duplicate efforts of host file system,
+%leading to a 1--3\x{} slower latency than native.
 As the worst example on Linux host,
 the combination of \syscall{fork} and \syscall{exit} is 4.4\x{} slower in \graphene{} than native.
 Profiling indicates that about one sixth of this overhead is in process creation, which 

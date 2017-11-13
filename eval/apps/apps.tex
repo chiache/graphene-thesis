@@ -381,7 +381,7 @@ the remaining overheads are attributable to \sgx{}---either hardware or our OS s
 %\fixmedp{Why did you comment this out?  Let's discuss: Does it really make sense to have two points at the same  x-axis value?  Perhaps the axes should be inverted?  I'm not really sure about the methodology, but something about the line doubling back on itself seems wrong.  Maybe you want to separate these and show throughput vs. load, and a CDF of latencies?}
 
 
-{\bf Apache}~\cite{apache} is one of the most popular production the experimentb servers. The experiment test Apache using 5 preforked worker processes to service HTTP requests,
+{\bf Apache}~\cite{apache} is one of the most popular production servers. The experiment test Apache using 5 preforked worker processes to service HTTP requests,
 in order to 
 to evaluate the efficiency of \graphenesgx{} across enclaves.
 %n server, 
@@ -389,7 +389,7 @@ to evaluate the efficiency of \graphenesgx{} across enclaves.
 This application uses IPC extensively---the preforked processes of a server use a System V semaphore to synchronize on each connection.
 %When receiving a connection, the preforked processes of Apache will coordinate among themselves using the system V IPC semaphores.
 Regardless of the workload, the response time on \graphenesgx{} is 12--35\% higher than Linux, due to the overhead of coordination across enclaves over encrypted RPC streams.
-The peak throughput achieved by Apache running in \graphenesgx{} is 26\% lothe experimentr than running in Linux.
+The peak throughput achieved by Apache running in \graphenesgx{} is 26\% lower than running in Linux.
 In this workload, most of the overheads are \sgx{}-specific, such as exiting enclaves when accessing the RPC, as non-\sgx{} Graphene
 has only 2--8\% overhead compared to Linux.
 
@@ -422,34 +422,6 @@ asynchronous I/O in \graphenesgx{}.
 %The reason of the slowdown is that the host interface of \graphene{} and \graphenesgx{} only supports synchronous IO, so implementing asynchronous IO will be less efficient. This limitation is a trade-off to the portability of \graphene{}.
 %\fixmedp{Didn't get the portability point; please spell out what you meant, if important}
 
-
-\begin{figure}[t!]
-\centering
-\footnotesize
-\includegraphics[width=38em]{r-overhead}\\
-\caption{Performance overhead on desktop applications, including latency of R, execution time of GCC compilation, download time with CURL. The evaluation compares native Linux, \graphene{}, and \graphenesgx{}.} %{\bf Enclave creation time is deducted from the GCC execution time.}}
-\label{fig:eval:r-overheads}
-\end{figure}
-
-
-\begin{figure}[t!]
-\centering
-\footnotesize
-\begin{minipage}{.49\textwidth}
-\centering
-\includegraphics[width=20em]{sgx/gcc-overhead}\\
-\vspace{3pt}
-{\bf (b) GCC}
-\end{minipage}
-\begin{minipage}{.49\textwidth}
-\centering
-\includegraphics[width=20em]{sgx/curl-overhead}\\
-\vspace{3pt}
-{\bf (c) CURL}
-\end{minipage}
-\caption{Performance overhead on desktop applications, including latency of R, execution time of GCC compilation, download time with CURL. The evaluation compares native Linux, \graphene{}, and \graphenesgx{}.} %{\bf Enclave creation time is deducted from the GCC execution time.}}
-\label{fig:desktop-overhead}
-\end{figure}
 
 
 
@@ -496,6 +468,16 @@ the enclave creation contributes a significant portion to the execution time ove
 %Since the enclave creation time is related to the enclave size, and unrelated to the workload,
 %the experiment deduct the enclave creation time from the execution time of GCC in Figure~\ref{fig:desktop-overhead}. \fixmedp{I think it might be better to show this as a stacked bar instead of just removing it.  Opaquely subtracting this cost doesn't seem right.  Let's discuss dp: I thought the experiment agreed to change this...}
 
+
+\begin{figure}[t!]
+\centering
+\footnotesize
+\includegraphics[width=40em]{r-overhead}\\
+\caption{Performance overhead on desktop applications, including latency of R, execution time of GCC compilation, download time with CURL. The evaluation compares native Linux, \graphene{}, and \graphenesgx{}.} %{\bf Enclave creation time is deducted from the GCC execution time.}}
+\label{fig:eval:r-overheads}
+\end{figure}
+
+
 {\bf R}~\cite{r-project} is a scripting language often used for
 data processing and statistical computation.
 With enclaves, users can process sensitive data on an
@@ -513,6 +495,28 @@ nearly for free (\sgx{} version 1 requires all memory to be mapped
 at creation); a useful area for future work would be to design
 garbage collection strategies that are optimized for enclaves.
 %the experiment believe the overheads on \graphenesgx{} are contributed by enclaves.
+
+
+
+\begin{figure}[t!]
+\centering
+\footnotesize
+\begin{minipage}{.49\textwidth}
+\centering
+\includegraphics[width=20em]{sgx/gcc-overhead}\\
+\vspace{3pt}
+{\bf (b) GCC}
+\end{minipage}
+\begin{minipage}{.49\textwidth}
+\centering
+\includegraphics[width=20em]{sgx/curl-overhead}\\
+\vspace{3pt}
+{\bf (c) CURL}
+\end{minipage}
+\caption{Performance overhead on desktop applications, including latency of R, execution time of GCC compilation, download time with CURL. The evaluation compares native Linux, \graphene{}, and \graphenesgx{}.} %{\bf Enclave creation time is deducted from the GCC execution time.}}
+\label{fig:desktop-overhead}
+\end{figure}
+
 
 {\bf GCC}~\cite{gcc} is a widely-used C compiler.
 By supporting GCC in enclaves, developers can compile closed-source applications on customers' machines,
