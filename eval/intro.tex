@@ -7,10 +7,10 @@ targets the following four aspects:
 (2) emulation overheads of the \libos{} on system calls latency and throughput;
 (3) end-to-end performance of sample applications;
 (4) resource costs, including both memory footprint and CPU occupancy.
-The evaluation compares experiment results
-%(either execution time, processing bandwidth, or resource usage)
-%of benchmarks and applications,
-between \graphene{}, \graphenesgx{}, and native processes running on an unmodified, generic Linux kernel.
+%The evaluation compares experiment results
+%%(either execution time, processing bandwidth, or resource usage)
+%%of benchmarks and applications,
+%between \graphene{}, \graphenesgx{}, and native processes running on an unmodified, generic Linux kernel.
 The results
 show the cost of leveraging \graphene{} for compatibility and security isolation.
 %of a micro-benchmark or sample application on \graphene{} or \graphenesgx{}, with the results collected on a native Linux kernel.
@@ -103,10 +103,15 @@ show the cost of leveraging \graphene{} for compatibility and security isolation
 
 The evaluation is based on \graphene{} \grapheneversion{}\footnote{\graphene{} is released at \url{https://github.com/oscarlab/graphene}}.
 All experiment results are collected on a Dell Optiplex 790 Small-Form Desktop,
-with a 4-core 3.2GHz Intel Core i5-6500 CPU (no hyper-threading, with 256KB I-Cache and D-Cache, 1MB L2 Cache, and 6MB L3 Cache),
+with a 4-core 3.2GHz Intel Core i5-6500 CPU
+without hyper-threading
+%(no hyper-threading, with 256KB I-Cache and D-Cache, 1MB L2 Cache, and 6MB L3 Cache),
 two 4GB DIMM 1600MHz DDR3 RAMs (8GB in total), and a Seagate 512GB, 7200 RPM SATA disk formatted as EXT4.
-The Intel CPUs are configured with \sgx{} (Software Guard Extensions, requires BIOS update) and EPT (Extended Page table) enabled, and 128MB enclave page cache (EPC) size.
-To prevent fluctuated benchmarking results,
+\sgx{} is enabled on the CPU
+%The Intel CPUs are configured with \sgx{} (Software Guard Extensions, requires BIOS update) and EPT (Extended Page table) enabled, and
+with 128MB EPC
+(enclave page cache).
+To prevent fluctuation in experiment results,
 Turbo Boost, SpeedStep, and CPU idle states are disabled for
 all experiments.
 %We disable SpeedStep and TurboBoost to prevent interference.
@@ -120,8 +125,9 @@ The host OS for evaluating the Linux and \sgx{} ports is Ubuntu \ubuntuversion{}
 which is also the baseline for comparison.
 All test programs and applications are dynamically linked
 with a modified \glibc{} \glibcversion{}.
-The experiments for \graphenesgx{}
-use the Intel \sgx{} Linux SDK~\cite{intel-sgx-linux-sdk} and driver~\cite{intel-sgx-linux-driver} \sgxdriverversion{}.
+%The experiments for 
+\graphenesgx{}
+uses the Intel \sgx{} Linux SDK~\cite{intel-sgx-linux-sdk} and driver~\cite{intel-sgx-linux-driver} \sgxdriverversion{}.
 %The host OS also
 %includes KVM on QEMU version 2.5 and Xen 4.6.5 for comparison.
 %%%Adding more detail of KVM environment

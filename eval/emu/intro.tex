@@ -20,15 +20,16 @@ in the \graphene{} \libos{}, or \thelibos{}.
 %the evaluation shows that with the right emulation strategies,
 %\thelibos{} can achieve acceptable performance on system calls.
 The evaluation is based on
-an extended version of \lmbenchwithver{}~\cite{McVoy:lmbench},
-including
-extra system call tests.
+an extended version of \lmbenchwithver{}~\cite{McVoy:lmbench}.
+%including
+%extra system call tests.
 Each \lmbench{} test
-reports a mean and 95\% confidence interval.
-\lmbench{} assumes the results of each test to be normally distributed;
-to improve the precision,
-this evaluation increases the number of iterations in each to at least 111 times, which effectively
-lowers the variance in most tests to acceptable range.
+reports a mean and 95\% confidence interval,
+based on the assumption
+that the results of each test are normally distributed.
+%to improve the precision,
+%this evaluation increases the number of iterations in each to at least 111 times, which effectively
+%lowers the variance in most tests to acceptable range.
 Although assuming a normal distribution may not be realistic for most benchmark results~\cite{staelin05lmbench},
 the error is likely to be marginal with the low variance
 observed in the tests.
@@ -43,11 +44,12 @@ observed in the tests.
 Besides, to measure the marginal cost of the \seccomp{} filter and reference monitor on a Linux host,
 the experiments include the cases both with
 and without the \seccomp{} filter and reference monitor.
-For SGX, the experiments
-measure system call performance based on a default user policy, which always enforces
-security checks on enclave call return values,
-but not on file contents
-or network payloads.
+For SGX, all tests
+are based on a default user policy with security checks on most enclave call results,
+except for encryption and authentication
+on file contents and
+network traffics.
+RPC streams are protected with TLS connections by default.
 
 
 The evaluation results categorize
@@ -99,15 +101,16 @@ Writing 256 bytes
 to a host file is \roughly{}45\% faster in \graphene{} than in a native Linux process.  
 
 
-As a conclusion,
-the emulation overheads of system calls usually depend on how many native host system calls
-is required.
+In short,
+the emulation overheads of system calls usually depend on frequency of host system calls.
 If \thelibos{} requires no host system calls
 or can defer host system calls
-until a later moment, \thelibos{} can reduce the emulation costs to mostly in-memory operations.
+until a later moment, the emulation cost contains only in-memory operation latency.
 Otherwise,
-\thelibos{} tends to impose larger overheads
-if it has to directly translate guest system calls to \hostapis{}, and eventually to host system calls.
+using \hostapis{}, which eventually translate to host system calls, tends to cause more significant
+overheads than servicing inside the \libos{}.
+%\thelibos{} tends to impose larger overheads
+%if it has to directly translate guest system calls to \hostapis{}, and eventually to host system calls.
 
 
 
