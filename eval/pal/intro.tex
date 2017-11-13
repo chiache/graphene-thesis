@@ -1,22 +1,35 @@
-The section evaluates the performance of \thehostabi{}.
+The section specifically evaluates the performance of \thehostabi{},
+by benchmarking 
+either the latency or throughput of \hostapis{}.
 %on each host.
-The performance of \hostapis{} largely depends on the underlying host system interfaces,
-such as \syscall{read} as the underlying system call of \palcall{StreamRead}.
+As the implementation of \hostapis{} largely depends on
+the underlying host system interfaces,
+\thehostabi{} is likely to share the same performance patterns
+as the host OSes,
+with various amount of overheads.
+%such as \syscall{read} as the underlying system call of \palcall{StreamRead}.
 %using the \syscall{read} system call,
 %and thus introduces a similar latency to the \hostapi{}.
 %However, the performance of \thehostabi{} and the underlying host system interface
-The translation between \hostapis{} and underlying host system interfaces may introduce overheads,
+A logical source of these overheads
+is the translation between \hostapis{}
+and a host system interface,
 %to the performance.
-depending on the semantic gaps between the two interfaces.
+given the gap between semantics of the two interfaces.
+%depending on the semantic gaps between the two interfaces.
 %is unlikely to be equivalent,
 %due to the cost of translating between
 %the two system interfaces
 %when they have different semantics. 
 %Additional translation costs
 %may cause overheads
-\hostapis{} implemented on \sgx{}
-suffer more overheads due to
-enclave exits and memory encryption costs.
+Other overheads include the costs of enclave exits or VM exits, and indirect performance impacts
+caused by switching contexts between the host OSes and the \libos{} instances.
+For \sgx{}, the latency of entering and exiting enclave can be up to \roughly{}7,000 cycles,
+and enclave exits also cause TLB flushes and last-level cache pollution, which both downgrade enclave performance~\cite{orenbach17eleos}.
+%\hostapis{} implemented on \sgx{}
+%suffer more overheads due to
+%enclave exits and memory encryption costs.
 %exiting enclaves for system calls.
 %requires redirecting the host system calls
 %through enclave calls or hypercalls,
@@ -25,22 +38,22 @@ enclave exits and memory encryption costs.
 %subject to enclave exits,
 %since enclave code cannot invoke system calls directly.
 %\sgx{} 
-%can suffer memory access overheads,
+Enclave executions also suffer memory overheads
 %especially since the PAL increase the enclave memory footprint.
 %The memory access overheads
 %results from 
-%bringing memory from swap devices into the EPC (enclave page cache)
-%or decrypting memory
-%at last-level cache misses.
+for swapping memory into the EPC (enclave page cache)
+or decrypting memory
+at last-level cache misses.
 %The latency on the \sgx{} PAL is then mostly dominated by the overheads
 %of switching the context between the enclave
 %and the untrusted, external PAL using \sgx{} instructions,
 %and bringing memory into the EPC (enclave page cache).
 % or decrypting memory on a last-level cache miss.
-This section
-evaluates the overheads of host system interface translation
-by comparing the performance of \hostapis{}
-with similar system interfaces on native Linux.
+%This section
+%evaluates the overheads of host system interface translation
+%by comparing the performance of \hostapis{}
+%with similar system interfaces on native Linux.
 
 
 %In theory, the definition of \thehostabi{}
@@ -77,13 +90,14 @@ with similar system interfaces on native Linux.
 
 
 
-For a few \hostapis{} %a majority of overheads
+%For a few \hostapis{}, %a majority of overheads
 %result from
-security checks or enforcements
-impact the performance
+Security checks or enforcements also
+impact \thehostabi{} performance,
 %cause overheads
 %for protecting applications
-under a specific host threat model.
+depending on the threat models assumed on the host targets.
+%under a specific host threat model.
 %for ensuring the safety of running an application
 %within the threat model
 %of a host.
@@ -92,6 +106,7 @@ under a specific host threat model.
 %either inside the host kernel or the guest.
 %The cost of security checks varies between hosts, and is correlated with the presumed security models.
 %The threat model for 
+For most hosts including both Linux and SGX,
 \graphene{}
 isolates
 %generally
@@ -99,44 +114,54 @@ mutually-untrusting applications from attacking the host OS or each other, % thr
 %the security checks mainly
 by restricting the attack surface through host resources sharing and unnecessary system calls.
 %using both the reference monitor and \seccomp{} filter.
-\graphenesgx{} assumes a even stronger threat model,
-which does not trust any OSes, hypervisors and off-chip hardwares.
+For \sgx{},
+\graphene{} further assumes a stronger threat model,
+which distrusts any OSes, hypervisors and off-chip hardwares.
 Security checks for \sgx{}
-need to
-validate potentially-malicious inputs
+requires
+detecting potentially-malicious inputs
 %protects the application and \libos{} against malicious inputs
-from the untrusted OS,
+from an untrusted OS,
 %and thus focus on validating the results of system calls,
 %using either cryptographic techniques or semantic checks.
 %Cryptographic techniques are used to: (1) validate the file against the secure hash, at \palcall{StreamOpen}, (2) check the file chunks against a Merkle tree of hash values, at \palcall{StreamRead}, and (3) establish a TLS connection over inter-enclave RPC, at \palcall{ProcessCreate}.
-including the cryptographic efforts
+including using cryptographic techniques
 %operations
 %tend to contribute a major portion of overheads
 %to the SGX PAL,
-of encrypting and authenticating file contents or RPC streams.
+to encrypt or authenticate data.
+%file contents or RPC streams.
 %in a file or over a RPC stream.
 %especially for \hostapis{} that externalize data to the untrusted OS, such as file and network operations.
 %may be dominated
 %by security checks,
 %especially the ones based on cryptographic operations.
 %on large chunks of data exported to the untrusted OS.
+This chapter shows that
+security checks on a stronger threat model like SGX
+tends to impose high overheads
+on many \hostapis{}.
 
-
-The evaluation is based on \lmbench{} 2.5~\cite{McVoy:lmbench}.
+The experiments in this section are based on an extended version of \lmbench{} 2.5~\cite{McVoy:lmbench}.
 For each \hostapi{}, the evaluation %shows the breakdowns
 %of its latency or throughput,
-compares among the Linux and SGX PALs,
+compares the performance, either as latency or throughput, among the PALs for Linux and SGX hosts
 %both with and without the security mechanisms, such as the
-both with and without %
-security mechanisms,
+%both with and without %
+%security mechanisms,
 %\seccomp{} filter and reference monitor,
 % on the Linux PAL,
 and a native Linux kernel,
 to measure the overheads of PAL implementations.
+For each PAL,
+the evaluation tests both with and without security checks or enforcements,
+such as \seccomp{} filter and reference monitor on Linux host,
+or checking untrusted inputs in an enclave.
 %as well as testing under different
 %implementation strategies.
 %The evaluation focuses on \hostapis{} that are especially sensitive for the performance of the \graphene{} \libos{}.
-
+A purpose of this section is to show
+the performance impacts of design decisions made during PAL implementations. 
 
 % the efficiency of \hostapis{} on both Linux and \sgx{} hosts, and shows the impact of each performance factor.
 %The evaluation is based on micro-benchmark programs similar to \lmbench{} 2.5~\cite{McVoy:lmbench},
