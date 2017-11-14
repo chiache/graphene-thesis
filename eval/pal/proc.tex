@@ -1,33 +1,52 @@
 \papersubsection{Multi-process abstractions}
 \label{sec:eval:pal:multi-proc}
 
-This section evaluates the performance of two multi-process abstractions in \thehostabi:
-process creation and bulk IPC.
+This section evaluates two multi-process abstractions in \thehostabi:
+process creation and bulk IPC channels for zero-copy data transfer between processes.
 
 
 
 \paragraph{Process creation.}
-Process creation is a relatively expensive
-operation in
-either one of the PAL implementation.
-Instead of adopting copy-on-write style, fork-like semantics,
-\thehostabi{} 
-only creates clean processes
-to avoid the requirement of page sharing.
-Therefore, the latency of creating a process,
-on either the Linux or \sgx{} PAL,
-includes the cost of initializing the PAL binary in a new process or enclave.
-The following benchmarks evaluate
-the slowdown of process creation in \thehostabi{}
-compared with
-process creation on a Linux kernel
-using \syscall{vfork} and \syscall{execve}.
-For accuracy,
-the benchmarks measure
-the wall time from creating a new process
-to receiving the exit notification of the process.
-The binary being loaded by \syscall{execve} is a statically compiled program
-which returns immediately.
+Process creation is one of the most expensive
+\hostapis{} on both the Linux PAL and \sgx{} PAL.
+Instead of adopting the copy-on-write, fork-like semantics
+of process creation
+from Linux and similar OSes,
+\thehostabi{}
+only creates clean \picoprocs{} or enclaves
+which share no memory.
+%to avoid the requirement of page sharing.
+The semantics of process creation
+in \thehostabi{}
+are similar to \syscall{spawn} in POSIX, or the combination
+of \syscall{vfork} and \syscall{execve} in Linux.
+The overheads on process creation
+include:
+(1) initialization of the PAL binary in the new process;
+(2) creating a trusted RPC stream among parent and child processes;
+(3) adding the new process to the trusted group of its parent.
+Each of these overheads
+has non-trivial impact on
+the latency of process creation.
+
+
+
+
+
+%Therefore, the latency of creating a process,
+%on either the Linux or \sgx{} PAL,
+%includes the cost of initializing the PAL binary in a new process or enclave.
+%The following benchmarks evaluate
+%the slowdown of process creation in \thehostabi{}
+%compared with
+%process creation on a Linux kernel
+%using \syscall{vfork} and \syscall{execve}.
+%For accuracy,
+%the benchmarks measure
+%the wall time from creating a new process
+%to receiving the exit notification of the process.
+%The binary being loaded by \syscall{execve} is a statically compiled program
+%which returns immediately.
 
 
 \begin{figure*}[t!]
@@ -40,69 +59,120 @@ which returns immediately.
 \parbox{0.59\textwidth}{\centering\bf (a) process creation+exit}
 \parbox{0.39\textwidth}{\centering\bf (b) \sgx{} enclave creation+termination}
 \caption{Latency of creating (a) a clean process on the Linux PAL, and (b) an enclave on the \sgx{} PAL, in respect of different enclave sizes.
-The comparison is between (1) a combination of \syscall{vfork} and \syscall{exec}'ing a minimal static program on Linux; (2) \palcall{ProcessCreate} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapi{} on the \sgx{} PAL.}
+The comparison is between (1) a combination of \syscall{vfork} and \syscall{exec} with a minimal static program on Linux; (2) \palcall{ProcessCreate} on the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the same \hostapi{} on the \sgx{} PAL.}
 \label{fig:eval:pal:proc-latency}
 \end{figure*}
 
 
-
-According to the results shown in
+As measured in
 Figure~\ref{fig:eval:pal:proc-latency} (a),
-the latency of process creation and exit
-on the Linux PAL
-is \roughly{}22\% slower than
-the latency of similar operations
-on a Linux kernel.
-The initialization time of the Linux PAL
-contributes a large portion to this overhead, besides the minor cost of establishing the RPC stream
-between the parent and child processes (using an unnamed UNIX domain socket).
-The Linux PAL
-with the \seccomp{} filter installed
-subjects to the same overheads,
-except in order to force the PAL binary always loaded
-at the same address,
-a separate security loader starts
-in each new process
-at a low, static address
-to load the PAL binary afterwards. 
-The overhead with the \seccomp{} filter installed
-is \roughly{}26\%,
-including the system call slowdown
-and the extra cost of reloading the PAL loader in each new process.
-If the reference monitor
-is enabled,
-the reference monitor
-must attach the new process to the sandbox
-inside the Linux kernel,
-and always check that the new process only loads the security loader instead of any other binaries.
-The overhead with both the \seccomp{} filter
-and the reference monitor
-is \roughly{}93\%.
+the overhead on process creation
+is up to 93\% on the Linux PAL,
+with both \seccomp{} filter and reference monitoring.
+Among the overhead,
+22\% is for PAL and RPC stream initialization.
+36\% is for enabling the \seccomp{} filter
+in the child process,
+including executing a separate binary
+which then loads the PAL binary at the same address,
+in order to
+support PC-based filtering.
+%the overall overhead is 36\%, but not completely as result of system call filtering;
+%to ensure the same address for loading
+%the PAL binary, the Linux PAL introduces
+%a separate security loader
+%when enabling \seccomp{} filter or reference monitoring.
+Finally,
+adding the new process to the same sandbox
+in the reference monitor
+causes 55\% overhead on the latency.
 
 
 
-For the \sgx{} PAL,
-the latency of creating a new enclave for each child process
-is significantly higher
-than creating a normal \picoproc{}.
+
+
+
+
+%the latency of similar operations
+%on a Linux kernel.
+%The initialization time of the Linux PAL
+%contributes a large portion to this overhead, besides the minor cost of establishing the RPC stream
+%between the parent and child processes (using an unnamed UNIX domain socket).
+%The Linux PAL
+%with the \seccomp{} filter installed
+%subjects to the same overheads,
+%except in order to force the PAL binary always loaded
+%at the same address,
+%a separate security loader starts
+%in each new process
+%at a low, static address
+%to load the PAL binary afterwards. 
+%The overhead with the \seccomp{} filter installed
+%is \roughly{}26\%,
+%including the system call slowdown
+%and the extra cost of reloading the PAL loader in each new process.
+%If the reference monitor
+%is enabled,
+%the reference monitor
+%must attach the new process to the sandbox
+%inside the Linux kernel,
+%and always check that the new process only loads the security loader instead of any other binaries.
+%The overhead with both the \seccomp{} filter
+%and the reference monitor
+%is \roughly{}93\%.
+
+
+
+\paragraph{Process creation (SGX).}
+Process creation
+on \sgx{} requires creating a new enclave
+and securing the communication between the parent and child enclave against attacks from the untrusted OS.
+Potential attack vectors to process creation
+include impersonating one of the trusted enclave and man-in-the-middle attacks.
+Enclave creation and
+defenses against these attacks
+cause the significant performance overheads
+observed on \thehostabi{}.
+
+
+
+Enclave creation time contributes a large portion
+of overheads
+to process creation latency on the \sgx{} PAL.
+%as shown in Figure~\ref{fig:eval:pal:proc-latency} (b).
 Figure~\ref{fig:eval:pal:proc-latency} (b)
-shows that the latency of enclave creation
-is related, but not proportional,
-to the enclave size configured by users.
-To create a 16MB enclave,
-which is the minimum size to load a functioning \graphene{} process,
-takes \roughly{}0.8\asec{}.
-If the enclave size is set at 1GB, the creation time can be up to \roughly{}2.8\asec{},
-and will cause significant slowdown
-to the guest if the guest frequently spawns processes.
-Although some techniques such as
-preallocating empty enclave may reduce
-the enclave creation time,
-this thesis leaves such experiment as future work.
-Furthermore,
-the \sgx{} version 2 hardware
-with support dynamic memory management,
-and eliminate the need of preserving large heap space in enclave
+shows the benchmark results
+on the \sgx{} PAL,
+with different enclave sizes configured in the manifest.
+Since enclave sizes are irrelevant from
+the cost of defending against Iago attacks,
+enclave creation time
+is responsible of most overheads when a new process is created in a large enclave.
+%completely subjects to enclave creation time.
+%For the \sgx{} PAL,
+%the latency of creating a new enclave for each child process
+%is significantly higher
+%than creating a normal \picoproc{}.
+%Figure~\ref{fig:eval:pal:proc-latency} (b)
+%shows that the latency of enclave creation
+%is related, but not proportional,
+%to the enclave size configured by users.
+%To create a 16MB enclave,
+%which is the minimum size to load a functioning \graphene{} process,
+%takes \roughly{}0.8\asec{}.
+For creating a process in an 1GB enclave, the process creation time is \roughly{}2.8\asec{},
+or 26,000\x{} to the process creation time
+on the Linux PAL.
+%and will cause significant slowdown
+%to the guest if the guest frequently spawns processes.
+%Although some techniques such as
+%preallocating empty enclave may reduce
+%the enclave creation time,
+%this thesis leaves such experiment as future work.
+%Furthermore,
+%the \sgx{} version 2 hardware
+%with support dynamic memory management,
+%and eliminate the need of preserving large heap space in enclave
 
 
 
@@ -129,30 +199,36 @@ Higher is better. Both abstractions are benchmarked on Linux kernel 3.19 and 4.1
 
 
 \paragraph{Bulk IPC vs RPC streams.}
-\Thehostabi{} introduces a bulk IPC feature to improve the communication between processes.
-Bulk IPC
-is an optional feature,
-and is assumed to have significantly higher bandwidth
-than a regular RPC stream
-by sharing the pages as copy-on-write
-in another process.
-The evaluation results
-in Figure~\ref{fig:eval:pal:gipc-bandwidth}
-show that
-the benefit of using bulk IPC over a RPC stream
-subjects to different
-host Linux kernel versions.
-On a Linux kernel earlier than 4.2, such as the 3.19 kernel evaluated in Figure~\ref{fig:eval:pal:gipc-bandwidth},
-the RPC stream
-has much lower bandwidth (rough{}32\%) than Linux kernel 4.10.
-The reason of the slowdown
-is due to the introduction of a zero-copy design of UNIX domain sockets in 4.2.
-The zero-copy design
-allows a UNIX domain socket to share the physical pages
-of a page-aligned buffer
-with the destination process,
-creating the same effect as the bulk IPC feature in \thehostabi{}.
-Therefore, using the bulk IPC is only beneficial on a Linux kernel older than 4.2.
+\Thehostabi{} introduces an optional, bulk IPC feature for improving RPC messaging.
+The assumption around the
+abstraction
+is that it has higher bandwidth
+than a RPC stream
+by sharing pages as copy-on-write across processes.
+However,
+the assumption is not always valid
+on every host OSes, since a RPC stream
+may be as efficiency as bulk IPC.
+The concern is backed by the
+results
+in Figure~\ref{fig:eval:pal:gipc-bandwidth},
+which show that
+on Linux kernels later than 4.2,
+page-aligned transfer over a RPC stream has comparable bandwidth as bulk IPC,
+due to an optimized UNIX domain socket design which allows zero-copy transfers.
+%The phenomenon
+%is caused by an optimization introduced
+%in Linux 4.2, which allows zero-copy transfer on UNIX domain sockets.
+%is due to the introduction of a zero-copy design of UNIX domain sockets in 4.2.
+%The zero-copy design
+%allows a UNIX domain socket to share the physical pages
+%of a page-aligned buffer
+%with the destination process,
+%creating the same effect as the bulk IPC feature in \thehostabi{}.
+%Therefore, using the bulk IPC is only beneficial on a Linux kernel older than 4.2.
+\graphene{} still uses the bulk IPC abstraction
+as an optimization
+for older Linux kernels. 
 
 
 

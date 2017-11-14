@@ -1,43 +1,108 @@
 \papersubsection{Exception handling}
 
 
-This section evaluates the performance of handling an exception from the host OS or hardware,
-including installing an exception handler,
-interrupting a running thread
-with \palcall{ThreadInterrupt} (raising an \code{INTERRUPT} exception in the target thread),
-and catching a hardware protection fault
-(writing to a read-only address).
+%This section evaluates the performance of handling an exception from the host OS or hardware,
+%including installing an exception handler,
+%interrupting a running thread
+%with \palcall{ThreadInterrupt} (raising an \code{INTERRUPT} exception in the target thread),
+%and catching a hardware protection fault
+%(writing to a read-only address).
+
+\begin{figure*}[t!]
+\centering
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\includegraphics[height=10em]{sig-install-latency}
+\includegraphics[height=10em]{sig-catch-latency}
+}
+\caption{Latency of (a) installing an exception handler; (b)
+interrupting a running thread with signals (on Linux) or \palcall{ThreadInterrupt} on the PALs; (c) catching a memory protection fault. Lower is better. The comparison is between (1) signals on Linux; (2) the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the \sgx{} PAL.}
+\label{fig:eval:pal:sig-latency}
+\end{figure*}
 
 
 
 
+Exception handling features in \thehostabi{} include
+exception handler installation
+and exception delivery to the guest.
+On each PAL implementation,
+installing an exception handler is much cheaper than assigning an exception handler
+in a Linux native process
+(see Figure~\ref{fig:eval:pal:sig-latency}),
+since \thehostabi{} simply stores a function pointer for the handler.
+Exception delivery, however,
+is restricted by host OS or hardware constraints,
+and a user-space
+implementation tends to be less efficient
+than the host OS.
+
+%Both the Linux PAL and \sgx{} PAL implement an elaborate exception delivery scheme
+%which gracefully handles
+%corner cases
+%of hardware or OS-triggered exceptions.
+%One corner case
+%that the PALs handle
+%is an internal exception,
+%which happens during either a \hostapi{} or the host exception handler in the PAL.
+%The PALs
+%detect these internal exceptions
+%and roll back the stack
+%to the latest guest frame.
+%As shown in Figure~\ref{fig:eval:pal:sig-latency},
+%delivering a memory fault on the Linux PAL
+%is up to 273\%
+%more expensive than delivering a \code{SIGSEGV} signal
+%to a native Linux process.
 
 
-Figure~\ref{fig:eval:pal:sig-latency} (a)
-shows the latency of installing an exception handler in either the Linux or \sgx{} PAL, compared with
-\syscall{sigaction} in a Linux process.
-The result
-shows that regardless the PAL is running in a regular \picoproc{} or an enclave,
-installing an exception handling
-in the PAL
-is much lower than install a signal handler
-on Linux,
-because the \hostapi{} does not have to take any system call or enclave exits.
+Because the Linux PAL does not virtualize
+the interrupt handler,
+a hardware exception are always delivered
+to the host kernel and then sent to the Linux PAL as a signal.
+The host kernel
+also sends
+OS-trigger exceptions,
+such as interruptions from other threads
+and exception
+triggered by blocked system calls,
+as signals to the Linux PAL.
+Therefore, a part of the exception delivery overhead 
 
 
-Figure~\ref{fig:eval:pal:sig-latency} (b)
-shows the latency of interrupting a running thread
-and raising an exception
-in the target thread, compared with delivering a \code{SIGUSR1} signal in a Linux process.
-Thread interruption on the Linux PAL
-is slightly slower than
-delivering a \code{SIGUSR1} signal,
-by \roughly{}25\% without \seccomp{} filter and reference monitor, or \roughly{}32\% with \seccomp{} filter and reference monitor.
-On the \sgx{} PAL,
-the latency of thread interrupt
-is much higher, due to the cost of extra thread exits.
-Interrupting a thread running on the \sgx{} PAL
-is \roughly{}3.1\x{} shower than delivering a \code{SIGUSR1} signal in a Linux process.
+
+
+%Figure~\ref{fig:eval:pal:sig-latency} (a)
+%shows the latency of installing an exception handler in either the Linux or \sgx{} PAL, compared with
+%\syscall{sigaction} in a Linux process.
+%The result
+%shows that regardless the PAL is running in a regular \picoproc{} or an enclave,
+%installing an exception handling
+%in the PAL
+%is much lower than install a signal handler
+%on Linux,
+%because the \hostapi{} does not have to take any system call or enclave exits.
+
+
+%Figure~\ref{fig:eval:pal:sig-latency}
+%measures the latency of delivering an interrupt and a memory protection exception
+%to a thread in the process.
+
+
+
+%Figure~\ref{fig:eval:pal:sig-latency} (b)
+%shows the latency of interrupting a running thread
+%and raising an exception
+%in the target thread, compared with delivering a \code{SIGUSR1} signal in a Linux process.
+%Thread interruption on the Linux PAL
+%is slightly slower than
+%delivering a \code{SIGUSR1} signal,
+%by \roughly{}25\% without \seccomp{} filter and reference monitor, or \roughly{}32\% with \seccomp{} filter and reference monitor.
+%On the \sgx{} PAL,
+%the latency of thread interrupt
+%is much higher, due to the cost of extra thread exits.
+%Interrupting a thread running on the \sgx{} PAL
+%is \roughly{}3.1\x{} shower than delivering a \code{SIGUSR1} signal in a Linux process.
 
 
 
@@ -61,14 +126,3 @@ in order to reset the in-enclave buffer
 for preserving the faulting contexts.
 
 
-\begin{figure*}[t!]
-\centering
-\footnotesize
-\resizebox{\textwidth}{!}{%
-\includegraphics[height=10em]{sig-install-latency}
-\includegraphics[height=10em]{sig-catch-latency}
-}
-\caption{Latency of (a) installing an exception handler; (b)
-interrupting a running thread with signals (on Linux) or \palcall{ThreadInterrupt} on the PALs; (c) catching a memory protection fault. Lower is better. The comparison is between (1) signals on Linux; (2) the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the \sgx{} PAL.}
-\label{fig:eval:pal:sig-latency}
-\end{figure*}
