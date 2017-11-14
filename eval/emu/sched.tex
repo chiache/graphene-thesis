@@ -12,5 +12,50 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 \end{table}
 
 
-Figure~\ref{tab:eval:libos:lmbench-threading}
-lists
+Thread creation in \thelibos{}
+is subject to additional overheads including allocating thread control blocks (TCB)
+and synchronization between the caller of \syscall{clone} and new thread.
+To emulate a simple \syscall{clone} system call, the overhead on the Linux host is \roughly{}84\%.
+Within the overhead, 50\% is contributed
+by the \hostapi{}, \palcall{ThreadCreate}, and the rest counts toward
+TCB allocation and synchronization.
+If \thelibos{} runs inside an enclave,
+the overhead on \syscall{clone} is much more significant, reaching \roughly{}10\x{}.
+Most of the cost on the \sgx{} host
+is caused by synchronization since the overhead on \palcall{ThreadCreate} is only 2\x{}.
+If comparing the latency of \syscall{pthread\_create}+\syscall{pthread\_join}, the overheads mostly double on both the Linux host and the \sgx{} host,
+primarily because of extra synchronization cost
+through emulated futexes
+used by the pthread library for exit notifications.
+
+
+
+Polling file descriptors using \syscall{select} is one of the most expensive system calls
+emulated by \thelibos{}.
+For instance, to poll 256 file descriptors,
+Table~\ref{tab:eval:libos:lmbench-threading} shows up to 672\x{} overheads on the Linux host, or 1,301\x{} inside an enclave.
+The reason of the high latency
+is due to the definition of the \hostapi{}, \palcall{ObjectsWaitAny},
+which only returns one handle at a time.
+Therefore, to poll 256 file descriptors,
+\thelibos{} has to call \palcall{ObjectsWaitAny} up to 256 times, in order to confirm
+the readiness of all polled file descriptors.
+A possible optimization
+is to redefining the \hostapi{} to allow returning multiple handles,
+which is left as future work.
+
+
+The synchronization primitives offered by the pthread library,
+including conditional variables and mutexes, 
+are largely affected by the performance of futexes emulated by \thelibos{},
+especially when one thread has to block for the others.
+As one example,
+the latency of signaling a blocking thread
+through a condition variable
+is 50\% slower on the Linux host, or 182\% slower in an enclave,
+compared to the native performance.
+
+
+
+
+
