@@ -13,22 +13,46 @@ Instead of adopting the copy-on-write, fork-like semantics
 of process creation
 from Linux and similar OSes,
 \thehostabi{}
-only creates clean \picoprocs{} or enclaves
-which share no memory.
+creates clean, new processes
+without sharing
+any process memory.
 %to avoid the requirement of page sharing.
-The semantics of process creation
-in \thehostabi{}
+The semantics
 are similar to \syscall{spawn} in POSIX, or the combination
 of \syscall{vfork} and \syscall{execve} in Linux.
-The overheads on process creation
-include:
-(1) initialization of the PAL binary in the new process;
-(2) creating a trusted RPC stream among parent and child processes;
-(3) adding the new process to the trusted group of its parent.
-Each of these overheads
-has non-trivial impact on
-the latency of process creation.
 
+
+
+In general, process creation on \thehostabi{}
+expects the following three types of performance overheads:
+(1) initialization of the PAL binary in the new process;
+(2) creating a trustworthy RPC stream among parent and child processes;
+(3) adding the new process to the trusted group of its parent.
+Each of these factors
+impact the latency of process creation
+in a non-trivial way.
+As measured in
+Figure~\ref{fig:eval:pal:proc-latency} (a),
+the overhead on process creation
+is up to 93\% on the Linux PAL,
+with both \seccomp{} filter and reference monitoring.
+Among the overhead,
+22\% is for PAL and RPC stream initialization.
+36\% is for enabling the \seccomp{} filter
+in the child process,
+including executing a separate binary
+which then loads the PAL binary at the same address,
+in order to
+support PC-based filtering.
+%the overall overhead is 36\%, but not completely as result of system call filtering;
+%to ensure the same address for loading
+%the PAL binary, the Linux PAL introduces
+%a separate security loader
+%when enabling \seccomp{} filter or reference monitoring.
+Finally,
+adding the new process to the same sandbox
+in the reference monitor
+causes 55\% overhead on the latency.
 
 
 
@@ -64,28 +88,7 @@ The comparison is between (1) a combination of \syscall{vfork} and \syscall{exec
 \end{figure*}
 
 
-As measured in
-Figure~\ref{fig:eval:pal:proc-latency} (a),
-the overhead on process creation
-is up to 93\% on the Linux PAL,
-with both \seccomp{} filter and reference monitoring.
-Among the overhead,
-22\% is for PAL and RPC stream initialization.
-36\% is for enabling the \seccomp{} filter
-in the child process,
-including executing a separate binary
-which then loads the PAL binary at the same address,
-in order to
-support PC-based filtering.
-%the overall overhead is 36\%, but not completely as result of system call filtering;
-%to ensure the same address for loading
-%the PAL binary, the Linux PAL introduces
-%a separate security loader
-%when enabling \seccomp{} filter or reference monitoring.
-Finally,
-adding the new process to the same sandbox
-in the reference monitor
-causes 55\% overhead on the latency.
+
 
 
 

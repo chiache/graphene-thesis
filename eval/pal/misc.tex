@@ -9,23 +9,24 @@
 %(writing to a read-only address).
 
 
-
-
-
-
-The exception handling features in \thehostabi{} include
+The exception handling features on \thehostabi{}
+include installing a handler function
+for a specific type of exceptions,
+and delivery of the exceptions to the installed handler.
+Handler installation
+is relatively fast on almost every PAL implementations;
+For the Linux PAL and \sgx{} PAL,
 handler installation
-and delivering exceptions to the guest.
-On each PAL implementation,
-installing an exception handler is much cheaper than assigning an exception handler
-in a Linux native process
-(Figure~\ref{fig:eval:pal:sig-latency}),
-since \thehostabi{} simply stores a function pointer for the handler.
-Exception delivery, however,
-is restricted by host OS or hardware constraints,
-and a user-space
-implementation tends to be less efficient
-than the host OS.
+is even at least 6\x{} faster than calling \syscall{sigaction} on native Linux (Figure~\ref{fig:eval:pal:sig-latency}),
+because the \hostapi{} only has to update a function pointer in the process.
+However, exception delivery
+tends to be a much more expensive operation,
+due to implementing various corner cases
+upon restrictions
+of host OSes or hardware.
+%and a user-space
+%implementation tends to be less efficient
+%than the host OS.
 
 %Both the Linux PAL and \sgx{} PAL implement an elaborate exception delivery scheme
 %which gracefully handles
@@ -46,27 +47,113 @@ than the host OS.
 %to a native Linux process.
 
 
-Without virtualizing interrupt handlers,
-a hardware exception
-on the Linux PAL are delivered into the host Linux kernel
-and then sent to the process as a signal.
-The host Linux kernel
-also delivers
-OS-trigger exceptions,
-such as interruption from another thread
-and blocked system calls,
-as different signals (e.g., \code{SIGUSR1} and \code{SIGSYS}) to the process.
-Processing these
-host signals involves several expensive operations,
-including
-checking the ranges of interrupted instructions
-and passing the register files
-to the guest exception handlers.
-For delivering a memory fault,
-the overheads add up to \roughly{}273\%.
-%Similar overheads are observed on the delivery of other exceptions.
-%Delivering other exceptions can expect
-%a similar overhead.
+
+Both the Linux PAL and \sgx{} PAL implement
+an elaborate exception delivery scheme
+to handle various corner cases where exception can happen.
+First, \thehostabi{}
+defines several types of exceptions,
+which are all delivered through a unified interface.
+The deliverable exceptions
+include hardware exceptions such as memory faults,
+arithmetic errors (divide-by-zero), and illegal instructions,
+and OS-triggered exceptions
+such as system calls forbidden by the \seccomp{} filter.
+On the Linux PAL,
+most exceptions are delivered as signals.
+However, on the \sgx{} PAL,
+hardware exceptions are delivered directly into enclaves,
+with the interrupted register contexts dumped
+into a designated area called SSA (state save area).
+Moreover, exceptions can happen
+either in the guests (i.e., applications and \liboses{})
+or inside the PAL code or a PAL exception handler.
+To gracefully handle these corner cases,
+both the Linux PAL and \sgx{} PAL examines the saved register values to determine the reasons and code addresses
+that raise the exceptions.
+
+
+
+Figure~\ref{fig:eval:pal:sig-latency} shows the overheads
+on exception delivery
+on the two PAL implementations,
+based on two corner cases:
+(1) interrupting the current thread (similar to sending \code{SIGUSR1});
+(2) delivering a memory protection fault
+from the application.
+For thread interruption,
+because the exception happen in the middle of a \hostapi{},
+the overhead is only 37\%
+on the Linux PAL.
+However,
+the latency of the Linux PAL
+to deliver a memory fault from the application
+is up to 273\% slower
+than the similar operation on native Linux;
+the primary reason of
+the significant slowdown
+is to deliver the exception information
+from the host OS,
+including the faulting address
+and interrupted register contexts.
+
+
+%If the application triggers
+%a memory protection fault, the Linux PAL receives an signal in its own handler
+%and delivers the exception with
+%a copy of the interrupted context to the guest handler.
+%After the guest handler returns,
+%the Linux PAL applies the changes on the interrupted context
+%and restores the execution.
+%The overall overhead for delivering a memory fault
+%on the Linux PAL
+%is up to 273\%.
+
+
+
+
+%Without virtualizing interrupt handlers,
+%a hardware exception
+%on the Linux PAL are delivered into the host Linux kernel
+%and then sent to the process as a signal.
+%The host Linux kernel
+%also delivers
+%OS-trigger exceptions,
+%such as interruption from another thread
+%and blocked system calls,
+%as different signals (e.g., \code{SIGUSR1} and \code{SIGSYS}) to the process.
+%Processing these
+%host signals involves several expensive operations,
+%including
+%checking the ranges of interrupted instructions
+%and passing the register files
+%to the guest exception handlers.
+%For delivering a memory fault,
+%the overheads add up to \roughly{}273\%.
+%%Similar overheads are observed on the delivery of other exceptions.
+%%Delivering other exceptions can expect
+%%a similar overhead.
+
+
+For the \sgx{} PAL,
+the latency of exception delivery is determined
+by the cost of enclave interruption.
+Although an enclave does not receive exceptions from the untrusted OS, each exception still interrupts
+enclave execution
+and causes an additional cost
+of exiting and re-entering the enclave.
+However, to handle a hardware exception such as memory fault,
+the \sgx{} PAL
+actually has to exit the enclave twice,
+one for the initial
+interruption and
+the other for freeing SSA (state save area) space.
+As a result,
+for the \sgx{} PAL,
+the overhead on delivering a memory fault
+is nearly twice as the overhead on thread interruption. 
+
+
 
 \begin{figure*}[t!]
 \centering
