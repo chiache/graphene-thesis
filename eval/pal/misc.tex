@@ -8,28 +8,18 @@
 %and catching a hardware protection fault
 %(writing to a read-only address).
 
-\begin{figure*}[t!]
-\centering
-\footnotesize
-\resizebox{\textwidth}{!}{%
-\includegraphics[height=10em]{sig-install-latency}
-\includegraphics[height=10em]{sig-catch-latency}
-}
-\caption{Latency of (a) installing an exception handler; (b)
-interrupting a running thread with signals (on Linux) or \palcall{ThreadInterrupt} on the PALs; (c) catching a memory protection fault. Lower is better. The comparison is between (1) signals on Linux; (2) the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the \sgx{} PAL.}
-\label{fig:eval:pal:sig-latency}
-\end{figure*}
 
 
 
 
-Exception handling features in \thehostabi{} include
-exception handler installation
-and exception delivery to the guest.
+
+The exception handling features in \thehostabi{} include
+handler installation
+and delivering exceptions to the guest.
 On each PAL implementation,
 installing an exception handler is much cheaper than assigning an exception handler
 in a Linux native process
-(see Figure~\ref{fig:eval:pal:sig-latency}),
+(Figure~\ref{fig:eval:pal:sig-latency}),
 since \thehostabi{} simply stores a function pointer for the handler.
 Exception delivery, however,
 is restricted by host OS or hardware constraints,
@@ -56,20 +46,39 @@ than the host OS.
 %to a native Linux process.
 
 
-Because the Linux PAL does not virtualize
-the interrupt handler,
-a hardware exception are always delivered
-to the host kernel and then sent to the Linux PAL as a signal.
-The host kernel
-also sends
+Without virtualizing interrupt handlers,
+a hardware exception
+on the Linux PAL are delivered into the host Linux kernel
+and then sent to the process as a signal.
+The host Linux kernel
+also delivers
 OS-trigger exceptions,
-such as interruptions from other threads
-and exception
-triggered by blocked system calls,
-as signals to the Linux PAL.
-Therefore, a part of the exception delivery overhead 
+such as interruption from another thread
+and blocked system calls,
+as different signals (e.g., \code{SIGUSR1} and \code{SIGSYS}) to the process.
+Processing these
+host signals involves several expensive operations,
+including
+checking the ranges of interrupted instructions
+and passing the register files
+to the guest exception handlers.
+For delivering a memory fault,
+the overheads add up to \roughly{}273\%.
+%Similar overheads are observed on the delivery of other exceptions.
+%Delivering other exceptions can expect
+%a similar overhead.
 
-
+\begin{figure*}[t!]
+\centering
+\footnotesize
+\resizebox{\textwidth}{!}{%
+\includegraphics[height=10em]{sig-install-latency}
+\includegraphics[height=10em]{sig-catch-latency}
+}
+\caption{Latency of (a) installing an exception handler; (b)
+interrupting a running thread with signals (on Linux) or \palcall{ThreadInterrupt} on the PALs; (c) catching a memory protection fault. Lower is better. The comparison is between (1) signals on Linux; (2) the Linux PAL, with and without a \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) the \sgx{} PAL.}
+\label{fig:eval:pal:sig-latency}
+\end{figure*}
 
 
 %Figure~\ref{fig:eval:pal:sig-latency} (a)
@@ -106,23 +115,23 @@ Therefore, a part of the exception delivery overhead
 
 
 
-Figure~\ref{fig:eval:pal:sig-latency} (b)
-shows the latency of catching a memory protection fault,
-compared with handling
-a \code{SIGSEGV} signal in a Linux process.
-On the Linux, handling a hardware fault is \roughly{}2.6\x{} slower than handling a \code{SIGSEGV} signal on Linux;
-such an overhead
-is primarily caused by delivering
-the exception information to the guest, including the faulting register contexts.
-Figure~\ref{fig:eval:pal:sig-latency} (b)
-also shows that catching a hardware fault inside an enclave
-is even more expensive
-than thread interruption, by nearly 60\%.
-The reason of such a dramatic difference is that
-interrupting a thread only causes the interrupt thread to exit and enter the enclave once,
-whereas handling a hardware fault
-requires the faulting thread to exit and enter the enclave twice,
-in order to reset the in-enclave buffer
-for preserving the faulting contexts.
+%Figure~\ref{fig:eval:pal:sig-latency} (b)
+%shows the latency of catching a memory protection fault,
+%compared with handling
+%a \code{SIGSEGV} signal in a Linux process.
+%On the Linux, handling a hardware fault is \roughly{}2.6\x{} slower than handling a \code{SIGSEGV} signal on Linux;
+%such an overhead
+%is primarily caused by delivering
+%the exception information to the guest, including the faulting register contexts.
+%Figure~\ref{fig:eval:pal:sig-latency} (b)
+%also shows that catching a hardware fault inside an enclave
+%is even more expensive
+%than thread interruption, by nearly 60\%.
+%The reason of such a dramatic difference is that
+%interrupting a thread only causes the interrupt thread to exit and enter the enclave once,
+%whereas handling a hardware fault
+%requires the faulting thread to exit and enter the enclave twice,
+%in order to reset the in-enclave buffer
+%for preserving the faulting contexts.
 
 

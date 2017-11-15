@@ -23,13 +23,15 @@ The comparison is between (1) \syscall{clone} and \syscall{select} on Linux; (2)
 
 
 \paragraph{Thread creation.}
-Similar to page allocation, thread creation is also a single-process operation
-which requires little to no security checks.
+Also classified as a single-process operation,
+thread creation on Linux PAL
+expects little impact from security checks or enforcements.
+%which requires no security checks.
 %The evaluation shows the latency of creating a new thread within the current process or \picoproc{}.
 The implementation effort
-for \palcall{ThreadCreate} is mostly to keep the semantics of the \hostapi{} simple;
-for instance, a new thread created by \palcall{ThreadCreate}
-always starts with a pre-allocated stack
+for process creation mostly focuses on keep the semantics of the \hostapi{}---\palcall{ThreadCreate}---as simple as possible.
+For instance, a new thread created by \palcall{ThreadCreate} always starts
+on a pre-allocated stack
 which the guest needs not to assign.
 As shown in
 Figure~\ref{fig:eval:pal:thread-select-latency} (a),
@@ -122,25 +124,29 @@ The comparison is between (1) pthread condition variables and mutexes on Linux; 
 
 
 \paragraph{Events and mutexes.}
-The Linux and \sgx{} PALs
-implement both
-events (including both notification and synchronization events)
-and mutexes
-as atomic or compare-and-exchange instructions,
-with the help of futexes
-to free the CPUs when blocking for longer time.
-Due to the similarity
-of implementation,
-the latency of events and mutexes on the Linux PAL
-are close to
-the corresponding pthread primitives
-(\code{pthread\_cond} and \code{pthread\_mutex}),
-with no more than 10\% overhead (see Figure~\ref{fig:eval:pal:sched-latency}).
+The Linux PAL and \sgx{} PAL
+implement notification events, synchronization events, and mutexes with atomic or compare-and-exchange
+instructions,
+but use futexes in the hos OS
+to free the CPUs when blocking on other threads.
+The implementation is similar
+to pthread primitives such as \code{pthread\_cond} and \code{pthread\_mutex};
+therefore, similar performance
+is expected on these primitives, with less than 10\% overheads on the Linux PAL.
+%Due to the similarity
+%of implementation,
+%the latency of events and mutexes on the Linux PAL
+%are close to
+%the corresponding pthread primitives
+%(\code{pthread\_cond} and \code{pthread\_mutex}),
+%with no more than 10\% overhead 
+(see Figure~\ref{fig:eval:pal:sched-latency}).
 For the \sgx{} PAL,
-these synchronization primitives
-are more expensive
+these primitives
+are much more expensive
 (\roughly{}130--250\%)
-if the \hostapis{} require exiting enclaves for futexes.
+if the \hostapis{} require exiting enclaves
+for futexes.
 
 
 

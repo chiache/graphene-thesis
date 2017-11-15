@@ -123,31 +123,44 @@ causes 55\% overhead on the latency.
 
 
 
-\paragraph{Process creation (SGX).}
-Process creation
-on \sgx{} requires creating a new enclave
-and securing the communication between the parent and child enclave against attacks from the untrusted OS.
-Potential attack vectors to process creation
-include impersonating one of the trusted enclave and man-in-the-middle attacks.
-Enclave creation and
-defenses against these attacks
-cause the significant performance overheads
-observed on \thehostabi{}.
+\paragraph{Process creation on SGX.}
+The \sgx{} PAL isolates each process inside a separate enclave
+and uses secured RPC streams
+for coordination between parent and child processes.
+As a part of the process creation,
+the \sgx{} PAL initialize a empty enclave
+signed for the target executable,
+and establish a TLS connection over a RPC stream.
+The process creation procedure
+includes several defenses against potential attacks
+from the host OS,
+include impersonating one of the enclaves and launching man-in-the-middle attacks on RPCs~\cite{shinde17panoply}.
+%Enclave creation and
+%security defenses %against these attacks
+%cause the overheads
+%observed on the \sgx{} PAL.
+The \sgx{} PAL defends these attacks
+using the local attestation feature of \sgx{} hardware and several cryptographic techniques.
 
 
 
-Enclave creation time contributes a large portion
-of overheads
-to process creation latency on the \sgx{} PAL.
+Although establishing the TLS connections slows down
+process creation,
+the largest portion of process creation overheads
+on the \sgx{} PAL
+turns out to be enclave creation.
 %as shown in Figure~\ref{fig:eval:pal:proc-latency} (b).
 Figure~\ref{fig:eval:pal:proc-latency} (b)
-shows the benchmark results
-on the \sgx{} PAL,
-with different enclave sizes configured in the manifest.
-Since enclave sizes are irrelevant from
-the cost of defending against Iago attacks,
-enclave creation time
-is responsible of most overheads when a new process is created in a large enclave.
+evaluates the cost of enclave creation
+by gradually increasing the enclave size of each new process.
+The results show that
+the process creation time on the \sgx{} PAL
+is largely correlated with
+enclave sizes;
+%Since enclave sizes are irrelevant from
+%the cost of defending against Iago attacks,
+%enclave creation time
+%is responsible of most overheads when a new process is created in a large enclave.
 %completely subjects to enclave creation time.
 %For the \sgx{} PAL,
 %the latency of creating a new enclave for each child process
@@ -160,7 +173,8 @@ is responsible of most overheads when a new process is created in a large enclav
 %To create a 16MB enclave,
 %which is the minimum size to load a functioning \graphene{} process,
 %takes \roughly{}0.8\asec{}.
-For creating a process in an 1GB enclave, the process creation time is \roughly{}2.8\asec{},
+creating a process in an 1GB enclave
+takes \roughly{}2.8\asec{},
 or 26,000\x{} to the process creation time
 on the Linux PAL.
 %and will cause significant slowdown
@@ -173,18 +187,68 @@ on the Linux PAL.
 %the \sgx{} version 2 hardware
 %with support dynamic memory management,
 %and eliminate the need of preserving large heap space in enclave
+Although process creation
+is generally considered an expensive operation
+in most OSes,
+the extremely high overheads
+on the \sgx{} PAL
+can be a huge impact, especially for applications which
+frequently create new process, such as shell applications and makefiles.
+
+
+Several optimizations are possible for improving process creation
+on the \sgx{} PAL.
+One optimization
+is to create enclaves in advance,
+or to recycle enclaves after process termination.
+Moreover,
+the SGX2 hardware~\cite{sgx2} introduces
+new instructions for inserting empty pages into an enclave
+after initialization,
+and therefore allows new processes to start
+in small enclaves.
+%An ongoing extension of \graphene{}
+%ports the \sgx{} PAL to the SGX2 hardware,
+%and shows \roughly{}50\% reduction
+%on total execution time of a ``hello world'' program.
 
 
 
 
 
 
- 
-
-
-
-
-
+\paragraph{Bulk IPC vs RPC streams.}
+\Thehostabi{} introduces an optional, bulk IPC feature for improving RPC messaging.
+The assumption around the
+abstraction
+is that it has higher bandwidth
+than a RPC stream
+by sharing pages as copy-on-write across processes.
+However,
+the assumption is not always valid, since a RPC stream
+can be as efficiency as bulk IPC on some host OSes.
+The concern is backed by the benchmark results in Figure~\ref{fig:eval:pal:gipc-bandwidth},
+which show that
+page-aligned RPC messaging on Linux kernels later than 4.2
+is comparably efficient
+as using the bulk IPC abstractions.
+The reason is an optimization introduced on Linux 4.2
+to implement zero-copy transfers
+over UNIX sockets~\cite{linux4.2-unix}.
+%The phenomenon
+%is caused by an optimization introduced
+%in Linux 4.2, which allows zero-copy transfer on UNIX domain sockets.
+%is due to the introduction of a zero-copy design of UNIX domain sockets in 4.2.
+%The zero-copy design
+%allows a UNIX domain socket to share the physical pages
+%of a page-aligned buffer
+%with the destination process,
+%creating the same effect as the bulk IPC feature in \thehostabi{}.
+%Therefore, using the bulk IPC is only beneficial on a Linux kernel older than 4.2.
+%Despite the optimization being less effective on latest Linux kernels,
+\graphene{} still consider the bulk IPC abstraction
+beneficial for older Linux kernels
+or other host OSes. 
 
 
 
@@ -196,43 +260,6 @@ on the Linux PAL.
 Higher is better. Both abstractions are benchmarked on Linux kernel 3.19 and 4.10 as the hosts. The impact of the \seccomp{} filter or reference monitor is marginal (less than 1\%).}
 \label{fig:eval:pal:gipc-bandwidth}
 \end{figure*}
-
-
-\paragraph{Bulk IPC vs RPC streams.}
-\Thehostabi{} introduces an optional, bulk IPC feature for improving RPC messaging.
-The assumption around the
-abstraction
-is that it has higher bandwidth
-than a RPC stream
-by sharing pages as copy-on-write across processes.
-However,
-the assumption is not always valid
-on every host OSes, since a RPC stream
-may be as efficiency as bulk IPC.
-The concern is backed by the
-results
-in Figure~\ref{fig:eval:pal:gipc-bandwidth},
-which show that
-on Linux kernels later than 4.2,
-page-aligned transfer over a RPC stream has comparable bandwidth as bulk IPC,
-due to an optimized UNIX domain socket design which allows zero-copy transfers.
-%The phenomenon
-%is caused by an optimization introduced
-%in Linux 4.2, which allows zero-copy transfer on UNIX domain sockets.
-%is due to the introduction of a zero-copy design of UNIX domain sockets in 4.2.
-%The zero-copy design
-%allows a UNIX domain socket to share the physical pages
-%of a page-aligned buffer
-%with the destination process,
-%creating the same effect as the bulk IPC feature in \thehostabi{}.
-%Therefore, using the bulk IPC is only beneficial on a Linux kernel older than 4.2.
-\graphene{} still uses the bulk IPC abstraction
-as an optimization
-for older Linux kernels. 
-
-
-
-
 
 
  

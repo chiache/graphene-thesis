@@ -93,10 +93,11 @@ at last-level cache misses.
 %For a few \hostapis{}, %a majority of overheads
 %result from
 Security checks or enforcements also
-impact \thehostabi{} performance,
+impact \thehostabi{} performance
+in several cases.
 %cause overheads
 %for protecting applications
-depending on the threat models assumed on the host targets.
+%depending on the threat models assumed on the host targets.
 %under a specific host threat model.
 %for ensuring the safety of running an application
 %within the threat model
@@ -106,13 +107,13 @@ depending on the threat models assumed on the host targets.
 %either inside the host kernel or the guest.
 %The cost of security checks varies between hosts, and is correlated with the presumed security models.
 %The threat model for 
-For most hosts including both Linux and SGX,
+For most hosts, % including both Linux and SGX,
 \graphene{}
 isolates
 %generally
-mutually-untrusting applications from attacking the host OS or each other, % through host system interfaces,
+mutually-untrusting applications from attacking each other or the host OS, % through host system interfaces,
 %the security checks mainly
-by restricting the attack surface through host resources sharing and unnecessary system calls.
+by restricting the attack surface through shared host abstractions and system interfaces.
 %using both the reference monitor and \seccomp{} filter.
 For \sgx{},
 \graphene{} further assumes a stronger threat model,
@@ -142,7 +143,7 @@ security checks on a stronger threat model like SGX
 tends to impose high overheads
 on many \hostapis{}.
 
-The experiments in this section are based on an extended version of \lmbench{} 2.5~\cite{McVoy:lmbench}.
+The experiments in this section are based on \lmbench{} 2.5~\cite{McVoy:lmbench}.
 For each \hostapi{}, the evaluation %shows the breakdowns
 %of its latency or throughput,
 compares the performance, either as latency or throughput, among the PALs for Linux and SGX hosts
@@ -152,16 +153,17 @@ compares the performance, either as latency or throughput, among the PALs for Li
 %\seccomp{} filter and reference monitor,
 % on the Linux PAL,
 and a native Linux kernel,
-to measure the overheads of PAL implementations.
-For each PAL,
+to measure the overheads of PALs.
+For each host target,
 the evaluation tests both with and without security checks or enforcements,
 such as \seccomp{} filter and reference monitor on Linux host,
 or checking untrusted inputs in an enclave.
 %as well as testing under different
 %implementation strategies.
 %The evaluation focuses on \hostapis{} that are especially sensitive for the performance of the \graphene{} \libos{}.
-A purpose of this section is to show
-the performance impacts of design decisions made during PAL implementations. 
+This section also includes a detailed analysis
+of performance overheads
+impacted by design decisions in PAL implementation. 
 
 % the efficiency of \hostapis{} on both Linux and \sgx{} hosts, and shows the impact of each performance factor.
 %The evaluation is based on micro-benchmark programs similar to \lmbench{} 2.5~\cite{McVoy:lmbench},

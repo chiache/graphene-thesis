@@ -40,10 +40,10 @@ both latency and bandwidth of transferring data over the I/O streams.
 
 \paragraph{Opening a file.}
 File system operations such as opening a file
-are heavily impacted
-by security checks and system interface translation.
+are often subject to
+slowdowns caused by security checks and system interface translation.
 As shown in Figure~\ref{fig:eval:pal:open-latency}(a),
-host system call translation, system call restriction (using \seccomp{} filter), and reference monitoring
+host system call translation, system call restriction (using the \seccomp{} filter), and reference monitoring
 each contribute a nontrivial portion to the file opening overheads,
 adding up to 21--31\%.
 %even with the JIT (just-in-time) optimization 
@@ -135,8 +135,8 @@ causes order-of-magnitude more overheads than the translation costs.
 For reference,
 exiting an enclave and copying memory for opening a file in the host OS take a fixed overhead
 as \roughly{}5 \usec{}.
-Verify the file contents from the untrusted OS
-requires
+The cost of integrity protection
+includes
 calculating a secure hash of the file (by SHA-256 in the current implementation)
 and generating a Merkel tree of hash values
 for verifying
@@ -300,20 +300,26 @@ without cryptographic checks.
 
 
 \paragraph{Network and RPC streams.}
-Without SGX restrictions,
-\thehostabi{} overheads on network and RPC streams
-are minor or even negligible
-due to requiring no security checks.
-This tendency is reflected in
-Figure~\ref{fig:eval:pal:network-latency-bandwidth} (a)
+On the Linux PAL, overheads on network and RPC streams are either minor or negligible,
+because most operations require
+no security checks at all.
+%due to requiring no security checks.
+The observation is backed by Figure~\ref{fig:eval:pal:network-latency-bandwidth} (a)
 and
 Figure~\ref{fig:eval:pal:pipe-latency-bandwidth} (a),
 which shows the highest overheads on a TCP socket, a UDP socket, and a RPC stream,
 as measuring the latency of sending a single-byte message,
 %compared with the underlying host network and UNIX domain sockets,
 are \roughly{}18\%, \roughly{}30\%,
-and nearly 0\%, respectively, compared to the underlying host network sockets and UNIX domain sockets.
-Figure~\ref{fig:eval:pal:network-latency-bandwidth} (b) and Figure~\ref{fig:eval:pal:pipe-latency-bandwidth} (b) also shows the bandwidth of sending large messages over a TCP socket and a RPC stream, each with less than 5\% overhead.
+and nearly 0\%, respectively, compared to the underlying host abstractions.
+There overheads are likely to be less significant
+with larger workloads,
+since the the translation
+between \thehostabi{} and host system calls
+tends to be a fixed cost.
+As shown in Figure~\ref{fig:eval:pal:network-latency-bandwidth} (b) and Figure~\ref{fig:eval:pal:pipe-latency-bandwidth} (b),
+the bandwidth for sending large messages
+over a TCP socket and a RPC stream suffer less than 5\% overheads on the Linux PAL.
 
 
 For \sgx{}, reading or writing on a network or RPC stream
@@ -460,7 +466,7 @@ The comparison is between (1) \syscall{read} and \syscall{write} over a pipe or 
 
 For RPC streams,
 the \sgx{} PAL must protect the integrity and confidentiality of messages since applications
-are not aware of the security threats in inter-process communication.
+are not aware of security threats from the untrusted OS.
 %By default,
 The \sgx{} PAL establishes a TLS connection
 on every RPC streams,

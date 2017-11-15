@@ -15,11 +15,14 @@ The comparison is between (1) \syscall{mmap} and \syscall{munmap} on Linux; (2) 
 \label{fig:eval:pal:mmap-latency}
 \end{figure*}
 
-Sources of significant overheads such as security checks
-tend to have less impact on
-single-process \hostapis{}.
-An example is page management,
-since updating the virtual page layout only affect the process itself.
+%Unlike I/O streams, 
+Single-process abstractions such as page allocation
+tend to be
+subject to less overheads
+especially from security checks.
+%tend to have less impact on
+%single-process \hostapis{}.
+%Since updating page mappings only affects the process itself.
 %any amount of anonymous pages within its resource limits.
 As shown in Figure~\ref{fig:eval:pal:mmap-latency},
 the overheads of \palcall{VirtMemAlloc} and \palcall{VirtMemFree}
@@ -33,10 +36,9 @@ and demand paging.
 
 
 %As the results on the Linux PAL represent the performance on a host with dynamic page management,
-Unlike a traditional OS like Linux,
-the \sgx{} PAL
-has a static page management model,
-due to the restriction of current \sgx{} hardware.
+%Unlike a traditional OS like Linux,
+The current \sgx{} PAL follows a static page management model,
+due to the restriction of \sgx{} hardware.
 For each enclave,
 the \sgx{} PAL preallocate a heap space
 at loading time,
@@ -59,8 +61,10 @@ Without the memory zeroing cost,
 page allocation and deallocation on the \sgx{} PAL
 is only \roughly{}16\% to \syscall{mmap} and \syscall{munmap},
 since the \sgx{} PAL
-can easily update the internal page mappings 
-without enclave exits.
+for simply updating the mappings
+inside an enclave.
+%the internal page mappings 
+%without enclave exits.
 
 %the \sgx{} PAL must manage its own pages since it does not trust the host OS.
 %Therefore, the \sgx{} PAL maintains
