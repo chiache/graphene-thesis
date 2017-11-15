@@ -9,15 +9,14 @@
 %(writing to a read-only address).
 
 
-The exception handling features on \thehostabi{}
-include installing a handler function
-for a specific type of exceptions,
-and delivery of the exceptions to the installed handler.
+Exception handling on \thehostabi{}
+includes installing a upcalling function as handler to specific exceptions,
+and delivery of exceptions to the installed handler.
 Handler installation
 is relatively fast on almost every PAL implementations;
 For the Linux PAL and \sgx{} PAL,
 handler installation
-is even at least 6\x{} faster than calling \syscall{sigaction} on native Linux (Figure~\ref{fig:eval:pal:sig-latency}),
+is at least 6\x{} faster than calling \syscall{sigaction} on native Linux (Figure~\ref{fig:eval:pal:sig-latency}),
 because the \hostapi{} only has to update a function pointer in the process.
 However, exception delivery
 tends to be a much more expensive operation,
@@ -136,20 +135,23 @@ and interrupted register contexts.
 
 
 For the \sgx{} PAL,
-the latency of exception delivery is determined
-by the cost of enclave interruption.
-Although an enclave does not receive exceptions from the untrusted OS, each exception still interrupts
+exception delivery is dominated
+by enclave exits.
+Although the \sgx{} PAL does not trust the untrusted OS to deliver exceptions,
+\sgx{} forces
 enclave execution
-and causes an additional cost
-of exiting and re-entering the enclave.
-However, to handle a hardware exception such as memory fault,
-the \sgx{} PAL
-actually has to exit the enclave twice,
-one for the initial
-interruption and
-the other for freeing SSA (state save area) space.
-As a result,
-for the \sgx{} PAL,
+to stop and exit to the untrusted OS
+at exception,
+causing significant overheads
+on exception handling.
+Moreover, to handle a hardware exception such as memory fault or illegal instruction,
+the \sgx{} PAL has to
+effectively exit an enclave twice,
+one for handing the exception and
+the other for freeing
+the limited SSA (state save area).
+%As a result,
+On the \sgx{} PAL,
 the overhead on delivering a memory fault
 is nearly twice as the overhead on thread interruption. 
 

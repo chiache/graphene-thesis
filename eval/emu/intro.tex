@@ -1,6 +1,6 @@
 This section evaluates the performance
-of Linux system call emulation
-in the \graphene{} \libos{}, or \thelibos{}.
+of Linux system calls
+serviced by the \graphene{} \libos{}, or \thelibos{}.
 %The evaluation is based on benchmark results
 %of Linux system call inside a \picoproc{},
 %since the Linux system call table is the main target that \thelibos{} emulates
@@ -23,16 +23,16 @@ The evaluation is based on
 an extended version of \lmbenchwithver{}~\cite{McVoy:lmbench}.
 %including
 %extra system call tests.
-Each \lmbench{} test
+Each benchmark result
 reports a mean and 95\% confidence interval,
 based on the assumption
 that the results of each test are normally distributed.
 %to improve the precision,
 %this evaluation increases the number of iterations in each to at least 111 times, which effectively
 %lowers the variance in most tests to acceptable range.
-Although assuming a normal distribution may not be realistic for most benchmark results~\cite{staelin05lmbench},
-the error is likely to be marginal with the low variance
-observed in the tests.
+%Although assuming a normal distribution may not be realistic for most benchmark results~\cite{staelin05lmbench},
+%the error is likely to be marginal with the low variance
+%observed in the tests.
 %we use the default number of iterations for each test case.
 %We have added code to \lmbench{} to also calculate 95\% confidence intervals 
 %within a run~\footnote{The lmbench authors deliberately exclude variation statistics
@@ -41,76 +41,105 @@ observed in the tests.
 %Though confidence intervals should be taken with a grain of salt, 
 %we include them because they clearly indicate that these experiments have very low variance. In 
 %a few cases of minor performance improvement, one can assess the impact of noise.}.
-Besides, to measure the marginal cost of the \seccomp{} filter and reference monitor on a Linux host,
-the experiments include the cases both with
-and without the \seccomp{} filter and reference monitor.
-For SGX, all tests
-are based on a default user policy with security checks on most enclave call results,
-except for encryption and authentication
-on file contents and
-network traffics.
-RPC streams are protected with TLS connections by default.
+To measure the marginal cost of host security checks,
+the experiments test both with
+and without the \seccomp{} filter and reference monitor
+on the Linux host.
+The experiments on the SGX host are based on a default security policy,
+which enforces security checks on most inputs from the untrusted host OS,
+but does not automatically encrypt or authenticate
+data files or network traffics. 
+
+% security checks on most enclave call results,
+%except for encryption and authentication
+%on file contents and
+%network traffics.
+%RPC streams are protected with TLS connections by default.
 
 
 The evaluation results categorize
 system calls as three types.
 The first type of system calls can be completely serviced inside \thelibos{};
 in this case, the latency of system calls
-inside \graphene{} or \graphenesgx{}
-can be close to the native performance
-or even be faster than native,
-depending on how optimized the emulation is.
-\graphene{} emulates
-these system calls with relative small costs or even performance gains
-because each of these system calls requires
-no native host system calls
-or enclave exits.
+in \picoprocs{}
+is likely to be close to native
+or even be more optimized.
+%depending on how optimized the emulation is.
+For these system calls,
+\thelibos{} emulates the semantics
+in the guest space,
+gaining performance benefits
+by avoiding host system calls or expensive enclave exits.
 %to use system calls in the host OS or even exit enclaves.
 %the evaluation results show that these system calls are even faster than native, because \thelibos{} does not switch context into the kernal space
 %to service the system calls.
 For instance,
-\syscall{getppid} only returns an OS state
-(parent process ID),
-and thus is 67\% faster
-in \graphene{} or \graphenesgx{}
-than in a native Linux process.
+\syscall{getppid}, which only returns an OS state
+(parent process ID) from \thelibos{},
+is 67\% faster in \graphene{} than in a native Linux process,
+regardless of which host target
+the \libos{} is running on.
 
 
-The second type of system calls requires translation to a native host system calls,
-with enclave exits if running on SGX.
-There system calls are slower in \graphene{} or \graphenesgx{} than native,
-because emulating each of the system calls
-requires calling the native host system call at least once,
-or more if the \thelibos{} or PAL implementation
-requires so.
-For example, to implement \syscall{open}, \thelibos{} calls \palcall{DkStreamOpen} to open a handle
-for accessing the host file,
-and ends up calling \syscall{open} in the host OS.
+The second type of system calls
+requires
+always interacting with the host OS via \thehostabi{},
+or enclave calls on \sgx{}.
+%translation to a native host system calls,
+%with enclave exits if running on SGX.
+For example, to implement \syscall{open}, \thelibos{} needs to call \palcall{DkStreamOpen} to open a file handle in the host OS.
+The overheads on emulating these system calls
+tends to be more significant
+than others, as including translation costs and overheads of host security mechanisms.
+%There system calls are slower in \graphene{} or \graphenesgx{} than native,
+%because emulating each of the system calls
+%requires calling the native host system call at least once,
+%or more if the \thelibos{} or PAL implementation
+%requires so.
+Especially if emulating a system call
+requires multiple \hostapis{}
+or enclave calls,
+the overheads multiply as the time spent on accessing host system calls increases.
+
+%for accessing the host file,
+%and ends up calling \syscall{open} in the host OS.
 
 
-The third type of system calls also requires native host system calls, but \thelibos{} can batch
-the results of several operations by buffering
-or caching data inside of the \libos{} instance.
+The third type of system calls are also implemented
+with the involvement
+of \hostapis{}, but can benefit from optimizations inside \libos{}, using techniques
+such as \hostapi{} batching, I/O buffering,
+and directory caching. 
+%\thelibos{} can batch
+%the results of several operations by buffering
+%or caching data inside of the \libos{} instance.
 For these system calls,
-\thelibos{} can often emulate with low overheads,
-even if the translation to each native host system calls is relatively expensive.
-For instance, on Linux host, \thelibos{} buffers both \syscall{read} and \syscall{write} to a host file
-by mapping a part of the file inside the \picoproc{}
-without necessarily flushing the written data to the disks.
-Writing 256 bytes
-to a host file is \roughly{}45\% faster in \graphene{} than in a native Linux process.  
+the overheads generally depend on
+the number of \hostapis{}
+that \thelibos{} can prevent for each instance of system calls,
+since \thelibos{}
+cannot reduce the slowdown on each \hostapi{}.
+For instance,
+\thelibos{} buffers file contents for system calls like \syscall{read} and \syscall{write}
+by mapping parts of the file inside \picoprocs{}.
+Since \thelibos{}
+can batch the effect of multiple small reads or writes
+at nearby locations in a file,
+%without necessarily flushing the written data to the disks.
+the operations
+can be up to \roughly{}45\% faster than in a native Linux process.  
 
 
-In short,
-the emulation overheads of system calls usually depend on frequency of host system calls.
-If \thelibos{} requires no host system calls
-or can defer host system calls
-until a later moment, the emulation cost contains only in-memory operation latency.
-Otherwise,
-using \hostapis{}, which eventually translate to host system calls, tends to cause more significant
-overheads than servicing inside the \libos{}.
-%\thelibos{} tends to impose larger overheads
-%if it has to directly translate guest system calls to \hostapis{}, and eventually to host system calls.
+%The system call overheads
+%on the \graphene{} \libos{} are subject to frequency.
+%If \thelibos{} requires no host system calls
+%or can defer host system calls
+%until a later moment, the emulation cost contains only in-memory operation latency.
+%Otherwise,
+%using \hostapis{}, which eventually translate to host system calls, tends to cause more significant
+%overheads than servicing inside the \libos{}.
+%%\thelibos{} tends to impose larger overheads
+%%if it has to directly translate guest system calls to \hostapis{}, and eventually to host system calls.
 
 
 
