@@ -1,2 +1,36 @@
 \papersection{Summary}
 \label{sec:eval:summary}
+
+This section evaluates
+various performance factors of using the \graphene{} \libos{} for running unmodified Linux applications.
+As one of the dominating factor,
+\thehostabi{} performance is primarily determined by the latency of underlying host system calls,
+but burdened with security checks such as system call restriction and reference monitoring.
+As one of the worst examples,
+the \sgx{} PAL tends to suffers significant overheads on several \hostapis{}.
+The potential factors that are responsible for the overheads
+include enclave exit and re-entrance,
+copying \hostapi{} arguments across the enclave boundary,
+and security checks based on cryptographic techniques.
+
+
+Despite the potential significant overheads
+on \thehostabi{},
+\thelibos{} introduces several optimizations
+based on reducing the average number of \hostapis{} per emulated system call.
+Several system calls, such as \syscall{getppid} and similar system calls,
+accessing pseudo files (e.g., \code{/dev/zero}),
+\syscall{brk},
+have shown close-to-native or even better performance
+which is irrelevant from
+\thehostabi{} implementation.
+For file system operations,
+caching and buffering can effectively reduce the impact of \hostapi{} overheads,
+by deploying spared \picoproc{} process memory
+to store temporarily abstraction states.
+As a result, both server and command-line applications show comparable end-to-end performance
+on either \graphene{} or a native Linux kernel.
+For \graphenesgx{},
+most of the tested workloads show less than 2\x{} overheads
+in general.
+
