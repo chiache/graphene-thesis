@@ -1,7 +1,21 @@
 \papersubsection{Virtual Memory}
 \label{sec:eval:libos:vma}
 
-Virtual memory management in \thelibos{}
+The latency of virtual memory allocation
+and deallocation in \thelibos{}
+contains both the cost of updating the internal list of VMAs (virtual memory areas) in \thelibos{}
+and the latency of corresponding \hostapis{}, (\palcall{VirtMemAlloc} and \palcall{VirtMemFree}.
+Section~\ref{sec:eval:pal:memory}
+reports the latency of \palcall{VirtMemAlloc} and \palcall{VirtMemFree}
+on the Linux PAL
+to be close to the native \syscall{mmap}
+and \syscall{munmap} latency.
+Table~\label{tab:eval:libos:lmbench-vma} shows a significant 12\x{} overheads
+on the Linux host,
+primarily as the cost of VMA list updating.
+For \graphenesgx{},
+the latency of virtual memory allocation
+and deallocation will be dominated by the \hostapis{}, especially since the \sgx{} PAL has to zero allocated pages before returning to \thelibos{}.
 
 
 
@@ -13,4 +27,18 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 \label{tab:eval:libos:lmbench-vma}
 \end{table}
 
+
+As an opposite example, allocation and deallocation
+with \syscall{brk} are
+significantly faster inside \thelibos{}
+than native,
+because \thelibos{} encapsulates most of the operations.
+The emulation of \syscall{brk} in \thelibos{}
+preallocates a large enough
+heap space for consequential allocations,
+so \syscall{brk} can be mostly serviced in \thelibos{}
+without making frequent \hostapis{}.
+As a result, either on the Linux host or the SGX host,
+the latency on \syscall{brk}
+is up to 70\% faster than native.
 
