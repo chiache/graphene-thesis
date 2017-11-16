@@ -16,22 +16,20 @@ The comparison is between (1) \syscall{mmap} and \syscall{munmap} on Linux; (2) 
 \end{figure*}
 
 %Unlike I/O streams, 
-Single-process abstractions such as page allocation
-tend to be
-subject to less overheads
-especially from security checks.
+Single-process abstractions such as page management
+tend to have less overheads
+because no complex security check
+is required.
 %tend to have less impact on
 %single-process \hostapis{}.
 %Since updating page mappings only affects the process itself.
 %any amount of anonymous pages within its resource limits.
-As shown in Figure~\ref{fig:eval:pal:mmap-latency},
-the overheads of \palcall{VirtMemAlloc} and \palcall{VirtMemFree}
-over the underlying \syscall{mmap} and \syscall{munmap}
-are negligible (less than 5\%),
-regardless of whether
-the guest has accessed the allocated pages.
-\graphene{} expects the same performance pattern on any host OSes with dynamic page management
-and demand paging.
+In Figure~\ref{fig:eval:pal:mmap-latency},
+the overheads of memory allocation and deallocation using \palcall{VirtMemAlloc} and \palcall{VirtMemFree}
+over the native \syscall{mmap} and \syscall{munmap}
+are almost negligible (less than 5\%),
+even if the guest has accessed the allocated pages.
+\graphene{} expects the same performance on any host OSes with dynamic page management.
 
 
 

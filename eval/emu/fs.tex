@@ -13,20 +13,21 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 \end{table}
 
 
-Sources of file system overheads in \thelibos{}
-can be categorized as two.
-One type of overheads is the costs in the local file system directory cache of \thelibos{},
-which stores directory hierarchies and attributes
-in \picoproc{} memory to avoid duplicated \hostapis{}.
+File system overheads in \thelibos{}
+can be categorized as two types.
+One type of overheads is the costs of directory caching,
+for storing file system hierarchy and metadata
+in \picoproc{} memory to avoid redundant storage lookup.
 Directory caching also
 helps identifying resources among multiple
 chroot'ed file systems
 mounted from host directories
 and pseudo file systems such as \code{/proc} and \code{/dev}.
-Another source
-of performance overheads
-
-
+\thelibos{}
+adopt a similar design as the directory cache
+in a Linux kernel,
+with an optimization for searching long paths
+in a warm cache~\cite{tsai15dcache}. 
 
 
 Figure~\ref{tab:eval:libos:lmbench-fs}

@@ -11,21 +11,27 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 \end{table}
 
 
-System calls directly serviced
-inside an \thelibos{} instance tends to show performance
-close to native or even better.
+
+For system calls directly serviced
+inside \thelibos{},
+the evaluation shows either close-to-native performance
+or even significant speed-up
+due to avoiding host system calls.
 Figure~\ref{tab:eval:libos:lmbench-syscalls}
-lists the latency of several of these system calls,
+lists several system call samples that share the characteristic,
 including \syscall{getppid},
-\syscall{sigaction}, and accessing a pseudo device such as \code{/dev/zero}.
+\syscall{sigaction}, and common file operations on a pseudo device such as \code{/dev/zero}.
 The benchmark results on these system calls
-show at most 20--80\% speedups
-than the native performance.
-Accessing \code{/dev/zero} has slightly higher latency
-due to internal cost of looking up
-the path in directory cache.
-The performance of these system calls show no difference
-on each host target, either with or without security enforcements.
+show at most 20--80\% speed-up
+than native performance.
+File operations on \code{/dev/zero} have
+slightly higher overheads,
+especially for \syscall{open} and \syscall{stat}
+which suffer the cost
+of directory cache lookup.
+The evaluation observes the same performance
+on different hosts, either with or without
+security mechanisms.
 
 %and several cases where the host OS delivers an exception
 %(segmentation faults or illegal system calls).
@@ -57,11 +63,12 @@ on each host target, either with or without security enforcements.
 %has no impact on the performance.
 
 
-Two other benchmark results in Figure~\ref{tab:eval:libos:lmbench-syscalls}
-show the overheads
-of delivering hardware and OS-triggered exceptions.
+Other two benchmark results in Figure~\ref{tab:eval:libos:lmbench-syscalls}
+show significant overheads
+%on \thelibos{}.
+on delivering hardware and OS-triggered exceptions.
 One example
-is the overheads on system calls directly made from a statically compiled binary,
+is the overheads on system calls directly made from a statically compiled binary
 using \assembly{syscall} or \assembly{int \$80} instructions.
 Using host-specific system call restriction,
 such as a \seccomp{} filter
@@ -74,11 +81,11 @@ and redirect them back to \thelibos{} as an exception. % (not supported if \secc
 %and delivers an
 %``illegal instruction'' exception.
 %\graphene{} services these direct system calls primarily as a compatibility feature;
-The based overheads on direct system calls
-are up to 24\x{} on the Linux host, and 128\x{} on SGX.
-As another example,
-delivering a memory fault
-into a \picoproc{} and an enclave has 3\x{} and 15\x{} overheads, respectively.
+Base overhead on a direct system call
+is up to 24\x{} on the Linux host, or 128\x{} on SGX.
+Another result shows the overhead on
+sending a \code{SIGSEGV} signal
+to be around 3\x{} and 15\x{} for Linux and SGX hosts, respectively.
 %A potential optimization
 %is to virtualize the exception handler using hardware support such as VT~\cite{VT} so that a \libos{} can avoid trapping
 %into the host OS
