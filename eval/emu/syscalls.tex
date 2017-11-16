@@ -11,13 +11,11 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 \end{table}
 
 
-
-For system calls directly serviced
-inside \thelibos{},
-the evaluation shows either close-to-native performance
-or even significant speed-up
-due to avoiding host system calls.
-Figure~\ref{tab:eval:libos:lmbench-syscalls}
+System calls directly serviced
+inside \thelibos{}
+tend to have a close-to-native performance
+or even gain significant speed-up.
+Table~\ref{tab:eval:libos:lmbench-syscalls}
 lists several system call samples that share the characteristic,
 including \syscall{getppid},
 \syscall{sigaction}, and common file operations on a pseudo device such as \code{/dev/zero}.
@@ -29,9 +27,15 @@ slightly higher overheads,
 especially for \syscall{open} and \syscall{stat}
 which suffer the cost
 of directory cache lookup.
-The evaluation observes the same performance
-on different hosts, either with or without
-security mechanisms.
+%The evaluation observes the same performance
+%on different hosts, either with or without
+%security checks.
+Even if a host implements \thehostabi{} with significant overheads,
+such as in an \sgx{} enclave,
+these system calls have a similar performance because no \hostapi{} is involved.
+
+
+
 
 %and several cases where the host OS delivers an exception
 %(segmentation faults or illegal system calls).
@@ -63,7 +67,7 @@ security mechanisms.
 %has no impact on the performance.
 
 
-Other two benchmark results in Figure~\ref{tab:eval:libos:lmbench-syscalls}
+Other two benchmark results in Table~\ref{tab:eval:libos:lmbench-syscalls}
 show significant overheads
 %on \thelibos{}.
 on delivering hardware and OS-triggered exceptions.

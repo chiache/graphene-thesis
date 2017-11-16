@@ -1,3 +1,4 @@
+
 \papersubsection{Network sockets and pipes}
 \label{sec:eval:libos:streams}
 
@@ -13,11 +14,28 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 \end{table}
 
 
-Figure~\ref{tab:eval:libos:lmbench-streams}
-lists the latency and bandwidth of pipes, UNIX domain sockets, UDP sockets, and TCP sockets.
-Based on the latency of transmitting single-byte messages, 
-\graphene{} causes at most 30--85\% overheads
-on all types of I/O streams.
-pipes and UNIX domain sockets have similar latency and throughput since \thelibos{} uses the same host abstractions (i.e., RPC streams) to emulate both.
-
+%Figure~\ref{tab:eval:libos:lmbench-streams}
+%lists the latency and bandwidth of pipes, UNIX domain sockets, UDP sockets, and TCP sockets.
+%Based on the latency of transmitting single-byte messages, 
+%\graphene{} causes at most 30--85\% overheads
+%on all types of I/O streams.
+%pipes and UNIX domain sockets have similar latency and throughput since \thelibos{} uses the same host abstractions (i.e., RPC streams) to emulate both.
+\Thehostabi{} performance
+largely determine
+the performance of network socket and pipe emulation
+in \thelibos{}.
+In general, \thelibos{} does not implement a network or pipe stack,
+neither does \thelibos{}
+buffer data read or written to a network socket or a pipe.
+Table~\ref{tab:eval:libos:lmbench-streams} shows similar benchmark results as
+unbuffered file reads and writes discussed in the previous section;
+the overheads on a network socket or a pipe are up to 33--86\% on the Linux host,
+or 148--454\% from an enclave,
+when measuring the latency of sending single-byte messages
+over the abstractions.
+More overheads
+are observed on pipes than UNIX domain sockets because of both PAL implementations
+evaluated in this section have chosen
+UNIX domain sockets
+to implement the RPC streams underlying \thelibos{}.
  

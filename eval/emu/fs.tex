@@ -12,66 +12,87 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 \label{tab:eval:libos:lmbench-fs}
 \end{table}
 
+File system performance in \thelibos{}
+is subject to several optimizations including directory caching and buffering.
+To reduce the impact of \hostapi{} latency,
+a key to the chroot file system implementation
+is to lower the average number of expensive \hostapis{}
+needed for emulating each system call.
+For instance, the directory cache
+in \thelibos{} stores path existence and metadata
+in spared \picoproc{} memory,
+to skip the redundant cost
+of querying the host file system
+when accessing the same path in the future.
+Table~\ref{tab:eval:libos:lmbench-fs} lists the latency of \syscall{open} and \syscall{stat}
+for repeatedly opening or querying the same path.
+Directory caching
+reduces the overheads on \syscall{stat} to 35--41\%
+regardless of the hosts.
+The latency of \syscall{open}
+also benefits from directory caching, but the cost of opening the file in the host OSes
+overshadows the optimization,
+causing 187--237\% overheads on the Linux host with the \seccomp{} filter and reference monitor,
+or 15.2--16.5\x{} in an enclave.
 
-File system overheads in \thelibos{}
-can be categorized as two types.
-One type of overheads is the costs of directory caching,
-for storing file system hierarchy and metadata
-in \picoproc{} memory to avoid redundant storage lookup.
-Directory caching also
-helps identifying resources among multiple
-chroot'ed file systems
-mounted from host directories
-and pseudo file systems such as \code{/proc} and \code{/dev}.
-\thelibos{}
-adopt a similar design as the directory cache
-in a Linux kernel,
-with an optimization for searching long paths
-in a warm cache~\cite{tsai15dcache}. 
+%can be categorized as two types.
+%One type of overheads is the costs of directory caching,
+%for storing file system hierarchy and metadata
+%in \picoproc{} memory to avoid redundant storage lookup.
+%Directory caching also
+%helps identifying resources among multiple
+%chroot'ed file systems
+%mounted from host directories
+%and pseudo file systems such as \code{/proc} and \code{/dev}.
+%\thelibos{}
+%adopt a similar design as the directory cache
+%in a Linux kernel,
+%with an optimization for searching long paths
+%in a warm cache~\cite{tsai15dcache}. 
 
 
-Figure~\ref{tab:eval:libos:lmbench-fs}
-lists the latency or throughput of system calls
-for accessing an isolated host file system mounted in a \thelibos{} instance,
-or a {\bf chroot} file system.
-Each system call in a chroot file system
-accesses a file or a directory in the host file system,
-and therefore requires
-translation to one or multiple
-host system calls.
-As a result, the system call latency
-is determined by the underlying \hostapi{} latency and the translation cost inside \thelibos{}.
-%Besides, as previously stated, \thelibos{}
-%can optimize system calls such as \syscall{read} and \syscall{write}
-%by buffering read or written data.
+%Figure~\ref{tab:eval:libos:lmbench-fs}
+%lists the latency or throughput of system calls
+%for accessing an isolated host file system mounted in a \thelibos{} instance,
+%or a {\bf chroot} file system.
+%Each system call in a chroot file system
+%accesses a file or a directory in the host file system,
+%and therefore requires
+%translation to one or multiple
+%host system calls.
+%As a result, the system call latency
+%is determined by the underlying \hostapi{} latency and the translation cost inside \thelibos{}.
+%%Besides, as previously stated, \thelibos{}
+%%can optimize system calls such as \syscall{read} and \syscall{write}
+%%by buffering read or written data.
 
 
 
-System calls like \syscall{open} and \syscall{stat}
-%access a specific path
-%in the file system.
-%The performance of this type of system calls
-are sensitive to path lengths and depths (i.e., numbers of components).
-As an optimization,
-\thelibos{} implements a file system directory cache
-to store path information and file attributes retrieved from the host OS.
-Because the \lmbench{} tests %for \syscall{stat} and \syscall{open}
-access the same path repeatedly,
-the directory cache
-is guaranteed to optimize every system calls measured.
-As a result,
-\syscall{stat} in both \graphene{} and \graphenesgx{} is only 35--41\% slower than native
-and mostly irrelevant from the host system call latency. 
-\syscall{fstat} also benefits from directory caching
-(35--41\% overheads).
-%Different from \syscall{stat},
-For \syscall{open}, %despite the optimization of directory caching,
-\graphene{} imposes
-extra overheads for opening PAL handles and allocating file descriptors in \thelibos{}.
-To access a path with 2--8 components,
-the overheads on \syscall{open} are 147--197\% for \graphene{} on Linux host, and 187--237\% with \seccomp{} filter and reference monitor.
-For \graphenesgx{}, the overheads are 15.2--16.5\x{}
-without considering the checksum calculation costs.
+%System calls like \syscall{open} and \syscall{stat}
+%%access a specific path
+%%in the file system.
+%%The performance of this type of system calls
+%are sensitive to path lengths and depths (i.e., numbers of components).
+%As an optimization,
+%\thelibos{} implements a file system directory cache
+%to store path information and file attributes retrieved from the host OS.
+%Because the \lmbench{} tests %for \syscall{stat} and \syscall{open}
+%access the same path repeatedly,
+%the directory cache
+%is guaranteed to optimize every system calls measured.
+%As a result,
+%\syscall{stat} in both \graphene{} and \graphenesgx{} is only 35--41\% slower than native
+%and mostly irrelevant from the host system call latency. 
+%\syscall{fstat} also benefits from directory caching
+%(35--41\% overheads).
+%%Different from \syscall{stat},
+%For \syscall{open}, %despite the optimization of directory caching,
+%\graphene{} imposes
+%extra overheads for opening PAL handles and allocating file descriptors in \thelibos{}.
+%To access a path with 2--8 components,
+%the overheads on \syscall{open} are 147--197\% for \graphene{} on Linux host, and 187--237\% with \seccomp{} filter and reference monitor.
+%For \graphenesgx{}, the overheads are 15.2--16.5\x{}
+%without considering the checksum calculation costs.
 
 
 For \syscall{read} and \syscall{write},
@@ -80,19 +101,19 @@ The experiments
 are based on a strategy which
 buffers reads and writes smaller than 4KB (not including 4KB)
 using a 16KB buffer directly mapped from the file.
-In Figure~\ref{tab:eval:libos:lmbench-fs}, buffered reads and writes (256 bytes and 1KB) on Linux host
+In Table~\ref{tab:eval:libos:lmbench-fs}, buffered reads and writes (256 bytes and 1KB) on Linux host
 are 22--92\% and -45--8\% slower than native, respectively.
-For unbuffered reads and writes (4KB and 16KB),
-the latency in \graphene{} and \graphenesgx{}
-is closer to native with larger reading and writing sizes.
-Unbuffered reads and writes
-on \graphenesgx{}
-have significant overheads around 10--29\x{}, due to memory
-copy at each enclave exits.
+The latency of unbuffered reads and writes (4KB and 16KB),
+is closer to native
+when running on a Linux host,
+but suffers significant overheads (10--29\x{}) in an enclave due to copying file contents.
 
-\lmbench{} also tests the throughput of creating and deleting a large amount of files,
+
+
+Table~\ref{tab:eval:libos:lmbench-fs} also lists the throughputs of creating and deleting a large amount of files,
 measured in operations per second.
-On all tests, deletion throughputs have much higher overheads than creation. Moreover, compared with \graphene{}, 
-both file creation and deletion on \graphenesgx{} have much more significant overheads,
-at 2.7--6\x{}.
+Among all the benchmark results, deletion throughputs tend to have much higher overheads than creation throughputs.
+Compared to running on the Linux host, 
+both file creation and deletion from an enclave suffer significantly higher overheads
+(2.7--6\x{}).
 
