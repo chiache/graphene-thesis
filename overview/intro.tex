@@ -1,28 +1,26 @@
 \issuedone{1.1.a}{Reorganization: Graphene overview}
-This chapter gives an overview of \graphene{} architecture.
+This chapter gives the overview of \graphene{}.
 %\fixme{define compatibility upfront; a lightning-rod definition}
 %The compatibility of an OS is the ability to reuse the application code developed on the system interfaces.
 %By introducing an additional compatibility layer as the library OS,
 %the existing applications can be reused on a set of simpler, more adaptable interfaces.
-The design of \graphene{} is divided into two parts.
+The development of \graphene{} is divided into two parts.
 The first part is a host interface which encapsulates the abstractions needed from a host OS.
-On each host target, a PAL (platform adaption layer) instantiates the host interface,
-including implementing \palcallnum{} host functions, or \hostapis{}.
-The second part is a \libos{} which emulates a substantial subset of Linux system calls,
-in a shared library called \thelibos{}.
+On each host target, a PAL (platform adaption layer) instantiates the host ABI,
+including \palcallnum{} \hostapis{}.
+The second part is a \libos{}, or \thelibos{}, which emulates a substantial subset of Linux system calls.
 %and the \graphene{} library OS. % to be compatible against Linux applications.
-This chapter first introduces the host interface and the principles behind its definition.
+This chapter first introduces the host ABI definitions and principles,
 %A host ABI is defined to be ported to each host, with design principles to be both simple and sufficient for running the library OS.
 %a narrowed set of %system interfaces, a.k.a. the 
 %a set of host \fixmedp{spell out ABI at the first appearance} ABIs,
 %\fixmedp{this definition is confusing}
 %including OS functions which export OS states to the hosts (\S\ref{sec:overview:host}).
 %on a host (i.e., an OS paired with a physical machine) in the OS design.
-Then, the chapter discusses the \libos{} architecture,
+followed by discussion of the \thelibos{} architecture,
 %ble approaches to
-approaches to implementing Linux functionality,
-and trade-offs
-for \libos{} development.
+emulation strategies, % to emulate Linux functionality,
+and trade-offs.
  % between compatibility, performance, and security isolation.
 
 

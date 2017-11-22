@@ -1,9 +1,9 @@
 \paperchapter{Introduction}
 \label{chap:intro}
 
-Operating systems simplify programming an application utilizing different hardware.
+Operating systems simplify programming of an application to utilize hardware with different interfaces and features.
 A UNIX-style OS~\cite{ritchie74unix}
-encapsulates hardware resources using a system interface such as a system call able.
+encapsulates hardware distinction using a system interface as the system call table.
 Without a system interface,
 developers will have to program against hardware interfaces defined by manufacturers.
 Programming against bare hardware
@@ -58,21 +58,22 @@ across hardware configurations.
 
 
 
-
-An application developed upon a system interface is subject to a different property as compatibility.
+In general, OS developers preserve old system interfaces
+to maintain compatibility for exiting application binaries.
+%An application developed upon a system interface is subject to a different property as compatibility.
 %for a specific OS depends on a system interface
 %to remain compatible.
-{\bf Compatibility} of an OS can be
+Compatibility of an OS can be
 defined as 
-the ability to reproduce a system interface which satisfies the hard-coded requirements of an application.
+the ability to reproduce a system interface with the requirements of applications.
 %Application programming models are often influenced by the definition of system interface.
 %A system interface contains
 %a set of OS functions that applications
 %call to describe the order and condition of requesting OS services.
-Since a majority of applications are compiled into native code,
-usage of system interfaces
-is scattered around application binaries
-and does not easily change unless modifying source code.
+Many developers deploy applications as native binaries,
+with usage of system interfaces
+hard-coded inside the binary code.
+%and does not easily change unless modifying source code.
 %The development of a fully-compiled application (not as a script or intermediate code)
 %includes hard-coding the usage of a system interface
 %in the binaries.
@@ -81,15 +82,17 @@ and does not easily change unless modifying source code.
 %The programming of a system interface requires
 %hard-coding the intention and condition of requesting OS services
 %in the application code.
-To accommodate application binaries,
-OS developers maintain a common goal as keeping system interfaces
-compatible across OS versions.
+To accommodate unmodified application binaries,
+OS developers share a common goal as keeping system interfaces
+consistent across OS versions,
+or backward-compatible.
 %If a milestone of OS development involves modifying a part of the system interface,
 %an application becomes obsolete
 %if it contains outdated system interface specifications.
 %due to mismatching with the latest definition.
-Compatibility is also a goal for less widely-used OSes; for instance, FreeBSD emulates Linux system calls to
-reuse the more well-adopted Linux applications.
+Compatibility is also a goal for less widely-used OSes, such as FreeBSD,
+to emulate a more popular system interface, such as the Linux system call table,
+to reuse more well-adopted applications.
 %Although compilers and libraries can reconstruct or recast some OS functions,
 %a principle-level or assumption-level change in the system interface
 %would still be difficult to recover.
@@ -97,8 +100,7 @@ reuse the more well-adopted Linux applications.
 %The common practice in OS development is to preserve
 %the whole system interface,
 %as application developers previously observe when building an application.
-For generality, OS developers tends to preserve every old system interfaces
-to maintain compatibility for exiting application binaries.
+
 
 %is generally known as compatibility.
 
@@ -121,19 +123,20 @@ to maintain compatibility for exiting application binaries.
 
 
 
-However, the trend of hardware development
-challenges the goal of maintaining OS compatibility.
+Unfortunately, the recent trend of hardware development
+has challenged the feasibility of maintaining the compatibility of a system interface.
 %An OS needs to be be continuously extended to utilize new hardware.
-The majority of new hardware follow semantics of predecessors
-and requires no changes to existing system interfaces.
-However, more cutting-edge hardware tend to leak out of
-the typical abstractions
-encapsulated by OSes;
+Although most new hardware share the same interfaces and semantics
+with their predecessors,
+%and requires no changes to existing system interfaces.
+more cutting-edge hardware tend to leak out of
+the typical hardware abstractions
+encapsulated by an OS.
 %and thus demands extra attention for adoption.}
 %The challenges emerge as more ground-breaking hardware technologies
 %have been released in the industry.
 \issuedone{1.2.b}{Specify \sgx{} as a motivating example}
-one example is \sgx{} (software guard extensions)~\cite{intelsgx}
+One example is \sgx{} (software guard extensions)~\cite{intelsgx}
 on recent Intel CPUs.
 \sgx{} protects an application
 with integrity and confidentiality, without trusting other system components 
@@ -144,12 +147,12 @@ such as file systems and networking, the application does not assume
 the OS to be reliable.
 Therefore, \sgx{} raises several compatibility issues to
 existing system interfaces,
-including the challenges of checking system interface results
-on an untrusted OS.
+including security challenges such as
+validating untrusted system call results~\cite{checkoway13iago}.
 %however, \sgx{} also raises several compatibility issues, including reverting the trusted nature of OS services.
 %and restricting the sharing of isolated application memory~\cite{shinde17panoply}.
-Other examples can be found among research-type architectures,
-such as an asymmetric multi-processing architectures
+Other examples can be found among research hardware,
+such as asymmetric multi-processing architectures
 without inter-connected memory~\cite{gschwind2007,cascaval2002evaluation},
 which challenges inter-process coordination.
 %which complicates the implementation of state-sharing, multi-process abstractions. 
@@ -164,8 +167,9 @@ which challenges inter-process coordination.
 %because \sgx{} fundamentally reverses a critical OS assumption, and causes a combination of compatibility and security problems.
 %\sgx{} shows that compatibility issues can be distraction to innovations.
 As more disruptive hardware
-may emerge in the future, OS developers should
-gradually promote new system interfaces which encapsulate latest hardware semantics; simultaneously, existing applications require timely solutions to resolve urgent compatibility issues on specific hardware.
+may emerge in the future, %OS developers should
+%gradually promote new system interfaces which encapsulate latest hardware semantics; simultaneously,
+applications need an immediate solution to these urgent compatibility issues.
 
 
 Empirically, compatibility has caused struggles in OS development,
@@ -179,7 +183,7 @@ introduce system calls such as \syscall{openat} as a version of \syscall{open}
 without TOCTOU (time-to-check-to-time-to-use)
 vulnerabilities.
 Unfortunately,
-to full replace the original \syscall{open}, developers needs to modify every applications, otherwise Linux can never deprecate
+to fully replace the original \syscall{open}, developers needs to modify every applications, otherwise Linux can never deprecate
 the unsafe version.
 %would be a painful and lengthy process,
 %wherein every applications have to be reprogrammed accordingly.
@@ -194,9 +198,9 @@ At a larger scale, an early version of \win{} Vista introduces
 a brand-new user interface API
 and file system,
 but ends up losing popularity due to compatibility-related complaints~\cite{spolsky04microsoft-api-war}.
-Because users prefer to use an application or a system
-that hasn't broke,
-earlier versions of OSes, such as \win{} XP, remain popular even after end-of-service.
+Because users may prioritize compatibility over adoption of new technology,
+early stable versions of the OS,
+such as \win{} XP, remain popular even after end-of-service (EOL)~\cite{os-market-share}.
 %Maintaining system interface compatibility is generally a responsibility of OS developers;
 %while extending an OS for expanding the portability of applications
 %on new hardware.
@@ -212,14 +216,16 @@ earlier versions of OSes, such as \win{} XP, remain popular even after end-of-se
 
 
 There are practical reasons
-for an OS to maintain compatibility for unmodified applications.
+to maintain compatibility for unmodified applications in a commercial OS.
 The development of a commercial application
-requires a thorough process of testing and code inspection to ensure correctness and robustness.
-Modifying an application for new system interfaces can be a risk to stability.
-Moreover, third parties cannot port a proprietary software to new system interfaces even if they are motivated to do so.
-These dilemmas call for a solution
-to mitigate 
-the compatibility issues for 
+includes a long process of thoroughly testing and examining the code to ensure correctness and safety.
+Modifying an application for a new system interface
+can introduce new risks to stability
+and extra cost to restart the debugging cycle.
+Moreover, third parties may have no access to source code of proprietary software even if they are motivated to port the applications.
+All these dilemmas call for a universal solution
+to mitigating
+compatibility issues on reusing
 unmodified applications.
 
 
@@ -227,35 +233,40 @@ unmodified applications.
 
 
 \issuedone{1.1.b}{Specify the problem as reducing the gap of interface idiosyncrasy}
-This thesis proposes building a compatibility layer
-which translates
-a legacy system interface to other alternative host interfaces, as a promising solution for supporting unmodified applications.
-OS developers are free to redesign
-system interfaces
-for adopting new hardware or addressing system challenges.
+Compatibility issues alienate users from
+system interface alternatives that grant access
+to new hardware or 
+introduce security or performance benefits.
+This thesis proposes a general approach to building a compatibility layer
+for translation of a legacy system interface.
+%to various alternative definitions, as a solution to supporting unmodified applications.
+%OS developers are free to redesign
+%system interfaces
+%for adopting new hardware or addressing system challenges.
 %can't or shouldn't avoid modifying a system interface,
 %yet existing application tend to rely on former system interface definitions to remain functional.
-A compatibility layer between the application and the OS
-can bridge the gap between interfaces.
+A compatibility layer between an application and an OS
+can bridge the gap between system interfaces.
 %system interface definitions, including both the APIs and the nature of OS features.
 Take \sgx{} for example;
-the compatibility challenges on \sgx{} include
+compatibility challenges on \sgx{} include
 secure dynamic loading,
-redirecting system calls to host OSes, and inject security checks against untrusted system call results.
-The goal is to reduce the effort of porting a compatibility layer
-to any host platforms.
-A Linux compatibility layer
-potentially contains
-hundreds to thousands of system calls, with plenty of control options and corner cases~\cite{linux-man-syscall}.
+redirecting system calls to host OSes, and security checks against untrusted system calls.
+The approach
+reduces the effort of porting a compatibility layer
+to any host OSes and hardware,
+by eliminating the cost of reimplementing
+numerous complex system APIs on each host.%~\cite{linux-man-syscall}.
 %developing such a compatibility layer,
 %so that maintaining compatibility would not become a burden in OS development and innovation.
 %OS developers should not have
 %to reimplement every features of a system interface in a compatibility layer;
 %A modern OS such as Linux
 %can contain up to 
-This thesis presents a solution
-to building a rich-feature compatibility layer, in which
-majority of code does not have to be rewritten when porting to a new host interface.
+This thesis presents a solution to building a rich-feature compatibility layer,
+without tremendous cost
+of updating applications to adjust
+for a new system interface.
 
 
 
@@ -283,71 +294,91 @@ majority of code does not have to be rewritten when porting to a new host interf
 
 
 
-Building such a compatibility layer
-can benefit from virtualizing 
-a part of an OS, or more specifically, API components (e.g., system call table), to user space.
-\issuedone{1.2.c}{Discuss library OS vs VM}
-Virtualization can preserve these OS components,
-using an intermediate interface
-exported by the host OS.
-For instance, a VM (virtual machine) carries an unmodified OS kernel
-as a full-stack compatibility layer.
-The intermediate interface for a VM
-is a virtual hardware interface,
-%A virtual machine conveniently reuses existing OS implementation
-%for reproducing the system interface,
-facilitated by hardware virtualization~\cite{popek74virtual}
-such as Intel VT (virtualization technology)~\cite{VT}.
-%Virtualization
-A VM can provide full compatibility
-by reusing an existing OS implementation.
-%as long as the architecture is virtualizable.
 
 
-An alternative to a VM is
-%an alternative to a VM, OS developers can partition an OS, to virtualize only necessary components into a thin compatibility layer}---
-a {\bf \libos{}}
-~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
-a user-space OS library loaded
-inside an application's address space.
-%when adopting an innovative hardware or alternative system interface.}
-%implementation of compatibility in an OS, in case the OS developers intend to extend the OS for new hardware.
-%reducing the difficulty of retaining compatibility
-%is to reduce the complexity of system interface which has to be reproduced, to achieve compatibility against existing applications.
-%when extending the OS implementation.
-The purpose of a \libos{} is to
-reproduce the features and API of a system interface on top of a library,
-upon a generic host interface.
-%inside a user-space, reusable {\em library} that executes upon a virtualized host interface.
-%Unlike the virtual hardware interface,
-Defining a host interface is for the simplicity of porting.
-%of OS development upon each host OS and hardware.
-The definition process
-is equivalent to
-finding a ``pinch point'' inside an OS,
-to partition out the high-level, host-independent OS components.
-%A library OS can be reused to build a compatibility layer for unmodified applications upon any host,
-%as long as the host interface is implemented.
-A host interface must be relatively easy to develop,
-so that porting the \libos{}
-requires less effort than redeveloping
-a compatibility layer.
+
+%An alternative to a VM is
+%%an alternative to a VM, OS developers can partition an OS, to virtualize only necessary components into a thin compatibility layer}---
+%a {\bf \libos{}}
+%~\cite{porter11drawbridge,engler95exokernel,libra,unikernels},
+%a user-space OS library loaded
+%inside an application's address space.
+%%when adopting an innovative hardware or alternative system interface.}
+%%implementation of compatibility in an OS, in case the OS developers intend to extend the OS for new hardware.
+%%reducing the difficulty of retaining compatibility
+%%is to reduce the complexity of system interface which has to be reproduced, to achieve compatibility against existing applications.
+%%when extending the OS implementation.
+%The purpose of a \libos{} is to
+%reproduce the features and API of a system interface on top of a library,
+%upon a generic host interface.
+%%inside a user-space, reusable {\em library} that executes upon a virtualized host interface.
+%%Unlike the virtual hardware interface,
+%Defining a host interface is for the simplicity of porting.
+%%of OS development upon each host OS and hardware.
+%The definition process
+%is equivalent to
+%finding a ``pinch point'' inside an OS,
+%to partition out the high-level, host-independent OS components.
+%%A library OS can be reused to build a compatibility layer for unmodified applications upon any host,
+%%as long as the host interface is implemented.
+%A host interface must be relatively easy to develop,
+%so that porting the \libos{}
+%requires less effort than redeveloping
+%a compatibility layer.
 
 
 This thesis presents
 {\bf \graphene{}},
-a library OS for running unmodified applications upon innovative hardware and alternative system interfaces.
-\graphene{} reproduce the rich Linux system calls,
-for reusing a wide range of commercial software
-to benefit highly-customizable server and cloud environments.
-A host ABI (application binary interface)
-facilitates the
-host abstractions for the \libos{},
-and is easily ported to different host system interfaces
-and hardware platforms. 
+a library OS for running unmodified applications on innovative hardware and alternative system interfaces.
+A \libos{}
+~\cite{porter11drawbridge,engler95exokernel,libra,unikernels}
+is a library which emulates OS features and APIs
+in an application process.
+This thesis focuses on building a \libos{}
+%reproduce the features and API of a system interface on top of a library,
+using a simple host interface defined for portability.
+%inside a user-space, reusable {\em library} that executes upon a virtualized host interface.
+%Unlike the virtual hardware interface,
+Defining such a host interface % is for the simplicity of porting.
+%of OS development upon each host OS and hardware.
+%The definition process
+is equivalent to
+finding a ``pinch point'' inside an OS;
+%which can be easily ported
+%to various system interfaces.
+%to partition out the high-level, host-independent OS components.
+%A library OS can be reused to build a compatibility layer for unmodified applications upon any host,
+%as long as the host interface is implemented.
+%A host interface must be relatively easy to develop,
+%so that porting the \libos{}
+%requires less effort than redeveloping
+%a compatibility layer.
+the host interface partitions
+OS components above this boundary, such as system calls and namespaces, into the \libos{} to make the components reusable
+across host OSes and hardware.
+This approach simplifies the porting effort per host
+as exporting the host interface using a PAL (platform adaption layer).
+
+\graphene{} reproduces a rich of Linux system calls
+for a wide range of commercial applications
+in server or cloud environments.
+\graphene{} primarily targets three types of applications.
+The first is a server or cloud application, such as Apache or Memcached.
+The second is a command-line program used in a UNIX environment, such as a shell program or a compiler.
+The last is a language runtime, such as R, Python, or OpenJDK,
+which heavily deploys
+system interfaces for language features
+such as dynamic loading and garbage collection. 
+\graphene{} implements \graphenesyscallnum{} out of \linuxsyscallnum{} Linux system calls.
+
+
+Graphene defines a host ABI (application binary interface)
+which contains
+only essential host abstractions
+that are easy to port on different host OSes. 
 This thesis demonstrates the simplicity
-by porting the host ABI
-to two representative host examples, a Linux kernel and an isolated environment with \sgx{}.
+by experimenting the porting
+on two sample hosts---a native Linux kernel and an \sgx{} enclave on an untrusted Linux host.
 %The \graphene{} library OS
 %is developed upon a narrowed host interface, defined as a host ABI (application binary interface),
 %to be easily ported to various host options.
@@ -356,13 +387,43 @@ to two representative host examples, a Linux kernel and an isolated environment 
 %to simplify the host development and drop the assumptions on host OSes and hardware.
 %So far \graphene{}
 %has been targeting several host options,
-Other ongoing ports
-include alternative kernels such as \win{}, \osx{}, and FreeBSD, and research OSes such as L4 microkernels~\cite{l4family} and Barrelfish~\cite{baumann09barrelfish}.
+The choices of host targets
+cover two extreme cases of compatibility support with opposite security models.
+This thesis enumerates the development effort of translating
+and securing the host ABI on each host,
+as demonstration of simplicity.
+Other ongoing ports of the host ABI
+include alternative OS kernels such as \win{}, \osx{}, and FreeBSD, and research OSes such as L4 microkernels~\cite{l4family} and Barrelfish~\cite{baumann09barrelfish}.
 
+
+Building a \libos{} is similar to virtualizing 
+%Building a compatibility layer
+%can benefit from virtualizing 
+a part of an OS.%, or more specifically, the system call table implementation.
+\issuedone{1.2.c}{Discuss library OS vs VM}
+A virtualization solution reuses OS components upon
+an intermediate interface
+such as a virtual hardware interface.
+A virtual machine (VM) usually carries an unmodified, full-fledged OS kernel
+to reproduce the whole system stack that
+implements a system interface. 
+%A virtual machine conveniently reuses existing OS implementation
+%for reproducing the system interface,
+Although a VM provides full compatibility for existing applications,
+it requires a virtualizeable architecture~\cite{popek74virtual}
+or assistance from
+hardware virtualization such as VT (virtualization technology)~\cite{VT}
+to mitigate software virtualization overheads.
+%to mitigate 
+%%Virtualization
+%A VM can provide full compatibility
+%by reusing an existing OS implementation.
+%as long as the architecture is virtualizable.
 
 
 \issuedone{1.2.d}{Specify target applications of Graphene libOS}
-The \libos{} approach strikes a better balance % the trade-offs
+Compared to the alternatives,
+the \libos{} approach strikes a better balance % the trade-offs
 between simplicity of porting
 and sufficiency of compatible OS functionality. % to be compatible against applications.
 A study of Linux system interface~\cite{tsai16apistudy}
@@ -386,13 +447,7 @@ with porting value.
 
 
 
-\graphene{} primarily targets three types of applications:
-(1) server and cloud applications, such as Apache and Lighttpd;
-(2) command-line programs, such as Bash and GCC;
-(3) language runtimes, such as R, Python, and OpenJDK.
-\graphene{}
-implements sufficient system calls (\graphenesyscallnum{} out of \linuxsyscallnum{} Linux system calls),
-upon a narrowed host ABI containing \palcallnum{} functions.
+
 
 
 
@@ -412,29 +467,33 @@ upon a narrowed host ABI containing \palcallnum{} functions.
 %including server-type applications, command-line programs, and language runtimes, on a set of host OSes and hardware platforms.
 \graphene{} inherits 
 a part of the host ABI from \drawbridge{}~\cite{porter11drawbridge},
-a previous library OS developed for reusing 
+a \libos{} developed for %reusing 
 %which has demonstrated compatibility benefit over
 \win{} applications.
 \drawbridge{} uses the \libos{} as a lightweight VM
-to run \win{} desktop applications such as in a guest environment.
-Running a \libos{} as a partitioned OS component also requires
-less memory resource than a full VM,
-and thus improve the density of packing guests in a physical machine.
+to run \win{} desktop applications in a guest environment.
+Using a \libos{}
+also improves the density of packing the guests on a physical host
+due to significantly lower memory footprint than a VM.
+%%as a partitioned OS component also requires
+%less memory resource than a full VM,
+%and thus improve the density of packing guests in a physical machine.
 Bascule~\cite{baumann13bascule} later adopts the design
-to implement single-process, Linux system calls.
+to implement single-process system calls in Linux.
 %, and inserting host-level extension layers.
-Finally, Haven~\cite{baumann14haven} ports \drawbridge{} to \sgx{}, to shield \win{} application from untrusted host OSes.
+Haven~\cite{baumann14haven} further ports \drawbridge{} to \sgx{}, to shield \win{} application from untrusted host OSes.
 \graphene{} %extends the concept of previous work
-presents solution for running unmodified applications
+presents solution to running unmodified applications
 upon a variety of host OSes and hardware,
-and defines a host interface to be both easy to port and sufficient
-for developing a rich-feature \libos{}.
+with a host interface defined for both simplicity of porting 
+and sufficiency for developing a rich Linux-compatible \libos{}.
 
 
 
 %\issue{1.3.a}{Compare Graphene vs Docker}
 %Established upon the previous work, 
-This thesis has several contributions over previous work.
+The contributions of this thesis over previous work
+are as follows.
 First, this thesis
 defines a host ABI which is easy to port
 on new host platform,
@@ -489,7 +548,7 @@ in a \libos{} or a research prototype.
 \papersection{Motivating examples}
 
 \issuedone{1.1.b}{Adding motivating examples in the intro}
-This section shows two examples in which developing a compatible OS for existing applications can be challenging, to motivate the library OS design.
+This section shows two examples in which developing a compatible system interface for existing applications is challenging, to motivate the approach of the \graphene{} \libos{}.
 
 
 \papersubsection{Unmodified applications on \sgx{}}
@@ -506,26 +565,27 @@ The purpose of \sgx{}
 is to protect application code from compromised OSes, hypervisors, and system software,
 with both integrity and confidentiality protection.
 The abstraction of \sgx{} is 
-an {\bf enclaves}, 
-an isolation environment where an application can securely
-utilize the CPU and memory
-of an untrusted host.
+an {\bf enclave}, 
+which isolates and protects an application
+on an untrusted host
+to harvest the CPU and memory resources.
 %such as a public cloud machine for rent, or a client machine,
 %with both confidentiality and integrity.
 %without leaking CPU and memory states.
 Application code and data inside an enclave are both signed and encrypted
-inside the DRAM,
-and will be authenticated and decrypted
-when bringing into the last-level cache at cache miss.
+inside the DRAM
+when leaving the CPU package.
+%and will be authenticated and decrypted
+%when bringing into the last-level cache at cache miss.
 %By running the application code on \sgx{}, the code has 
 %emory state inside of the protected code
 %to be signed and encrypted, when the code and data leave the CPU package and are stored in the DRAM or swap device.
 \sgx{} also offers remote attestation of the integrity of an enclave
 and the CPU.
 \sgx{} provides opportunities of delegating security-sensitive operations
-to untrusted hosts such as a public cloud
-or a client machine,
-without compromising on security.
+to a untrusted public cloud
+or client machine.
+%without compromising on security.
 
 
 
@@ -539,27 +599,29 @@ without compromising on security.
 
 
 Despite the benefits,
-the common expectation for utilizing \sgx{} is
-that developers partition a piece of application code to run inside an enclave.
-The restriction is for both security and simplicity reasons.
-The initial code in an enclave must be
-statically compiled,
-with a security measurement to verify inside the CPU.
+the common expectation for \sgx{} is
+that developers need to port a piece of application code to run inside an enclave.
+The restriction is for both security and simplicity,
+since each enclave
+needs a static code image with 
+security measurement
+signed by users.
 %and thus is easier to sign and verify.
-Developers must also removing system calls and
-certain instructions such as \code{cpuid} and \code{rdtsc} from an application.
+Developers also have to remove system calls and
+certain instructions such as \code{cpuid} and \code{rdtsc}
+as they compromise
+security without further enforcements.
 %If users intend to run an unmodified application, \sgx{} imposes several restrictions on running unmodified applications inside an enclave.
 %The restrictions are either imposed by the \sgx{} hardware in the run time, or statically by the official Intel \sgx{} SDK (software development kit).
-\sgx{} forbids these instructions
-for blocking
-dangerous behaviors that may jeopardize application security.
+%\sgx{} forbids these instructions
+%for blocking
+%dangerous behaviors that may jeopardize application security.
 For instance,
 system calls serviced by an untrusted OS
-may returns malicious results
-to applications.
-Also, \sgx{} forbids \code{cpuid} and \code{rdtsc} because these instructions are easily intercepted or spoofed by an OS
+may returns malicious results to exploit semantic flaws in an application caused by being unaware of the attack vectors.
+\sgx{} forbids \code{cpuid} and \code{rdtsc} because these instructions are easily intercepted or spoofed by an OS
 or a hypervisor.
-These restrictions cost developers porting effort to modify existing applications for \sgx{}.
+These restrictions introduce porting efforts to existing applications on \sgx{}.
 
 %%including \code{cpuid} and \code{rdtsc}, for the clarity of shielding these hardware features.
 %\sgx{} forbids \code{cpuid} in case of combining with the hardware virtualization (VT),
@@ -570,8 +632,8 @@ These restrictions cost developers porting effort to modify existing application
 
 
 \issuedone{1.2.c}{Discuss challenges of \sgx{} shielding}
-\sgx{} excludes OS services from the trust model, except functions which can be fully ported to user space (e.g., \syscall{malloc}).
-The absence of trusted OS services is an issue for porting any application.
+The threat model of \sgx{} distrusts OS services, except APIs that can be fully migrated into an enclave (e.g., \syscall{malloc} and \syscall{memcpy}).
+The absence of trusted OS services is an issue for porting any application to \sgx{}.
 Existing solutions combine a modified C library with applications, to redirect system calls
 to the untrusted OS~\cite{osdi16scone,shinde17panoply}.
 The problem, however, is in checking the results of system interfaces, because the OS is not trusted. % to faithfully implement OS services.
@@ -602,7 +664,7 @@ is the utilization of multi-process abstractions,
 such as \syscall{fork}, \syscall{exec},
 and inter-process communication,
 to program self-contained sessions or commands.
-Especially, \syscall{fork} is an unique feature of UNIX-style OSes, such as Linux and BSD,
+In particular, \syscall{fork} is an unique feature of UNIX-style OSes, such as Linux and BSD,
 which clones a process with address space isolation
 between the parent and child.
 %mostly with copy-on-write paging.
@@ -698,7 +760,7 @@ for porting multi-process applications to a variety of OSes and architectures.
 %compromising any security policies that application enforces.
 
 
-Besides compatibility, \graphene{} also
+As a bonus benefit, \graphene{} also
 reduces the complexity of enforcing security isolation on applications,
 under different threat models.
 For instance, on a Linux host, the security implication of using \graphene{} is to isolate mutually-untrusting applications,
@@ -837,15 +899,15 @@ with a study of the Linux API usage among Ubuntu users and applications.
 \papersection{Organization}
 
 The rest of this thesis is organized as follows:
-Chapter~\ref{chap:overview} describes the overview of Graphene (including the host ABI and the library OS) and the design principles behind the implementation.
-Chapter~\ref{chap:abi} formally defines the host ABI, and provides a specification of the host-specific PAL (platform adaption layer).
+Chapter~\ref{chap:overview} describes the overview of Graphene %(including the host ABI and the library OS)
+and design principles.
+Chapter~\ref{chap:abi} formally defines the host ABI, and provides a specification of PAL.
 Chapter~\ref{chap:libos} discusses the library OS in details.
-Chapter~\ref{chap:linux} describes the PAL on Linux, as an example of implementing the host ABI and security isolation between library OS instances.
-Chapter~\ref{chap:sgx} discusses \sgx{}-specific challenges to application porting, and the PAL implementation inside a \sgx{} enclave.
-Chapter~\ref{chap:eval} evaluates the performance and memory footprint of \graphene{} and \graphenesgx{},
-and presents a security study.
+Chapter~\ref{chap:linux} describes the PAL on Linux, as an example of implementing the host ABI and isolating library OS instances.
+Chapter~\ref{chap:sgx} discusses \sgx{}-specific challenges to application porting, and PAL implementation in an enclave.
+Chapter~\ref{chap:eval} evaluates the performance.
 Chapter~\ref{chap:metric} presents a quantitative metric for compatibility,
-to evaluate the completeness of Linux functionality in \graphene{}.
+to evaluate the completeness of Linux functionality.
 %Chapter~\ref{chap:study} presets a study of the Linux API importance, to give an insight about prioritizing API implementation.
 %uses the metrics of API importance, to study the usage of Linux interfaces in applications.
 Chapter~\ref{chap:related} discusses the related work.

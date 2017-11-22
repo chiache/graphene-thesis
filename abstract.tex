@@ -1,7 +1,7 @@
 \placeholder{}
 
 
-Compatibility challenges occur when sharing an application across system interfaces
+Compatibility challenges occur when sharing an application across system interfaces such as Linux and Windows APIs,
 or reusing an application on a disruptive hardware
 such as Intel \sgx{}~\cite{intelsgx}.
 %or between distinctive system APIs
@@ -10,24 +10,25 @@ such as Intel \sgx{}~\cite{intelsgx}.
 %requires a system API to be
 %compatible across OS versions or across host OSes.
 Existing approaches require either
-exhaustively porting all applications
+exhaustively porting applications to new APIs
 or preserving all previous APIs for backward compatibility. % toward existing applications.
 Since both approaches are time-consuming, developers
 urgently need a solution to the compatibility issues
 on new OSes or hardware,
 to promptly benefit average users.
 This thesis demonstrates a library OS approach
-for reusing applications
+for reusing unmodified applications
 on a new OS or hardware.
 The approach
 starts with
 defining a host ABI
 which is simple to port
-and sufficiently
+and also sufficiently
 contains essential OS abstractions
 such as file and page management.
 The host ABI divides the development of a compatibility layer
 into API emulation in a library OS and encapsulating host distinction with a PAL (platform adaption layer).
+
 
 %Below the host ABI, a PAL (platform adaption layer) translates
 %the host ABI to host system interfaces
@@ -60,7 +61,7 @@ the simplicity and efficiency of its host ABI
 %and demonstrates %both qualities
 by enumerating host abstractions used for emulating
 Linux system calls
-and corresponding porting efforts.
+and the corresponding porting efforts.
 For instance, \graphene{} emulates multi-process abstractions %such as \syscall{fork}
 using two host abstractions:
 creating a new process, and a simple RPC stream.
@@ -80,6 +81,7 @@ against an untrusted OS.
 %to exit and access host system calls,
 %with explicit semantics or methods to recognize
 %benign OS behaviors.
+From a security perspective,
 \graphene{} restricts the attack surface through system interfaces and simplifies security checks against unexpected exploitations.
 Finally, this thesis presents quantitative measurements to evaluate
 partial compatibility of OS prototypes
