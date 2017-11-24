@@ -1,23 +1,22 @@
-\papersection{The host ABI}
+\papersection{\Thehostabi{}}
 \label{sec:overview:host}
 
 \issuedone{1.1.b}{Describe \thehostabi{} specification}
-The development of \graphene{} starts with defining a simple host ABI (application binary interface)
-containing only OS abstractions that are essential to application execution.
+The development of \graphene{} starts with defining a simple host ABI (application binary interface) called \thehostabi{}.
+\Thehostabi{}
+contains only OS abstractions that are essential to application execution.
 %and is easily ported to different platforms.
 %and minimal specifications for the host OSes and hardware.
 %The host ABI is a new boundary between OSes (or hypervisors) and applications.
-The host ABI separates
-low-level hardware management
-from the API (application programming interfaces) implementations which mostly determine the compatibility against applications.
+\Thehostabi{} separates
+the implementation of system APIs (application programming interfaces), which determines the compatibility against applications,
+from hardware management components, such as file systems, network stacks, and device drivers. 
 \graphene{} moves API components
-such as the system call table
-and namespaces into a \libos{} and reimplement the components using the host ABI.
-In order to port \graphene{} to any new host OS or hardware,
-OS developers only have to focus on
-porting the host ABI,
+into a \libos{} and reimplements the functionality using the host ABI.
+To enable \graphene{} on a new host OS or hardware,
+OS developers only port the host ABI to the target host system interface,
 %to new host OSes and hardware,
-instead of reproducing the whole Linux system call table for backward compatibility.
+instead of paying the tremendous cost of rebuilding the whole Linux system call table, as illustrated in Figure~\ref{fig:overview:porting}.
 
 
 
@@ -31,22 +30,41 @@ instead of reproducing the whole Linux system call table for backward compatibil
 %to simply porting the OS abstractions defined in \thehostabi{}.
 
 
+\begin{figure}[t!]
+\centering
+\includegraphics[width=30em]{porting.pdf}
+\caption{Porting model of \graphene{}.}
+%\vspace{-.1in}
+\label{fig:overview:porting}
+\end{figure}
+
+
 
 \papersubsection{Platform Adaption Layers (PALs)}
 \label{sec:overview:host:pal}
 
 
-On most OSes, OS developers
-implement \thehostabi{} using options in the native system APIs.
-Specifically,
-OS developers will build
-a Platform Translation Layer (PAL)
-as a thin library to translate \hostapis{} to native system APIs
-serviced by the host OS.
+For each host system interface, \graphene{} uses
+a thin library to export the host ABI,
+which is called a {\bf platform translation layer (PAL)}.
 %is loaded below the library OS, to translate each functions in \thehostabi{} to native system interfaces.
-The effort of PAL development is per host OS, whereas the library OS implementation is reusable on every hosts. %The simplicity of \thehostabi{} can be also estimated by the effort of implementing a PAL for each host.
-Based on the principle of porting simplicity, PAL development must be straightforward
-for average developers.
+The main purpose of adding a PAL is to mitigate the semantic gap
+between the host ABI and
+a native host system interface.
+%The effort of PAL development is per host OS, whereas the library OS implementation is reusable on every hosts. %The simplicity of \thehostabi{} can be also estimated by the effort of implementing a PAL for each host.
+By porting a PAL to new host OSes or hardware,
+users can reuse
+the same \libos{} implementation to achieve compatibility
+against unmodified Linux applications.
+To keep the porting effort manageable,
+the development of a PAL must be straightforward
+for average OS developers.
+%to achieve with limited efforts.
+%Based on the principle of porting simplicity, PAL development must be straightforward
+%for average developers.
+
+
+
 
 
 
@@ -54,21 +72,40 @@ for average developers.
 %The host ABI is defined for the simplicity of porting, as well as the sufficiency for implementing a library OS compatible to Linux.
 %First of all, the number of host functions included in \thehostabi{}
 %is much smaller than the number of system calls in a commodity OS such as Linux. 
-The development of \graphene{} experiments the porting of \thehostabi{}
-on several representative host examples, such \win{}, Linux, \osx{}, FreeBSD, and \sgx{} with an untrusted Linux kernel.
-For most of these hosts,
-implementing \thehostabi{} is straightforward because most OSes export a version of the similar POSIX-style API.
-If there are exceptions where porting \thehostabi{} is challenging,
-the cause is likely to be the assumptions made by the developers of the host OS.
+\graphene{} currently includes several PALs for popular OSes,
+such as Linux, \win{}, \osx{}, FreeBSD.
+%and \sgx{} with an untrusted Linux kernel.
+Most OSes export a POSIX-like system API which happens to be similar
+to most of the host ABI of \graphene{}
+in semantics.
+The similarity of semantics simplifies PAL development
+on these OSes
+since a PAL is likely to translate
+most of the host ABI
+to similar host system interfaces with little efforts.
+
+
+
+A few exceptions in the host ABI may cause porting challenges on certain host OSes.
 For instance, the \win{} API disallows directly resizing or protecting part of a memory region, which is essential to implementing the \syscall{munmap} and \syscall{mprotect} system calls.
 A workaround for porting \thehostabi{} to \win{} is to change memory mappings at the physical page level,
-but requires running the PAL in root permission.
+but requires running the \win{} PAL with root permissions.
+These porting challenges
+tends to be the results of design decisions or assumptions made by OS developers.
+%A \libos{} can potentially design
+%different emulation strategies
+%to compensate missing host abstractions.
+A few host abstractions such as a bulk IPC feature are
+optional to the host ABI;
+if a PAL does not implement bulk IPC,
+a \libos{} can always fall back to RPC-based IPC. 
 
 %In our experience, the development of a PAL is around ten thousand lines of code.
 
 %For each port, the amount of code written for implementing \thehostabi{} is at the order of magnitude of thousands of lines of code, which is much more manageable than implementing a flat translation layer for system interfaces.
 
 
+\begin{comment}
 Based on the experience in \graphene{},
 it is hard to ensure the portability of \thehostabi{} on every potential hosts.
 %even a host ABI specialized for simplicity cannot guarantee to be portable on every hosts.
@@ -88,7 +125,7 @@ to compensate for the absence of a \hostapi{},
 user can predict the affected applications and avoid running these applications
 on specific hosts. 
 %at least users can predict whether an application will be affected and thus cannot run on certain hosts.
-
+\end{comment}
 
 
 %For a host OS that does not support ELF binaries, the PAL must follow the binary format which the host OS accepts, such as the Portable Executable (PE) format on \win{}.
@@ -108,31 +145,45 @@ on specific hosts.
 
 
 
-\papersubsection{Formal definitions}
+\papersubsection{Definitions and design principles}
  
+
+\graphene{} defines {\bf \thehostabi{}}
+as the host ABI exported
+by each PAL.
+\Thehostabi{} contains \palcallnum{} \hostapis{}, which provide a specific set of host abstractions
+that are essential for \libos{} development.
 %The host ABI defines the interaction between the library OS and a specific host.
 %The \graphene{} library OS can be deployed on any ``host'' where \thehostabi{} has been ported.
-To define \thehostabi{},
-this thesis defines
-each {\bf host} of \thehostabi{}
-as an OS or a hypervisor
-that provides sufficient OS features to run a standalone application
+Each {\bf host} of \thehostabi{}
+can be an OS or hypervisor
+that contains OS functionality to run a standalone application
 or virtual machine.
-An example of a host is a monolithic kernel
-such as Linux, BSD, or \win{},
-which has defined a massive system API for programmability.
-Other example,
-such as an Intel \sgx{} (Software Guard Extensions) enclaves~\cite{intelsgx},
-has more restricted OS functionality;
-for instance, \sgx{} virtualizes the exception handlers
-inside each enclave, but provides no other OS functionality. The only way to obtain common OS functionality such as file systems or networking,
-besides introducing a \libos{},
-is to request from a host OS outside the enclave
-through RPC (remote procedure call)~\cite{checkoway13iago,osdi16scone}.
-Due to compatibility challenges
-on \sgx{}, this thesis use \sgx{} as a representative example of a host
+Most of the host targets in \graphene{}
+are monolithic OSes,
+including Linux, \win{}, \osx{}, and FreeBSD.
+%which has defined a massive system API for programmability.
+These monolithic OSes
+often contain a massive amount of system APIs,
+which can be used for
+implementing \thehostabi{}.
+
+
+A special example
+is an \sgx{} (Software Guard Extensions) enclaves~\cite{intelsgx},
+which
+restricts OS functionality for security reasons.
+The restrictions on \sgx{}
+are based on the fact that
+\sgx{} applications
+cannot trust any OS features except ones that are virtualized by the hardware or completely migrated into enclaves.
+The only way to obtain other OS features such as file systems or networking
+is to request from an untrusted host OS
+through RPC (remote procedure call), which introduces a specific set of security threats~\cite{checkoway13iago,osdi16scone}.
+Due to compatibility and security challenges specific to \sgx{},
+this thesis use \sgx{} as a representative example of a host
 with unusual assumptions (e.g., threat models) and restrictions
-than a monolithic kernel.
+compared to a monolithic OS.
 
 %An innovative hardware abstraction like \sgx{} (software guard extensions)
 %imposes unique assumptions and restrictions
@@ -226,9 +277,10 @@ for any hosts.
 
 
 
-\Thehostabi{} also shares several characteristics with a virtual hardware interface which runs a virtual machine.
-A generic but backward-compatible
-virtual hardware interface,
+\Thehostabi{} shares several characteristics with a virtual hardware interface,
+which runs a virtual machine on a hypervisor.
+A generic, backward-compatible
+virtual hardware interface
 %a set of generic, virtual hardware,
 %which the VM can control with the same drivers.
 allows an unmodified OS kernel to run inside a virtual machine.
@@ -245,7 +297,7 @@ a virtual hardware interface
 and \thehostabi{}
 is that \thehostabi{} does not target reusing a whole, unmodified OS kernel as a guest.
 Instead, 
-\thehostabi{} focuses on more high-level abstractions such as files and network sockets
+\thehostabi{} focuses on higher-level abstractions such as files and network sockets
 to ensure portability on most host OSes.
 The concept
 of defining \thehostabi{}
@@ -261,12 +313,9 @@ Furthermore, \thehostabi{} avoids duplication of OS components
 such as scheduler, page fault handler, file systems, and network stacks
 between the host and \libos{}.
 %Another difference is that \thehostabi{} is called by normal function calls, whereas para-virtualization relies on hypercalls.
-Conceptually, one can put a \libos{} and a VM on a spectrum:
-at one extreme,
-a virtual machine reuses a whole OS
-on a virtual hardware interface; at the other extreme,
-a \graphene{} \libos{} instance runs on
-\thehostabi{}.
+Conceptually, one can put a \libos{} and a VM on a spectrum,
+as a virtual machine reuses a whole OS on a virtual hardware interface
+whereas a \libos{} runs on a simplified host ABI.
 
 The following paragraphs discuss the key design principles of \thehostabi{},
 including simplicity, sufficiency for \libos{} development, and statelessness for migration.
@@ -457,7 +506,7 @@ The statelessness of \thehostabi{} guarantees any states in the hosts are tempor
 
 
 
-\papersubsection{The host ABI overview}
+\papersubsection{The \hostapis{}}
 \label{sec:overview:host:abi}
 
 
@@ -591,7 +640,7 @@ but is much faster because it avoids copying memory in the host.
 
 
 
-\papersubsection{Security isolation}
+\papersubsection{Host-enforced security isolation}
 \label{sec:overview:host:security}
 
 

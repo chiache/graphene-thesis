@@ -70,9 +70,9 @@ the ability to reproduce a system interface with the requirements of application
 %A system interface contains
 %a set of OS functions that applications
 %call to describe the order and condition of requesting OS services.
-Many applications are deployed as native code,
+Many developers deploy applications as native binaries,
 with usage of system interfaces
-scattered inside application binaries.
+hard-coded inside the binary code.
 %and does not easily change unless modifying source code.
 %The development of a fully-compiled application (not as a script or intermediate code)
 %includes hard-coding the usage of a system interface
@@ -82,9 +82,10 @@ scattered inside application binaries.
 %The programming of a system interface requires
 %hard-coding the intention and condition of requesting OS services
 %in the application code.
-To accommodate unmodified applications,
-OS developers share a common goal to keep a system interface
-compatible across OS versions.
+To accommodate unmodified application binaries,
+OS developers share a common goal as keeping system interfaces
+consistent across OS versions,
+or backward-compatible.
 %If a milestone of OS development involves modifying a part of the system interface,
 %an application becomes obsolete
 %if it contains outdated system interface specifications.
@@ -198,8 +199,8 @@ a brand-new user interface API
 and file system,
 but ends up losing popularity due to compatibility-related complaints~\cite{spolsky04microsoft-api-war}.
 Because users may prioritize compatibility over adoption of new technology,
-early stable versions of an OS,
-such as \win{} XP, may remain popular even after end-of-service (EOL)~\cite{os-market-share}.
+early stable versions of the OS,
+such as \win{} XP, remain popular even after end-of-service (EOL)~\cite{os-market-share}.
 %Maintaining system interface compatibility is generally a responsibility of OS developers;
 %while extending an OS for expanding the portability of applications
 %on new hardware.
@@ -899,15 +900,15 @@ with a study of the Linux API usage among Ubuntu users and applications.
 \papersection{Organization}
 
 The rest of this thesis is organized as follows:
-Chapter~\ref{chap:overview} describes the overview of Graphene (including the host ABI and the library OS) and the design principles behind the implementation.
-Chapter~\ref{chap:abi} formally defines the host ABI, and provides a specification of the host-specific PAL (platform adaption layer).
+Chapter~\ref{chap:overview} describes the overview of Graphene %(including the host ABI and the library OS)
+and design principles.
+Chapter~\ref{chap:abi} formally defines the host ABI, and provides a specification of PAL.
 Chapter~\ref{chap:libos} discusses the library OS in details.
-Chapter~\ref{chap:linux} describes the PAL on Linux, as an example of implementing the host ABI and security isolation between library OS instances.
-Chapter~\ref{chap:sgx} discusses \sgx{}-specific challenges to application porting, and the PAL implementation inside a \sgx{} enclave.
-Chapter~\ref{chap:eval} evaluates the performance and memory footprint of \graphene{} and \graphenesgx{},
-and presents a security study.
+Chapter~\ref{chap:linux} describes the PAL on Linux, as an example of implementing the host ABI and isolating library OS instances.
+Chapter~\ref{chap:sgx} discusses \sgx{}-specific challenges to application porting, and PAL implementation in an enclave.
+Chapter~\ref{chap:eval} evaluates the performance.
 Chapter~\ref{chap:metric} presents a quantitative metric for compatibility,
-to evaluate the completeness of Linux functionality in \graphene{}.
+to evaluate the completeness of Linux functionality.
 %Chapter~\ref{chap:study} presets a study of the Linux API importance, to give an insight about prioritizing API implementation.
 %uses the metrics of API importance, to study the usage of Linux interfaces in applications.
 Chapter~\ref{chap:related} discusses the related work.
