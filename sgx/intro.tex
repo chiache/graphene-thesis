@@ -1,21 +1,23 @@
-Intel \sgx{}~\cite{intelsgx} shows a compelling example that an unmodified application fails to run inside a beneficial, new host environment.
-\sgx{} is a hardware support
-for facilitating an application to defend against untrusted OSes, hypervisors, and infrastructures.
-Although \sgx{} presents particular challenges for running an unmodified application, such as protecting the application
-from malicious host system calls,
-the \graphene{} architecture significantly reduces the complexity
-of resolving both compatibility and security restrictions of the \sgx{} platform.
+Intel \sgx{}~\cite{intelsgx} shows
+a compelling example
+where an unmodified application fails to run inside a beneficial, new host environment.
+\sgx{} provides an opportunity of running trusted applications with a strong threat model where
+OSes, hypervisors, and peripheral devices can be malicious.
+\sgx{} presents challenges to running an unmodified application, including shielding the application
+from malicious host system calls.
+\graphene{} significantly reduces the complexity
+of resolving both compatibility and security issues for running unmodified applications on \sgx{}.
 
 
-This chapter summarizes the development of a \sgx{} framework using \graphene{}, for protecting unmodified Linux applications.
-This chapter starts with an overview of \sgx{}-specific challenges
+This chapter summarizes the development of an \sgx{} framework using \graphene{} to protect unmodified Linux applications from the untrusted host OS.
+This chapter starts with the overview of \sgx{}-specific challenges
 for porting an application,
 followed by a comparison of approaches to shielding an application from an untrusted host~\cite{osdi16scone,shinde17panoply,baumann14haven}.
 This chapter then describes the design of \graphenesgx{},
-a \sgx{} port of \graphene{},
-which fits an unmodified application into the paradigm of \sgx{}-ready applications,
+an \sgx{} port of \graphene{};
+\graphenesgx{} fits dynamically-linked, unmodified applications into the paradigm of \sgx{}-ready applications,
 and customizes an interface to an untrusted OS
-for simplifying the security checks against malicious host system calls.
-This chapter shows
-that by checking a narrowed host interface,
-\graphenesgx{} shields Linux system calls inside a \thelibos{} instance.
+to simplify security checks against malicious host system calls.
+%This chapter shows
+%that by checking a narrowed host interface,
+%\graphenesgx{} shields Linux system calls inside a \thelibos{} instance.

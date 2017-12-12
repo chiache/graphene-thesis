@@ -22,7 +22,7 @@ multi-process applications.
 \label{sec:sgx:overview:threat}
 
 \graphenesgx{} assumes a typical threat model for \sgx{} enclaves, different from \graphene{} on a trusted Linux kernel or other hosts.
-An application only trusts the CPUs package and any code running inside the enclave, including the library OS (\thelibos{}), a trusted PAL, \libc{}, and any supporting libraries. 
+An application only trusts the CPUs and any code running inside the enclave, including the library OS (\thelibos{}), a trusted PAL, \libc{}, and any supporting libraries. 
 All other components are untrusted:
 (1) hardware outside of the Intel CPU package(s),
 (2) the OS, hypervisor, and other system software,
@@ -31,7 +31,7 @@ and (4) user-space components that
 reside in the application process but outside the enclave.
 \graphenesgx{}
 assumes any of these untrusted components to be potentially malicious,
-and constantly attempting to attack
+and will try to exploit
 any known or unknown vulnerabilities of the trusted components.
 %Our design only trusts the CPUs and any code running inside the enclave, including the library OS, the unmodified application, and its supporting libraries. 
 %\edit{Some code outside of the enclave is required, but not trusted.} %, and is needed for liveness but not for safety.}
@@ -94,7 +94,7 @@ hardware-accelerated AES-NI~\cite{hofemeier2012aesni}.
 \label{sec:sgx:overview:config}
 
 
-Despite that \graphenesgx{} supports running an unmodified application on \sgx{},
+Despite the fact that \graphenesgx{} supports running an unmodified application on \sgx{},
 the user must make certain policy decisions
 regarding how \graphenesgx{} should shield the application.
 The requirement is that
@@ -268,7 +268,7 @@ and copies the parent enclave's contents over message passing.
 %give the child a different process ID. 
 % migrated through message passing.
 \graphenesgx{} defines
-a group of coordinating enclaves an {\bf enclave group},
+a group of coordinating enclaves as an {\bf enclave group},
 similar to a sandbox of \graphene{}.
 Figure~\ref{fig:sgx:enclave-groups} shows an example of two mutually-untrusting enclave groups running on a host.
 \graphenesgx{} supports all the Linux multi-process abstractions that \graphene{} has implemented in the user space,

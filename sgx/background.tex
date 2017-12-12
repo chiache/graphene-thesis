@@ -21,10 +21,10 @@ and current design points for running or porting applications on the \sgx{} plat
 as a hardware support for trusted execution environments (TEEs)~\cite{santos09tccp,lie2003implementing,trustzone,amd-sme}.
 \sgx{} introduces a number of essential hardware features that allow an application
 to protect itself from the host OS, hypervisor, BIOS, and other software.
-The security guarantees of \sgx{} is particularly appealing in cloud computing, as users 
+The security guarantees of \sgx{} are particularly appealing in cloud computing, as users 
 might not fully trust the cloud provider.
 Even if the whole cloud infrastructure
-is under on administrative domain,
+is under administrative domain,
 commodity operating systems have a long history of exposing security vulnerabilities
 to untrusted users, due to \fixme{find even more citations}
 flaws in software and hardware
@@ -46,11 +46,11 @@ The features of an enclave include confidentiality and integrity protection:
 %integrity checking memory contents at start time;
 %and remote attestation.
 the code and data in an enclave memory region do not leave the CPU package unencrypted or unauthenticated; when memory contents are read back into the last-level cache,
-the CPU decrypts the contents, and checks the integrity of cache lines and the virtual-to-physical mapping.
+the CPU decrypts the contents and checks the integrity.
 The memory encryption
 prevents a OS kernel, hypervisor, or even firmware from physically fetching the application secret from DRAMs;
 \sgx{} can even survive a stronger attack at the hardware level,
-such as cold-boot attack~\cite{halderman09coldboot}, an attack based on removing DRAM from the memory bus at a low temperature and placing it in another machine.
+such as cold-boot attacks~\cite{halderman09coldboot}, an attack based on removing DRAM from the memory bus at a low temperature and placing it in another machine.
 \sgx{} also cryptographically measures the integrity of enclave code and data at start up, and
 is able to generate
 attestation to remote systems or enclaves to prove the integrity of a local enclave.
@@ -101,7 +101,7 @@ attestation to remote systems or enclaves to prove the integrity of a local encl
 code running in the enclaves.
 %whereas the rest of application, system software, off-CPU-package hardware devices and providers are untrusted. 
 \sgx{} protects applications from three different types of attacks on the same host, which are summarized in Figure~\ref{fig:sgx:threats}. First, untrusted application code inside the same process but outside the enclave
-cannot access enclave memory or arbitrarily jump into enclave code. Second, OSes, hypervisors, and other system software cannot peek into enclaves from administrative domains;
+cannot access enclave memory or arbitrarily jump into enclave code. Second, OSes, hypervisors, and other system software cannot peek into enclaves from administrative domains.
 %\fixme{added Mona's suggestion}
 Third, other applications on the same host
 cannot exploit vulnerabilities in a OS kernel or system software
@@ -352,10 +352,10 @@ command-line programs,
 which rely on faithful emulation of Linux system call semantics, such as \syscall{mmap} and \syscall{futex}.
 Developers who wish to run these applications on \sgx{}
 must either use 
-a trusted, wrapper library that reproduces these semantics in an enclave, or replace large portion of application code
+a trusted, wrapper library that reproduces these semantics in an enclave, or partitions application code
 unrelated to security.
 The extra effort for adapting existing application code
-into \sgx{} causes delay to deployment of the technology; a number of \fixme{cite some examples here} security-sensitive applications
+into \sgx{} can delay deployment of the technology; a number of security-sensitive applications
 can benefit from porting into \sgx{} as soon as possible.
 
 
@@ -384,12 +384,10 @@ a thin API wrapper layer with shielding ability.
 a \libos{} can facilitate deployment of an unmodified application to \sgx{},
 granting immediate security benefits
 without crippling performance cost and full-blown TCB increase.
-The comparison between \liboses{} and thin shielding layers is inclusive in many ways.
+%The comparison between \liboses{} and thin shielding layers is inclusive in many ways.
 Besides the fact that
 Haven is evaluated upon a simulated hardware,
-Haven has a large TCB due to using Drawbridge~\cite{porter11drawbridge},
-a full-featured \libos{}
-which recycles a significant portion of the \win{} 7 source code.
+Haven has a large TCB from adopting native \win{} 7 code~\cite{porter11drawbridge}.
 \graphenesgx{}, on the other hand,
 shows performance overheads comparable to the range of overheads reported in \scone{}.
 The authors of \panoply{} also notes that \graphenesgx{}
@@ -399,7 +397,7 @@ arise when comparing incidental choices like \libc{} implementation (e.g., musl 
 \graphene{}, not including \glibc{}, adds 53 kLoC to the application's TCB, which is comparable to
 \panoply{}'s 20 kLoC or \scone{}'s 97 kLoC. % 
 Our position is that the primary reduction to TCB comes from either compiling out
-unused library functionality, as in a unikernel~\cite{unikernels}.% and measured by our prior work~\cite{tsai16apistudy};
+unused library functionality, as in a unikernel~\cite{unikernels}, % and measured by our prior work~\cite{tsai16apistudy};
 or further partitioning an application into multiple enclaves with fewer
 OS requirements.
 %, such as just
@@ -445,10 +443,10 @@ A number of \sgx{} frameworks and security enhancements~\cite{orenbach17eleos,ku
 \label{sec:sgx:background:shielding}
 
 
-A key question for developing a \sgx{} framework is how much OS functionality should be pull into an enclave.
+A key question for developing a \sgx{} framework is how much OS functionality to pull into an enclave.
 A \libos{} and a thin shielding layer essentially make opposite decisions
 in protecting OS functionality on untrusted hosts.
-At one extreme, a \libos{} like \graphenesgx{} and \haven{} pulls most
+At one extreme, \liboses{} like \graphenesgx{} and \haven{} pull most
 application-supporting code of an OS into an enclave.
 On the other extreme, thin shielding layers, such as \scone{} and \panoply{}, redirect
 an API layer (e.g., POSIX) or the system call table
@@ -456,8 +454,8 @@ outside of an enclave and shield the application from malicious API or system ca
 
 
 
-The decisions of pulling OS functionality into enclaves
-impact the complexity of shielding an application from the untrusted host.
+The decision to pull OS functionality into enclaves
+impacts the complexity of shielding an application from the untrusted host.
 The code and data inside of an enclave
 gain confidentiality and integrity protection from \sgx{};
 If an OS feature is kept outside of an enclave, the application or a wrapper layer in the enclave must design
@@ -472,19 +470,19 @@ for example, a shielding layer can check the integrity of data sent to an untrus
 Other OS features, such a namespace, are less straightforward to verify;
 without a cryptographic protocol or a zero-knowledge proof,
 an API or system call wrapper needs to predict the correct results to check for integrity, and might end up emulating part of the operations like a \libos{}.
-Due to the complexity of shielding, leaving out OS features might result in adding a fair amount of shielding code, diminishing the benefit on TCB reduction.
+%Due to the complexity of shielding, leaving out OS features might result in adding a fair amount of shielding code, diminishing the benefit on TCB reduction.
 
 
 
 \issuedone{1.2.f}{Clarify the details about Iago attacks}
-A specific type of attacks called {\bf Iago attacks}~\cite{checkoway13iago}
+Specifically, {\bf Iago attacks}~\cite{checkoway13iago}
 threaten a framework that shields against an existing API layer or system call table in an untrusted domain.
 \citeauthor{checkoway13iago}
-demonstrate several attacks to shielding systems like InkTag~\cite{inktag} and Overshadow~\cite{overshadow}, based on manipulating system call return values.
+demonstrate several attacks against shielding systems like InkTag~\cite{inktag} and Overshadow~\cite{overshadow}, based on manipulating system call return values.
 A common feature of these shielding systems
 is the verification of a legacy API serviced by an untrusted kernel.
 Examples of Iago attacks include
-corrupting a protected stack by returning an address on stack to \syscall{mmap};
+corrupting a protected stack by returning an address on stack from \syscall{mmap};
 forcing a replay attack on SSL (Secure Sockets Layers) protocol
 seeded by the returned values of \syscall{getpid} and \syscall{time}.
 Applications often abuse system APIs for internal implementation,
@@ -568,7 +566,7 @@ using an encrypted virtual disk provisioned from a remote host.
 
 \graphenesgx{} further defines an enclave ABI with shielding complexity in mind.
 \graphenesgx{} adds a trusted enclave PAL below
-the \thehostabi{}, to reduce the \palcallnum{} \hostapis{} to merely \enclavecallnum{} enclave calls (see Section~\ref{sec:sgx:shield-abi}).
+the \thehostabi{}, to reduce the \palcallnum{} \hostapis{} to merely \enclavecallnum{} enclave calls (see Section~\ref{sec:sgx:shield:abi}).
 \graphenesgx{} defines each enclave call with clear strategies or semantics for checking the results.
 For each security-sensitive enclave call, \graphenesgx{} accepts exactly one correct result, either cryptographically signed or provable with minimum bookkeeping or emulation. 
 Among \enclavecallnum{} enclave calls defined in \graphenesgx{}, 18 calls are safe from Iago attacks; 8 calls are not security-senstive; 2 calls can be potentially blocked by the host (denial-of-the-service); only 2 calls are not yet shielded and currently left for future work .

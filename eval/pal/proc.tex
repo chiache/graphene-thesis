@@ -131,13 +131,13 @@ The \sgx{} PAL isolates each process inside a separate enclave
 and uses secured RPC streams
 for coordination between parent and child processes.
 As a part of the process creation,
-the \sgx{} PAL initialize a empty enclave
+the \sgx{} PAL initializes a empty enclave
 signed for the target executable,
-and establish a TLS connection over a RPC stream.
+and establishes a TLS connection over a RPC stream.
 The process creation procedure
 includes several defenses against potential attacks
 from the host OS,
-include impersonating one of the enclaves and launching man-in-the-middle attacks on RPCs~\cite{shinde17panoply}.
+including impersonating one of the enclaves and launching man-in-the-middle attacks on RPCs~\cite{shinde17panoply}.
 %Enclave creation and
 %security defenses %against these attacks
 %cause the overheads
@@ -228,8 +228,8 @@ is that it has higher bandwidth
 than a RPC stream
 by sharing pages as copy-on-write across processes.
 However,
-the assumption is not always valid, since a RPC stream
-can be as efficiency as bulk IPC on some host OSes.
+the assumption is not always valid, since RPC streams
+can be as efficient as bulk IPC on some host OSes.
 The concern is backed by the benchmark results in Figure~\ref{fig:eval:pal:gipc-bandwidth},
 which show that
 page-aligned RPC messaging on Linux kernels later than 4.2

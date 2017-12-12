@@ -471,7 +471,7 @@ to the \picoproc{} that most frequently acquires the semaphore.
 Another optimization of message queues, by making the updates asynchronous,
 does not apply to semaphores,
 because a participating \picoproc{} cannot proceed before successfully acquiring the semaphore. 
-Most of the overhead in the Apache benchmark (see Section~\ref{sec:eval:perf:apps}) is attributable to semaphore overheads.
+Most of the overhead in the Apache benchmark (see Section~\ref{sec:eval:apps}) is attributable to semaphore overheads.
 %and, in ongoing work, we will likely optimize this by 
 %either expanding the host ABI to share synchronization primitives within a sandbox,
 %using shared memory to reduce semaphore latency.
@@ -630,13 +630,13 @@ takes \roughly{}2ms, but subsequent signals take only \roughly{}55 \us{}.
 In order to keep the leader off of the critical path of operations like {\tt fork}, 
 the leader typically allocates larger blocks of names, such as process IDs or System V queue IDs.
 In the case of \syscall{fork}, if a \picoproc{} creates a child, it will request a batch of 
-PIDs from the leader (50 by default).  Subsequent child PID allocations will be made from the same 
+PIDs from the leader.  Subsequent child PID allocations will be made from the same 
 batch without consulting the leader.
 Collaborating processes also cache the owner of a range of PIDs, avoiding 
 leader queries for adjacent queries.
 
 %% dp: Sad to see this go, but it is sort of subsumed by the other discussion
-\paragraph{The coordination within a sandbox is often pairwise.}
+\paragraph{Prioritize pairwise coordination within a sandbox.}
 \graphene{} optimizes the common case of pairwise coordination,
 by authorizing one side of the coordination to dictate the abstraction state,
 but also allows

@@ -2,13 +2,16 @@
 \label{sec:abi:misc}
 
 
-Besides managing host resources, 
-some miscellaneous features is needed from the host OSes.
-Some features, such as exception handling, are specific to the implementation of Linux functionality
-in the guest.
+Besides managing host resources,
+\thehostabi{} also contains
+miscellaneous features,
+such as exception handling and querying system times.
+Some of the miscellaneous features,
+such as exception handling,
+are specifically introduced for implementing Linux functionality in the \libos{}.
 %by the library OS
 %for implementing functionality specific to Linux.
-This section lists these miscellaneous \hostapis{} defined in the host ABI.
+This section lists these miscellaneous abstractions in \thehostabi{}.
 
 
 
@@ -16,7 +19,7 @@ This section lists these miscellaneous \hostapis{} defined in the host ABI.
 
 
 
-The exception handling in the host ABI
+The exception handling in \thehostabi{}
 is strictly designed for returning hardware exceptions,
 or failures inside the PAL.
 The host ABI allows the guest to specify a {\bf handler},
@@ -42,7 +45,7 @@ typedef void (*EXCEPTION_HANDLER)
 
 The host ABI defines \palkeyword{EXCEPTION_HANDLE} as the data type of a valid handler function.
 A valid handler accepts two arguments.
-The first is an exception object, as an opague pointer
+The first is an exception object, as an opaque pointer
 which the host OS maintains to store a host-specific state regarding the exception.
 The second is a piece of exception information that
 is revealed to the exception handler.

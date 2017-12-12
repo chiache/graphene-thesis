@@ -24,10 +24,11 @@ implemented inside the Linux kernel.
 Finally, the other major PAL components are an ELF loader (2 kLoC),
 Linux kernel and PAL headers (800 LoC),
 and internal support code providing functions like \funcname{malloc} and \funcname{memcpy} (2.3 kLoC).
-Table~\ref{tab:libos:loc} lists the lines of code of each components of the \graphene{} architecture on a Linux host.
+%Table~\ref{tab:libos:loc} lists the lines of code of each components of the \graphene{} architecture on a Linux host.
 
 
-A PAL developer can use the Linux PAL to estimate the baseline of \thehostabi{} development effort on a full-featured host OS .
+%A PAL developer can use the Linux PAL to estimate the baseline of \thehostabi{} development effort on a full-featured host OS .
+Developing a Linux PAL requires significantly less effort than developing a Linux \libos{} (see Table~\ref{tab:libos:loc}).
 About half of the Linux PAL code turns out to be
 mostly generic to every host OSes
 and thus fully reusable for each PAL.
@@ -127,7 +128,7 @@ The initial design of the Linux PAL uses pipes to implement RPC streams,
 but a later version switches to UNIX domain sockets.
 Although both pipes and UNIX domain sockets are viable options,
 different performance patterns are expected on these two Linux abstractions.
-The general expectation is that a pipe has much lower latency for sending small messages, whereas a UNIX domain socket has much higher throughput for sending large chunks of payloads.
+The general expectation is that a pipe has much lower latency for sending small messages, whereas a UNIX domain socket has much higher throughput for sending large payloads.
 According to a micro-benchmark result of \lmbench{}, on Linux 4.10 kernel,
 the latencies of sending one byte over a pipe and a UNIX domain socket are \roughly{}2.2 \us{} and \roughly{}3.5--4.5 \us{}, respectively.
 As for throughput, when sending a 10MB buffer, the bandwidth of a UNIX domain socket can reach \roughly{}12 GB/s, whereas the bandwidth of a pipe is only \roughly{}5 GB/s (for reference, the bandwidth of a loopback network socket is \roughly{}7.5 GB/s), at less than half of the transfer rate of a UNIX domain socket.
@@ -140,7 +141,7 @@ for prioritizing the RPC throughput of sending large messages, particularly for 
 
 \paragraph{Exception handling.}
 The Linux PAL can receive hardware exceptions (e.g., memory faults, illegal instructions, divide-by-zero) from an application, \thelibos{}, or the PAL itself.
-A Linux kernel delivers all hardware exceptions to the user space
+The Linux kernel delivers all hardware exceptions to the user space
 as signals.
 If an exception is external to the Linux PAL (from an application or \thelibos{}),
 the registered signal handler of the Linux PAL simply calls

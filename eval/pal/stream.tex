@@ -20,7 +20,7 @@ measures the performance of opening, reading, and writing a regular host file th
 %access a UNIX-style, hierarchical, host file system,
 %with either random access to file contents,
 %or access to file attributes (metadata).
-Fo network sockets or RPC streams,
+For network sockets or RPC streams,
 the evaluation measures 
 %The evaluation for other I/O streams, such as a network socket or a RPC stream,
 %then focuses on measuring the
@@ -130,19 +130,19 @@ against the Linux PAL and \syscall{open} on Linux.}
 \end{figure*}
 
 
-Verifying the file integrity on \sgx{}
-causes order-of-magnitude more overheads than the translation costs.
+File integrity protection induces
+orders-of-magnitude higher overheads than the translation costs.
 For reference,
 exiting an enclave and copying memory for opening a file in the host OS take a fixed overhead
-as \roughly{}5 \usec{}.
+at \roughly{}5 \usec{}.
 The cost of integrity protection
 includes
 calculating a secure hash of the file (by SHA-256 in the current implementation)
-and generating a Merkel tree of hash values
+and generating a Merkle tree of hash values
 for verifying
 consequential reads and writes.
 As shown in Figure~\ref{fig:eval:pal:open-latency} (b),
-the cost is correlated with files size,
+the cost is correlated with file size,
 as \roughly{}470\usec{} for a 64KB file or \roughly{}30 \msec{} for a 4MB file,
 even with the Intel hardware acceleration.
 %Opening a file on the \sgx{} PAL
@@ -165,7 +165,7 @@ Although different cryptographic algorithms or implementations
 may improve the performance,
 it appears to be difficult to obtain significant overhead reduction.
 A possible optimization
-is to offload the generation of Merkel trees to the signing phase so that the PAL can avoid verifying the whole file at file opening.
+is to offload the generation of Merkle trees to the signing phase so that the PAL can avoid verifying the whole file at file opening.
 
 
 
@@ -267,7 +267,7 @@ but the cryptographic checks
 can be much more expensive depending on the size of reads and writes.
 The current \sgx{} PAL
 assumes file contents to be checked in 16KB chunks,
-so any file reads smaller than 16KB is as expensive as reading an aligned 16KB chunk. 
+so any file reads smaller than 16KB are as expensive as reading an aligned 16KB chunk. 
 %If the \sgx{} PAL checks the integrity of file contents
 %at file reads,
 %the latency is bounded by

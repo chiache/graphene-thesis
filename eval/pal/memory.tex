@@ -16,10 +16,9 @@ The comparison is between (1) \syscall{mmap} and \syscall{munmap} on Linux; (2) 
 \end{figure*}
 
 %Unlike I/O streams, 
-Single-process abstractions such as page management
-tend to have less overheads
-because no complex security check
-is required.
+Single-process abstractions, such as page management,
+tend to have lower overheads
+by avoiding complicated security checks.
 %tend to have less impact on
 %single-process \hostapis{}.
 %Since updating page mappings only affects the process itself.
@@ -29,7 +28,7 @@ the overheads of memory allocation and deallocation using \palcall{VirtMemAlloc}
 over the native \syscall{mmap} and \syscall{munmap}
 are almost negligible (less than 5\%),
 even if the guest has accessed the allocated pages.
-\graphene{} expects the same performance on any host OSes with dynamic page management.
+\graphene{} expects the same performance on any host OS with dynamic page management.
 
 
 
@@ -38,11 +37,11 @@ even if the guest has accessed the allocated pages.
 The current \sgx{} PAL follows a static page management model,
 due to the restriction of \sgx{} hardware.
 For each enclave,
-the \sgx{} PAL preallocate a heap space
+the \sgx{} PAL preallocates a heap space
 at loading time,
 and cannot update the enclave page layout
 after the enclave starts. 
-Although the untrusted OS still offer page-in and page-out
+Although the untrusted OS still offers page-in and page-out
 when an enclave requires more pages
 than the EPC size (128MB in the current setup),
 the \sgx{} PAL implements
@@ -57,7 +56,7 @@ The \sgx{} version 2 hardware
 can potentially improve the overheads by dynamically removing and adding pages to an enclave.
 Without the memory zeroing cost,
 page allocation and deallocation on the \sgx{} PAL
-is only \roughly{}16\% to \syscall{mmap} and \syscall{munmap},
+is only \roughly{}16\% slower than \syscall{mmap} and \syscall{munmap},
 since the \sgx{} PAL
 for simply updating the mappings
 inside an enclave.
