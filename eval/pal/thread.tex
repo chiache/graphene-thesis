@@ -3,7 +3,7 @@
 
 This section evaluates the performance of thread creation,
 polling multiple TCP sockets,
-and synchronization primitives such as notification events and mutexes. 
+and synchronization primitives, such as notification events and mutexes. 
 
 
 \begin{figure*}[t!]
@@ -29,7 +29,7 @@ expects little impact from security checks or enforcements.
 %which requires no security checks.
 %The evaluation shows the latency of creating a new thread within the current process or \picoproc{}.
 The implementation effort
-for process creation mostly focuses on keep the semantics of the \hostapi{}---\palcall{ThreadCreate}---as simple as possible.
+for process creation mostly focuses on keeping the semantics of the \hostapi{}---\palcall{ThreadCreate}---as simple as possible.
 For instance, a new thread created by \palcall{ThreadCreate} always starts
 on a pre-allocated stack
 which the guest needs not to assign.
@@ -66,7 +66,7 @@ against potential Iago attacks.
 
 \paragraph{Polling TCP sockets.}
 Polling TCP sockets or any stream handles
-is one of the operations that suffer more translation costs.
+is one of the operations that suffers more translation costs.
 Mapping file, TCP, UDP, or RPC handles
 to host file descriptors
 requires reading the contents
@@ -127,12 +127,12 @@ The comparison is between (1) pthread condition variables and mutexes on Linux; 
 The Linux PAL and \sgx{} PAL
 implement notification events, synchronization events, and mutexes with atomic or compare-and-exchange
 instructions,
-but use futexes in the hos OS
+but use futexes in the host OS
 to free the CPUs when blocking on other threads.
 The implementation is similar
 to pthread primitives such as \code{pthread\_cond} and \code{pthread\_mutex};
 therefore, similar performance
-is expected on these primitives, with less than 10\% overheads on the Linux PAL.
+is expected on these primitives, with less than 10\% overhead on the Linux PAL.
 %Due to the similarity
 %of implementation,
 %the latency of events and mutexes on the Linux PAL

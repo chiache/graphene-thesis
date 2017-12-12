@@ -415,7 +415,7 @@ so that the safety of our enclave interface does not have to rely on the correct
 \begin{table}
 \input{tables/interface}
 \caption{An overview of \enclavecallnum{} enclave calls of \graphenesgx{},
-including 18 {\em safe} calls (host behavior can be checked); 6 {\em benign} calls (no harmful effects); 2 {\em DoS} calls (may cause denial-of-service); and 2 {\em unsafe} calls (potentially attacked by the host).}
+including 18 {\em safe} calls (with checkable semantics); 6 {\em benign} calls (no harmful effects); 2 {\em DoS} calls (may cause denial-of-service); and 2 {\em unsafe} calls (potentially attacked by the host).}
 %\fixme{Not sure if we should list all enclave interface in detail.}}
 %% dp: It would be nice to fully list, but I don't think we have space.
 %consisting of 17 functions to access host OS features when the \libos{} is insufficient to handle internally.
@@ -499,7 +499,7 @@ than integrity attacks, due to the assumption that the untrusted OS controls all
 %{\em DoS} calls can be considered a subset of {\em benign}.
 %Because the host OSes can anyway take away the CPU resource or block the network bandwidth to cause DoS attacks on enclaves, these two entries are not considered security threats to \graphenesgx{}. 
 
-Finally, only two enclave calls, namely \funcname{FILE\_ATTRS} and \funcname{DIR\_LIST}, are {\em unsafe}, because \graphenesgx{} currently do not protect
+Finally, only two enclave calls, namely \funcname{FILE\_ATTRS} and \funcname{DIR\_LIST}, are {\em unsafe}, because \graphenesgx{} currently does not protect
 integrity of file attributes or directory lists.
 Checks for these two calls would require signing the file attributes or directory lists
 on a trusted host.

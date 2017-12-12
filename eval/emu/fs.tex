@@ -1,17 +1,6 @@
 \papersubsection{File systems}
 \label{sec:eval:libos:fs}
 
-
-\begin{table}[t!b!]
-\input{tables/lmbench-fs}
-\caption{File-related system call performance based on \lmbench{}. 
-Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
-System call latency is in microseconds, and lower is better.
-System call throughput is in operations per second, and higher is better. 
-Overheads are relative to Linux; negative overheads indicate improvement.} 
-\label{tab:eval:libos:lmbench-fs}
-\end{table}
-
 File system performance in \thelibos{}
 is subject to several optimizations including directory caching and buffering.
 To reduce the impact of \hostapi{} latency,
@@ -20,7 +9,7 @@ is to lower the average number of expensive \hostapis{}
 needed for emulating each system call.
 For instance, the directory cache
 in \thelibos{} stores path existence and metadata
-in spared \picoproc{} memory,
+in spare \picoproc{} memory,
 to skip the redundant cost
 of querying the host file system
 when accessing the same path in the future.
@@ -117,3 +106,14 @@ Compared to running on the Linux host,
 both file creation and deletion from an enclave suffer significantly higher overheads
 (2.7--6\x{}).
 
+\clearpage
+\begin{table}[p]
+\input{tables/lmbench-fs}
+\caption{File-related system call performance based on \lmbench{}. 
+The comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
+System call latency is in microseconds, and lower is better.
+System call throughput is in operations per second, and higher is better. 
+Overheads are relative to Linux; negative overheads indicate improvement.} 
+\label{tab:eval:libos:lmbench-fs}
+\end{table}
+\clearpage

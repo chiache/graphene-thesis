@@ -26,18 +26,18 @@
 %must be at least as fine-grained as 4KB pages.
 
 \issuedone{1.2.a}{Discuss resource management at host level (pages)}
-In the hos ABI, the abstraction for page management
-is a {\bf virtaul memory area (VMA)}, a page-aligned, nonoverlaping region
-in the guest's virtual address space.
-A virtual memory area
-specifies the memory region that requires the host OS to allocate the page resources,
-either statically or dynamically.
-There are two types of VMAs: one is a file-backed VMA, which is created by \palcall{StreamMap} and backs the memory pages with file data blocks.
-The other type is an anoumous VMA, which is purely in DRAM and not backed by any files.
-Either types of VMAs is part of the virtual address space,
-and a VMA should never overlap with others created in the same virtual address space.
-The host OS can choose to populate all the pages for a VMA immediately at creation of the VMA,
-or delay the allocation until the first memory access (i.e., demand paging).
+\Thehostabi{} manages page resources using an abstraction as 
+a {\bf virtual memory area (VMA)}. A VMA is an aligned, non-overlapping region
+in a process. %the guest's virtual address space.
+%A virtual memory area
+%specifies the memory region that requires the host OS to allocate the page resources,
+%either statically or dynamically.
+\Thehostabi{} can creates
+two different types of VMAs: a file-backed VMA, created by \palcall{StreamMap}, and an anonymous VMA, created by another \hostapi{} called \palcall{VirtMemAlloc}.
+%Either types of VMAs is part of the virtual address space,
+%and a VMA should never overlap with others created in the same virtual address space.
+%The host OS can choose to populate all the pages for a VMA immediately at creation of the VMA,
+%or delay the allocation until the first memory access (i.e., demand paging).
 
 
 
@@ -57,13 +57,14 @@ u64  VirtMemAlloc   (u64 expect_addr, u64 size, u16 protect_flags);
 \end{paldef}
 
 
-\palcall{VirtMemAlloc} creates an anonymous VMA in the guest memory. When \palcall{VirtMemAlloc} is given an expected address, the host OS must try to create the VMA at the exact address.
-Otherwise, if no address is given, \palcall{VirtMemAlloc} can create the VMA at wherever the host OS sees fit, and does not overlap with existing VMAs.
+\palcall{VirtMemAlloc} creates an anonymous VMA. When \palcall{VirtMemAlloc} is given an expected address, the host OS must allocate memory at the exact address,
+or it should return failure.
+If no address is given (\palkeyword{expect_addr} is NULL), \palcall{VirtMemAlloc} can create the VMA at wherever the host OS sees fit, as long as the VMA does not overlap with any VMAs previously allocated.
 Both \palkeyword{expect_addr} and \palkeyword{size}
 must be page-aligned, and never exceed the permitted range in the guest's virtual address space.
-\palkeyword{protect_flags} specifies the page protection in the created VMA, and can be given a combination of the following values: \palkeyword{READ}, \palkeyword{WRITE}, and \palkeyword{EXEC} (similar as \palcall{StreamMap} but without \palkeyword{WRITE_COPY}).
+\palkeyword{protect_flags} specifies the page protection in the created VMA, and can be given a combination of the following values: \palkeyword{READ}, \palkeyword{WRITE}, and \palkeyword{EXEC} (similar to \palcall{StreamMap} but without \palkeyword{WRITE_COPY}).
 If \palcall{VirtMemAlloc} succeeds, it returns the starting address
-of the created VMA, which the guest is permitted to access up to the given size.
+of the created VMA, which the \libos{} is permitted to access up to the given size.
 
 
 
@@ -79,10 +80,10 @@ bool VirtMemProtect (u64 addr, u64 size, u16 protect_flags);
 by either freeing the pages
 or adjusting the page protection in an address range.
 Both \hostapis{} specify the starting address and size of the address range to modify;
-the given address range must be page-aligned,
-but can be any part of the guest virtual address apace,
+the given address range must be page-aligned
+but can be any part of the guest virtual address apace
 and overlap with any VMAs, either file-backed or anonymous.
-If the given address range overlaps with a VMA, the overlapped part is divided into a new VMA, and be destroyed or protected accordingly.
+If the given address range overlaps with a VMA, the overlapped part is divided into a new VMA and be destroyed or protected accordingly.
 
 
  
@@ -98,20 +99,29 @@ If the given address range overlaps with a VMA, the overlapped part is divided i
 %or use paravirtualization~\cite{vmware_vmi}.
 
 
+The three \hostapis{} for allocating, freeing, and protecting virtual pages
+are generally portable on POSIX-style host OSes.
+Applications usually rely on
+similar coarse-grained page management features
+in the host OS
+to implement user-level fine-grained
+object allocation,
+such as \syscall{malloc} or class instantiation in managed language runtimes.
 
-\fixme{Moved from the beginning of this section}
-The challenge to defining the host ABI for page management
-is to accommodate different allocation models and granularities of the hosts.
+
+However, the real challenge to
+porting \thehostabi{}
+is to accommodate different allocation granularities among host OSes.
 A POSIX-style OS often assumes dynamic allocation with page granularity (normally with four-kilobyte pages);
-the assumption is deeply ingrained in the design of page fault handler sand page table management
+the assumption is deeply ingrained in the page fault handler sand page table management
 inside an OS like Linux or BSD;
 the page management component in an OS
-is usually low-level and closely interacting with the hardware interface,
+is usually closely interacting with the hardware interface,
 to serve the needs of both the OS and applications.
 Such an OS design makes it difficult to move page management
 into the guest, unless using hardware virtualization such as
 \fixmedp{Needs a cite, and probaly a more specific mention of what feature of VT you have in mind}
-VT~\cite{VT}, which virtualizes page fault handlers and page table management to the guest.
+VT~\cite{VT}; VT provides a nested page table to virtualizes page table management and page fault handling to the \libos{}.
 
 
 

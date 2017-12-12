@@ -10,20 +10,17 @@
 
 
 \fixmedp{I think related goals are to show that 1) the ABI can be implemented relatively easily on most hosts. 2) that it is sufficient to run a lot of Linux applications.}
-The host ABI consists of a sufficient set of simple, UNIX-like OS features.
-The goal of defining the host ABI
-is to ensure that the host ABI can be implemented relatively easily on most hosts,
-and simultaneously, to expose enough host abstractions for developing a library OS that runs a lot of Linux applications.
-Functions in the host ABI,
-or so-called \hostapis{},
-either manage a ubiquitous hardware resource, such as pages or CPU cycles,
-or encapsulate an idiosyncratic feature of the host OSes, such as scheduling primitives or exception handling.
+\Thehostabi{} consists of a sufficient set of simple, UNIX-like OS features.
+The goal of defining \thehostabi{}
+is to ensure host abstractions that are easy to port on various host OS but also sufficient for developing a library OS with rich features.
+Individual \hostapi{},
+either manages a common hardware resource, such as memory pages or CPUs,
+or encapsulates a host OS feature, such as scheduling primitives or exception handling.
 For most of the \hostapis{}, system API with similar functionality and semantics
 can be found on most host OSes;
 Few exceptions
-(e.g., setting segment registers),
-which are limited to be implemented on certain host OSes,
-are defined as optional features,
-so that the library OS can be prepared with designing workarounds.
+(e.g., setting segment registers)
+which are challenging to port on certain host OSes (e.g., Windows)
+are optional and require workarounds in the \libos{}.
 
 

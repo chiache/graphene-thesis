@@ -1,9 +1,10 @@
-\papersection{\graphene{} overview}
+\papersection{The \libos{}}
 \label{sec:overview:libos}
 
-\graphene{} is a library OS designed for reusing unmodified applications.
+This section gives the overview of \graphene{}, a library OS for reusing unmodified Linux applications
+on \thehostabi{}.
 %Existing library OSes have established reuse of single-process applications~\cite{porter11drawbridge}.
-The library OSes map a target system API, such as the Linux system calls, to abstractions in \thehostabi{}. %The reduction of host interfaces provides portability to various platforms that can translate the interfaces to host APIs or abstractions,
+%The library OSes map a target system API, such as the Linux system calls, to abstractions in \thehostabi{}. %The reduction of host interfaces provides portability to various platforms that can translate the interfaces to host APIs or abstractions,
 %and a narrower attack surface that developers can more likely reason about.
 % and supporting data structures as library functions---mapping
 %high-level APIs onto
@@ -13,9 +14,9 @@ The library OSes map a target system API, such as the Linux system calls, to abs
 %such as the CPU scheduler, or
 %eliminating guest-level multiplexing code, as the library OS supports only one application;
 %even compiling out unnecessary guest kernel APIs~\cite{unikernels}.
-A library OS is comparable to a partial, guest OS running in a virtual machine.
-However, compared with an actual virtual machine, a library OS eliminates duplicated features between the guest to the host kernel, such as the CPU scheduler or file system drivers, and thus reduce the memory footprint of a guest library OS~\cite{porter11drawbridge,unikernels}.
-Library OSes have also been proven useful for reusing applications on new hardware platforms, such as \sgx{} enclaves~\cite{baumann14haven}.
+A \libos{} is comparable to a partial, guest OS running in a virtual machine.
+However, compared with an actual virtual machine, the \libos{} design of \graphene{} and previous work~\cite{porter11drawbridge,unikernels} eliminates duplicated features between the guest to the host kernel, such as the CPU scheduler or file system drivers, and thus reduces the memory footprint.
+%Library OSes have also been proven useful for reusing applications on new hardware platforms, such as \sgx{} enclaves~\cite{baumann14haven}.
 %% dp: This sentence seems a little premature
 %In recent works, library OSes provide rich OS features for isolated contexts while the host OSes are untrusted
 
@@ -35,10 +36,10 @@ Library OSes have also been proven useful for reusing applications on new hardwa
 
 %% dp: Daniela, great suggestion!  We need to make this situation seem more
 %%     like the sky will fall without our help
-A key drawback for prior library OSes is the limitation on supporting unmodified, multi-process applications. Many existing applications, such as network servers (e.g., Apache) and shell scripts (e.g., GNU makefiles), create multiple processes for performance scalability, fault isolation, and programmer convenience.
+A principal drawback for prior library OSes is the inability to support multi-process applications. Many existing applications, such as network servers (e.g., Apache) and shell scripts (e.g., GNU makefiles), create multiple processes for performance scalability, fault isolation, and programmer convenience.
 %These applications would benefit from the efficiency and security benefits
 %of a library OS.
-In order for the efficiency benefits of library OSes to be widely applicable,
+For the efficiency benefits of library OSes to be widely applicable,
 especially for unmodified Unix applications,
 library OSes must provide commonly-used multi-process abstractions, such as \syscall{fork}, signals, System V IPC message queues and semaphores, sharing file descriptors, and exit notification.
 Without sharing memory across processes, the library OS instances must coordinate shared OS states to support multi-process abstractions.
@@ -57,12 +58,15 @@ For example, \drawbridge{}~\cite{porter11drawbridge} cannot simulate process for
 
 %{\bf \graphene{}} is a Linux-compatible library OS to run legacy, unmodified Linux applications. 
 In \graphene{}, multiple library OS instances collaboratively implement
-POSIX abstractions, yet appear to the application as a single, shared OS.
-\graphene{} instances coordinate state using RPC streams bridging the processes.
-In a distributed POSIX implementation, placement of shared state and messaging complexity are first-order performance concerns.
-%We chose to shift implementation complexity into the library OS
-%in order to uphold simple enforcement of security isolation in the host.
-By coordinating shared states across library OS instances, \graphene{} is able to create an illusion of running in a single OS for multiple processes in an application (Figure~\ref{fig:graphene:concept}).
+Linux abstractions, but present single, shared OS view to the application.
+\graphene{} instances coordinate states
+using message passing over RPC streams.
+With a distributed POSIX implementation,
+%placement of shared state and messaging complexity are first-order performance concerns.
+%%We chose to shift implementation complexity into the library OS
+%%in order to uphold simple enforcement of security isolation in the host.
+%By coordinating shared states across library OS instances, 
+\graphene{} can create an illusion of running in a single OS for multiple processes in an application.
 
 %Previous library OS designs ensured security isolation of independent applications,
 %comparable to a VM, by keeping a relatively narrow host ABI.

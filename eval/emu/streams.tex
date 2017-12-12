@@ -4,7 +4,7 @@
 
 \begin{table}[t!b!]
 \input{tables/lmbench-streams}
-\caption{Network socket and pipe performance based on \lmbench{}. Comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
+\caption{Network socket and pipe performance based on \lmbench{}. The comparison is among (1) native Linux processes; (2) \graphene{} on Linux host, both without and with \seccomp{} filter ({\bf +SC}) and reference monitor ({\bf +RM}); (3) \graphenesgx{}.
 System call latency is in microseconds, and lower is better.
 System call bandwidth is in megabytes per second, and higher is better. 
 %The file system is measured in thousands operations per second, and higher is better.
@@ -20,16 +20,16 @@ Overheads are relative to Linux; negative overheads indicate improvement.}
 %on all types of I/O streams.
 %pipes and UNIX domain sockets have similar latency and throughput since \thelibos{} uses the same host abstractions (i.e., RPC streams) to emulate both.
 \Thehostabi{} performance
-largely determine
+largely determines
 the performance of network socket and pipe emulation
 in \thelibos{}.
 In general, \thelibos{} does not implement a network or pipe stack,
 neither does \thelibos{}
 buffer data read or written to a network socket or a pipe.
 Table~\ref{tab:eval:libos:lmbench-streams} shows similar benchmark results as
-unbuffered file reads and writes discussed in the previous section;
+unbuffered file reads and writes evaluated in the previous section;
 the overheads on a network socket or a pipe are up to 33--86\% on the Linux host,
-or 148--454\% from an enclave,
+or 148--454\% in an \sgx{} enclave,
 when measuring the latency of sending single-byte messages
 over the abstractions.
 %More overheads

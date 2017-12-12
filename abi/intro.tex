@@ -1,13 +1,13 @@
-This chapter specifies the formal definition of the host ABI as a component
+This chapter specifies \thehostabi{} as a key component
 of the \graphene{} architecture.
 \fixmedp{A sentence on motivation might be good here.  Same with implication.  Like, what is the high level goal?  What properties would a good abi have (or how to judge goodness)?}
-\polish{The host ABI acts as a boundary between the host and the guest (i.e., the \libos{}),
+\polish{\Thehostabi{} acts as a boundary between the host and the \libos{},
 and defines several UNIX-like features. % for \libos{} development.
-The specification of the host ABI is primarily based on two criterions:
-{\em simplicity}, for reducing the development effort per host, and {\em sufficiency}, for encapsulating enough host-specific system abstractions.}
-The chapter discusses
-the rationale behind the definition of the current host ABI,
-according to the experience of porting the host ABI to several host examples, such as Linux, \win{}, and \sgx{}.
+This thesis defines \thehostabi{} primarily based on two criteria:
+{\em simplicity}, to bound the development effort per host and {\em sufficiency}, to encapsulate enough host abstractions for \libos{} development.}
+This chapter also explains
+the rationale behind the definitions.
+%according to the experience of porting the host ABI to several host examples, such as Linux, \win{}, and \sgx{}.
 
 
 
@@ -174,8 +174,8 @@ according to the experience of porting the host ABI to several host examples, su
 
 
 \fixmedp{Make this sentence more direct: "The library OS is loaded by the host OS as user libraries."}
-The host ABI inherits the \graphenearch{} Linux convention. %, to simplify compilation and linking.
-The PAL contains a simple run-time loader that can load the library OS as an ELF (executable and linkable format) binary~\cite{elf-format}, similar to \code{ld.so} for loading a user library.
+\Thehostabi{} partially adopts the \graphenearch{} Linux convention. %, to simplify compilation and linking.
+A PAL contains a simple run-time loader that can load the library OS as an ELF (executable and linkable format) binary~\cite{elf-format}, similar to \code{ld.so} for loading a user library.
 %The host ABI inherit the Linux calling convention,
 %for the convenience of development.
 %The primary architecture targeted by \graphene{} is \graphenearch{};
@@ -185,7 +185,7 @@ The PAL contains a simple run-time loader that can load the library OS as an ELF
 %which, on the x86 architecture, passes 
 %the Linux calling convention on \graphenearch{}
 %specifies the arguments of a function to be passed in general-purpose registers---specifically in \code{rdi}, \code{rsi}, \code{rdx}, \code{rcx}, \code{r8}, and \code{r9}~\cite{system-v-abi}.
-Inheriting the \graphenesgx{} Linux convention
+Inheriting the Linux convention
 simplifies the dynamic linking between the application, library OS and PAL,
 and enables compiler-level optimizations for linking,
 such as function name hashing.
@@ -197,7 +197,7 @@ such as function name hashing.
 %using hashing,
 %which can be simply adopted by the PAL
 %if it shares a linking scheme with the library OS.
-Another benefit is to simplify the debugging with GDB, which only recognizes one calling convention at a time.
+Another benefit is simplifying debugging with GDB since GDB only recognizes one calling convention at a time.
 
 
 
@@ -228,62 +228,69 @@ Another benefit is to simplify the debugging with GDB, which only recognizes one
 %For a host with a different calling convention from Linux,
 A PAL is responsible for translating the calling convention between the host ABI and a system interface on the host.
 For example,
-\win{} or \osx{} applications follow a different calling convention and binary format
+\win{} or \osx{} applications follow different calling conventions and binary formats
 from Linux applications.
 \fixmedp{Make this point clearer}
-On all hosts, the PAL includes a simple ELF loader (even on a Linux host).
-On a host like \win{} or \osx{}, the PAL is not itself ELF,
-but rather a host-specific binary that includes an ELF loader.
+On each host, a PAL acts as a simple ELF loader.
+On \win{} and \osx{}, the PALs are developed as application binaries recognized by the host OSes,
+but contain ELF loading code for linking 
+%but rather a host-specific binary that includes an ELF loader.
+Linux application binaries and the \libos{}.
 %therefore, a \win{} PAL needs
 %to swap the register values when the library OS calls the host ABI.
 %\win{} and \osx{} also accepts a different type of binary format,
 %and requires the PAL to implement an ad-hoc linking scheme for the library OS as an ELF binary.
+The PALs also resolve calling convention inconsistency
+such as placement of function arguments
+in registers or on stacks.
 
 
 
 
 \paragraph{Error codes.}
-For explicity, a function in the host ABI only returns two types of results:
-a non-zero number or pointer if the function succeeds, or zero if it fails.
-Unlike the Linux call convention, the host ABI does not return negative values as error codes (e.g., \code{-EINVAL}).
-Instead, the host ABI delivers the failure of a function call
-as an exception, with the library OS capturing the failure by an assigned exception handler.
+For clarity, a \hostapi{} only returns two types of results:
+a non-zero number or pointer if the call succeeds, or zero if it fails.
+Unlike the Linux convention, the host ABI does not return negative values as error codes (e.g., \code{-EINVAL}).
+For applications,
+interpreting negative return values from system APIs
+causes obscure corner cases
+that applications may easily miss.
+For instance, error codes of failed \syscall{read} system calls may be misinterpreted as
+negative input sizes,  
+causing bugs in applications.
+Instead, a PAL delivers the failure of a \hostapi{}
+as an exception, so that the \libos{} can assign a handler to capture the failure.
 The design avoids confusing semantics
-when interpreting return values.
+as interpreting negative return values.
 
 
 
 \paragraph{Dynamic linking vs static linking.}
-\graphene{} dynamic links the application, library OS, and PAL
-in a process.
-Dynamic linking ensures the complete reuse of an unmodified application,
-as well as an unmodified library OS implementation.
-\graphene{} allows the binaries of application, library OS, and PAL to be deployed individually to the users,
-and be swapped with different implementations.
+\graphene{} dynamically links an application, \libos{}, and the PAL inside of a user process.
+Dynamic linking ensures complete reuse of an unmodified application,
+as well as an unmodified library OS.
+\graphene{} allows the binaries of application, library OS, and PAL to be deployed individually to the users.
 The dynamic linking of applications is a prerequisite
-to running most of the Linux applications without modification or recompilation.
+to running most Linux applications without modification or recompilation.
 
 
 
-However, there are cases where static linking is preferred on a host (e.g., \sgx{}), and recompilation is acceptable to the users.
+There are cases where users prefer static linking on a host (e.g., \sgx{}) and consider recompilation acceptable.
 Compiling an application, library OS, and PAL
-into a single binary is similar to the technique of unikernels~\cite{unikernels},
-which has the benefit of compiling out unnecessary code and execution paths
-from the binary. 
-Theoretically, it is possible for \graphene{} to statically link an application with the library OS and a PAL,
-but this technique is out of the scope of this thesis.
+into a single binary is useful for reducing the memory footprint in unikernels~\cite{unikernels},
+by compiling out unnecessary code and data segments. 
+It is possible for \graphene{} to statically link an application with the library OS and a PAL,
+but this technique is out of the scope of this thesis and left for future work.
 
 
 \papersection{The PAL ABI}
 
 \fixmedp{make this chapter self-contained; should be like a manual of the host ABI; avoid taking about libOS and focus on PAL}
-This section defines the \hostapis{}
-in the host ABI,
+This section defines \thehostabi{},
 %functions in the host ABI, according on the type of OS features.
-as a developer's guide to implementing the host ABI for a new host.
+as a developer's guide to porting. %implementing \hostapis{} for a new host.
 This section describes 
-the usage of each \hostapi{} in details,
-followed by a justification of the necessity and simplicity
-for a host to export such a \hostapi{}.
+the usage of each \hostapi{},
+followed by justifications of simplicity and sufficiency.
 
 
