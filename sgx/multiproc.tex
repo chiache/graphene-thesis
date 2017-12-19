@@ -178,10 +178,10 @@ isolate themselves from untrusted child processes,
 but applications are responsible for purging confidential information
 before isolation.
 
-\paragraph{Supporting \syscall{execve}.}
+\paragraph{Process creation with new executables.}
 
-Unlike \syscall{fork}, \syscall{execve} 
-starts a process with a specific executable, often different from the caller.
+\syscall{execve}, a system call which
+starts a process with a specific executable, offers a different way from \syscall{fork} to create processes.
 When a thread calls \syscall{execve} in \graphenesgx{},
 the \libos{} migrates the thread to a new process,
 with file handles being inherited.

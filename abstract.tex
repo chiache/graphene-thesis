@@ -14,7 +14,7 @@ exhaustively porting applications to new APIs
 or preserving all previous APIs for backward compatibility. % toward existing applications.
 Since both approaches are time-consuming, developers
 urgently need a solution to the compatibility issues
-on new OSes or hardware,
+on innovative OSes or hardware,
 to promptly benefit average users.
 This thesis demonstrates a library OS approach
 for reusing unmodified applications
@@ -52,7 +52,7 @@ into API emulation in a library OS and encapsulating host distinction with a PAL
 
 
 This thesis presents the \graphene{} library OS, which demonstrates
-the simplicity and efficiency of its host ABI
+the simplicity and sufficiency of its host ABI
 % \libos{} for reusing unmodified Linux applications,
 %without any porting efforts for individual applications.
 %\graphene{} defines a host ABI
@@ -61,19 +61,19 @@ the simplicity and efficiency of its host ABI
 %and demonstrates %both qualities
 by enumerating host abstractions used for emulating
 Linux system calls
-and the corresponding porting efforts.
+and the related porting efforts.
 For instance, \graphene{} emulates multi-process abstractions %such as \syscall{fork}
 using two host abstractions:
 creating a new process, and a simple RPC stream.
 Leveraging a distributed coordination model, multiple \graphene{} instances across processes collaboratively present a united OS view to an application.
 Two main porting targets of \graphene{}, 
-Linux and \sgx{},
+Linux, and \sgx{},
 %including a Linux host and a \sgx{} enclave,
 each present challenges to enforcing security isolation.
 %upon the threat models.
 On a Linux host, \graphene{} %presents a sandbox abstraction 
-isolate mutually-untrusting applications.
-On \sgx{}, \graphene{} protects a security-sensitive applications %with security checks to validate untrusted system call results.
+isolates mutually-untrusting applications.
+On \sgx{}, \graphene{} protects a security-sensitive application %with security checks to validate untrusted system call results.
 against an untrusted OS.
 %Despite the difference of threat models,
 %the host ABI simplifies the security checks to target a small amount of sharing host abstractions.
@@ -84,8 +84,8 @@ against an untrusted OS.
 From a security perspective,
 \graphene{} restricts the attack surface through system interfaces and simplifies security checks against unexpected exploitations.
 Finally, this thesis presents quantitative measurements to evaluate
-partial compatibility of OS prototypes
-and importance of each APIs, to help prioritizing API porting.
+the partial compatibility of OS prototypes
+and importance of APIs, to help to prioritize API porting.
 
  
 
