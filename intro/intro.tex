@@ -726,7 +726,7 @@ Sharing kernel states, however, causes process sandboxing
 to be vulnerable in the kernel space.
 %or in an application
 %isolated by hardware like Intel \sgx{}.
-An isolated OS design tends to avoid sharing privileged OS states with other applications.
+An isolated OS design tends to avoid sharing private OS states with other applications.
 %For example, on \sgx{}, an enclave cannot share trusted memory with other enclaves.
 %The only possible solution without introducing more OS functionality into enclaves is to export the encrypted states to the untrusted kernel, which will suffer significant overheads.
 
@@ -843,7 +843,7 @@ users specify firewall-like network rules,
 to allow an application
 to bind to a local network address or to connect to a remote network address.
 Finally, for RPC streams,
-\graphene{} simply blocks any RPC streams
+\graphene{} blocks merely any RPC streams
 which cross sandbox boundary.
 This thesis shows that,
 by enforcing isolation rules on three host abstractions,
@@ -883,7 +883,7 @@ a library OS with a rich of Linux functionality (\graphenesyscallnum{} system ca
 \graphene{} overcomes the OS and hardware restrictions on a host, with acceptable performance and memory footprint.
 This thesis further reasons about the sufficiency of a library OS
 for running frequently-reused applications. This thesis also bases the reasoning on a metric which evaluates the partial compatibility of a system interface.
-\graphene{} prioritizes relatively indispensable system calls over administrative or unpopular features,
+\graphene{} prioritizes relatively indispensable system calls over administration-specific or unpopular features,
 to reuse a wide range of applications, from server applications to language runtimes.
 
 
@@ -897,13 +897,13 @@ with a study of the Linux API usage among Ubuntu users and applications.
 
 \papersection{Organization}
 
-The rest of this thesis is organized as follows:
+The organization of the rest of this thesis as follows:
 Chapter~\ref{chap:overview} describes the overview of Graphene %(including the host ABI and the library OS)
 and design principles.
-Chapter~\ref{chap:abi} formally defines the host ABI, and provides a specification of PAL.
+Chapter~\ref{chap:abi} formally defines the host ABI and provides a specification of a PAL.
 Chapter~\ref{chap:libos} discusses the library OS in details.
 Chapter~\ref{chap:linux} describes the PAL on Linux, as an example of implementing the host ABI and isolating library OS instances.
-Chapter~\ref{chap:sgx} discusses \sgx{}-specific challenges to application porting, and PAL implementation in an enclave.
+Chapter~\ref{chap:sgx} discusses \sgx{}-specific challenges to application porting and PAL implementation in an enclave.
 Chapter~\ref{chap:eval} evaluates the performance.
 Chapter~\ref{chap:metric} presents a quantitative metric for compatibility,
 to evaluate the completeness of Linux functionality.

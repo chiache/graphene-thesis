@@ -53,8 +53,8 @@ A trusted reference monitor that ensures \libos{} isolation is implemented as a 
 
 
 %\graphene{} shows the sufficiency of \thehostabi{} to support a rich Linux \libos{}.
-As an example of this layering, consider the heap memory management abstraction. Linux provides applications with a data segment---a legacy abstraction dating back to original UNIX and the era of segmented memory. The primary thread's stack is at one end of the data segment, and the heap is at another.  The heap grows up (extended by \syscall{brk}) and the stack grows down until they meet in the middle.
-In contrast, the host ABI provides only simple abstraction that allocate, deallocate, or protect regions of virtual memory.
+As an example of this layering, consider the heap memory management abstraction. Linux provides applications with a data segment---a legacy abstraction dating back to original UNIX and the era of segmented memory. The primary thread's stack is at one end of the data segment, and the heap is at another.  The heap grows up (extended by \syscall{brk}) while the stack grows down until they meet in the middle.
+In contrast, the host ABI provides only minimal abstractions for allocating, deallocating, and protecting regions of virtual memory.
 This clean division of labor encapsulates idiosyncratic abstractions
 in the library OS.
 
@@ -68,10 +68,10 @@ and refactors the code as an application library.
 The driving insight is that there is a natural, functionally-narrow division point 
 one layer below the system call table
 in most OS kernels.
-Unlike many OS interfaces, \thehostabi{} generally minimize the amount of application state in the kernel, facilitating
-migration: a \libos{} instance can programmatically read and modify its own OS state, copy the state to another instance, and the remote instance can 
+Unlike many OS interfaces, \thehostabi{} minimizes the amount of application state in the kernel, facilitating
+migration. A \libos{} instance can programmatically read and modify its OS state, copy the state to another instance, and the remote instance can 
 load a copy of this state into the OS---analogous to hardware registers.
-A \picoproc{} may not modify another \picoproc{}'s OS state.
+A \picoproc{} may not modify another \picoprocs{}' OS states.
 
 
 
@@ -80,7 +80,7 @@ A \picoproc{} may not modify another \picoproc{}'s OS state.
 
 
 \issuedone{1.3.b}{An overview of multi-process support}
-A key design feature of UNIX is that users compose simple utilities to create larger applications.  Thus, it is unsurprising that many popular applications are designed as multi-process---an essential feature missing from previous \liboses{}.
+A key design feature of UNIX is that users compose simple utilities to create more significant applications.  Thus, it is unsurprising that many popular applications are multi-process---an essential feature missing from previous \liboses{}.
 %This gap is filled by the \graphene{} \libos{}, which
 %extends recent \liboses{} to support multi-process applications.
 The underlying design challenge is minimally expanding a tightly-drawn isolation boundary without also exposing idiosyncratic kernel abstractions or re-duplicating mechanisms in both the host kernel and the library OS.
@@ -91,13 +91,13 @@ The underlying design challenge is minimally expanding a tightly-drawn isolation
 
 %\vspace{5pt}
 %\noindent {\bf Motivating Example.~}
-For example, consider the process identifier (PID) namespace. In current, single-process library OSes, \syscall{getpid} could simply return a fixed value to each application.
+For example, consider the process identifier (PID) namespace. In current, single-process library OSes, \syscall{getpid} could just return a fixed value to each application.
 This single-process design is isolated, but the library OS cannot run a shell script, which requires forking and executing multiple binaries, signaling, waiting, and other PID-based abstractions.
 
 %\paragraph{Design options.}
 %Multi-process support requires extensions to the host ABI of recent, single-process library OS designs. Because multi-process abstractions, such as signals or System V IPC, tend to be idiosyncratic, an essential problem is identifying a minimal, host-independent substrate upon which  to implement OS-specific abstractions.
 There are two primary design options for multi-process abstractions in \liboses{}: (1) implement processes and scheduling in 
-the library OS, and (2) treat each library OS instance as a process, and distribute the shared POSIX implementation across a collection of library OSes.
+the library OS; (2) treat each library OS instance as a process and distribute the shared POSIX implementation across a collection of library OSes.
 \graphene{} follows the second option, which imposes fewer host assumptions.
 %, maximize flexibility in mapping processes to physical resources, and facilitate inter-process security policy enforcement. % as enforcing security policies on related processes.
 
@@ -112,7 +112,7 @@ None of these problems are insurmountable, and it would be interesting in future
 work to compare both options.
 
 
-In \graphene{}, multiple \liboses{} in multiple picoprocesses collaborate to implement shared abstractions. \graphene{} support a rich of Linux multi-process abstractions including copy-on-write forking, \syscall{execve}, signals, exit notification, and System V IPC semaphores and message queues.
+In \graphene{}, multiple \liboses{} in multiple picoprocesses collaborate to implement shared abstractions. \graphene{} supports a rich of Linux multi-process abstractions including copy-on-write forking, \syscall{execve}, signals, exit notification, and System V IPC semaphores and message queues.
 For instance, when process A signals process B on \graphene{}, A's library OS instance issues a query to B's instance over a pipe-like
 RPC stream, and B's instance then calls the appropriate signal handler.
 The host OS are essentially unaware of the implementation
@@ -162,7 +162,7 @@ as well as security isolation of the corresponding states.
 
 
 The \graphene{} library OS is also capable of gracefully handling disconnection from other library OSes, facilitating dynamic application sandboxing.
-RPC streams may be disconnected at any time by either the reference monitor or at the request of a library OS.
+RPC streams may disconnect at any time by either the reference monitor or at the request of a library OS.
 %Message streams may be severed externally, by the reference monitor, or 
 %one guest may simply disconnect from others to isolate itself.
 %An application may disconnect itself from the 
@@ -171,7 +171,7 @@ RPC streams may be disconnected at any time by either the reference monitor or a
 When a picoprocess is disconnected, the library OS will handle the subsequent
 divergence, %and the library OS will will fork these abstractions
 {\em transparently} to the application.
-For instance, if a child process is disconnected from the parent by the reference monitor, the library OS will interpret the event as if the other process terminated---closing any open pipes, delivering exit notifications, etc.
+For instance, if a child process disconnect RPC streams from the parent by the reference monitor, the library OS will interpret the event as if the other process terminated, close any open pipes, and deliver exit notifications.
 % \daniela{(applications run unmodified) - Reviewer 1 asked clarification on transparently}.
 
 %% A key insight behind our design is that the common use case for these \daniela{cooperating} abstractions
@@ -182,11 +182,11 @@ For instance, if a child process is disconnected from the parent by the referenc
 
 \paragraph{Comparison with microkernels.}
 The building blocks of \graphene{} are very similar to the system abstractions of a 
-microkernel~\cite{liedtke95sosp,klein09sel4,elphinstone13microkernels,liedtke93sosp,chen93memory,baron1985mach-1,accetta86mach}, except a microkernel often has a even narrower, more restricted interface than the host ABI.
+microkernel~\cite{liedtke95sosp,klein09sel4,elphinstone13microkernels,liedtke93sosp,chen93memory,baron1985mach-1,accetta86mach}, except a microkernel often has an even narrower, more restricted interface than the host ABI.
 %such as the port and
 %message abstractions of Mach~\cite{
-Unlike a multi-server microkernel system, such as GNU Hurd~\cite{hurd} or Mach-US~\cite{stevenson95mach-us}, which implements Unix abstractions across a set of daemons that are shared by all processes in the system, \graphene{} implements system abstractions as a library in the application's address space, and can coordinate library state among \picoprocs{} to implement shared abstractions. \graphene{} guarantees isolation equivalent to running 
-an application on a dedicated VM; this isolation could be implemented on a multi-server microkernel by running a dedicated set of service daemons for each application.
+A multi-server microkernel system, such as GNU Hurd~\cite{hurd} or Mach-US~\cite{stevenson95mach-us}, implements Unix abstractions across a set of daemons that are shared by all processes in the system. \graphene{}, on the other hand, implements system abstractions as a library in the application's address space and coordinates library state among \picoprocs{} to implement shared abstractions. \graphene{} guarantees isolation equivalent to running 
+an application on a dedicated VM; it is similar to implementing the security isolation model on a multi-server microkernel by running a dedicated set of service daemons for each application.
 
 %%% \graphene{}'s differences are motivated by two considerations: efficient support of both stand-alone, 
 %%% single-process applications and multi-process applications; as well as flexible security isolation. 

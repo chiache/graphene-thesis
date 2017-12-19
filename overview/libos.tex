@@ -14,7 +14,7 @@ on \thehostabi{}.
 %such as the CPU scheduler, or
 %eliminating guest-level multiplexing code, as the library OS supports only one application;
 %even compiling out unnecessary guest kernel APIs~\cite{unikernels}.
-A \libos{} is generally comparable to a partial, guest OS running in a virtual machine.
+A \libos{} is comparable to a partial, guest OS running in a virtual machine.
 However, compared with an actual virtual machine, the \libos{} design of \graphene{} and previous work~\cite{porter11drawbridge,unikernels} eliminates duplicated features between the guest to the host kernel, such as the CPU scheduler or file system drivers, and thus reduces the memory footprint.
 %Library OSes have also been proven useful for reusing applications on new hardware platforms, such as \sgx{} enclaves~\cite{baumann14haven}.
 %% dp: This sentence seems a little premature
@@ -36,10 +36,10 @@ However, compared with an actual virtual machine, the \libos{} design of \graphe
 
 %% dp: Daniela, great suggestion!  We need to make this situation seem more
 %%     like the sky will fall without our help
-A key drawback for prior library OSes is the inability to support multi-process applications. Many existing applications, such as network servers (e.g., Apache) and shell scripts (e.g., GNU makefiles), create multiple processes for performance scalability, fault isolation, and programmer convenience.
+A principal drawback for prior library OSes is the inability to support multi-process applications. Many existing applications, such as network servers (e.g., Apache) and shell scripts (e.g., GNU makefiles), create multiple processes for performance scalability, fault isolation, and programmer convenience.
 %These applications would benefit from the efficiency and security benefits
 %of a library OS.
-In order for the efficiency benefits of library OSes to be widely applicable,
+For the efficiency benefits of library OSes to be widely applicable,
 especially for unmodified Unix applications,
 library OSes must provide commonly-used multi-process abstractions, such as \syscall{fork}, signals, System V IPC message queues and semaphores, sharing file descriptors, and exit notification.
 Without sharing memory across processes, the library OS instances must coordinate shared OS states to support multi-process abstractions.
@@ -66,7 +66,7 @@ With a distributed POSIX implementation,
 %%We chose to shift implementation complexity into the library OS
 %%in order to uphold simple enforcement of security isolation in the host.
 %By coordinating shared states across library OS instances, 
-\graphene{} is able to create an illusion of running in a single OS for multiple processes in an application.
+\graphene{} can create an illusion of running in a single OS for multiple processes in an application.
 
 %Previous library OS designs ensured security isolation of independent applications,
 %comparable to a VM, by keeping a relatively narrow host ABI.

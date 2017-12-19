@@ -11,11 +11,11 @@ containing only OS abstractions essential to target applications.
 the implementation of an existing system API (application programming interfaces), which determines the compatibility against applications,
 from hardware abstraction features, such as file systems, network stacks, and device drivers. 
 \graphene{} moves the system API components
-to a \libos{} in the userspace, and reimplements the functionality using \thehostabi{}.
+to a \libos{} in the userspace and reimplements the functionality using \thehostabi{}.
 To port \graphene{} to a new host OS or hardware,
 OS developers only have to implement \thehostabi{} on the target host system API,
 %to new host OSes and hardware,
-instead of paying tremendous cost to translate the whole system API specification. The porting process of \graphene{} is illustrated in Figure~\ref{fig:overview:porting}.
+instead of paying a tremendous cost to translate the whole system API specification. Figure~\ref{fig:overview:porting} illustrates the porting process of \graphene{}.
 
 
 
@@ -74,15 +74,15 @@ the same \libos{} to run the same collection of unmodified Linux applications.
 including Linux, \win{}, \osx{}, and FreeBSD.
 %and \sgx{} with an untrusted Linux kernel.
 Most of these OSes provide a POSIX-like system API similar to \thehostabi{}.
-Because of the similarity, translating most of \thehostabi{} to one of the system APIs
-are straightforward for average OS developers,
-but \thehostabi{} is also much simpler than an actual POSIX-style system API.
+Due to the similarity, translating most of \thehostabi{} to one of the system APIs
+are straightforward for average OS developers.
+\Thehostabi{} is also much smaller than the actual POSIX API, making it extremely portable.
 
 
 
-Part of \thehostabi{} may be challenging to port
-on a certain host OS,
-due to the system assumptions made by the host OS.
+A part of \thehostabi{} may be challenging to port
+on an OS,
+due to unexpected system assumptions made by the OS.
 For instance, \win{} does not support
 fine-grained memory deallocation for de-privileged applications.
 To implement system calls like \syscall{munmap} and \syscall{mprotect},
@@ -153,17 +153,17 @@ with a set of host abstractions
 sufficient for \libos{} development.
 %The host ABI defines the interaction between the library OS and a specific host.
 %The \graphene{} library OS can be deployed on any ``host'' where \thehostabi{} has been ported.
-This thesis define
+This thesis defines
 a {\bf host} of \thehostabi{}
 to be an OS or hypervisor
-which contains enough OS functionality for run a standalone application or virtual machine.
+which contains enough OS functionality for running a standalone application or virtual machine.
 Most of the host targets in \graphene{}
 are monolithic OSes,
 including Linux, \win{}, \osx{}, and FreeBSD.
 %which has defined a massive system API for programmability.
-A monolithic OS generally
-contains a massive amount of system APIs,
-which can be used for
+A monolithic OS 
+usually contains a massive amount of system APIs,
+which is sufficient for
 implementing \thehostabi{}.
 
 
@@ -172,13 +172,13 @@ is an \sgx{} (Software Guard Extensions) enclaves~\cite{intelsgx},
 which
 restricts OS functionality for security reasons.
 The restrictions on \sgx{}
-are based on a strong threat model
+are results of a strong threat model
 which distrusts any OS features except ones that are virtualized by the CPUs or migrated into enclaves.
 The only way to obtain any missing OS features such as storage or networking
 is to request through RPC (remote procedure call).
-Requesting untrusted OS services through RPC also introduces new security threats that application developers does not anticipate~\cite{checkoway13iago,osdi16scone}.
+Requesting untrusted OS services through RPC also introduces new security threats that application developers tend not to anticipate~\cite{checkoway13iago,osdi16scone}.
 Due to all the compatibility and security challenges discussed above,
-this thesis use \sgx{} as a representative example of a host
+this thesis uses \sgx{} as a representative example of a host
 with unusual assumptions (e.g., threat models) and restrictions
 compared to a monolithic OS.
 
@@ -315,9 +315,9 @@ a VM reuses a whole OS on a wide, backward-compatible virtual hardware interface
 whereas a \libos{} implements only system API components on a simplified host ABI.
 
 The following paragraphs discuss the key design principles of \thehostabi{},
-including simplicity of porting, sufficiency for \libos{} development, and statelessness for migration.
+including porting simplicity, sufficiency for \libos{} development, and ease of migration.
 
-\paragraph{Simplicity of porting.}
+\paragraph{Porting simplicity.}
 %To reduce porting effort
 %\thehostabi{}
 %must be simple to port on a host OS or hardware.
@@ -365,7 +365,7 @@ on \win{}.
 %Most functions in \thehostabi{} can be easily translated to host system interfaces
 %in various styles.
 As the rest of this thesis proves, porting \thehostabi{} is straightforward
-on most monlithic OSes.
+on most monolithic OSes.
 
 %For example, \thehostabi{} defines \syscall{StreamRead} and \syscall{StreamWrite} for accessing I/O streams, similar to .
 %xcept some nuanced details like order of parameters.
@@ -421,12 +421,12 @@ To develop a \libos{} with compatibility against a wide range of applications,
 \thehostabi{}
 %are demonstrated by the fact that
 %the exported host functions 
-has to contain sufficient OS abstractions that cannot be easily emulated in the guest space.
+contain any OS abstractions that the \libos{} cannot easily emulate.
 %and a full-function library OS is implemented on top of them.
-For most OSes,
-common OS abstractions
+For most hosts,
+the host OS abstractions
 %can be categorized into five types:
-includes
+include
 process creation, memory management, and I/O (typically, files and network connection)~\cite{dhamdhere2007os-textbook}.
 %Besides security and protection,
 %the definition of \thehostabi{} is closely related with hardware management,
@@ -455,17 +455,16 @@ For instance, Linux provides two system calls, \syscall{mmap} and \syscall{brk},
 whereas \syscall{brk} simply grows a single, continuous heap space for more fine-grained allocation.
 Many applications such as GCC~\cite{gcc}
 switch among system API variants in case one of them is unavailable on certain OS distributions.
-This thesis show that,
-by adopting the semantics from one of these similar APIs or abstractions,
-other APIs are unnecessary
-to be implemented in the host OS, since they can be emulated in the \libos{}.
+This thesis shows that,
+by adopting only the semantics of one of these similar APIs or abstractions, the host OS can stay simple with
+the \libos{} emulating the rest of APIs.
 For instance, \thehostabi{} includes \syscall{VirtMemAlloc}
 as a similar feature as \syscall{mmap},
 which is sufficient to emulating both \syscall{mmap} and \syscall{brk}.
 
 
 
-The definition of \thehostabi{} in \graphene{} is based on
+\graphene{} defines \thehostabi{} partially based on
 \drawbridge{},
 a library OS for single-process \win{} applications.
 The host ABI of \drawbridge{} 
@@ -474,7 +473,7 @@ contains 36 functions,
 %for running a library OS in which 99.7\% of code comes from the \win{} 7 source.
 %The host ABIs of \drawbridge{} are later extended
 %for running a Linux-based library OS called Bascule~\cite{baumann13bascule}.
-and has been ported to multiple hosts,
+and several works have ported the host ABI to different hosts,
 including \win{}, Linux, Barrelfish, and \sgx{}~\cite{porter11drawbridge,baumann14haven,mssql-on-linux,baumann13bascule}.
 %and is capable of running a library OS for single-process, Linux applications, with a few host ABI changes~\cite{baumann13bascule}.
 %ill loads and links the rest of application binaries, just like the native Linux loader (i.e., \code{ld.so}).
@@ -484,16 +483,17 @@ a different set of challenges,
 the nature of their APIs is mostly similar, with a few exceptions.
 During the development of \graphene{}, developers found the occasions in which
 the host ABI of \drawbridge{}
-is not sufficient to address Linux-specific challenges,
-and decide to extend \thehostabi{}
-The Linux-specific extensions will be further discussed in Section~\ref{sec:overview:host:abi} and Chapter~\ref{chap:abi}.
+is not sufficient to address Linux-specific challenges
+and decide to extend \thehostabi{}.
+Section~\ref{sec:overview:host:abi} and Chapter~\ref{chap:abi}
+will further discuss the Linux-specific extensions of \thehostabi{}.
 
 
 \paragraph{Migration.}
 The \graphene{} library OS shares several features of VMs, including checkpointing and migrating a running application.
 Migrating a process is also the key to emulating copy-on-write forking,
 on a host without physical memory sharing (e.g., \sgx{}).
-For a virtual machine, checkpointing and migration is based on snapshotting the guest states above a stateless virtual hardware interface. % as a clean boundary for snapshotting the application and OS state.
+A hypervisor checkpoints and migrates a VM by snapshotting the VM states above a stateless virtual hardware interface. % as a clean boundary for snapshotting the application and OS state.
 \Thehostabi{} is also defined to be statelessness,
 by ensuring any states in the hosts to be temporary and reproducible to the applications and \libos{}.
 
@@ -531,9 +531,8 @@ including functions to managing I/O (e.g., \palcall{StreamOpen}), memory allocat
 %For example, \syscall{VirtMemAlloc} can only allocate memory in the calling process,
 %and cannot affect other processes running in parallel.
 %Only I/O streaming functions export states to the host OS, and share states with other processes or library OSes.
-14 calls are added by \graphene{}, in order to implement Linux-specific features.
-For example, unlike \win{} or \osx{}, Linux generally
-%The host ABI is also complemented with several Linux-specific abstractions, such as
+14 calls are added by \graphene{}, to implement Linux-specific features.
+For example, unlike \win{} or \osx{}, Linux %The host ABI is also complemented with several Linux-specific abstractions, such as
 delivers hardware exceptions to a process as signals.
 Linux also requires 
 the x86-specific segment registers (i.e., FS/GS registers)
@@ -549,7 +548,7 @@ On \win{} or \osx{}, the x86-specific segment registers are mostly ignored, and 
 %for the whole execution.
 %Although \drawbridge{} excludes these abstractions, Bascule extends \thehostabi{} to include similar functions,
 %demonstrating that the extension is indeed necessary.
-\graphene{} discovers these abstractions as necessity to implementing a rich Linux \libos{}.
+\graphene{} discovers these abstractions as a necessity for implementing a rich Linux \libos{}.
 
 
 
@@ -565,7 +564,7 @@ On \win{} or \osx{}, the x86-specific segment registers are mostly ignored, and 
 
 
 
-5 calls are introduced for 
+\graphene{} introduces five calls for 
 remote procedure call (RPC) between \libos{} instances
 in a multi-process application.
 \graphene{} simplifies porting multi-process abstractions
@@ -742,10 +741,10 @@ When a process detaches from a sandbox, effectively splitting the sandbox, the h
 For most hosts, application trusts the host OSes as well a \libos{} instances in the same processes.
 For multiple processes inside a sandbox,
 the \liboses{} in these processes
-also trust each others.
+also trust each other.
 Applications or \liboses{} are not trusted by the host OSes or processes outside of the sandboxes.
 Applications and \liboses{}
-can become adversary to the host OS,
+can become the adversary to the host OS,
 by exploiting vulnerabilities on \thehostabi{}.
 %the \graphene{} design reduces the attack surface between the hosts and the library OS instances, to defend against a malicious application.
 
@@ -767,12 +766,12 @@ by exploiting vulnerabilities on \thehostabi{}.
 
 
 The threat model of \graphene{} on \sgx{}
-contains the adversary from other hosts, but excludes
+contains the adversary from other hosts but excludes
 the host OS, hypervisor, and any hardware except the CPU from its trusted computing base (TCB).
 An untrusted OS or hypervisor
-has a wide attack surface to invade applications or VMs,
+potentially has lots of opportunities to invade applications or VMs,
 using Iago attacks~\cite{checkoway13iago}.
-The challenges on porting \graphene{} to \sgx{} is not limited to resolving the compatibility issues of enclaves, but also defending applications and \liboses{} against untrusted host OSes.
+The challenges of porting \graphene{} to \sgx{} is not limited to resolving the compatibility issues of enclaves but also defending applications and \liboses{} against untrusted host OSes.
 
 
 
