@@ -30,7 +30,7 @@ All other components are untrusted:
 and (4) user-space components that
 reside in the application process but outside the enclave.
 \graphenesgx{}
-assumes any of these untrusted components to be potentially malicious,
+assumes any of these untrusted components to be potentially malicious
 and will try to exploit
 any known or unknown vulnerabilities of the trusted components.
 %Our design only trusts the CPUs and any code running inside the enclave, including the library OS, the unmodified application, and its supporting libraries. 
@@ -48,15 +48,15 @@ an architectural enclave,
 called \code{aesmd}, provided by Intel's \sgx{} SDK~\cite{intel-sgx-linux-sdk}.
 \code{aesmd} is a privileged enclave
 authenticated by Intel's master signing key;
-\code{aesmd} receives attributes in the enclave signature of an application,
+\code{aesmd} receives attributes in the enclave signature of an application
 and generates a token for approving enclave creation.
 %\fixmedp{please check the next sentence}
 Any framework that uses \sgx{} for remote attestation must connect to {\tt aesmd}
 to obtain a quote for proving that the enclave is running on an authentic Intel CPU, instead of a simulator. 
 \graphenesgx{} uses, but does not trust, the Intel \sgx{} kernel driver, which mediates the creation of enclaves and swaps enclave pages.
 The current \sgx{} hardware
-has a 128MB limitation on the total amount of physical memory shared among all concurrent enclaves on the same host,
-and the Intel \sgx{} kernel driver swaps enclave pages to storage,
+has a \roughly{}95MB limitation on the total amount of physical memory shared among all concurrent enclaves on the same host,
+and the Intel \sgx{} kernel driver swaps enclave pages to storage
 %in an encrypted and authenticated form,
 when one of the running enclaves demands more
 physical memory.
@@ -72,11 +72,11 @@ Other application-specific security threats
 for \sgx{} are beyond the scope of \graphenesgx{}.
 For instance, an untrusted kernel
 can interrupt the enclave execution and refuse to schedule CPU resources to enclaves,
-causing deinal-of-service (DoS) in applications.
-Several work point out that
+causing denial-of-service (DoS) in applications.
+Several works point out that
 an enclave can leak application secrets through
 side channels or controlled channels
-in cache architectures, memory access patterns, network traffics, and more.~\cite{xu15controlledchannel,atc17side-channel,chen17side-channel,gotzfried17cache-attack,moghimi17cachezoom,xiao17stacco,wang17side-channel}.
+in cache architectures, memory access patterns, network traffics, and more~\cite{xu15controlledchannel,atc17side-channel,chen17side-channel,gotzfried17cache-attack,moghimi17cachezoom,xiao17stacco,wang17side-channel}.
 %are vulnerabilities common to all \sgx{} frameworks, and 
 %are beyond the scope of this work.
 %\edit{Denial-of-service attacks by blocking CPU, memory, or IO resources are also beyond our scope.}
@@ -85,7 +85,7 @@ Several cryptographic function implementations
 have been known to be vulnerable to side channel attacks~\cite{zhou2005side-channels,yarom2017cachebleed};
 %developers and users should avoid using these vulnerable implementations
 %in enclaves if the use is for confidentiality, not integrity.
-for instance, users and developers, or \graphenesgx{} itself, should avoid using one of the table-based AES libraries that are prone to memory access side channels,
+for instance, users and developers, or \graphenesgx{} itself, should avoid using one of the table-based AES libraries that are prone to memory access side channels
 and switch to more secure,
 hardware-accelerated AES-NI~\cite{hofemeier2012aesni}.
 
@@ -123,7 +123,7 @@ applies to \graphenesgx{}, despite the difference of threat models.
 
 
 In \graphenesgx{}, a manifest is extended to protect an application from the untrusted host file system.
-Specifically, a manifest can specify secure hashes of trusted files that are integrity-sensitive and generally read-only,
+Specifically, a manifest can specify secure hashes of trusted files that are integrity-sensitive and read-only,
 such as dynamic libraries, scripts, and configuration files.
 As part of opening a protected file,
 \graphenesgx{} verifies the integrity of trusted files by checking the secure hashes.
@@ -144,8 +144,8 @@ are considered potentially malicious.
 
 The manifest also specifies certain resources be created at initialization time,
 including the number of threads,
-the maximum size of the enclave, and the starting virtual address of the enclave.
-Thus, \graphenesgx{} extend the \graphene{} manifest syntax for  specifying these options.
+the maximum size of the enclave and the starting virtual address of the enclave.
+Thus, \graphenesgx{} extends the \graphene{} manifest syntax for  specifying these options.
 Other security-sensitive options inherited from \graphene{}, such as filtering environment variables
 and enabling debug output, are also protected as part of the signed manifest.
 
@@ -259,7 +259,7 @@ The {\tt AESMD} enclave is secured by a private key owned by Intel and the corre
 
 \graphenesgx{} extends the multi-process support of \graphene{} to enclaves by running each
 process with a \libos{} instance in an enclave.
-For instance, when an application calls \syscall{fork}, \graphenesgx{} creates a second enclave to run as a child process,
+For instance, when an application calls \syscall{fork}, \graphenesgx{} creates a second enclave to run as a child process
 and copies the parent enclave's contents over message passing.
 %For instance, \syscall{fork} creates a second enclave
 %and copies the parent enclave's contents over message passing.
