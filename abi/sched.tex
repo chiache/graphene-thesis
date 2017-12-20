@@ -194,12 +194,10 @@ System APIs similar to
 \palcall{ThreadDelay} and \palcall{ThreadYield}
 exist in most OSes,
 with slight but mitigable definition differences.
+On a POSIX-compliant OS, a PAL can implement \palcall{ThreadInterrupt} using a user signal (e.g., \code{SIGUSR1}); or on other OSes such as Windows, similar inter-thread communication mechanisms exist for similar reasons. 
 %\palcall{ThreadInterrupt} can be implemented with signaling on a POSIX-style host OS,
 %or similar inter-thread communication
 %mechanisms on other OSes.
-
-
-
 
 
 
@@ -415,7 +413,7 @@ or encounters failures such as I/O stream shutdown.
 If the timeout expires before any event occurs,
 %the occurrence of any events related with the given handles,
 \palcall{ObjectsWaitAny} stops blocking
-and returns no handle (NULL).
+and returns no handle.
 
 
 \palcall{ObjectsWaitAny} can poll multiple stream handles until an I/O event occurs
@@ -506,14 +504,13 @@ On success, the \hostapi{} returns the current value of FS/GS register.
 
 
 \issuedone{1.3.e}{Discuss the FS/GS limitation}
-Unfortunately, the feasibility of implementing \palcall{SegmentRegisterAccess}
-depends on the host OS.
+Unfortunately, the portability of \palcall{SegmentRegisterAccess}
+depends on the choice of host OSes.
 %The implementation of \palcall{SegmentRegSet}
 %depends the host system interfaces. 
 %By default, reading or writing the value of the FS/GS registers is a privileged operation
 %which can only be performed in ring 0.
-Linux and similar OSes allow the usage of FS/GS register,
-primarily because the FS register is heavily used in the standard C library.
+Linux and similar OSes allow setting FS/GS register in the userspace due to heavy usage of the FS register in the standard C library.
 %or BSD, the FS register is commonly used for bookkeeping in the standard C library;
 %thus, the Linux or BSD system calls naturally include the feature of reading or writing the FS/GS registers in the kernel space (although only the FS register is used in the user space).
 However, in other OSes, especially \win{} and \osx{},

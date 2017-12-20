@@ -12,13 +12,13 @@ These abstractions encapsulate the ubiquitously-installed hardware resources.
 %to the host OSes.
 Other host abstractions, %defined
 %by \thehostabi{},
-such as a local RPC stream and a system clock,
+such as an RPC stream,
 represents the low-level, privileged resources of a host OS.
 %such as in-kernel queues and time sources.
-To run an application with \thelibos{} as a guest,
-\graphene{} is able to drop the assumption of exporting or virtualizing %management of
-any low-level resources,
-and program \thelibos{} with the simplified, easy-to-implement host abstractions of \thehostabi{}.
+\graphene{} drops the prerequisite of virtualizing %management of
+any other low-level resources to run \thelibos{}
+as a ubiquitous compatibility layer.
+%and program \thelibos{} with the simplified, easy-to-implement host abstractions of \thehostabi{}.
 %to program these resources.
 
 %hardware and privileged OS resources,
@@ -28,22 +28,22 @@ and program \thelibos{} with the simplified, easy-to-implement host abstractions
 
 
 \issuedone{1.2.a}{Discuss the role of libOS in resource management}
-The role of \thelibos{} in resource management
-is to allocate the host abstractions using \thehostabi{},
-as unambiguous requests %to the host
+\thelibos{}'s role in resource management
+is to allocate host abstractions
+as requests %to the host
 for host-managed resources.
-At a high level, the purpose of \thelibos{} is to recreate the Linux abstractions.
-\Thelibos{} implements the Linux abstractions
-based on managing the host abstractions instead of
-the underlying resources.
-For example, if a Linux abstraction requires allocating pages
-for either usage in an application or
-internal bookkeeping,
-the implementation in
-\thelibos{} will allocate a VMA, which is the memory abstraction of \thehostabi{}, instead of physical pages.
+%At a high level, the purpose of \thelibos{} is to recreate the Linux abstractions.
+%\Thelibos{} implements the Linux abstractions
+%based on managing the host abstractions instead of
+%the underlying resources.
+For instance, \thelibos{} allocates virtual pages using \thehostabi{} to request for physical pages in the host OS.
+%for either usage in an application or
+%internal bookkeeping,
+%the implementation in
+%\thelibos{} will allocate a VMA, which is the memory abstraction of \thehostabi{}, instead of physical pages.
 %in a unified, guest virtual address space.
-Such a \libos{} design operates on the faith that the host OS will manage and assign pages to VMAs, with reasonable fairness as well as efficiency.
-Unless the allocation exceeds user quotas or host limitations,
+Such a \libos{} design operates on the faith that the host OS will assign physical pages to VMAs with both fairness aad efficiency.
+Unless the allocation exceeds user quotas or other host-level limitations,
 the \libos{} should be allowed to obtain more host-manged resources,
 by increasing the allocation of a host abstraction.
 
@@ -55,8 +55,7 @@ has a similar role as \thelibos{}.
 %The role of \thelibos{} in resource management is close to 
 %A language runtime generally relies on system APIs exported by the OSes
 %for resource management.
-A language runtime commonly uses the existing system interface
-to request for resources needed by an application.
+A language runtime commonly uses existing system APIs to request for resources needed by an application.
 For example, a language runtime may use \syscall{mmap} to allocate a large heap,
 to assign chunks of the heap to an application.
 %system calls like \syscall{mmap} to allocate a large heap,
@@ -73,44 +72,43 @@ to assign chunks of the heap to an application.
 Therefore, the development of \thelibos{} and the development of a language runtime share
 several challenges,
 including bridging the gap of resource allocation models
-between the guest and host,
-and influencing the host OS to efficiently assign hardware resources to applications.
+between the guest and host
+and influencing the host OS to assign hardware resources to applications efficiently.
 
 
-\thelibos{} reproduces the resource allocation models of Linux
-using \thehostabi{}.
-To be portable across various hosts,
-\thehostabi{} encapsulates the management of host resources.
+\thelibos{} reproduces the Linux resource allocation models.
+%For the portability across various host OSes,
+%Since \thehostabi{} encapsulates the management of host resources,
 %A primary task and challenge to managing resources in \thelibos{}
 %is to reproduce the idiosyncratic %resource allocation
 %features or requirements of Linux, % in Linux,
 %using only the host abstractions
 %defined by \thehostabi{}.
-\graphene{} also simplifies the definition of \thehostabi{},
-to include a narrowed set of host abstractions that are necessary
-for a guest environment.
-A responsibility of \thelibos{}
-is to implement different Linux models of allocating a resource.
+%\graphene{} also simplifies the definition of \thehostabi{},
+%to include a narrowed set of host abstractions that are necessary
+%for a guest environment.
+%a responsibility of \thelibos{}
+%is to implement different Linux models of allocating a resource.
 Take page management for example.
-Linux supports several way of memory allocations, including \syscall{mmap} for allocating a fixed-size VMA, growing the stack of a process, and \syscall{brk} for more fine-grained heap allocation.
-Since \thelibos{} does not directly manage pages,
+Linux supports several ways of memory allocations, including \syscall{mmap} for allocating a fixed-size VMA, stack allocation, and \syscall{brk} for more fine-grained heap allocation.
+Since \thelibos{} does not directly manage physical pages,
 it requires different emulation strategies to
-implement the allocation models needed by an application. %s expect when using these Linux abstractions.
-A strategy repeatedly used in \thelibos{} and language runtimes
-is to ``overallocate'' certain host abstractions when an application requests for resources.
+implement the allocation models expected by an application. %s expect when using these Linux abstractions.
+A strategy %repeatedly used in \thelibos{} and language runtimes
+is to ``overallocate'' certain host abstractions.
 The purpose of overallocation is
-to keep the flexibility of adjusting the resources afterward.
-The caveat of using these kinds of strategies
-is that they are based on an assumption that the host
-allocates the resources
-on demand, instead of populating the resources all at once.
-However, such an assumption does not apply to all hosts;
-%for an environment like a \sgx{} enclave, overallocating resources such as virtual memory can still have a huge impact on resource footprints.
-for example, the current version of \sgx{} requires a static virtual memory layout,
-and each VMA is at least fully populated once at enclave creation
-for checking the integrity of memory data.
-Therefore, overallocating VMAs slows down the creation of an enclave.
-\fixme{End with a summary of the paragraph?}
+to keep the flexibility of adjusting the host resources afterward from the library OS.
+%The caveat of using these kinds of strategies
+%is that they are based on an assumption that the host
+%allocates the resources
+%on demand, instead of populating the resources all at once.
+%However, on some hosts, overallocation may be problematic;
+%%for an environment like a \sgx{} enclave, overallocating resources such as virtual memory can still have a huge impact on resource footprints.
+%for example, the current version of \sgx{} requires a static virtual memory layout,
+%and each VMA is at least fully populated once at enclave creation
+%for checking the integrity of memory data.
+%Therefore, overallocating VMAs slows down the creation of an enclave.
+%\fixme{End with a summary of the paragraph?}
 
 
 
@@ -125,35 +123,24 @@ Therefore, overallocating VMAs slows down the creation of an enclave.
 
 
 
-\paragraph{Comparison with alternative approaches.}
-Virtualization is one of the alternative approaches of guest-level resource management. % for an application.
+\paragraph{The comparison with alternative approaches.}
+Virtualization allows guest OSes to directly manage hardware resources. % for an application.
 %managing resources in a guest OS
 %is to virtualize the hardware resources,
 %such as memory and IO devices,
 A virtual machine often runs an unmodified OS kernel,
-which has control over the allocation of virtualized or dedicated hardware resources.
+containing drivers to manage virtualized or dedicated resources.
 To fully virtual hardware resources,
-a hypervisor can take one of the two common strategies.
-A strategy
-is to export a virtual hardware interface
-as an emulation of the physical hardware interface,
-in a hypervisor
-such as QEMU~\cite{qemu} or VMWare ESX~\cite{wldspurger02vmware-esx}.
-A virtual hardware interface
-allows an unmodified OS kernel to
-directly manage virtualized hardware resources like physical hardware resources,
-using a set of generic hardware drivers.
-%and have full control of hardware resources.
-%giving the guest OS the illusion of having full control of all the hardware resources.
-Another strategy to leverage the hardware virtualization,
-such as IOMMU~\cite{VT-d},
+a hypervisor can either emulate a virtual hardware interface,
+such as QEMU~\cite{qemu}, or leverage hardware virtualization,
+such as IOMMU~\cite{VT-d}.
 %which allows a hypervisor
-to dedicate physical hardware resources
-to a virtual machine.
+%to dedicate physical hardware resources
+%to a virtual machine.
 %Virtualization allows a guest OS to directly manage hardware resources, by either emulating a set of virtual hardware,
 %or dedicating physical hardware to a guest OS instance.
-Both of the virtualization strategies grant a virtual machine with more control over resource management %managing hardware resources
-than \thelibos{} in \graphene{}.
+Both virtualization strategies grant a virtual machine with direct control over hardware resource management. %managing hardware resources
+%than \thelibos{} in \graphene{}.
 
 
 %Compared with full virtualization, the \graphene{} approach
@@ -166,8 +153,8 @@ Exokernel~\cite{engler95exokernel} adopts a \libos{}-like approach
 to export application-level system APIs, but grants each application the privilege to directly manage hardware resources. 
 %to implement the system APIs and abstractions, but allows the \libos{} to manage hardware resources directly.
 The rationale behind Exokernel is to bypass the complicated kernel logics
-for abstracting and multiplexing hardware resources,
-and to allow opportunities of domain-based optimization for each application.
+for abstracting and multiplexing hardware resources
+and provide opportunities for domain-based optimization in each application.
 %Exokernel assigns available hardware resources %, such as physical pages, storage disks, and network devices, 
 %to each application,
 %with hardware-aided protection.
@@ -178,17 +165,15 @@ The similarity between the Exokernel and \graphene{} approaches is that
 they both delegate the protection and security isolation of hardware resources to the host kernel or hypervisor.
 
 
-In terms of resource management,
+Regarding resource management,
 Exokernel and \graphene{} have made different decisions for
-the division of labour
+the division of labor
 between the host and \libos{}. % on managing hardware resources.
 Exokernel prioritizes the efficiency of resource management for each application. 
-To eliminate overhead of multiplexing resources,
+To eliminate the overhead of multiplexing resources,
 Exokernel exports the low-level hardware primitives, including physical memory, CPU, disks, TLB and page tables. 
 Each \libos{} in Exokernel contains drivers to directly interfacing
-these hardware primitives,
-so that the choice of hardware is not longer
-transparent to an application.
+these hardware primitives.
 \graphene{}, on the other hand, prioritizes compatibility upon plenty of host OS and hardware platforms.
 Compared with the primitives exported by Exokernel,
 \thehostabi{} of \graphene{} defines abstractions

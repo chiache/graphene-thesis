@@ -7,18 +7,18 @@ such as an Ethernet card or a loopback interface,
 whereas a domain socket is a local IPC (inter-process communication) abstraction
 similar to a FIFO (first-in-first-out) or a pipe.
 This thesis argues that other types of network sockets
-in Linux, such as raw packet sockets, is generally used by administrative programs.
+in Linux, such as raw packet sockets, is normally used by administration-type programs.
 Most networked applications, including server-side and client-side applications, tends to treat a network socket
-as a contiguous I/O stream and lacks the incentive to create raw packet sockets or other types of network sockets; based on the intuition,
+as a contiguous I/O stream. Based on the intuition,
 \thehostabi{} defines a network connection as an I/O stream, which encapsulates the composition and decomposition of network packets
 and omits platform-dependent features.
 
 The \graphene{} architecture makes the network stack strictly a component of the host OS.
 %and no virtualization of host network interfaces.
-The network stack inside an OS contains the implementation of various different network protocol suites or families on top of the network interfaces.
-A virtualization solution generally moves or duplicates
+The network stack inside an OS contains the implementation of various network protocol suites or families on top of the network interfaces.
+A virtualization solution moves or duplicates
 the network stack to a guest OS,
-and allows the guest OS to implement its own packet processing mechanisms,
+and allows the guest OS to implement its packet processing mechanisms,
 on a physical or virtual network interface.
 Several Linux network features or APIs assume
 the OS owns the network stack, and thus are challenging to implement in \thelibos{}
