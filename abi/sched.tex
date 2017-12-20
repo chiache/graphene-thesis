@@ -3,7 +3,7 @@
 
 \issuedone{1.2.a}{Discuss resource management at host level (threading)}
 The host ABI for CPU scheduling includes two abstractions:
-creation of user threads, and scheduling primitives
+thread creation and scheduling primitives
 for inter-thread synchronization and coordination.
 %Both Linux and POSIX have defined a rich threading API, with various thread creation options
 %and complex scheduling primitives.
@@ -11,12 +11,11 @@ for inter-thread synchronization and coordination.
 %by include only a small set of basic threading features.
 %for each host to implement.
 Threading in the host OS requires a CPU scheduler
-to dynamically assign a non-blocking thread to an idle CPU core, until next epoch for scheduling.
+to dynamically assign a non-blocking thread to an idle CPU core until next epoch for scheduling.
 The host OS usually implements one or several scheduling algorithms and also defines APIs for applications
 to configure scheduler parameters.
-The design of scheduling algorithms and
-APIs is mostly idiosyncratic to each host OS,
-and is difficult to find any common ground to define unified host ABIs that are portable on every host OSes.
+Scheduling algorithms and
+APIs are mostly idiosyncratic to each host OS and hardly portable on every host OSes.
 
 %however, a host scheduler does have to ensure every thread to follow its expected behaviors,
 %regardless of the scheduling algorithm.
@@ -29,7 +28,7 @@ and is difficult to find any common ground to define unified host ABIs that are 
 As a compromise, \graphene{} focuses on defining host ABIs for CPU scheduling features
 essential to application usability.
 For instance, applications may depend on multiple threads to execute concurrently, either on different CPU cores or on the same CPU core with a time-sharing model.
-Scheduling algorithms in the host OSes are generally expected to satisfy certain criteria, such as fairness, throughput, and reasonable CPU utilization.
+Scheduling algorithms in the host OSes must satisfy certain criteria, such as fairness, throughput, and reasonable CPU utilization.
 As long as the host OSes have chosen
 a general-purpose, maturely-implemented scheduling algorithm,
 \thehostabi{} can omit features
@@ -65,8 +64,8 @@ HANDLE ThreadCreate (void (*start) (void *), void *param);
 \end{paldef}
 
 
-\palcall{ThreadCreate} creates a host-level thread to be schedule by the host OS.
-The parameters specify the initial state of a new thread, including the function to start thread execution and the parameter being passed to the function.
+\palcall{ThreadCreate} creates a thread available for scheduling in the host OS.
+The parameters specify the initial state of a new thread, including the function to start thread execution and a parameter to the function.
 As soon as \palcall{ThreadCreate} successfully returns,
 the caller thread and the new thread can be both scheduled by the host OS. %should both be live in the host OS.
 %and scheduled to run in arbitrary order.
@@ -77,9 +76,8 @@ the caller thread and the new thread can be both scheduled by the host OS. %shou
 
 To improve portability, \graphene{} simplifies
 the definition of \palcall{ThreadCreate} in several ways.
-First, \palcall{ThreadCreate} does not accept additional parameter for specifying
-an initial stack of the new thread.
-The simplification helps porting \palcall{ThreadCreate}
+First, \palcall{ThreadCreate} does not accept an additional parameter to specify the initial stack.
+The simplification helps to port \palcall{ThreadCreate}
 on a host where a new thread cannot start
 on an arbitrarily-assigned stack.
 For instance, an \sgx{} enclave statically defines the stack address of each thread
@@ -88,8 +86,8 @@ enclave thread execution.
 On most host OSes, a new thread created by \palcall{ThreadCreate} starts on a fixed-size stack, but the \libos{} can easily swap the stack with a much larger one.
 Second, \palcall{ThreadCreate} takes no creation options
 except a starting function and a parameter.
-Every threads created by \palcall{ThreadCreate} should look identical to the host OS,
-in order to keep the abstraction maximally portable
+Every thread created by \palcall{ThreadCreate} should look identical to the host OS,
+to keep the abstraction portable
 on various host options.
 
 
@@ -117,10 +115,10 @@ for the current thread, including the initial stack.
 
 \papersubsubsection{Scheduling a thread}
 
-\Thehostabi{} defines several calls to interrupt a thread, either blocking or running,
-or to allow a running thread to voluntarily give up CPU resources.
+\Thehostabi{} defines several calls to interrupt a thread, either blocking or running
+or to allow a running thread to give up CPU resources voluntarily.
 The purpose of these scheduling APIs is to prevent a thread from busily waiting for a specific condition,
-such as a variable being set to specific value or a certain time in the future.
+such as setting a variable to a specific value or the arrival of a certain time in the future.
 Busy-waiting wastes CPU cycles,
 and can potentially block application execution
 if the host OS
@@ -158,14 +156,14 @@ void ThreadYield (void);
 \palcall{ThreadDelay} and \palcall{ThreadYield} suspend the current thread for rescheduling in the host OS.
 \palcall{ThreadDelay} suspends the current thread
 for the given timespan (\palkeyword{delay_microsec}, in microseconds).
-If the thread is suspended successfully and rescheduled after expiration of the specified period,
+If the thread is suspended successfully and rescheduled after the expiration of the specified period,
 \palcall{ThreadDelay} returns zero after resuming thread execution.
-If the thread is rescheduled prematurely, due to interruption of other threads (using \palcall{ThreadInterrupt}),
-\palcall{ThreadDelay} returns the remaining suspension time in microseconds.
+If the thread is rescheduled prematurely, due to interruption of other threads,
+\palcall{ThreadDelay} returns the remaining time in microseconds.
 
 
 \fixmedp{When you do a yield, under what conditions are you rescheduled?}
-\palcall{ThreadYield} simply yields the execution of current thread, and the thread can be rescheduled immediately by the host OS.
+\palcall{ThreadYield} simply yields the current execution and requests for rescheduling the current thread in the host OS.
 By calling \palcall{ThreadYield}, a thread can requests for rescheduling when it expects
 to wait for certain conditions.
 When a thread calls \palcall{ThreadYield}, the host scheduler will suspend the current time slice of the thread,
@@ -180,9 +178,9 @@ void ThreadInterrupt (HANDLE thread_handle);
 
 
 
-Introduced by \graphene{},
-\palcall{ThreadInterrupt} interrupts a thread and forces the thread to enter an exception handler immediately.
-The definition of \palcall{ThreadInterrupt} has two primary purposes.
+\graphene{} introduces
+\palcall{ThreadInterrupt} as a \hostapi{} for interrupting a thread and forcing the thread to enter an exception handler immediately.
+There are two reasons for defining \palcall{ThreadInterrupt}.
 First, \palcall{ThreadInterrupt} can interrupt a suspended thread, and force the thread to resume execution immediately.
 Second, \palcall{ThreadInterrupt} can interrupt a running thread from an infinite waiting loop.
 %so that the thread can instantaneously respond to a sudden event.
@@ -194,11 +192,11 @@ The three abstractions defined for suspension and rescheduling
 commonly exist on most host OSes, including Linux, \win{}, and \osx{}.
 System APIs similar to
 \palcall{ThreadDelay} and \palcall{ThreadYield}
-can be found on all host OSes,
+exist in most OSes,
 with slight but mitigable definition differences.
-\palcall{ThreadInterrupt} can be implemented with signaling on a POSIX-style host OS,
-or similar inter-thread communication
-mechanisms on other OSes.
+%\palcall{ThreadInterrupt} can be implemented with signaling on a POSIX-style host OS,
+%or similar inter-thread communication
+%mechanisms on other OSes.
 
 
 
@@ -209,7 +207,7 @@ mechanisms on other OSes.
 \paragraph{Scheduler parameters.}
 \Thehostabi{} currently contains no APIs for the \libos{} to configure scheduler parameters in the host OS.
 %the host scheduler.
-Generally, Linux and other OSes allow applications to configure scheduling parameters,
+Linux and other OSes allow applications to configure scheduling parameters,
 such as scheduling priorities and policies,
 to improve CPU utilization.
 For simplicity,
@@ -342,8 +340,8 @@ A synchronization event coordinates threads that cooperate as producers and cons
 a producer thread can signal exactly one blocking consumer at a time.
 On the other hand, a notification event stays signaled until another thread
 manually resets the event using \palcall{EventClear}.
-A notification event object can be used for notifying the occurrence of a one-time event,
-such as the start or termination of an execution.
+A notification event notifies the occurrence of a one-time event,
+such as the start or termination of execution.
 %Both types of events can be waited by a thread. %, using \palcall{ObjectsWaitAny}.
 %The difference is that
 %singaling a synchronization event
@@ -367,7 +365,7 @@ execution section.
 An event enforces dependency relationship between
 threads.
 Both primitives are easy to port on most host OSes;
-the host ABI directly adopts the definition from the \win{} API, and can be easily implemented
+the host ABI directly adopts the definition from the \win{} API and can be easily implemented
 on Linux or similar OSes using futexes or POSIX thread (pthread) APIs. 
 
 
@@ -398,10 +396,10 @@ such as a mutex lock or a notification event.
 If a certain event happens on one of the listed handles
 \palcall{ObjectsWaitAny} resumes thread execution
 and returns the handle to the caller. 
-\palcall{ObjectsWaitAny} can only block on exactly one mutex lock or event, but can wait on
+\palcall{ObjectsWaitAny} can only block on exactly one mutex lock or event but can wait for
 multiple I/O events.
 When waiting on I/O events,
-\palcall{ObjectsWaitAny} blocks until one of the listed stream handles receives incoming data or connections,
+\palcall{ObjectsWaitAny} blocks until one of the listed stream handles receives incoming data or connections
 or encounters failures such as I/O stream shutdown.
 
 %For the least,
@@ -420,10 +418,9 @@ If the timeout expires before any event occurs,
 and returns no handle (NULL).
 
 
-\palcall{ObjectsWaitAny} can also be used for polling multiple stream handles, to wait for I/O events
+\palcall{ObjectsWaitAny} can poll multiple stream handles until an I/O event occurs
 such as receiving inbound data or sudden failure.
-Unlike a mutex lock or an event object, a stream handle can be associated
-with multiple I/O events.
+Unlike a mutex lock or an event object, a stream handle can trigger multiple I/O events.
 Therefore, the host ABI introduces a \hostapi{}, \palcall{StreamGetEvent}, to create a stream event handle
 that represents a specific I/O event of the given stream handle.
 The definition of \palcall{StreamGetEvent} is inspired by Bascule~\cite{baumann13bascule}.
@@ -434,7 +431,7 @@ HANDLE StreamGetEvent (HANDLE stream_handle, u16 event);
 \end{paldef}
 
 
-\fixmedp{Could you accomplish the smae thing by creating more than one handle for a network socket?}
+\fixmedp{Could you accomplish the same thing by creating more than one handle for a network socket?}
 \palcall{StreamGetEvent} receives a stream handle and a specific I/O event.
 The \palkeyword{event} argument can be given
 one of the following values:
@@ -607,7 +604,7 @@ relaunching the specified application in \graphene{},
 except two distinctions: (1) \palcall{ProcessCreate} returns a process handle to its caller;
 (2) a process created by \palcall{ProcessCreate} naturally belongs to the same {\em sandbox} as its parent.
 %---an isolated container of related processes---with its parent process.
-The detail of the sandbox abstraction is discussed in Section~\ref{sec:abi:proc:sandbox}.
+Section~\ref{sec:abi:proc:sandbox} will discuss the sandbox abstraction in detail.
 
 
 
@@ -667,12 +664,11 @@ HANDLE RpcRecvHandle (HANDLE rpc_handle);
 
 
 
-\Thehostabi{} introduces \palcall{RpcSendHandle} and \palcall{RpcRecvHandle} for sharing I/O stream handles over a RPC stream (a process handle is also used as a RPC stream).
+\Thehostabi{} introduces \palcall{RpcSendHandle} and \palcall{RpcRecvHandle} for sharing I/O stream handles over an RPC stream (a process handle also an RPC stream).
 \palcall{RpcSendHandle} 
-migrates the host state of a stream handle, specified by \palkeyword{cargo},
-over a RPC stream handle.
-\palcall{RpcSendHandle},
-which is called inside another process,
+migrates the host state of a stream handle (\palkeyword{cargo})
+over another RPC stream.
+\palcall{RpcSendHandle}
 then receives the migrated host states from the RPC stream.
 \palcall{RpcSendHandle}
 will grant the receiving process permissions to access the I/O stream handle. % with the sending process.
@@ -694,16 +690,16 @@ shares file descriptors over a UNIX domain socket.
 
 
 
-\Thehostabi{} introduces an optional bulk IPC feature, as a alternative to RPC streams.
+\Thehostabi{} introduces an optional bulk IPC feature, as an alternative to RPC streams.
 The optimization brought
 by the feature
 is to reduce the latency of sending large chunks of data across processes.
 The main abstraction of bulk IPC is a physical memory store.
 Multiple processes can open the same memory store;
-a processes sends the data in a piece of page-aligned memory to the store,
+a process sends the data in a piece of page-aligned memory to the store,
 while another process maps the data to its memory.
 Since the host can enable the copy-on-write sharing on the data mapped to both processes,
-the latency can be much shorter than copying the data over a RPC stream.
+the latency can be much shorter than copying the data over an RPC stream.
 
 
 %can send application memory to the physical memory store (using \palcall{PhysicalMemoryCommit}), which will keep a snapshot of the memory, set as copy-on-write.
@@ -720,12 +716,12 @@ HANDLE PhysicalMemoryStore  (u32 index);
 
 \palcall{PhysicalMemoryStore} creates or attaches to a physical memory store,
 based on a given index number.
-The indexing of physical memory stores is independent for each sandbox (the container abstraction discussed in Section~\ref{sec:abi:proc:sandbox}),
-so unrelated guests cannot share a physical memory store by specifying the same index number.
+The indexing of physical memory stores is independent in each sandbox
+so that unrelated processes cannot share a physical memory store by specifying the same index number.
 If \palcall{PhysicalMemoryStore} succeeds,
 it returns a handle that references to the physical memory store.
-The store is alive until every related processes close the corresponding store handles,
-and no data is left in the store.
+The store is alive until every related process closes the corresponding store handles,
+and no data remains in the store.
 
 
 

@@ -1,10 +1,10 @@
-This chapter specifies \thehostabi{} as a component
+This chapter specifies \thehostabi{} as a key component
 of the \graphene{} architecture.
 \fixmedp{A sentence on motivation might be good here.  Same with implication.  Like, what is the high level goal?  What properties would a good abi have (or how to judge goodness)?}
 \polish{\Thehostabi{} acts as a boundary between the host and the \libos{},
 and defines several UNIX-like features. % for \libos{} development.
-The definition of \thehostabi{} is primarily based on two criteria:
-{\em simplicity}, to bound the development effort per host, and {\em sufficiency}, to encapsulate enough host abstractions for \libos{} development.}
+This thesis defines \thehostabi{} primarily based on two criteria:
+{\em simplicity}, to bound the development effort per host and {\em sufficiency}, to encapsulate enough host abstractions for \libos{} development.}
 This chapter also explains
 the rationale behind the definitions.
 %according to the experience of porting the host ABI to several host examples, such as Linux, \win{}, and \sgx{}.
@@ -197,7 +197,7 @@ such as function name hashing.
 %using hashing,
 %which can be simply adopted by the PAL
 %if it shares a linking scheme with the library OS.
-Another benefit is simplifying debugging with GDB, since GDB only recognizes one calling convention at a time.
+Another benefit is simplifying debugging with GDB since GDB only recognizes one calling convention at a time.
 
 
 
@@ -248,25 +248,25 @@ in registers or on stacks.
 
 
 \paragraph{Error codes.}
-To be explicit, a \hostapi{} only returns two types of results:
+For clarity, a \hostapi{} only returns two types of results:
 a non-zero number or pointer if the call succeeds, or zero if it fails.
 Unlike the Linux convention, the host ABI does not return negative values as error codes (e.g., \code{-EINVAL}).
 For applications,
 interpreting negative return values from system APIs
-causes confusing corner cases
+causes obscure corner cases
 that applications may easily miss.
 For instance, error codes of failed \syscall{read} system calls may be misinterpreted as
 negative input sizes,  
 causing bugs in applications.
 Instead, a PAL delivers the failure of a \hostapi{}
-as an exception, to be captured by the library OS's assigned exception handler.
+as an exception, so that the \libos{} can assign a handler to capture the failure.
 The design avoids confusing semantics
 as interpreting negative return values.
 
 
 
 \paragraph{Dynamic linking vs static linking.}
-\graphene{} dynamic links an application, \libos{}, and the PAL inside of a user process.
+\graphene{} dynamically links an application, \libos{}, and the PAL inside of a user process.
 Dynamic linking ensures complete reuse of an unmodified application,
 as well as an unmodified library OS.
 \graphene{} allows the binaries of application, library OS, and PAL to be deployed individually to the users.
@@ -275,7 +275,7 @@ to running most Linux applications without modification or recompilation.
 
 
 
-There are cases where static linking is preferred on a host (e.g., \sgx{}), and recompilation is acceptable to the users.
+There are cases where users prefer static linking on a host (e.g., \sgx{}) and consider recompilation acceptable.
 Compiling an application, library OS, and PAL
 into a single binary is useful for reducing the memory footprint in unikernels~\cite{unikernels},
 by compiling out unnecessary code and data segments. 
@@ -286,11 +286,11 @@ but this technique is out of the scope of this thesis and left for future work.
 \papersection{The PAL ABI}
 
 \fixmedp{make this chapter self-contained; should be like a manual of the host ABI; avoid taking about libOS and focus on PAL}
-This section defines the \thehostabi{},
+This section defines \thehostabi{},
 %functions in the host ABI, according on the type of OS features.
 as a developer's guide to porting. %implementing \hostapis{} for a new host.
 This section describes 
 the usage of each \hostapi{},
-followed by justifications of sufficiency and simplicity of porting on a new host OS.
+followed by justifications of simplicity and sufficiency.
 
 

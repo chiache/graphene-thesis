@@ -106,10 +106,10 @@ bool ExceptionSetHandler (u8 exception_code,
 
 \palcall{ExceptionSetHandler} assigns a handler function to a specific exception, based on the given \palkeyword{exception_code}.
 The assignment of exception handlers
-applies to every threads in the same process.
+applies to every thread in the same process.
 If \palcall{ExceptionSetHandler} is given a null pointer as the handler,
 it cancels any handler previously assigned to the exception.
-If no handler is ever assigned to a specific exception,
+If the \libos{} does not assign a handler,
 the default behavior of handling the exception is to kill the whole process.
 %Once a handler finishes handling an exception,
 %it must call \palcall{ExceptionReturn} to return to the execution.
@@ -136,10 +136,10 @@ u64 SystemTimeQuery (void);
 the number of microseconds passed since the Epoch, 1970-01-01 00:00:00 Universal Time (UTC).
 Querying the system time
 requires the host to have a reliable time source.
-A common reliable, time source on \graphenearch{}
+A common, reliable time source on \graphenearch{}
 is a system timer incremented by the hardware alarm interrupts~\cite{love10linux-kernel},
-combined with the Time Stamp Counter (TSC), a CPU counter tracing the number of cycles since the system reset.
-\palcall{SystemTimeQuery} exports a reliable, simple time source
+combined with the Time Stamp Counter (TSC), a CPU counter tracking the number of cycles since the system reset.
+\palcall{SystemTimeQuery} exports a reliable time source
 to the guest, based on the calculation of any arbitrary time sources used in the host.
 
 
