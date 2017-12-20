@@ -55,7 +55,7 @@ Any framework that uses \sgx{} for remote attestation must connect to {\tt aesmd
 to obtain a quote for proving that the enclave is running on an authentic Intel CPU, instead of a simulator. 
 \graphenesgx{} uses, but does not trust, the Intel \sgx{} kernel driver, which mediates the creation of enclaves and swaps enclave pages.
 The current \sgx{} hardware
-has a \roughly{}95MB limitation on the total amount of physical memory shared among all concurrent enclaves on the same host,
+has a \sgxepcsize{} limitation on the total amount of physical memory shared among all concurrent enclaves on the same host,
 and the Intel \sgx{} kernel driver swaps enclave pages to storage
 %in an encrypted and authenticated form,
 when one of the running enclaves demands more
@@ -292,7 +292,7 @@ The implementation of multi-process abstractions in \graphene{}
 makes securing these abstractions easy in \graphenesgx{}.
 Because all multi-process abstractions are implemented in enclaves and
 do not export shared states to the host OS,
-\graphenesgx{} only has to adds two features for protecting multi-process abstractions.
+\graphenesgx{} only has to add two features for protecting multi-process abstractions.
 First, \graphenesgx{} adds
 the ability for enclaves to authenticate each other via local attestation,
 and thereby establish a secured RPC channel,

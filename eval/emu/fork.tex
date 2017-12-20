@@ -18,7 +18,7 @@ in \graphene{}.
 %leading to a 1--3\x{} slower latency than native.
 As the worst example of process creation,
 \syscall{fork}+\syscall{exit} is 4.4\x{} slower on the Linux PAL, or 6,357\x{} from an enclave (\roughly{}1.2\asec{})
-Profiling indicates that about one sixth of this overhead is in process creation, which 
+Profiling indicates that about one-sixth of this overhead is in process creation, which 
 takes additional work to create a clean \picoproc{} on Linux; we expect this overhead could be reduced
 with a kernel-level implementation of the process creation ABI, rather than emulating this behavior on \syscall{clone}.
 Another half of the overhead comes from the
@@ -32,7 +32,7 @@ A more competitive \syscall{fork} will require host support and additional tunin
 
 \fixme{talk about a limitation of improving fork. check this.}
 One way to further optimize \syscall{fork} is to reduce or avoid enclave creation time; one can potentially pre-launch a child enclave, and then migrate the process contents later when \syscall{fork} is called.
-There might be another opportunity to improve the latency of process migration,
+There might be another opportunity to improve the latency of process migration
 if copy-on-write sharing of enclave pages can be supported in future generations of \sgx{}.
 %Unfortunately, sending the process contents is difficult to avoid in \syscall{fork},
 %as \sgx{} disallows sharing enclave memory between multiple enclaves.

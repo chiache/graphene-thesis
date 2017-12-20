@@ -43,14 +43,14 @@ and cannot update the enclave page layout
 after the enclave starts. 
 Although the untrusted OS still offers page-in and page-out
 when an enclave requires more pages
-than the EPC size (128MB in the current setup),
+than the EPC size (\sgxepcsize{} in the current setup),
 the \sgx{} PAL implements
 internal page management to bypass the untrusted OS.
 The latency
 of allocating virtual pages, however,
 is dominated by the cost of zeroing pages before returning to the guest.
 Due to the memory access overheads in enclaves,
-zeroing pages that are larger than the last-level cache size (4MB on a Intel i5-6500 CPU)
+zeroing pages that are larger than the last-level cache size (4MB on an Intel i5-6500 CPU)
 can be as expensive as 600-75,000\x{} to original \syscall{mmap} and \syscall{munmap} latency.
 The \sgx{} version 2 hardware
 can potentially improve the overheads by dynamically removing and adding pages to an enclave.

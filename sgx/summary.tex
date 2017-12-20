@@ -3,8 +3,8 @@
 This chapter describes \graphenesgx{},
 a port of the \graphene{} \libos{} on the security-centered, Intel \sgx{} platforms.
 \sgx{} facilitates the protection of applications
-against the whole untrusted system stack ranging from off-chip hardware to the OS,
-but imposes several restrictions to running unmodified applications.
+against the whole untrusted system stack ranging from off-chip hardware to the OS
+but imposes several restrictions on running unmodified applications.
 \graphenesgx{} removes the restrictions
 by servicing Linux system calls inside an in-enclave \libos{} instance and defining an enclave interface with explicit checks for responses from the untrusted OS.
 Compared with other thin, shielding layers~\cite{osdi16scone,shinde17panoply}, \graphenesgx{} shields a large range of Linux system calls,
@@ -24,13 +24,13 @@ below \thehostabi{} to shield an enclave from a series of subtle semantic attack
 launched by the untrusted OS, known as Iago attacks~\cite{checkoway13iago}.
 For most of the enclave calls that reach out to the untrusted OS,
 \graphenesgx{} either restricts the possible responses
-from the OS to one predictable answer,
+from the OS to one predictable answer
 or ensures that deliberate failures of the OS are benign to the application.
-Finally, \graphenesgx{} spans an multi-process application
+Finally, \graphenesgx{} spans a multi-process application
 into multiple mutually-trusting, cooperative enclaves.
 To shield the inter-enclave collaboration from the untrusted OS,
 \graphenesgx{} establishes mutual trust between the enclaves
-using local attestation of Intel CPUs,
+using local attestation of Intel CPUs
 and negotiates TLS-secured, inter-enclave RPC streams for message passing.
 
 
