@@ -397,9 +397,9 @@ a list of sharable resources in a \picoproc{},
 based on
 rules in a manifest file.
 Once the reference monitor has permitted the creation of a file or network stream,
-consecutive operations on the stream
+consecutive I/O operations 
 such as reading or writing data can be trusted
-as long as being mediated by one of the permitted system calls.
+by one of the permitted system calls.
 
 
 \begin{figure}
@@ -472,8 +472,8 @@ match one of the network rules.
 %so the file paths or network addresses can be checked against the sandbox rules.
 %The kernel module as the driver of the \graphene{} special device can coexist with any LSM such as \emph{AppArmor} or \emph{SELinux}.
 
-The reference monitor on a Linux host
-is implemented as a Linux Security Module (LSM) extended from the existing AppArmor module.
+The Linux PAL implements
+the reference monitor as a Linux Security Module (LSM) extended from the existing AppArmor module.
 AppArmor is the default LSM of most Linux distributions,
 and a Linux kernel disallows multiple LSMs (e.g., AppArmor, SELinux) to be effective simultaneously.
 \graphene{} instruments
@@ -514,7 +514,7 @@ thus, this approach is not ideal for isolating \graphene{} applications on a Lin
 
 Another approach is to translate the resource rules in a manifest file
 to AppArmor or iptables rules.
-As explained in previous paragraph, the file and network rules in a manifest file are similar to the file lists in an AppArmor profile and the firewall rules enforced by iptables.
+As explained in the previous paragraph, the file and network rules in a manifest file are similar to the file lists in an AppArmor profile and the firewall rules enforced by iptables.
 Instead of implementing a \graphene{}-specific reference monitor,
 \graphene{} can convert a manifest file, either statically or dynamically,
 to security rules recognized by AppArmor and iptables.

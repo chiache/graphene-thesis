@@ -15,7 +15,7 @@ Each \thelibos{} instance services system calls
 from its local state whenever possible.
 However, whenever a \thelibos{} instance must share a \libos{} state with other instances,
 \thelibos{} has to coordinate the state across \picoprocs{}
-via a RPC stream.
+via an RPC stream.
 Within a sandbox, multiple \picoprocs{} 
 can securely coordinate shared states of multi-process abstractions, including process IDs, exit notification and signaling, 
 System V IPC mechanisms (message queues and semaphores), shared file system states, and shared file descriptor states (Table~\ref{tab:libos:multiproc}).
@@ -90,7 +90,7 @@ Seek pointers & Mappings managed by parent, migrate ownership to \picoproc{} mos
 
 
 As an example of balancing security isolation and coordination APIs,
-consider functionality that use the process ID namespace,
+consider functionality that accesses the process ID namespace,
 such as UNIX signaling or exit notification (e.g., {\tt waitpid()}).
 In \graphene{}, the process ID namespace, 
 as well as signaling and related system calls,
@@ -99,8 +99,7 @@ A process can signal itself by having the \libos{} directly call the handler fun
 When \picoprocs{} are in the same sandbox, they coordinate
 to implement a consistent, shared process ID namespace,
 as well as to send and receive signals amongst themselves.
-Cross-process signals are implemented as RPCs
-over kernel-managed streams.
+\thelibos{} implements inter-process signaling using RPC messaging.
 When \picoprocs{} are in separate sandboxes,
 they do not share a PID namespace, and cannot send signals to each other.
 The reference monitor ensures that IPC abstractions, such as signaling,
@@ -151,7 +150,7 @@ rather than, say, attempt to multiplex one single library OS instance across mul
 
 A driving design insight is that the common case
 for coordination is among pairs of processes.
-Examples include a parent waiting on a child to exit, 
+Examples include a parent waiting for a child to exit, 
 one process signaling another, or a single producer and single consumer
 sharing a message queue.
 Thus, \graphene{} optimizes for the common case of pairwise coordination,
@@ -174,11 +173,11 @@ and a discussion of failure recovery.
 \label{sec:libos:namespaces:building-blocks}
 
 The general problem underlying each of the coordinated \libos{} states is 
-the coordination of {\bf namespaces}.  In other words, coordination between \picoprocs{} need 
+the coordination of {\bf namespaces}.  In other words, coordination between processes needs 
 a consistent mapping of names, such as process IDs or System V IPC resource keys, 
 to the \picoproc{} implementing that particular item.  
 Because many multi-process abstractions in Linux can also be used by single-process applications,
-a key design goal is to seamlessly transition between single-process uses, serviced 
+a key design goal is to seamlessly transition between single-process cases, serviced 
 entirely from local \libos{} state, and multi-process cases, which coordinate shared abstractions over RPC.
 
 %Picoprocesses then implement abstractions such as signals
@@ -190,7 +189,7 @@ to respond to coordination messages from other \picoprocs{}.
 An IPC helper
 maintains a list of point-to-point RPC streams, and indefinitely waits for incoming messages.
 For each multi-process abstractions coordinated over RPC,
-\thelibos{} defines a protocol for formating the header of each message,
+\thelibos{} defines a protocol for formatting the header of each message
 and determining the callback function for processing the message.
 GNU Hurd~\cite{hurd} has a similar helper thread to implement signaling among a process's parent and
 immediate children;
@@ -198,7 +197,7 @@ immediate children;
 An IPC helper serves remote messages and receive responses atomically,
 and is created in each \picoproc{}
 after the application spawned its first child process.
-To avoid deadlock among application threads and the IPC helper thread, 
+For avoiding deadlock among application threads and the IPC helper thread, 
 an application thread may not both hold locks required by the helper thread to service an RPC request
 and block on an RPC response from another \picoproc{}.
 All RPC requests are handled from local state and do not issue recursive RPC messages.% \fixmedp{Check this}
@@ -208,44 +207,44 @@ combination of
 a {\bf broadcast stream} for global coordination,
 and {\bf point-to-point} RPC streams for pairwise interactions, 
 minimizing overhead for unrelated operations.
-The broadcast stream is created for the \picoproc{} as part of initialization.
+A PAL creates the broadcast stream the process as part of initialization.
 Unlike other byte-granularity streams, the broadcast stream sends data at the granularity of messages,
 to simplify the handling of concurrent writes to the stream.
 Point-to-point RPC streams include the streams between parent and child processes established during \palcall{ProcessCreate},
-and RPC streams created through connecting to a RPC server
+and RPC streams created through connecting to an RPC server
 identified by its URI.
 % simply byte streams between two \picoprocs{};
 %two processes may establish a point-to-point stream by passing handles through 
 %an intermediate stream or over the broadcast stream.
 %The handle-passing ABI is discussed further in Section~\ref{sec:graphene:impl}.
 Because of the security isolation in the host,
-only \picoprocs{} in the same sandbox can connect to each other through RPC.
+only processes in the same sandbox can connect to each other through RPC.
 %The broadcast stream is primarily used for failure 
 %recovery (\S\ref{sec:namespaces:failurerecovery}); 
 %Mmost operations use point-to-point streams to minimize overheads.
-If a \picoproc{} leaves a sandbox to create a new one,
+If a process leaves a sandbox to create a new one,
 its broadcast stream is shutdown and replaced
-with a new one, connected only between the \picoproc{} and any children created in the
+with a new one, connected only between a parent process and any children created in the
 new sandbox.
 
 Because message exchange over the broadcast stream does not scale well,
 we reduce the use of the broadcast stream to the minimum.
 One occasion of using the broadcast stream is
-{\bf \picoproc{} ID allocation}.
-Because each \picoproc{} needs an unique ID to be recognized as a source or a destination of RPC messages, \thelibos{} generates a random number as the ID of each \picoproc{} and confirms use the broadcast stream to confirm uniqueness.
+{\bf process ID allocation}.
+Because each process needs an unique ID to be recognized as a source or a destination of RPC messages, \thelibos{} generates a random number as the ID of each process and confirms use the broadcast stream to confirm uniqueness.
 Another occasion of using the broadcast stream
 is {\bf leader recovery}, which happens when a namespace leader unexpectedly crashes
 during coordination. For the implementation of leader recovery, see Section~\ref{sec:libos:namespaces:details}.
 
 
-For each namespace (e.g., process IDs, System V IPC resource keys), \thelibos{} elects one of the \picoprocs{} in a sandbox to serves as the {\bf leader}.
+For each namespace (e.g., process IDs, System V IPC resource keys), \thelibos{} elects one of the processes in a sandbox to serves as the {\bf leader}.
 A leader is responsible for
 managing and memorizing the allocation of identifiers or resources in a namespace,
-in behave of all other \picoprocs{}.
+in behave of all other processes.
 For a namespace like the process ID namespace,
-the leader subdivides the namespace for each \picoproc{} to reduce the RPC cost of allocation.
-For example, the leader might allocate 50 process IDs to a \picoproc{} which intends to clone a new thread or process.
-The \picoproc{} who receives the 50 process IDs becomes the {\bf owner},
+the leader subdivides the namespace for each process to reduce the RPC cost of allocation.
+For example, the leader might allocate 50 process IDs to a process which intends to clone a new thread or process.
+The process who receives 50 process IDs becomes the {\bf owner},
 and can further assign the process IDs
 to children without involving the leader.
 For a given identifier, the owner is the serialization point for all updates,
@@ -271,7 +270,7 @@ ensuring serializability and consistency for that resource.
 %\vspace{5pt}
 \paragraph{Signals and exit notification.}
 {\tt libLinux} implements signals
-in various ways according to the causes of sigals.
+in various ways according to the causes of signals.
 For signals triggered by hardware exceptions (e.g., \code{SIGSEGV}),
 \thelibos{} uses the hardware exception upcalls
 in \thehostabi{}.
@@ -403,17 +402,17 @@ All System V IPC abstractions, including message queues and semaphores,
 are then referenced by a resource ID, which is arbitrarily allocated.
 Similar to process IDs, 
 %In order to service IPC requests, including identifier creation, from local state,
-the leader divides the namespace of resource IDs among the \picoprocs{},
-so that any \picoproc{}
+the leader divides the namespace of resource IDs among the processes,
+so that any process
 can allocate a resource ID from local state instead of involving the leader. %a pre-allocated range.
-Unlike the resouce IDs, System V IPC keys must be centrally managed
+Unlike the resource IDs, System V IPC keys must be centrally managed
 by the leader,
 since an application might autonomously assign System V IPC keys to its processes.
 %The leader also dynamically allocates keys to \picoprocs{}.
 Global coordination is required to ensure that the same key maps to the same resource ID;
 the leader caches this information, but the owner of the resource ID 
 makes the definitive decision about whether a ID mapping is still valid.
-A key which does not have a valid mapping can be assigned to a resource ID by any \picoproc{} to allocate a {\em private} IPC resource.
+A key which does not have a valid mapping can be assigned to a resource ID by any process to allocate a {\em private} IPC resource.
 
 
 
@@ -610,7 +609,7 @@ An example of this principle is migrating message queues to the ``consumer'' whe
 clear producer/consumer pattern is detected, or migrating semaphores to the most frequent requester.
 In these situations, synchronous RPC requests can be replaced with local function calls, improving
 performance substantially.  For instance, migrating ownership of message queues 
-reduced overhead for message receive by a factor of $10\times$.
+reduced overhead for messaging by a factor of $10\times$.
 
 \paragraph{Lazy discovery and caching improve performance.}  
 No library OS keeps a complete replica of all distributed state,
@@ -620,14 +619,14 @@ on the first use, and amortizes this cost over subsequent uses.
 Part of this overhead is potentially establishing a point-to-point stream,
 which can then be cached for subsequent use.
 For instance, the first time a process sends a signal, the helper thread 
-must figure out whether the process id exists, to which \picoproc{} it maps,
-and establish a point-to-point stream to the \picoproc{}.
+must figure out whether the process id exists, to which process it maps,
+and establish a point-to-point stream to the process.
 If they exchange a second signal, the mapping is cached and reused, amortizing this 
 setup cost.  For instance, the first signal a process sends to a new processes
 takes \roughly{}2ms, but subsequent signals take only \roughly{}55 \us{}.
 
 \paragraph{Batched allocation of names minimizes leader workload.}
-In order to keep the leader off of the critical path of operations like {\tt fork}, 
+To keep the leader off of the critical path of operations like {\tt fork}, 
 the leader typically allocates larger blocks of names, such as process IDs or System V queue IDs.
 In the case of \syscall{fork}, if a \picoproc{} creates a child, it will request a batch of 
 PIDs from the leader.  Subsequent child PID allocations will be made from the same 
