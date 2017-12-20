@@ -5,13 +5,13 @@
 
 %Analyzing the footprint of an applications requires interpretation of its behavior. As discussed in section~\ref{sec:measure:analysis}, we choose to build our framework by using {\bf static analysis} technique instead of dynamic analysis. The reason is that static analysis can trace potential executions of the applications, regardless of the runtime coverage of the code.
 
-Our analysis is based on disassembling binaries inside each application package, using the standard {\tt objdump} tool.
+The study is based on disassembling binaries inside each application package, using the standard {\tt objdump} tool.
 This approach eliminates the need for source or recompilation, and can handle closed-source binaries.
-We implement a simple call-graph analysis to detect system calls reachable from the binary entry point ({\tt e\_entry} in ELF headers). 
+The study uses a simple call-graph analysis to detects system calls reachable from the binary entry point ({\tt e\_entry} in ELF headers). 
 %\fixmedp{You do actually parse the elf header for e\_entry, right?}
 %In our study, we only count executables during measuring both \usagemetric{} and \compatmetric{}.
-We search all binaries, including libraries, for system call instructions ({\tt int 0x80}, {\tt syscall} or {\tt sysenter}) or calling the {\tt syscall} API of \libc{}.
-We find that the majority of binaries --- either shared libraries or executables --- do not directly choose system calls, but 
+The analysis searches all binaries, including libraries, for system call instructions ({\tt int 0x80}, {\tt syscall} or {\tt sysenter}) or calling the {\tt syscall} API of \libc{}.
+The analysis result shows that the majority of binaries --- either shared libraries or executables --- do not directly choose system calls, but 
 rather use the GNU C library APIs.
 Among 66,275 studied binaries, only 7,259 executables and 2,752 shared libraries issue system calls.
 
@@ -26,8 +26,8 @@ Among 66,275 studied binaries, only 7,259 executables and 2,752 shared libraries
 %To trace the footprint of applications, it require {\em Call-Graph Analysis} to rip off potential control flows that can eventually lead to usage of system API.
 %Challenges of analyzing call-graph is a known issues for researchers in many area such as security, robustness, etc.
 
-Our call-graph analysis allows us to only select system calls that are actually used by the application, not all the system calls that appear in \libc{}.
-Our analysis takes the following steps:
+The call-graph analysis allows users to select only system calls that are actually used by the application, not all the system calls that appear in \libc{}.
+The analysis takes the following steps:
 \begin{compactitem}
 \item For a target executable or a library, generate a call graph of internal function usage.
 \item For each library function that the executable relies on, identify the code in the library that is reachable from each entry point called by the executable.
@@ -42,18 +42,18 @@ call-graphs, such as control flow integrity (CFI), our framework can tolerate th
 For instance, 
 programs sometimes make function call based on a function pointer passed as an argument by the caller of the function. 
 Because the calling target is dynamic, it is difficult to determine at the  call site.
-Rather, we track sites where the function pointers are assigned to a register, such as using the {\tt lea} instruction with an address
+Rather, the analysis tracks sites where the function pointers are assigned to a register, such as using the {\tt lea} instruction with an address
 relative to the current program counter.
 %Instead of precisely tracking calling target at the {\tt call} instruction, 
 %A function pointer is mostly assigned by {\tt lea} instruction to generate a relative address to the current program counter. 
-This is an over-approximation because, rather than trace the data flow, we assuming that a function pointer assigned to a local variable will be called.
-This analysis could be more precise if it included a data flow component. 
+This is an over-approximation because, rather than trace the data flow, the analysis assumes that a function pointer assigned to a local variable will be called.
+%This analysis could be more precise if it included a data flow component. 
 %\fixmedp{As an aside, this level of data flow analysis shouldn't be that hard, right?  Not  that it matters, except for the thesis/journal version.}
 
-We also hard-code for a few common and problematic patterns.
-For instance, we generally assume that the registers that pass a system call number to a system call,
+The analysis also hard-codes for a few common and problematic patterns.
+For instance, the analysis generally assume that the registers that pass a system call number to a system call,
 or an opcode to a vectored system call, are not the result of arithmetic in the same function.
-We spot checked this assumption, but did not do the data flow analysis to detect this case.
+The analysis also spot checks this assumption, but does not do the data flow analysis to detect this case.
 
 %must trace the register values such as {\tt RAX/EAX} for system call number or {\tt RBX/EBX} for parameter to vectored system calls. 
 

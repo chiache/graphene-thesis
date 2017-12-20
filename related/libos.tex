@@ -8,18 +8,18 @@
 Previous library OSes~\citep{porter11drawbridge,xax,unikernels,baumann13bascule,osv}
 focus on running single-process applications
 in a \picoproc{} or a unikernel
-for verious reasons including compatibility and security isolation.
+for various reasons including compatibility and security isolation.
 %to support coordination abstractions required 
 %for multi-process applications, such as shell scripts.
-Bascule~\citep{baumann13bascule} implements a Linux library OS on a variant of the Drawbridge ABI,
+Bascule~\citep{baumann13bascule} implements a Linux \libos{} on a variant of the Drawbridge ABI
 but does not include support for multi-process abstractions such as signals or copy-on-write fork.
-The Bascule Linux library OS also implements fewer Linux system calls than Graphene, missing
+The Bascule Linux \libos{} also implements fewer Linux system calls than Graphene, missing
 features such as signals.
-Bascule demonstrates a complementary facility to Graphene's multi-process support: composable library OS extensions, 
+Bascule demonstrates a complementary facility to Graphene's multi-process support: composable \libos{} extensions, 
 such as speculation and record/replay.
 OSv is a recent open-source, % project to design and implement a 
 single-process 
-library OS to support a managed language runtime, such as Java, on a bare-metal hypervisor~\citep{osv}.
+\libos{} to support a managed language runtime, such as Java, on a bare-metal hypervisor~\citep{osv}.
 
 
 A number of recent projects have provided a minimal, isolated environment
@@ -32,23 +32,23 @@ the goal of pushing system complexity out of the kernel and into the application
 %%% ensuring that a web page is compatible with the JavaScript, CSS, and other interpreters in the browser~\citep{atlantis};
 %%% and simply the ability to push code from the data center onto the client where it makes 
 %%% sense~\citep{nacl, embassies, howell13refactoring}.
-Unlike a library OS, these systems
+Unlike a \libos{}, these systems
 generally sacrifice the ability to execute unmodified application code, 
 eliminate common UNIX multi-process functionality (e.g., fork), or both.
 
 
-The term library OS also refers to an older generation of research
+The term \libos{} also refers to an older generation of research
 focused on tailoring hardware management heuristics 
 to individual application needs~\citep{kaashoek97exokernel,anderson92libos,cheriton94cache,leslie96nemesis,libra},
-whereas newer library OSes, including Graphene, focus
+whereas newer \liboses{}, including Graphene, focus
 on providing application compatibility
 across different hosts without dragging along an entire legacy OS.
-A common thread among all libOSes is moving functionality from the kernel
-into applications and reducing the TCB size or attack surface.
-Kaashoek et al.~\citep{kaashoek97exokernel} identify multi-processing as a problem for an Exokernel libOS,
+A common thread among all \liboses{} is moving functionality from the kernel
+into applications and reducing the TCB (trusted computing base) size or attack surface.
+Kaashoek et al.~\citep{kaashoek97exokernel} identify multi-processing as a problem for an Exokernel \libos{},
 and implemented some shared OS abstractions.
 The Exokernel's sharing designs rely on shared memory rather than byte streams,
-and would not work on recent libOSes,
+and would not work on recent \liboses{},
 nor will they facilitate dynamically sandboxing two processes.
 
 %% In moving services out of the kernel and into user libraries our design resembles a microkernel~\citep{liedtke95sosp, Baron:1985:MOE}.
@@ -77,7 +77,7 @@ that uses Linux host system calls. % to emulate this functionality.
 %Because UML runs a complete Linux kernel and multiple processes,
 %it is effectively
 UML is best described as  an alternative approach to paravirtualization~\citep{barham03xen},
-and, unlike a library OS, does not deduplicate functionality.
+and, unlike a \libos{}, does not deduplicate functionality.
 
 
 \paragraph{Virtualization.}
@@ -155,7 +155,7 @@ construct higher-level OS abstractions, such as System V IPC and signals.
 %% construct higher-level OS abstractions, such as System V IPC and signals.
 
 L3 introduced a ``clans and chiefs'' model of IPC redirection, in which IPC to
-a non-sibling process was validated by a the parent (``chief'') before a message could leave the clan~\citep{liedtke92clans}.
+a non-sibling process was validated by the parent (``chief'') before a message could leave the clan~\citep{liedtke92clans}.
 %This model was primarily used to enforce access control on system abstractions,
 %and abandoned for capabilities on kernel objects in L4
 Although this model was abandoned as cumbersome for general-purpose access control~\citep{elphinstone13microkernels},
