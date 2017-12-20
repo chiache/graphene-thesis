@@ -186,9 +186,9 @@ and the Linux system call footprint to \hostsyscallnum{} system calls.
 To reduce the effective attack surface to a Linux host,
 the Linux host restricts a \picoproc{} from accessing any system calls that are not part of the ordinary footprint of a Linux PAL.
 The system call restriction on Linux focuses on blocking most of the system calls
-that interferes with other processes.
-The remaining permitted system calls with external effects are checked by 
-the reference monitor (see Section~\ref{sec:linux:security:ref-monitor}).
+that interfere with other processes.
+The reference monitor checks the remaining permitted system calls with external effects, such as \syscall{open}
+(see Section~\ref{sec:linux:security:ref-monitor}).
  
 %% dp: Meh
 %%% Any picoprocess implementation 
@@ -249,13 +249,13 @@ as well as filter certain register values, such as blocking system calls from pr
 %where the \pal{} uses 5 out of over 400 opcodes for our bulk IPC module and sandbox creation;
 %our BPF rules will block any other {\tt ioctl} opcode.
 The current \seccomp{} filter installed by the Linux PAL contains \seccomplines{} lines of straightforward BPF macros.  %Experiments show that adding more precise argument checks has no significant impact on system call latency.
-Once a \seccomp{} filter is installed in a process,
+Once a process installs a \seccomp{} filter,
 the filter intermediates
-every system calls from the process and its future children, and guarantees the processes can never bypass the restriction.
-The Linux PAL uses \code{SIGSYS} signals to capture rejected system calls,
+every system calls from the process and its future children and guarantees the processes can never bypass the restriction.
+The Linux PAL uses \code{SIGSYS} signals to capture rejected system calls
 and can either terminate the whole application or
 redirect the system call to \thelibos{}.
-The consecutive steps of system call redirection are described in Section~\ref{sec:libos:syscall-redirection}.
+Section~\ref{sec:libos:syscall-redirection} lists the consecutive steps of system call redirection. 
 
 
 
@@ -281,7 +281,7 @@ within each \picoproc{} and permitted to invoke system calls.
 Finally, a \seccomp{} filter
 cannot check a string argument, such as a file path for \syscall{open} or a network address for \syscall{bind}.
 Checking a string argument requires
-involves reading user memory of unknown sizes and string comparison, and the BPF grammar only allows checking an argument arithmetically.
+reading user memory of unknown sizes and string comparison, and the BPF grammar only allows checking an argument arithmetically.
 Filtering permitted file paths and network addresses
 must rely on a trusted reference monitor (see Section~\ref{sec:linux:security:ref-monitor}).
 %In order to avoid the overhead of trapping to the reference monitor on 
@@ -312,7 +312,7 @@ to block unauthorized system calls from both the Linux PAL and the rest of \pico
 
 
 \paragraph{Security implications.}
-Using an existing system call restriction mechanism like \seccomp{},
+Using a system call restriction mechanism like \seccomp{},
 \graphene{} limits the ability of an untrusted application to attack a Linux kernel.
 Ideally, since \thelibos{} only requires \thehostabi{},
 \graphene{} can adopt a modified Linux kernel
@@ -340,7 +340,7 @@ on any kernel execution paths for servicing one of the blocked system calls.
 
 
 Although a regular Linux process can also leverage a \seccomp{} filter,
-\graphene{} makes a major contribution
+\graphene{} makes a major effort
 to reduce the system call footprint of any large-scale application
 to a fixed, small system call profile.
 Analysis %of applications and libraries
@@ -472,22 +472,26 @@ match one of the network rules.
 %so the file paths or network addresses can be checked against the sandbox rules.
 %The kernel module as the driver of the \graphene{} special device can coexist with any LSM such as \emph{AppArmor} or \emph{SELinux}.
 
-The Linux PAL implements
-the reference monitor as a Linux Security Module (LSM) extended from the existing AppArmor module.
-AppArmor is the default LSM of most Linux distributions,
-and a Linux kernel disallows multiple LSMs (e.g., AppArmor, SELinux) to be effective simultaneously.
-\graphene{} instruments
-a few security hooks of the AppArmor, to add checks for file system paths
-and network addresses.
+The Linux PAL uses
+a Linux kernel module as the reference monitor.
+Upon installation of the kernel module, a special device {\tt /dev/graphene} is available for a \graphene{} \picoproc{}
+to issue system call requests through \syscall{ioctl} calls.
+The \seccomp{} filter ensures the \graphene{} \picoproc{} only calls system calls like \syscall{open} and \syscall{bind}
+through the reference monitor interface.
+%AppArmor is the default LSM of most Linux distributions,
+%and a Linux kernel disallows multiple LSMs (e.g., AppArmor, SELinux) to be effective simultaneously.
+%\graphene{} instruments
+%a few security hooks of the AppArmor, to add checks for file system paths
+%and network addresses.
 The security checks of the reference monitor are stackable with other host security mechanisms.
-For example, if a manifest lists a root-privileged file and the \graphene{} application runs in a unprivileged process,
+For example, if a manifest lists a root-privileged file to be accessed by an unprivileged process,
 existing security checks in a Linux kernel
 still blocks the file access even though the reference monitor permits the access.
-The drawback of the implementation
-is that \graphene{} must run on a modified Linux kernel.
-Linux kernels do not support loading LSM as a dynamic kernel module.
-\graphene{} only replaces
-the AppArmor LSM in a Linux kernel; the rest of the Linux kernel remains unchanged.
+%The drawback of the implementation
+%is that \graphene{} must run on a modified Linux kernel.
+%Linux kernels do not support loading LSM as a dynamic kernel module.
+%\graphene{} only replaces
+%the AppArmor LSM in a Linux kernel; the rest of the Linux kernel remains unchanged.
 
 
 A trusted security loader initializes the reference monitor
@@ -495,39 +499,40 @@ when launching an application in \graphene{}.
 When a user launches an application in \graphene{} from the command line,
 the first \picoproc{} begins in a new sandbox.
 The security loader
-reads the manifest file given by the user,
+reads the manifest file given by the user
 and submits the sandbox rules to the reference monitor.
-The reference monitor exports a miscellaneous device called \code{/dev/graphene}
-for the security loader to submit sandbox rules using the \syscall{ioctl} system call.
+%The reference monitor exports a miscellaneous device called \code{/dev/graphene}
+%for the security loader to submit sandbox rules using the \syscall{ioctl} system call.
 Once the reference monitor
 starts a \picoproc{} in a sandbox, neither the first \picoproc{} nor any consecutive \picoprocs{} spawned in the sandbox can ever escape the sandbox or drop the restrictions on certain resources.
 
 
 \paragraph{Alternative approaches.}
 Other approaches can implement the reference monitor without modifying a Linux kernel, with a trade-off of performance or development simplicity.
-An approach is to implement the reference monitor as a trusted process receiving \code{ptrace} events from \graphene{} \picoprocs{}.
-Using the \syscall{ptrace} system call, this reference monitor can retrieve user memory from the monitored \picoprocs{},
+An approach is to implement the reference monitor as a trusted process receiving \code{ptrace} events from \graphene{} processes.
+Using the \syscall{ptrace} system call, this reference monitor can retrieve user memory from the monitored process,
 and block the system calls which request for unpermitted resources.
 Unfortunately, intercepting every system calls with \code{ptrace} events introduces significant overhead to \hostapis{};
-thus, this approach is not ideal for isolating \graphene{} applications on a Linux host.
+thus, this approach is not ideal for isolating \graphene{} on a Linux host.
 
 
-Another approach is to translate the resource rules in a manifest file
-to AppArmor or iptables rules.
-As explained in the previous paragraph, the file and network rules in a manifest file are similar to the file lists in an AppArmor profile and the firewall rules enforced by iptables.
-Instead of implementing a \graphene{}-specific reference monitor,
+Another approach is to translate the isolation rules
+to an AppArmor profile or iptables rules.
+Since file and network rules of \graphene{} are similar to file rules of AppArmor and firewall rules of iptables,
+%Instead of implementing a \graphene{}-specific reference monitor,
 \graphene{} can convert a manifest file, either statically or dynamically,
-to security rules recognized by AppArmor and iptables.
-This approach requires no modification
-in a Linux kernel, and can benefit from
-existing optimizations of AppArmor and iptable. %these security mechanisms.
+to security policies recognized by AppArmor and iptables.
+This approach will not require a \graphene{}-specific reference monitor installed as a Linux kernel module.
+%This approach requires no modification
+%in a Linux kernel, and can benefit from
+%existing optimizations of AppArmor and iptable. %these security mechanisms.
 \graphene{} leaves the integration with AppArmor and iptables for future work.
 
 
 
 
 \paragraph{Dynamic process-specific isolation.}
-A child \picoproc{} may either inherit its parent's sandbox, 
+A child \picoproc{} may either inherit its parent's sandbox
 or start in a new sandbox,
 by either specifying a flag to \palcall{ProcessCreate} or calling the sandboxing \hostapi{}, \palcall{SandboxSetPolicy}.
 A new sandbox may obtain a subset of the original file system view,
@@ -539,9 +544,8 @@ using \palcall{SandboxSetPolicy},
 the Linux PAL issue another \syscall{ioctl} call to \code{/dev/graphene}
 to dynamically detach
 the \picoproc{}
-from the parent's sandbox and update sandbox rules. The reference monitor
-closes existing RPC streams and prevents RPC stream creation 
-across sandboxes.
+from the parent's sandbox and update sandbox rules. %The reference monitor
+%closes existing RPC streams and enforces isolation on future RPCs.
 %among picoprocesses
 %that are not in the same sandbox.
 %and restricts external connections to remote URIs according to firewall rules in the manifest.

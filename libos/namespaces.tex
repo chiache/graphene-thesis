@@ -288,17 +288,17 @@ to call the appropriate user signal handler.
 %For cross-process signals, we use the namespace coordination mechanism.
 \thelibos{} implements all three of Linux's signaling namespaces:
 process, process group, and thread IDs.
-If a signal is sent for a process or a process group,
-every threads within the process or the process group receives a copy of the signal,
+If a signal is sent to a process or a process group,
+every thread within the process or the process group receives a copy of the signal,
 even if the threads belong to different \picoprocs{}.
 
 
-Exit notification in Linux is based on the same mechanism as signaling.
+Linux also delivers exit notifications as signals.
 When a process exits, normally a \code{SIGCHLD} signal
 is delivered from the child process to its parent,
 to unblock the parent who might be waiting for exit notification using \syscall{wait} or \syscall{waitpid}.
-Exit notification is always coordinated over RPC streams
-between parent and child \picoprocs{}.
+\thelibos{} exchanges exit notifications
+between parent and child \picoprocs{} over RPC streams.
 
 
 
@@ -411,15 +411,15 @@ since an application might autonomously assign System V IPC keys to its processe
 %The leader also dynamically allocates keys to \picoprocs{}.
 Global coordination is required to ensure that the same key maps to the same resource ID;
 the leader caches this information, but the owner of the resource ID 
-makes the definitive decision about whether a ID mapping is still valid.
+makes the definitive decision about whether an ID mapping is still valid.
 A key which does not have a valid mapping can be assigned to a resource ID by any process to allocate a {\em private} IPC resource.
 
 
 
 \paragraph{System V IPC message queues.} In \graphene{}, the owner of a queue ID is responsible for 
 storing the messages written to a System V IPC message queue.
-To ensure the serializability and consistency of all messages, any delivery and reception of messages must go through the owner.  
-In the initial implementation of \thelibos{}, sending or receiving messages remotely over a RPC stream
+To ensure the serializability and consistency of all messages,  delivery and reception of messages must go via a central owner.  
+In the initial implementation of \thelibos{}, sending or receiving messages remotely over an RPC stream
 orders of magnitude slower than accessing a local message queue.
 This observation led to two essential optimizations.  
 First, sending to a remote
@@ -598,10 +598,8 @@ This subsection summarizes the design principles that have emerged from this pro
 Sending RPC messages over Linux pipes is expensive;
 this is unsurprising, given the long history of 
 work on reducing IPC overhead in microkernels~\cite{liedtke93sosp,chen93memory}.  
-We expect that \graphene{} performance could be improved on a 
-\microkernel{} with
-a more optimized IPC substrate, such as L4~\cite{liedtke95sosp,klein09sel4,elphinstone13microkernels};
-we take a complementary approach of avoiding IPC if possible.
+Running on a \microkernel{} can improve the performance of \graphene{} with
+a more optimized IPC substrate~\cite{liedtke95sosp,klein09sel4,elphinstone13microkernels}. Currently, \graphene{} takes a complementary approach of avoiding IPC if possible.
 %but this is beyond the scope of our work, and we want \graphene{} to perform well on any 
 %host OS.
 

@@ -2,7 +2,7 @@
 \label{sec:linux:impl}
 
 \issuedone{1.1.a}{Extend the technical sections}
-The initial design of the Linux PAL is based on an unmodified Linux kernel.
+The Linux PAL uses an unmodified Linux kernel as the host OS.
 By default, a \graphene{} \picoproc{} should run on
 an off-the-shelf Linux kernel as an unprivileged, normal process, with a PAL loaded for exporting \thehostabi{}.
 The Linux PAL demonstrates a minimal effort of implementing \thehostabi{}
@@ -52,10 +52,11 @@ For example, a follow-up experiment of developing a FreeBSD PAL finds most of th
 \hline
 {\bf Component} & {\bf Lines} & ({\bf \% Changed})\\
 \hline
-GNU Library C ({\tt libc}, {\tt ld}, {\tt libdl}, {\tt libpthread}) & \libclines{} & $0.07\%$ \\
+GNU Library C ({\tt libc}, {\tt ld}, {\tt libdl}, {\tt libpthread}) & \libclines{} & $0.03\%$ \\
 \hline
-Linux Library OS (\thelibos{}) & 31,112 & \\
-Linux PAL & 12,529 & \\
+Linux Library OS (\thelibos{}) & 33,833 & \\
+Linux PAL & 12,640 & \\
+SGX PAL (described in Chapter~\ref{chap:sgx}) & 28,166 & \\
 %Extra code for Linux \sgx{} host \pal{} & 9.354 & \\
 % updated by Chia-Che on Oct. 10, 2013
 \hline
@@ -99,8 +100,8 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 
 The rest of this section
 will discuss a few PAL ABI abstractions that are particularly challenging on a Linux host.
-Similar challenges have been presented %have been observed for implementing \thehostabi{}
-on other alternative host kernels such as FreeBSD, \osx{}, and \win{}.
+Similar challenges exist %have been observed for implementing \thehostabi{}
+on other host OSes such as FreeBSD, \osx{}, and \win{}.
 %except that other kernels might introduce additional host-specific challenges.
 
 
