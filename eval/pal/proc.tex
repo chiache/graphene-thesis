@@ -29,7 +29,7 @@ expects the following three types of performance overheads:
 (2) creating a trustworthy RPC stream among parent and child processes;
 (3) adding the new process to the trusted group of its parent.
 Each of these factors
-impact the latency of process creation
+impacts the latency of process creation
 in a non-trivial way.
 As measured in
 Figure~\ref{fig:eval:pal:proc-latency} (a),
@@ -42,8 +42,7 @@ Among the overhead,
 in the child process,
 including executing a separate binary
 which then loads the PAL binary at the same address,
-in order to
-support PC-based filtering.
+to support program-counter-based system call filtering.
 %the overall overhead is 36\%, but not completely as result of system call filtering;
 %to ensure the same address for loading
 %the PAL binary, the Linux PAL introduces
@@ -131,9 +130,9 @@ The \sgx{} PAL isolates each process inside a separate enclave
 and uses secured RPC streams
 for coordination between parent and child processes.
 As a part of the process creation,
-the \sgx{} PAL initializes a empty enclave
-signed for the target executable,
-and establishes a TLS connection over a RPC stream.
+the \sgx{} PAL initializes an empty enclave
+signed for the target executable
+and establishes a TLS connection over an RPC stream.
 The process creation procedure
 includes several defenses against potential attacks
 from the host OS,
@@ -176,7 +175,7 @@ enclave sizes;
 %To create a 16MB enclave,
 %which is the minimum size to load a functioning \graphene{} process,
 %takes \roughly{}0.8\asec{}.
-creating a process in an 1GB enclave
+creating a process in a 1GB enclave
 takes \roughly{}2.8\asec{},
 or 26,000\x{} to the process creation time
 on the Linux PAL.
@@ -191,18 +190,18 @@ on the Linux PAL.
 %with support dynamic memory management,
 %and eliminate the need of preserving large heap space in enclave
 Although process creation
-is generally considered an expensive operation
+is normally considered an expensive operation
 in most OSes,
 the extremely high overheads
 on the \sgx{} PAL
 can be a huge impact, especially for applications which
-frequently create new process, such as shell applications and makefiles.
+frequently create new processes, such as shell applications and makefiles.
 
 
 Several optimizations are possible for improving process creation
 on the \sgx{} PAL.
 One optimization
-is to create enclaves in advance,
+is to create enclaves in advance
 or to recycle enclaves after process termination.
 Moreover,
 the SGX2 hardware~\cite{sgx2} introduces
@@ -225,7 +224,7 @@ in small enclaves.
 The assumption around the
 abstraction
 is that it has higher bandwidth
-than a RPC stream
+than an RPC stream
 by sharing pages as copy-on-write across processes.
 However,
 the assumption is not always valid, since RPC streams
@@ -249,7 +248,7 @@ over UNIX sockets~\cite{linux4.2-unix}.
 %creating the same effect as the bulk IPC feature in \thehostabi{}.
 %Therefore, using the bulk IPC is only beneficial on a Linux kernel older than 4.2.
 %Despite the optimization being less effective on latest Linux kernels,
-\graphene{} still consider the bulk IPC abstraction
+\graphene{} still considers the bulk IPC abstraction
 beneficial for older Linux kernels
 or other host OSes. 
 

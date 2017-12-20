@@ -3,8 +3,7 @@
 
 The \libos{} of \graphene{}, or 
 \thelibos{},
-is a single library that resides beneath a Linux application,
-for exporting compatible Linux features and API.
+is a single library that resides beneath a Linux application to reproduce compatible Linux features and APIs.
 \thelibos{} guarantees reuse of an unmodified Linux application
 upon \thehostabi{},
 regardless of host limitations or distinctions.
@@ -47,7 +46,7 @@ pointers to the kernel functions for each system call,
 indexed by the system call numbers (e.g., \code{NR\_open} or 10 on x86-64).
 %and triggers in-kernel operations for servicing requests from applications.
 %and defines the interaction between applications and kernel.
-\graphene{} moves the Linux system call table into \thelibos{},
+\graphene{} moves the Linux system call table into \thelibos{}
 and develops system call handlers in the user space.
 %The system call table in \thelibos{} contains a number of system call handlers,
 Each system call handler emulates
@@ -55,11 +54,11 @@ the semantics of a system call,
 % that \graphene{} supports;
 %\graphene{} develops each handler
 based on either the specification % known by the Linux application developers,
-described in the man pages~\cite{linux-man-syscall},
+described in the man pages~\cite{linux-man-syscall}
 or the bug-for-bug behaviors
 observed in a real Linux kernel.
 Some system calls, such as \syscall{rt\_sigaction}, are partially documented
-in the man pages, and \thelibos{} imitates a Linux kernel on implementing a poorly-documented system calls.
+in the man pages, and \thelibos{} imitates behaviors observed in a running Linux kernel.
 %\graphene{} grows the \thelibos{} functionality
 %by extending the guest-level Linux system call table
 %with more complete implementation.
@@ -87,7 +86,7 @@ in the man pages, and \thelibos{} imitates a Linux kernel on implementing a poor
 %\paragraph{Implementing Linux Personality.} 
 %\fixmedp{Revisit the logical flow of these paragraphs}
 \Thelibos{} currently implements \graphenesyscallnum{} system calls,
-and is sufficient to run a range of applications from servers to command-line programs or runtimes.
+sufficient to run a range of applications from servers to command-line programs or runtimes.
 For reference, a recent Linux kernel supports more than 300 system calls.
 A Linux kernel also
 contains a long tail of infrequently-used system calls.
@@ -96,9 +95,9 @@ contains a long tail of infrequently-used system calls.
 %A Linux kernel exports a long tail of infrequently-used system calls.
 %For reference, the Linux \linuxversion{} kernel exports \linuxsyscallnum{} system calls.
 A study of the Linux system call usage~\cite{tsai16apistudy}
-indicates that only 40 system calls are indispensable to every applications released in the Ubuntu official repositories.
+indicates that only 40 system calls are indispensable to every application released in the Ubuntu official repositories.
 %The study also shows that
-In the meantime, more than 100 system calls are used by only exactly one application,
+In the meantime, more than 100 system calls are used by only exactly one application
 or none at all.
 The development of \thelibos{} began with
 implementing 12 system calls, such as \syscall{read} and \syscall{open}, which are fundamental to running a ``hello world'' application,
@@ -106,15 +105,15 @@ implementing 12 system calls, such as \syscall{read} and \syscall{open}, which a
 and gradually grows the system call count.
 %for each new application introduced to run on \graphene{}.
 %As the count of system calls continues to grow,
-Each time \thelibos{} is tested against a new application, the number of system calls that need to be added has dropped.
+%Each time \thelibos{} is tested against a new application, the number of system calls that need to be added has dropped.
 %Based on the types of applications priorized in \graphene{}, including servers, command-line programs, and language runtimes, some system calls to be more important %for reusing the applications
 %than the others. % system calls.
 %According to the usage of each system call in applications,
-\graphene{} prioritizes the popular system calls, and leaves other system calls that are either unpopular or for administrative purposes such as rebooting
+\graphene{} also prioritizes the popular system calls and leaves other system calls that are either unpopular or for administrative purposes such as rebooting
 or configuring network interfaces.
 \thelibos{} demonstrates the sufficiency of
 implementing Linux system calls upon \thehostabi{},
-for a representative subset of applications, .
+for a representative subset of applications.
 
 
 %The current \thelibos{} implementation
@@ -167,13 +166,13 @@ for a representative subset of applications, .
 \label{sec:libos:syscall-redirection}
 
 
-\thelibos{} transparently redirects system calls from a Linux application. In a Linux kernel, a system call interrupt handler
+\thelibos{} transparently redirects system calls from a Linux application. In a Linux kernel, a system call handler
 triggers the kernel operations
 whenever an application executes
 a ``\assembly{syscall}'' or ``\assembly{int \$80}'' instruction.
 The interrupt handler
-switches the context of application,
-and then jumps to the kernel routines which serve the system calls.
+switches the application context
+and jumps to the kernel routines that service the requested system calls.
 %based on a kernel convention agreed by applications and Linux kernels.
 Because \thelibos{} reuses
 unmodified Linux executables and libraries,
@@ -194,8 +193,7 @@ Normally,
 by modifying the C library (\libc{}).
 %from an unmodified Linux application.
 Most Linux executables and libraries
-are linked against \libc{},
-and rely \libc{} functions to access OS features
+rely on \libc{} functions to access OS features
 instead of
 invoking system calls directly.
 %but use \libc{} functions as wrappers to system calls.
@@ -208,14 +206,14 @@ invoking system calls directly.
 For example,
 compared with making the \syscall{read} system call directly,
 more commonly
-an application uses \libc{}'s \code{stdio} functions,
+an application uses \libc{}'s \code{stdio} functions
 or calls the \libc{} \syscall{read} wrapper
 %\funcname{read} is a wrapper to,
 which internally runs \assembly{syscall}.
 % that bares the same name and definition.
 Unless configured otherwise, \thelibos{} uses a modified
 {\bf GNU C library (\glibc{})}~\cite{glibc},
-as the standard GNU \libc{} of most Linux distributions, including Ubuntu.
+for application binaries from any GNU Linux distributions, including Ubuntu~\cite{ubuntu-packages}.
 %applications released by Ubuntu. % are compatible against \glibc{}.
 %which is compatible against most of the Linux applications released for Ubuntu.
 %Other \libc{} variants, ,
@@ -223,7 +221,7 @@ as the standard GNU \libc{} of most Linux distributions, including Ubuntu.
 %can be also modified to redirect system calls to \thelibos{}.
 %are alternatives upon \thelibos{} as long as they are modified for .
 \graphene{} can be configured to use other \libc{} variants,
-such as \projname{uClibc}~\cite{uclibc} and \projname{musl}~\cite{musl},
+such as \projname{uClibc}~\cite{uclibc} and \projname{musl}~\cite{musl}
 if an application finds them sufficient.
 %\graphene{} demonstrates that 
 %are also demonstrated
@@ -273,8 +271,7 @@ and returned to \funcname{IllegalInstrHandler} in \thelibos{}.}
 \graphene{} modifies four \glibc{} libraries:
 %When using \graphene{}, an application must be deployed with the modified \libc{} libraries,
 a runtime dynamic loader (\code{ld.so}), a core library (\code{libc.so}), a POSIX thread library (\libpthread{}), and a dynamic loading library (\libdl{}).
-Each of the \Glibc{} libraries has separate purposes and features,
-and is mostly loaded on demand except \code{ld.so}.
+Each of the \Glibc{} libraries has separate purposes and features.
 %Despite that \glibc{} has partitioned its code into separate libraries,
 \graphene{} only modifies the \glibc{} libraries which contains direct \assembly{syscall} instructions.
 %not every libraries of \glibc{} need to be modified for system call redirection.
@@ -291,7 +288,7 @@ so \graphene{} leaves these libraries unmodified.
 Static binaries, or some platform-dependent applications, contain hard-coded \assembly{syscall} instructions
 which cannot be redirected by a modified \libc{}.
 Application developers
-create a static binary with with hard-coded system calls by statically linking a local version of \libc{} as part of the binary.
+create a static binary with hard-coded system calls by statically linking a local version of \libc{} as part of the binary.
 %as a static binary with hard-coded system calls. %\code{syscall} instructions.
 It is also possible to program an application
 with assembly code that directly invokes system calls---usually in a language runtime (e.g., the go runtime) or a system software (e.g., \projname{busybox}).
@@ -316,17 +313,17 @@ A \seccomp{} filter can block or forward a system call based on the system call 
 argument values, or the code address that invokes the system call.
 %A direct system call traps into the host kernel,
 %unless the host has virtualized the interrupt handler to the \libos{}.
-\graphene{} relies on the hosts to install a system call filter, or enforce architectural restriction, to detect direct system calls.
-For example, \sgx{} already has a restriction that an enclave application cannot trigger any system call to switch context into the untrusted kernel.
+\graphene{} relies on the hosts to install a system call filter or enforce an architectural restriction to detect direct system calls.
+For example, an \sgx{} enclave restricts an application to invoke any system call by triggering an ``illegal instruction'' exception. %cannot trigger any system call to switch context into the untrusted kernel.
 % inside an enclave and triggers an exception for an in-enclave system call.
 %\code{syscall} instructions
 %(e.g., \sgx{} restriction).
 %The details of the system call restriction mechanisms are discussed in
 %\fixme{update labels}
 %Section~\ref{sec:linux:syscall} and Section~\ref{sec:sgx:syscall}.
-If the host detects a direct system call from an application,
-it can return
-a PAL exception to an exception handlers assigned by \thelibos{}, using  \palcall{ExceptionSetHandler}.
+If the host detects a direct system call,
+the PAL delivers an exception to the handler
+assigned by \thelibos{}. % using  \palcall{ExceptionSetHandler}.
 %\thehostabi{} specifies that the host captures unauthorizes system calls
 %and redirects to an exception handler (set up by \palcall{ExceptionSetHandler}).
 %If a binary makes an illegal system call,
@@ -342,16 +339,15 @@ inside \thelibos{}.
 
 Using exceptions to forward direct system call is much slower than redirecting through a modified \libc{},
 due to the overhead of switching context between the application and the host kernel.
-To handle an exception from the host OS,
+When handling an exception,
 the application at least switches context twice, including both triggering the exception handler and returning to the original execution.
-To mitigate the overhead,
-\thelibos{} can 
-rewrite the hard-coded \assembly{syscall} or \assembly{int \$80} inside each application binary during the run time.
+A mitigation for the overhead
+is to rewrite the hard-coded \assembly{syscall} or \assembly{int \$80} inside each application binary during the loading.
 % to redirect the hard-coded system calls;
 %use {\bf binary translation} to modify the hard-coded \code{syscall} instructions;
-There can be two timings for rewriting the instructions:
-One is the timing when the runtime loader a new binary, and \thelibos{} can perform a full scan of the binary
-to replace \assembly{syscall} or \assembly{int \$80} with a jump to \thelibos{}'s system call table.
+%There can be two timings for rewriting the instructions:
+%One is the timing when the runtime loader a new binary, and \thelibos{} can perform a full scan of the binary
+%to replace \assembly{syscall} or \assembly{int \$80} with a jump to \thelibos{}'s system call table.
 \thelibos{} can also passively replace the instructions
 whenever the host detects a direct system call and triggers an exception handler.
 %binary translation
@@ -360,7 +356,7 @@ whenever the host detects a direct system call and triggers an exception handler
 %to optimize consecutive system call invocation at the same location.
 %\thelibos{} can also perform a full scan in application binaries
 %to spot and modify hard-code \code{syscall} instructions.
-\graphene{} leaves binary rewriting
-as a future feature.
+\graphene{} leaves system call interception by binary rewriting
+as a future feature to explore in \thelibos{}.
 
 

@@ -34,15 +34,15 @@ Polling file descriptors using \syscall{select} is one of the most expensive sys
 emulated by \thelibos{}.
 For instance, to poll 256 file descriptors,
 Table~\ref{tab:eval:libos:lmbench-threading} shows up to 672\x{} overheads on the Linux host, or 1,301\x{} inside an enclave.
-The reason of the high latency
+The reason for the high latency
 is due to the definition of the \hostapi{}, \palcall{ObjectsWaitAny},
 which only returns one handle at a time.
 Therefore, to poll 256 file descriptors,
-\thelibos{} has to call \palcall{ObjectsWaitAny} up to 256 times, in order to confirm
+\thelibos{} has to call \palcall{ObjectsWaitAny} up to 256 times, to confirm
 the readiness of all polled file descriptors.
 A possible optimization
 is to redefining the \hostapi{} to allow returning multiple handles,
-which is left as future work.
+which remains as future work.
 
 
 The synchronization primitives offered by the pthread library,

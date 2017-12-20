@@ -42,7 +42,7 @@ Due to the complexity of Linux APIs and system implementation,
 it is hard to automate the process of identification.
 However, OS developers are mostly able to maintain such a list based on the internal knowledge. 
 
-We evaluate the \compatmetric{} of four Linux-compatible systems or emulation layers:
+This section evaluates the \compatmetric{} of four Linux-compatible systems or emulation layers:
 User-Mode-Linux~\citep{user-mode-linux}, L4Linux~\citep{hartig97mu}, FreeBSD emulation layer~\citep{freebsd-emu}, and Graphene library OS~\citep{tsai14graphene}.
 For each system, we explore techniques
 to help identifying the supported system calls,
@@ -70,13 +70,13 @@ The results also identify the most important system calls
 that the developers should consider adding. 
 User-Mode-Linux and L4Linux both have a \compatmetric{} over 90\%,
 with more than 280 system calls implemented.
-FreeBSD's  \compatmetric{} is  62.3\% because it is missing some less
+FreeBSD's  \compatmetric{} is 62.3\% because it is missing some less
 important system calls
 such as {\tt inotify\_init} and {\tt timerfd\_create}.
-Graphene's \compatmetric{} is only 0.42\%.
-We observe that the primary culprit is 
-scheduling control; by adding two scheduling system calls,
-Graphene's \compatmetric{} would be 21.1\%.
+A previous version of Graphene \compatmetric{} is only 0.42\% complete.
+The observation shows that the primary culprit is 
+scheduling control---by adding two scheduling system calls,
+Graphene's \compatmetric{} is 21.1\%.
 
 \papersubsection{Standard C libraries}
 

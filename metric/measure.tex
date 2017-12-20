@@ -1,8 +1,8 @@
 \papersection{API compatibility metrics}
 \label{sec:metric:definitions}
 
-We started this study from a research perspective, in search of a better way to evaluate
-the completeness of system prototypes with a Unix compatibility layer.
+The study starts with a research perspective, in search of a better way to evaluate
+the completeness of system prototypes with a compatibility layer.
 In general, compatibility is treated as a binary property
 (e.g., bug-for-bug compatibility), which loses 
 important information when evaluating a prototype that is almost certainly incomplete.
@@ -11,19 +11,19 @@ such as the number of total supported system or library calls, as well as the va
 of supported applications.
 
 
-These metrics are easy to quantify, but problematic.
-Simply put, not all APIs are equally important: some are indispensable (e.g., \syscall{read} and \syscall{write}),
+These metrics are easy to quantify but problematic.
+Not all APIs are equally important: some are indispensable (e.g., \syscall{read} and \syscall{write}),
 whereas others are very rarely used (e.g., \syscall{preadv} and \syscall{delete\_module}).
 A simple count of system calls is easily skewed by 
 system calls that are variations on a theme (e.g., \syscall{setuid}, \syscall{seteuid}, and \syscall{setresuid}).
 Moreover, some system calls, such as \syscall{ioctl},
 export widely varying operations---some used by 
-by {\em all} applications and many that are essentially never used.
+{\em all} applications and many that are essentially never used.
 %We use the term {\em vectored system call} for calls, such as {\tt ioctl},
 %which essentially export a nested system call table, selected by an opcode argument.
 %by {\em any} applications in Ubuntu 
 Thus, a system with ``partial support'' for \syscall{ioctl}
-is just as likely to support all or none of the Linux applications distributed with Ubuntu.
+is just as likely to support all or none of the Ubuntu applications.
 
 
 
@@ -65,17 +65,17 @@ Or, if a prototype added a given interface, how many more users would be able to
 %  installation instructions, are responsive to bug reports, etc.  The issues around maturity and support
 %  of research prototypes are orthogonal to the question of which APIs need to be present
 %  in a proof-of-concept system.}
-To answer these questions, we must consider both the 
+To answer these questions, the study must take into account both the 
 difference in API usage
 among applications,
 and the popularity of applications among end-users.
-We measure the former by analyzing application binaries,
+We measure the former by analyzing application binaries
 and determine the latter from installation statistics collected
 by Debian and Ubuntu~\citep{ubuntu-popularity,debian-popularity}.
-An {\bf installation} is a single system installation, and can 
+An {\bf installation} is a single system installation and can 
 be a physical machine, a virtual machine, a partition in a multi-boot system,
 or a chroot environment created by {\tt debootstrap}.
-Our data is drawn from over 2.9 million installations
+The final study data is drawn from over 2.9 million installations
 (2,745,304 Ubuntu and 187,795 Debian).
 %\fixmedp{Add a summary about how big this data set is (i.e., millions of systems)}
 %Although difficult to measure directly, we approximate this based on package installation statistics~\citep{ubuntu-popularity}.
@@ -89,11 +89,11 @@ Our data is drawn from over 2.9 million installations
 %%% a virtual machine,
 %%% or even a subsystem installed by 
 
-We introduce two new metrics: one for each API, and one for a whole system.
-For each API, we measure how disruptive its absence
+The thesis introduces two compatibility-related metrics: one for each API, and one for a whole system.
+For each API, a metric should measure how disruptive its absence
 would be to applications and end users---a metric we call {\bf  \usagemetric{}}.
-For a system, we compute a weighted percentage we call {\bf \compatmetric{}}. 
-For simplicity, we define a {\bf system} as a set of implemented or translated APIs,
+For a system, a metric should compute a weighted percentage we call {\bf \compatmetric{}}. 
+For simplicity, this thesis defines a {\bf system} as a set of implemented or translated APIs,
 and assume an 
 application will work on a target system if the application's API footprint is implemented on the system.
 These metrics can be applied to all system APIs,
@@ -106,7 +106,7 @@ or standard library functions.
 
 
 
-This paper focuses on \osdist{}, as it is a well-managed Linux distribution with a wide array of 
+Moreover, this study focuses only on \osdist{}, as it is a well-managed Linux distribution with a wide array of 
 supported software, which also collects
 package installation statistics.
 The default package installer on \osdist{} is \osinstaller{}.
@@ -302,14 +302,13 @@ This is calculated as follows:
 
 \papersubsection{\Compatmetric{}}
 
-We also measure compatibility at the granularity of an OS,
-which we call \compatmetric{}.
+This thesis also measure compatibility at the granularity of an OS,
+using a metric called \compatmetric{}.
 \Compatmetric{} is the fraction of applications that are likely to work,
 weighted by the likelihood that these applications will be installed on a system.
 %\fixmedp{check this synopsis}
 % function of the APIs supported, weighted by the popularity 
 %of the applications that require these APIs.
-
 The goal of \compatmetric{} is to measure the degree to which a
 new OS prototype or translation layer is compatible with a baseline OS.
 In this study, the baseline OS is \osdist{}.
@@ -398,7 +397,7 @@ a subset of the target system's supported APIs ($\mathtt{API}_\mathtt{Supported}
 
 
 \vspace{10pt}
-We note that this model of a typical installation is useful in reducing the metric to a single number,
+Note that this model of a typical installation is useful in reducing the metric to a single number,
 but also does not capture the distribution of installations.
 This limitation is the result of the available package installation statistics,
 which do not include correlations among installed packages.
@@ -408,9 +407,9 @@ This limitation requires us to
 assume that package installations are independent,
 except when \osinstaller{} identifies a dependency.
 For example, if packages {\em foo} and {\em bar} are both reported as being installed once,
-we cannot tell if they were on the same installation, or if two different installations.
+it is hard to tell if they were on the same installation, or if two different installations.
 If foo and bar both use an obscure system API, we assume that two installations would be affected if the obscure API were removed.
-If foo depends on bar, we assume the installations overlap. % overlapping installations are on the same system.
+If foo depends on bar, this thesis assumes the installations overlap. % overlapping installations are on the same system.
 %We note that packages do include installation dependences, which could be used in future work to reduce this over-approximation.
 %\fixmedp{Check my edit: I was confused by the old wording}
 Appendix \ref{sec:defs:compatmetric} formally defines \compatmetric{}.
@@ -450,7 +449,8 @@ By assuming independence of package installation, we can calculate the probabili
 \papersection{Data collection}
 \label{sec:metric:collection}
 
-We use static binary analysis to identify the system call footprint of a binary.  This approach has the advantages
+This study uses static binary analysis to identify the
+system call footprint of a binary.  This approach has the advantages
 of not requiring source code or test cases.  Dynamic system call logging using a tool like {\tt strace} is simpler,
 but can miss input-dependent behavior.  A limitation of our static analysis is that we must assume the disassembled binary
 matches the expected instruction stream at runtime.  In other words, we assume that the binary isn't deliberately obfuscating
@@ -458,11 +458,11 @@ itself, such as by jumping into the middle of an instruction (from the perspecti
 %In practice, such obfuscation is generally done only by malware, and our results are not concerned with system security.
 To mitigate this, we spot check that static analysis returns as superset of {\tt strace} results.
 
-We note that, in our experience, things like the system call number or even operation codes are fairly straightforward
+Note that, in our experience, things like the system call number or even operation codes are fairly straightforward
 to identify from a binary.  These tend to be fixed scalars in the binary, whereas other arguments, such as the contents of a write buffer,
 are input at runtime.
-We assume that binaries can issue system calls directly with inline system call instructions, or can call system calls through a library, such as \libc{}.
-Our static analysis identifies system call instructions and constructs a whole-program call graph.
+the assumption is that binaries can issue system calls directly with inline system call instructions, or can call system calls through a library, such as \libc{}.
+The static analysis identifies system call instructions and constructs a whole-program call graph.
 
 \begin{figure}[t!]
 \centering
@@ -473,13 +473,13 @@ Our static analysis identifies system call instructions and constructs a whole-p
 \label{fig:syspop:executable-type}
 \end{figure}
 
-Our study focuses primarily on ELF binaries, which account for the largest fraction of Linux applications
+The study also focuses primarily on ELF binaries, which account for the largest fraction of Linux applications
 %which account for the plurality of Linux applications
 (Figure~\ref{fig:syspop:executable-type}).
 For interpreted languages, such as Python or shell scripts,
-we assume that the system call footprint of the interpreter and major supporting libraries over-approximates the expected system call footprint of the applications.
+The assumption is that the system call footprint of the interpreter and major supporting libraries over-approximates the expected system call footprint of the applications.
 Libraries that are dynamically loaded, such as application modules or
-language native interface (e.g.,JNI, Perl XS) are not considered in our study. 
+language native interface (e.g.,JNI, Perl XS) are not considered in this study. 
 %\fixmedp{Does the analysis handle JNI, Perl XS, or other wrappers for native libraries?  I 
 %could imagine the answer being yes if a .so is shipped, but possibly no 
 %if it is somehow inlined}
@@ -526,7 +526,7 @@ The analysis in this paper is limited
 by the \osdist{}'s package installer, \osinstaller{},
 and their package installation statistics.
 Because most packages in \osdist{} are open-source,
-our observations on Linux API usage may have a bias toward open-source development patterns.
+The observations on Linux API usage may have a bias toward open-source development patterns.
 Commercial applications that are purchased and distributed
 through other means are not included in this survey data,
 although data from other sources could, in principle, be incorporated
@@ -534,7 +534,7 @@ into the analysis if additional data were available.
 %the analysis can only be conducted manually,
 %thus making it really hard to collect large amounts of samples.
 
-We assume that the package installation statistics provided by \osdist{} are representative.
+The study assumes that the package installation statistics provided by \osdist{} are representative.
 %The \osdist{} repository hosts \packagenum{} packages that contain application executables and libaries. 
 The popularity contest dataset is reasonably large (\popsamples{} installations),
 but reporting is opt-in.
@@ -584,10 +584,10 @@ to compare changes to the API usage over time.
 %% (even though our approach requires no source code for analysis).
 
 \paragraph{Static Analysis.}
-Because our study only analyzes pre-compiled binaries, some compile-time customizations may be missed.
+Because the study only analyzes pre-compiled binaries, some compile-time customizations may be missed.
 Applications that are already ported using macro like {\tt \#ifdef LINUX} will be considered dependent to Linux-specific APIs,
 even though the application can be re-compiled for other systems.
-Our static analysis tool only identifies 
+The static analysis tool only identifies 
 whether an API is potentially used,
 not how frequently the API is used during the execution.
 Thus, it is not sufficient to draw inferences about performance.
@@ -601,20 +601,20 @@ Thus, it is not sufficient to draw inferences about performance.
 
 
 %\note{Move this here}
-We assume that, once a given API (e.g., {\tt write}) is supported and works for a reasonable sample of applications,
+The assumption is that, once a given API (e.g., {\tt write}) is supported and works for a reasonable sample of applications,
 handling missed edge cases should be straightforward engineering that is unlikely to invalidate the experimental results of the project.
 That said, in cases where an input can yield significantly different behavior, e.g.,
 the path given to {\tt open},
-we measure the \usagemetric{} of these arguments.
+the study measures the \usagemetric{} of these arguments.
 Verifying bug-for-bug compatibility generally requires techniques largely orthogonal to the ones used in this study,
 and thus this is beyond the scope of this work.
 
-We do not do inter-procedural data-flow analysis.  As a result,
-we were unable to identify system call numbers for 2,454 call sites (4\% of the
-relevant call sites)
-across all binaries in the repository.  As a result,
-some system call usage values may be underestimated, and may go up 
-with a more sophisticated static analysis.
+%We do not do inter-procedural data-flow analysis.  As a result,
+%we were unable to identify system call numbers for 2,454 call sites (4\% of the
+%relevant call sites)
+%across all binaries in the repository.  As a result,
+%some system call usage values may be underestimated, and may go up 
+%with a more sophisticated static analysis.
 
 
 %% The package installation statistics provided by \osdist{}
@@ -628,7 +628,7 @@ with a more sophisticated static analysis.
 \paragraph{Metrics.}
 The proposed metrics are intended to be simple numbers for easy comparison.
 But this coarseness loses some nuance. 
-For instance, our metrics cannot distinguish between
+For instance, the metrics cannot distinguish between
 APIs that are critical to a small population, such as those that offer 
 functionality that cannot be provided any other way, 
 versus APIs that are rarely used because the software is unimportant.

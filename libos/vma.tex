@@ -3,25 +3,22 @@
 
 
 \fixme{start with what applications need}
-A Linux application expects a contiguous, large virtual address space,
-to allocate a number of numerically-addressable memory regions.
+A Linux application expects a contiguous, sufficient virtual address space
+to allocate memory regions for storing code or data.
 A program usually uses a \libc{} allocator, requested by \funcname{malloc} and \funcname{calloc},
 or a heap allocator of a managed language runtime,
 or reserves space on the current stack,
 to allocate fine-grained memory objects.
-To support application-level allocation,
-an OS is responsible of
+An OS is responsible of
 maintaining a unique, consistent mapping between virtual memory areas (VMAs) and physical pages,
-and managing the virtual address space layout
-to prevent collision of VMAs.
-The Linux kernel, specifically, provides several ways of memory allocation, such as allocation by \syscall{mmap} and \syscall{brk},
+and preventing collision of VMAs.
+The Linux kernel, specifically, provides several ways of allocating pages, such as allocation by \syscall{mmap} and \syscall{brk},
 and transparently growing a user stack downward. % exceeding the stack boundary.
-A application-level allocator may try several ways of requesting memory resources;
-for example, the \glibc{} allocator
-uses both \syscall{brk} and \syscall{mmap} to allocate different sizes of memory objects.
+%A application-level allocator may try several ways of requesting memory resources;
+%for example, the \glibc{} allocator
+%uses both \syscall{brk} and \syscall{mmap} to allocate different sizes of memory objects.
 Applications depend on different memory allocation mechanisms
-of a Linux kernel,
-to dynamically allocate space for storing application data.
+of a Linux kernel.
  
 
 

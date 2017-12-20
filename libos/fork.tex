@@ -40,7 +40,7 @@ or whether a checkpoint should be loaded instead.
 \papersection{Multi-process applications} 
 
 %A characteristic of Linux application development is the opportunity of using one of 
-This section explains an efficiency implementation of the process creation mechanisms in \thelibos{},
+This section explains an implementation of the process creation mechanisms in \thelibos{},
 including \syscall{fork} and \syscall{execve}.
 %and a variety of IPC (inter-process communication) mechanisms. 
 
@@ -51,13 +51,13 @@ including \syscall{fork} and \syscall{execve}.
 
 
 
-Implementing the UNIX-style, copy-on-write forking presents a particular challenge to the \graphene{} architecture.
+Implementing the UNIX-style, copy-on-write forking presents a particular challenge to \graphene{}.
 %when implemented using only a VM-like picoprocess abstraction.
-Using \palcall{ProcessCreate} in \thehostabi{}, each \graphene{} host
-creates a new \picoproc{} in a ``clean'' state, with an individual \thelibos{} instance maintaining the OS resources and features for an application process. % fork is implemented in the \libos{}.
+\palcall{ProcessCreate} in \thehostabi{}
+creates a new process in a ``clean'' state, with an individual \thelibos{} instance maintaining the OS resources and features for an application process. % fork is implemented in the \libos{}.
 %yet applications require common Unix abstractions such as file handle inheritance and copy-on-write fork.
-Forking a process involves cloning the state of running application and migrating all the resource handles inside \thelibos{}, such as file descriptors, to the new \picoproc{}.
-\graphene{} drops the assumption that each of its hosts is capable of sharing physical pages between multiple applications or processes.
+Forking a process involves cloning the state of running application and migrating all the resource handles inside \thelibos{}, such as file descriptors, to the new process.
+\graphene{} drops the assumption that each of its hosts can share physical pages between multiple applications or processes.
 Since \thelibos{} cannot enable copy-on-write sharing between \picoprocs{}, \thelibos{} needs an elaborate but efficient scheme for emulating the UNIX-style forking.
 
 
@@ -65,7 +65,7 @@ Since \thelibos{} cannot enable copy-on-write sharing between \picoprocs{}, \the
 Without host support of copy-on-write sharing,
 \thelibos{} emulates \syscall{fork} by checkpointing and migrating the process states.
 When an application forks a process,
-the current \thelibos{} instance holds a list of process resources that must be cloned for the new process.
+the current \thelibos{} instance holds a list of process resources to copy to the new process.
 By checkpointing the process states,
 \thelibos{} creates a snapshot of the current process,
 which is expected to the initial state
@@ -75,11 +75,11 @@ except a few minor changes.
 A process snapshot includes all allocated resources, such as VMA and file handles,
 and miscellaneous process states, such as signal handlers.
 After checkpointing,
-\thelibos{} calls \palcall{ProcessCreate} to create a new \picoproc{} in the host, and then migrates the process snapshot over the process handle as a RPC stream. %so that the state of the forking process is faithfully migrated to a new \thelibos{} instance.
+\thelibos{} calls \palcall{ProcessCreate} to create a new \picoproc{} in the host, and then migrates the process snapshot over the process handle as an RPC stream. %so that the state of the forking process is faithfully migrated to a new \thelibos{} instance.
 
 
 To fully emulate \syscall{fork}, \thelibos{} implements
-a checkpoint and migration scheme
+a checkpointing and migration scheme
 for duplicating the resource handles and application states between \picoprocs{}.
 For each type of resources, \thelibos{} defines a function for decomposing a resource handle in a migratable form,
 and a function for reconstructing the resource handle inside another \picoproc{}.
@@ -97,7 +97,7 @@ Finally, \thelibos{} checkpoints the current thread handle, but modifies the han
 
 
 
-The checkpoint and migration scheme of \thelibos{} is comparable to
+The checkpointing and migration scheme of \thelibos{} is comparable to
 VM migration by a hypervisor.
 When migrating a VM, a hypervisor has to copy the VM's guest physical memory to another host machine.
 A useful feature of a hypervisor is to migrate a live VM,
@@ -112,13 +112,13 @@ of a \picoproc{}
 %locks each handle when copying it to the heap or over a RPC stream
 %\graphene{} chooses not to copy the whole virtual address space 
 for three primary reasons.
-First, a checkpoint scheme that snapshots the whole \picoproc{}
+First, a checkpointing scheme that snapshots the whole \picoproc{}
 cannot differentiate temporary and permanent states inside a \libos{}.
 To improve I/O performance, \thelibos{} tends to reserve %a significant amount of
 virtual memory for caching and buffering, and \thelibos{} can reduce migration time by skipping temporary states such as directory cache entries and I/O buffers.
 Second, by checkpointing handles individually,
 \thelibos{} overwrites each handle and sanitizes sensitive states before sending the snapshot out to another \picoproc{}.
-Finally, \thehostabi{} does not export any functionality for tracing
+Finally, \thehostabi{} does not export any functionality for tracking
 the dirty pages during live migration,
 because the low-level hardware support needed
 is not available on a more restricted hardware like Intel \sgx{}.
@@ -165,7 +165,7 @@ For all the reasons above,
 
 
 
-Migrating process states over a RPC stream adds a significant overhead to the latency of \syscall{fork} in \thelibos{}.
+Migrating process states over an RPC stream adds a significant overhead to the latency of \syscall{fork} in \thelibos{}.
 To reduce the overhead, \graphene{} introduces a {\bf bulk IPC} mechanism in \thehostabi{}, to send large chunks of memory across \picoprocs{}. 
 Using the bulk IPC mechanism, 
 %Using our bulk IPC mechanism,
@@ -300,7 +300,7 @@ Although \palcall{ProcessCreate} achieves the goal of creating a clean process w
 \syscall{execve} further specifies that the child must inherit the parent's credentials and file descriptors, except file descriptors opened with a \code{CLOEXEC} flag.
 \thelibos{} uses the same checkpoint and migration scheme in \syscall{fork} to selectively migrate handles and \libos{} states in \syscall{execve}.
 The states migrated in \syscall{execve}
-include the caller's thread handle, all the non-\code{CLOEXEC} file handles, program arguments and environment variables given by the application, and global OS states that are shared across \thelibos{} instances
+include the caller's thread handle, all the non-\code{CLOEXEC} file handles, program arguments and environment variables given by the application, and global OS states shared across \thelibos{} instances
 (e.g., namespace information).
 
 

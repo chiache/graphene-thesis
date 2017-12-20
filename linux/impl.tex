@@ -2,12 +2,12 @@
 \label{sec:linux:impl}
 
 \issuedone{1.1.a}{Extend the technical sections}
-The initial design of the Linux PAL is based on an unmodified Linux kernel.
-By default, a \graphene{} \picoproc{} should run upon
+The Linux PAL uses an unmodified Linux kernel as the host OS.
+By default, a \graphene{} \picoproc{} should run on
 an off-the-shelf Linux kernel as an unprivileged, normal process, with a PAL loaded for exporting \thehostabi{}.
 The Linux PAL demonstrates a minimal effort of implementing \thehostabi{}
 on a single host, considering Linux is rich with APIs for programming all sorts of applications.
-Only two \graphene{} components on the host requires extension or modification of the Linux kernel: a bulk IPC kernel module and a trusted reference monitor.
+Only two host-level components require extension or modification of the Linux kernel: a bulk IPC kernel module and a trusted reference monitor.
 
 
 
@@ -19,7 +19,7 @@ The most complex \hostapis{} on a Linux host are for exception handling, synchro
 For example, process creation (i.e., \palcall{ProcessCreate}) requires 
 both the \syscall{vfork} and \syscall{execve} system calls
 for creating a clean
-application instance, and would be more efficiently
+application instance and would be more efficiently
 implemented inside the Linux kernel.
 Finally, the other major PAL components are an ELF loader (2 kLoC),
 Linux kernel and PAL headers (800 LoC),
@@ -52,10 +52,11 @@ For example, a follow-up experiment of developing a FreeBSD PAL finds most of th
 \hline
 {\bf Component} & {\bf Lines} & ({\bf \% Changed})\\
 \hline
-GNU Library C ({\tt libc}, {\tt ld}, {\tt libdl}, {\tt libpthread}) & \libclines{} & $0.07\%$ \\
+GNU Library C ({\tt libc}, {\tt ld}, {\tt libdl}, {\tt libpthread}) & \libclines{} & $0.03\%$ \\
 \hline
-Linux Library OS (\thelibos{}) & 31,112 & \\
-Linux PAL & 12,529 & \\
+Linux Library OS (\thelibos{}) & 33,833 & \\
+Linux PAL & 12,640 & \\
+SGX PAL (described in Chapter~\ref{chap:sgx}) & 28,166 & \\
 %Extra code for Linux \sgx{} host \pal{} & 9.354 & \\
 % updated by Chia-Che on Oct. 10, 2013
 \hline
@@ -99,8 +100,8 @@ Linux kernel IPC module ({\tt /dev/gipc}) & \gipclines{} & \\
 
 The rest of this section
 will discuss a few PAL ABI abstractions that are particularly challenging on a Linux host.
-Similar challenges have been presented %have been observed for implementing \thehostabi{}
-on other alternative host kernels such as FreeBSD, \osx{}, and \win{}.
+Similar challenges exist %have been observed for implementing \thehostabi{}
+on other host OSes such as FreeBSD, \osx{}, and \win{}.
 %except that other kernels might introduce additional host-specific challenges.
 
 
@@ -129,9 +130,11 @@ but a later version switches to UNIX domain sockets.
 Although both pipes and UNIX domain sockets are viable options,
 different performance patterns are expected on these two Linux abstractions.
 The general expectation is that a pipe has much lower latency for sending small messages, whereas a UNIX domain socket has much higher throughput for sending large payloads.
+
+
 According to a micro-benchmark result of \lmbench{}, on Linux 4.10 kernel,
 the latencies of sending one byte over a pipe and a UNIX domain socket are \roughly{}2.2 \us{} and \roughly{}3.5--4.5 \us{}, respectively.
-As for throughput, when sending a 10MB buffer, the bandwidth of a UNIX domain socket can reach \roughly{}12 GB/s, whereas the bandwidth of a pipe is only \roughly{}5 GB/s (for reference, the bandwidth of a loopback network socket is \roughly{}7.5 GB/s), at less than half of the transfer rate of a UNIX domain socket.
+As for throughput, when sending a 10MB buffer, the bandwidth of a UNIX domain socket can reach \roughly{}12 GB/s, whereas the bandwidth of a pipe is only \roughly{}5 GB/s (for reference, the bandwidth of a loopback network socket is \roughly{}7.5 GB/s) at less than half of the transfer rate of a UNIX domain socket.
 Based on the performance patterns described above, the latest design of the Linux PAL chooses UNIX domain socket
 for prioritizing the RPC throughput of sending large messages, particularly for migrating a snapshot of a forking process.
 
@@ -198,21 +201,21 @@ or just kill the \picoproc{} when a double fault happens.
 
 
 \paragraph{Process creation.}
-Because the Linux PAL is designed as a runtime loader,
-a new, clean \picoproc{} can simply be created by calling \syscall{vfork} and \syscall{execve} with the Linux PAL as the executable.
-Within an application instance, the procedures for launching the first \picoproc{} and the consecutive ones
+On the Linux PAL,
+a new, clean process can simply be created by calling \syscall{vfork} and \syscall{execve} with the Linux PAL as the executable.
+Within an application instance, the procedures for launching the first process and the consecutive ones
 are mostly identical,
-except a consecutive \picoproc{} is launched with a heritage of a global PAL data structure (containing a \graphene{} instance ID and a UNIX domain socket prefix), a broadcast stream,
+except a consecutive process is launched with a heritage of a global PAL data structure (containing a \graphene{} instance ID and a UNIX domain socket prefix), a broadcast stream,
 and an unnamed UNIX domain socket as a RPC stream to its parent.
-The Linux PAL keeps the other stream handles private to a \picoproc{}
+The Linux PAL keeps the other stream handles private to a process
 by marking the underlying file descriptors
 as \code{CLOEXEC} (close upon \syscall{execve}).
-No page needs to be shared among \picoprocs{}.
+No page needs to be shared among processes.
 
 
 A key challenge to implementing process creation in the Linux PAL
 is to reduce the overhead
-of initializing a new \picoproc{}.
+of initializing a new process.
 The elapsed time of process creation---from an existing \thelibos{} instance calling \palcall{ProcessCreate} to a new \thelibos{} instance starting to initialize---contributes a major part of the \syscall{fork} latency overhead
 in \graphene{}.
 There were several attempts of optimizing the process creation mechanism
@@ -220,10 +223,10 @@ in the Linux PAL.
 The current design leverages \syscall{vfork} and \syscall{execve},
 but caches the result of relocating symbols in the Linux PAL loader to reduce consecutive \picoproc{} initialization time.
 A previous design
-uses \syscall{fork} to snapshot a \picoproc{} with a fully-initialized PAL,
-and create \picoprocs{} ahead of time.
+uses \syscall{fork} to snapshot a process with a fully-initialized PAL,
+and create processes ahead of time.
 The preforking design shows higher latency than the current design
-due to the IPC overhead for coordinating preforked \picoprocs{}.
+due to the IPC overhead for coordinating preforked processes.
 
 
 

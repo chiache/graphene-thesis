@@ -129,7 +129,7 @@ The trusted manifest includes secure hashes of all binaries dynamically loaded a
 This strategy does require
 trust in the \graphenesgx{}, in-enclave boot-loading and shielding code to correctly verify and load binaries
 according to the manifest and reject any errant binaries offered by the OS.  This is no worse than the level trust
-placed in Haven's dynamic loader, but differentiates applications or even instances of the same application with different libraries.
+placed in Haven's dynamic loader but differentiates applications or even instances of the same application with different libraries.
 
 
 %enforces a {\em white-list} policy for dynamic loading---only libraries that have a matching checksum in the manifest can be loaded into the enclave.
@@ -173,14 +173,14 @@ placed in Haven's dynamic loader, but differentiates applications or even instan
 \paragraph{Memory permissions.} %\fixmedp{please check}
 By default, the Linux linker format (ELF) often places
 code and linking data (e.g., jump targets) in the same page.
-It is common for a library to temporarily mark an executable pages as writable
+It is common for a library to temporarily mark an executable page as writable
 during linking, and then protect the page to be execute-only.
 This behavior is ubiquitous in current Linux shared libraries, but could be changed at compile time to pad
 writable sections onto separate pages.
 
 The challenge on version 1 of \sgx{} is that an application cannot revoke page
 permissions after the enclave starts.
-In order to support this ELF behavior, we currently map all enclave pages
+To support this ELF behavior, we currently map all enclave pages
 as readable, writable, and executable.
 This can lead to some security risks, such as code injection attacks in the enclave.
 In a few cases, this can also harm functionality; for instance, some Java VM implementations
@@ -200,9 +200,9 @@ which \graphenesgx{} will adopt in the future. % versions of \graphenesgx{}.
 %maintain the uniqueness of any IDs.
 
 \paragraph{Position-dependent executables.}
-\sgx{} requires that all enclave sizes be a power-of-two,
+\sgx{} requires that all enclave sizes be a power-of-two
 and that the enclave starts at a virtual address aligned to the enclave size.
-Most Ubuntu Linux executables are compiled to be position-dependent, and typically 
+Most Ubuntu Linux executables are compiled to be position-dependent and typically 
 start at address 
 {\tt 0x400000}.  The challenge is that, to create an enclave  that includes this address and is larger than 4MB, the enclave
 will necessarily need to include address zero.
@@ -239,17 +239,17 @@ undermining the integrity of the enclave.
 \paragraph{Relocation and resolution.}
 Dynamic linking is not exactly a deterministic process. The loading order of user libraries
 may lead to different symbol resolution results.
-Some ELF binaries contains run-time linking functions (i.e., {\tt IFUNC} functions), which can dynamically determine
+Some ELF binaries contain run-time linking functions (i.e., {\tt IFUNC} functions), which can dynamically determine
 the target of symbols.
 ASLR (address space layout randomization),
 a feature implemented by \thelibos{},
-changes the base address of an relocatable binary
+changes the base address of a relocatable binary
 in each execution.
 All these factors may affect the eventual result of dynamic loading to be different from what users or developers have expected.
 
 
 \graphenesgx{} puts the trust in \thelibos{} and \glibc{} loader (\code{ld.so}) to ensure
-the integrity of dynamic linking process.
+the integrity of the dynamic linking process.
 The shielding code
 verifies any inputs from the untrusted OS,
 including
@@ -361,7 +361,7 @@ either pure optimizations (e.g., bulk IPC), or APIs for a different threat model
 The evolution of the POSIX API and Linux system call table
 were not driven by a model of mutual distrust, and retrofitting
 protection onto this interface is challenging.
-Checkoway and Shachman~\cite{checkoway13iago} demonstrate 
+Checkoway and Shacham~\cite{checkoway13iago} demonstrate 
 the subtlety of detecting semantic attacks via the Linux system calls,
 called Iago attacks.
 Projects such as Sego~\cite{kwon2016sego} go to significant lengths, including

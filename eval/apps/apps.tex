@@ -213,7 +213,7 @@ which issues 25, 50, and 100 concurrent requests
 to download a 100 byte file 50,000 times.
 
 The experiment exercised \busy{} with 
-300 iterations of the Unixbench benchmark~\citep{unixbench}, as the experimentll as 
+300 iterations of the Unixbench benchmark~\citep{unixbench}, as well as 
 300 iterations of a simple shell script benchmark that runs 6 common shell script commands
 ({\tt cp}, {\tt rm}, {\tt ls}, {\tt cat}, {\tt date}, and {\tt echo}).
 
@@ -259,7 +259,7 @@ except for \lighttpd{}, which only creates multiple threads.
 Each data point is the average of at least six runs, 
 and 95\% confidence intervals are listed in the table.
 
-The experiment exercise  {\tt \gcc{}}/{\tt make}
+We exercise  {\tt \gcc{}}/{\tt make}
 with inputs of varying sizes:
 %the pbzip2 compression utility (v1.1.6, 4 KLoC),
 %the ogg sound encoder (v1.0.1, 5 KLoC),
@@ -272,7 +272,7 @@ The experiment benchmark Apache (4 preforked workers) and \lighttpd{} (4 threads
 which issues 25, 50, and 100 concurrent requests
 to download a 100 byte file 50,000 times.
 
-The experiment exercised \busy{} with 
+We exercised \busy{} with 
 300 iterations of the Unixbench benchmark~\cite{unixbench}, as the experimentll as 
 300 iterations of a simple shell script benchmark that runs 6 common shell script commands
 ({\tt cp}, {\tt rm}, {\tt ls}, {\tt cat}, {\tt date}, and {\tt echo}).
@@ -314,15 +314,15 @@ to bridged networking.
 This section measures three widely-used servers, including {\bf Lighttpd}~\cite{lighttpd} (v1.4.35), {\bf Apache}~\cite{apache} (v2.4.18), and {\bf NGINX}~\cite{nginx} (v1.10).
 %, to evaluate the performance of server-type workloads in \graphenesgx{}.
 %These applications are all sophisticated, non-trivial workloads, and are constantly being used for commercial purposes.
-%The experiment test these applications to evaluating significantly different execution patterns, to benchmark the performance of \graphenesgx{} under each circumstances.
+%We test these applications to evaluating significantly different execution patterns, to benchmark the performance of \graphenesgx{} under each circumstances.
 %Also, we do not explicitly configure these servers to secure their payloads using the HTTPS protocol.\fixme{if have time, maybe try again with HTTPS}
 For each workload, the experiment uses ApacheBench~\cite{apachebench} to download static pages on a separate host.
 %\edit{over Gigabit LAN}. %\fixmedp{more specific?}
 %across a high-speed \fixmedp{Can you say
 %more specifically the specs, like 10 GBps or whatever; also, if this is the same vlan, I might just describe this as being on a LAN, minimizing interference} University network.
-The concurrency of ApacheBench is gradually increased during the experiment, to test the both the per-request latency and the overall throughput of the server.
+The concurrency of ApacheBench is gradually increased during the experiment, to test both the per-request latency and overall throughput of the server.
 Figure~\ref{fig:server-throughput-latency} shows the throughput versus latency of these server applications
-in \graphenesgx{}, \graphene{} and Linux. 
+in \graphenesgx{}, \graphene{}, and Linux. 
 The paragraphs below discuss each workload individually.
 
 
@@ -359,9 +359,9 @@ The paragraphs below discuss each workload individually.
 \vspace{6pt}
 \end{minipage}
 
-\caption{Throughput versus latency of the experimentb server workloads, including Lighttpd, Apache, and NGINX, on native Linux, \graphene{}, and \graphenesgx{}.
-The experiment use an ApacheBench client to gradually increase load, and plot
-throughput versus latency at each point.  Lothe experimentr and further right
+\caption{Throughput versus latency of web server workloads, including Lighttpd, Apache, and NGINX, on native Linux, \graphene{}, and \graphenesgx{}.
+The experiment uses an ApacheBench client to gradually increase load, and plot
+throughput versus latency at each point.  Lower and further right
 is better.
 %\fixmedp{RB: Add another sentence or two to explain what the experiment is and how to interpret} }
 }
@@ -390,7 +390,6 @@ the remaining overheads are attributable to SGX---either hardware or our OS shie
 
 
 {\bf Apache}~\cite{apache} is one of the most popular production servers. The experiment tests Apache using 5 preforked worker processes to service HTTP requests,
-in order to 
 to evaluate the efficiency of \graphenesgx{} across enclaves.
 %n server, 
 %In the experiment, the Apache server creates 5 preforked processes which coordinate on processing HTTP requests.
@@ -405,7 +404,7 @@ has only 2--8\% overhead compared to Linux.
 
 %\fixmedp{Check the lightttp graph; the lines are right on top of each other, and dont' look 22\% apart to me.  Some of this may be the scale of the y axis}
 
-{\bf NGINX}~\cite{nginx} is a relatively new the experimentb server designed for high programmability, for as a building block to implement different services.
+{\bf NGINX}~\cite{nginx} is a relatively new web server designed for high programmability, for as a building block to implement different services.
 Unlike the other two web servers, NGINX is event-driven and mostly configured as single-threaded.
 %When running as a simple HTTP server, NGINX uses an event-driven model instead of multi-threading/multi-processing to handle incoming requests.
 \graphenesgx{} currently only supports synchronous I/O at the enclave boundary,
@@ -415,13 +414,11 @@ as other systems that have batched and asynchronous system calls.
 %\graphenesgx{}, and, 
 Once sufficiently loaded, NGINX on both \graphene{} and \graphenesgx{} 
 performs worse than in a  Linux process. % once sufficiently loaded.
-%The experiment observes that both \graphene{} and \graphenesgx{} tend to perform poorly in an event-driven server.
+%The results show that both \graphene{} and \graphenesgx{} tend to perform poorly in an event-driven server.
 The peak throughput of \graphenesgx{} is 1.5\x{} lower than Linux;
 without SGX, Graphene only reaches 79\% of Linux's peak throughput.
 %\fixmedp{Maybe shout out to eleos, or cite other work}
-The experiment expect that using tools like Eleos~\cite{orenbach17eleos} to reduce exits
-would help this workload; in future work, the experiment will improve
-asynchronous I/O in \graphenesgx{}.
+Using tools like Eleos~\cite{orenbach17eleos} to reduce enclave exits would help this workload and the integration remains as future work.
 
 %\graphenesgx{} causes 17--90\% more response time when the server is not overloaded,
 %but up to 1.5\x{} at the peak throughput.
@@ -438,23 +435,23 @@ asynchronous I/O in \graphenesgx{}.
 
 This section evaluates the performance of a few commonly-used command-line applications.
 %, to evaluate the performance of \graphenesgx{} on PCs instead of servers and clouds.
-Three off-the-shelf applications are tested in our experiments:
+Three off-the-shelf applications are tested in the experiment:
 {\bf R} (v3.2.3) for statistical computing~\cite{r-project}; {\bf GCC} (v5.4), the general GNU C compiler~\cite{gcc}; {\bf CURL} (v7.74), the default command-line web client on UNIX~\cite{curl}.
 These applications are chosen because they are frequently used by Linux users,
-and each of them potentially  be used 
+and each of them potentially can be used 
 in an enclave to handle sensitive data---either on a server or a client
 machine.
 % can realize profitable scenarios of using enclaves on desktop machines.
 
 
 
-The experiments measure the latency or execution time of these applications. 
+The experiment measures the latency or execution time of these applications. 
 %, because desktop users tend to care more about responsiveness than throughput.
-In our experiments, both R and CURL have internal timing features to measure the wall time
+In the experiment, both R and CURL have internal timing features to measure the wall time
 of individual operations or executions.
 %However, for other applications like GCC which does not include internal timing, evaluating the execution time can be influenced by many factors.
 On a Linux host, the time to start a library OS is higher than a simple 
-process, but significantly lower than booting a guest OS in a VM or
+process but significantly lower than booting a guest OS in a VM or
 starting a container. 
 Prior work measured Graphene (non-SGX) start time at 641 $\mu$s~\cite{tsai14graphene}, whereas starting an empty Linux VM takes 10.3s and starting a Linux (LXC) container takes 200 ms~\cite{agarwal15container}. 
 %% dp; Note that this is MILLI seconds, not micro seconds.
@@ -490,8 +487,8 @@ the enclave creation contributes a significant portion to the execution time ove
 data processing and statistical computation.
 With enclaves, users can process sensitive data on an
 OS they don't trust.
-The experiment used an R benchmark suite developed by Urbanek et al.~\cite{r-benchmark-25}, which includes 15 CPU-bound workloads such as matrix computation and number processing.
-\graphenesgx{} slows down by less than 100\% on the majority of the workloads, excepts the ones which involve allocation and garbage collection: ({\tt matrix1} creates and destroys matrices, and both {\tt FFT} and {\tt hilbert} involve heavy garbage collection.)
+The experiment uses an R benchmark suite developed by Urbanek et al.~\cite{r-benchmark-25}, which includes 15 CPU-bound workloads such as matrix computation and number processing.
+\graphenesgx{} slows down by less than 100\% on the majority of the workloads, excepts the ones which involve allocation and garbage collection: ({\tt Matrix1} creates and destroys matrices, and both {\tt FFT} and {\tt Hilbert} involve heavy garbage collection.)
 Aside from garbage collection, these R benchmarks do not frequently interact with the host.
 We further note that non-SGX \graphene{} is as efficient as Linux on all workloads, 
 and these overheads appear to be SGX-specific.
@@ -531,7 +528,7 @@ By supporting GCC in enclaves, developers can compile closed-source applications
 without leaking the source code.
 GCC composes of multiple binaries, including {\tt cc1} (compiler), {\tt as} (assembler), and {\tt ld} (linker).
 Therefore, GCC is a multi-process program using \syscall{execve}.
-The experiment tests the compilation of thee source files with varied sizes,
+The experiment tests the compilation of the source files with varied sizes,
 using single C source files collected by MIT~\cite{gcc-benchmark}.
 Each GCC execution typically \fixme{it's five, not four} creates five processes, and the experiment runs each process in a 256MB enclave by default.
 %and has a fixed cost on enclave creation, which is unrelated to workload and depends on the enclave size.

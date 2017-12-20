@@ -8,13 +8,13 @@ full-featured \libos{}.
 \Thehostabi{} separates the development of a host OS or hypervisor
 from the complexity of emulating a sufficiently-compatible
 Linux kernel.
-The chapter shows that most calls in \thehostabi{}
-can be directly translated to similar system calls on a Linux host kernel.
+The Linux PAL translates most of \thehostabi{}
+to similar Linux system calls.
 Only a few \hostapis{}, such as process creation and inter-thread synchronization, require additional attention for developing an efficient implementation strategy.
 
 
 
-The Linux PAL also enforces robust security isolation
+The Linux PAL also enforces security isolation
 between mutually-untrusting applications,
 by placing applications in separate, VM-like sandboxes.
 The security isolation on a Linux host is based on system call restriction using a \seccomp{} filter, and a trusted reference monitor. % for checking resource access.

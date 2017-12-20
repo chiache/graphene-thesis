@@ -18,7 +18,7 @@ in \graphene{}.
 %leading to a 1--3\x{} slower latency than native.
 As the worst example of process creation,
 \syscall{fork}+\syscall{exit} is 4.4\x{} slower on the Linux PAL, or 6,357\x{} from an enclave (\roughly{}1.2\asec{})
-Profiling indicates that about one sixth of this overhead is in process creation, which 
+Profiling indicates that about one-sixth of this overhead is in process creation, which 
 takes additional work to create a clean \picoproc{} on Linux; we expect this overhead could be reduced
 with a kernel-level implementation of the process creation ABI, rather than emulating this behavior on \syscall{clone}.
 Another half of the overhead comes from the
@@ -32,7 +32,7 @@ A more competitive \syscall{fork} will require host support and additional tunin
 
 \fixme{talk about a limitation of improving fork. check this.}
 One way to further optimize \syscall{fork} is to reduce or avoid enclave creation time; one can potentially pre-launch a child enclave, and then migrate the process contents later when \syscall{fork} is called.
-There might be another opportunity to improve the latency of process migration,
+There might be another opportunity to improve the latency of process migration
 if copy-on-write sharing of enclave pages can be supported in future generations of \sgx{}.
 %Unfortunately, sending the process contents is difficult to avoid in \syscall{fork},
 %as \sgx{} disallows sharing enclave memory between multiple enclaves.
@@ -52,18 +52,18 @@ if copy-on-write sharing of enclave pages can be supported in future generations
 
 
 
-Figure~\ref{fig:eval:sgx-fork}(c) shows the overhead of forking a process.
-As described in Section~\ref{sec:sgx:shield:multiproc}, the latency of \syscall{fork} in \graphenesgx{} is affected by three factors:
-creation of a new enclave, local attestation of the integrity, and duplicating the process state over an encrypted RPC stream.
-Combining these factors, \syscall{fork} is one of the most expensive calls in \graphenesgx{}.
-%, but at least it is supported natively on the current hardware.
-The default enclave size is 256MB.
-%which takes \roughly{}0.5s to create. 
-Our evaluation shows that the latency of forking a process is around 0.8s (16MB process) to 2.7s (128MB process), but can be more expensive if the parent process uses more memory.
-The trend matches the performance of \graphene{} without the bulk IPC optimization.
-\fixmedp{If you want, some thoughts on how this might be improved in the future would be nice...  One good suggestion is recycling enclaves, or pre-forking so measurements can be done in parallel}
-%Due to the overhead on \funcname{fork}, \graphenesgx{} is not suitable for fork-intensive workloads like Bash scripts
-%if performance is critical.
+%Figure~\ref{fig:eval:sgx-fork}(c) shows the overhead of forking a process.
+%As described in Section~\ref{sec:sgx:shield:multiproc}, the latency of \syscall{fork} in \graphenesgx{} is affected by three factors:
+%creation of a new enclave, local attestation of the integrity, and duplicating the process state over an encrypted RPC stream.
+%Combining these factors, \syscall{fork} is one of the most expensive calls in \graphenesgx{}.
+%%, but at least it is supported natively on the current hardware.
+%The default enclave size is 256MB.
+%%which takes \roughly{}0.5s to create. 
+%Our evaluation shows that the latency of forking a process is around 0.8s (16MB process) to 2.7s (128MB process), but can be more expensive if the parent process uses more memory.
+%The trend matches the performance of \graphene{} without the bulk IPC optimization.
+%\fixmedp{If you want, some thoughts on how this might be improved in the future would be nice...  One good suggestion is recycling enclaves, or pre-forking so measurements can be done in parallel}
+%%Due to the overhead on \funcname{fork}, \graphenesgx{} is not suitable for fork-intensive workloads like Bash scripts
+%%if performance is critical.
 
 
 %\begin{figure*}[t!]

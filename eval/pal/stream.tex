@@ -53,7 +53,7 @@ adding up to 21--31\%.
 %is also correlated with the path lengths for checking.
 Figure~\ref{fig:eval:pal:open-latency}(a)
 also shows a correlation
-between file open latency and path lengths,
+between file opening latency and path lengths,
 since both searching file records and checking against reference policies
 requires path comparison.
 
@@ -220,7 +220,7 @@ the \hostapis{} for reading and writing a file
 have similar latency as the underlying \syscall{read} and \syscall{write} system calls (see Figure~\ref{fig:eval:pal:read-write-latency}).
 The impact of \seccomp{} filter and reference monitoring
 on reads and writes
-are nearly negligible, specially since
+are nearly negligible, especially since
 the reference monitor does not check each read and write operations.
 
 %Figure~\ref{fig:eval:pal:read-write-latency} (a) and (b) compare the latency of sequential reads and writes 
@@ -312,14 +312,14 @@ as measuring the latency of sending a single-byte message,
 %compared with the underlying host network and UNIX domain sockets,
 are \roughly{}18\%, \roughly{}30\%,
 and nearly 0\%, respectively, compared to the underlying host abstractions.
-There overheads are likely to be less significant
-with larger workloads,
-since the the translation
+The overheads are likely to be less significant
+with larger workloads
+since the translation
 between \thehostabi{} and host system calls
 tends to be a fixed cost.
 As shown in Figure~\ref{fig:eval:pal:network-latency-bandwidth} (b) and Figure~\ref{fig:eval:pal:pipe-latency-bandwidth} (b),
 the bandwidth for sending large messages
-over a TCP socket and a RPC stream suffer less than 5\% overheads on the Linux PAL.
+over a TCP socket and an RPC stream suffer less than 5\% overheads on the Linux PAL.
 
 
 For \sgx{}, reading or writing on a network or RPC stream
@@ -327,7 +327,7 @@ suffers similar overheads as file reads and writes,
 due to the same requirement of enclave exits and memory copies.
 %copy data inside or outside of the enclave.
 For TCP, UDP, and RPC streams,
-th benchmark results show overheads up to 167\%,
+the benchmark results show overheads up to 167\%,
 for simply exiting enclaves
 and invoking host Linux system calls.
 To improve the performance, one can adopt an exit-less, asynchronous enclave interface
